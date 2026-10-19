@@ -4,7 +4,8 @@ assignee: null
 claimed_at: null
 claimed_by_run: null
 created: '2026-10-19'
-depends_on: []
+depends_on:
+- US-RR-37-9
 id: US-RR-37-3
 points: null
 status: todo
