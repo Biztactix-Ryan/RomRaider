@@ -9,7 +9,7 @@ depends_on:
 - US-RR-2-8
 id: US-RR-2-1
 points: 3
-status: review
+status: done
 story_id: US-RR-2
 tags: []
 title: 'Test: A PR with a rustfmt violation, a clippy warning, or a failing test is

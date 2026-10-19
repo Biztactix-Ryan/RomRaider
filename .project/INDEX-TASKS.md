@@ -86,10 +86,10 @@
 | [US-RR-19-7](tasks/US-RR-19-7.md) | Define Encoding types and parse from definition strings | ⚪ todo | 3 |  | — | — | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-8](tasks/US-RR-19-8.md) | Implement integer codecs incl U20/U24/I24/I64 | ⚪ todo | 3 |  | — | US-RR-19-7 | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-9](tasks/US-RR-19-9.md) | Implement float codecs with NaN/Inf/denormal flags | ⚪ todo | 2 |  | — | US-RR-19-7 | [US-RR-19](stories/US-RR-19.md) |
-| [US-RR-2-1](tasks/US-RR-2-1.md) | Test: A PR with a rustfmt violation, a clippy warning, or a failing test is blocked on every matrix target | 🔍 review | 3 |  | — | US-RR-2-5, US-RR-2-8 | [US-RR-2](stories/US-RR-2.md) |
+| [US-RR-2-1](tasks/US-RR-2-1.md) | Test: A PR with a rustfmt violation, a clippy warning, or a failing test is blocked on every matrix target | ✅ done | 3 |  | — | US-RR-2-5, US-RR-2-8 | [US-RR-2](stories/US-RR-2.md) |
 | [US-RR-2-2](tasks/US-RR-2-2.md) | Test: cargo-deny fails the build for a dependency with a GPL-incompatible licence or an open RUSTSEC advisory (demons... | ✅ done | 2 |  | claude | US-RR-2-6 | [US-RR-2](stories/US-RR-2.md) |
 | [US-RR-2-3](tasks/US-RR-2-3.md) | Test: A PR that leaves pending insta snapshots fails CI | ✅ done | 2 |  | claude | US-RR-2-7 | [US-RR-2](stories/US-RR-2.md) |
-| [US-RR-2-4](tasks/US-RR-2-4.md) | Test: The i686-pc-windows-msvc target builds and runs the test suite | 🔍 review | 2 |  | — | US-RR-2-7 | [US-RR-2](stories/US-RR-2.md) |
+| [US-RR-2-4](tasks/US-RR-2-4.md) | Test: The i686-pc-windows-msvc target builds and runs the test suite | ✅ done | 2 |  | — | US-RR-2-7 | [US-RR-2](stories/US-RR-2.md) |
 | [US-RR-2-5](tasks/US-RR-2-5.md) | Write ci.yml: fmt, clippy -D warnings, nextest matrix | ✅ done | 3 |  | claude | US-RR-1-5 | [US-RR-2](stories/US-RR-2.md) |
 | [US-RR-2-6](tasks/US-RR-2-6.md) | Add cargo-deny configuration | ✅ done | 2 |  | claude | US-RR-1-5 | [US-RR-2](stories/US-RR-2.md) |
 | [US-RR-2-7](tasks/US-RR-2-7.md) | Add insta pending-snapshot check and i686 target setup | ✅ done | 2 |  | claude | US-RR-2-5 | [US-RR-2](stories/US-RR-2.md) |

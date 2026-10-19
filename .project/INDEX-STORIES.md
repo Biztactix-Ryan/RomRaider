@@ -13,7 +13,7 @@
 | [US-RR-17](stories/US-RR-17.md) | Diagnostic and Provenance (C15) | 📋 backlog | must | 3 | m0, core, concepts | [EPIC-RR-3](epics/EPIC-RR-3.md) | 3 | 6 |
 | [US-RR-18](stories/US-RR-18.md) | Clock: RealClock and VirtualClock (C9) | 🏃 active | must | 3 | m0, core, concepts, timing | [EPIC-RR-3](epics/EPIC-RR-3.md) | 4 | 7 |
 | [US-RR-19](stories/US-RR-19.md) | Encoding (C3): one codec for every storage type | 📋 backlog | must | 8 | m0, core, concepts, safety | [EPIC-RR-3](epics/EPIC-RR-3.md) | 6 | 12 |
-| [US-RR-2](stories/US-RR-2.md) | CI gates: fmt, clippy, nextest matrix, cargo-deny | 🏃 active | must | 5 | m0, ci, testing | [EPIC-RR-1](epics/EPIC-RR-1.md) | 4 | 8 |
+| [US-RR-2](stories/US-RR-2.md) | CI gates: fmt, clippy, nextest matrix, cargo-deny | ✅ done | must | 5 | m0, ci, testing | [EPIC-RR-1](epics/EPIC-RR-1.md) | 4 | 8 |
 | [US-RR-20](stories/US-RR-20.md) | Expr parser (C4a): JEP-compatible, parsed once | 📋 backlog | must | 8 | m0, core, concepts, safety, security | [EPIC-RR-3](epics/EPIC-RR-3.md) | 5 | 10 |
 | [US-RR-21](stories/US-RR-21.md) | Units registry (C5) | 📋 backlog | must | 3 | m1, core, concepts | [EPIC-RR-3](epics/EPIC-RR-3.md) | 3 | 5 |
 | [US-RR-22](stories/US-RR-22.md) | Layered + Resolver (C1): one inheritance engine | 📋 backlog | must | 8 | m0, core, concepts, safety | [EPIC-RR-3](epics/EPIC-RR-3.md) | 6 | 12 |

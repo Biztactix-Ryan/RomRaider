@@ -13,7 +13,7 @@ epic_id: EPIC-RR-1
 id: US-RR-2
 points: 5
 priority: must
-status: active
+status: done
 tags:
 - m0
 - ci
