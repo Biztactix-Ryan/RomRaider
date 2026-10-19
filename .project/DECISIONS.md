@@ -19,7 +19,8 @@ Newest first. Each entry has a Title, Date, Status, Context, Decision and Conseq
   - Matching ECU definitions are sourced and pinned the same way (E2 story).
 - **Consequences:**
   - Public CI gets real-world coverage of hundreds of Subaru ROMs on day one, with no private corpus needed.
-  - If the upstream repo disappears, CI degrades to synthetic + KAT fixtures until a mirror is arranged.
+  - A local mirror was taken on 2026-10-19 at `/home/ryan/Repo/romraider-stock-roms/` (`mirror.git` bare mirror, `roms/` checkout, `SHA256SUMS` for all 501 files). A private Biztactix GitHub mirror is TBD (ask: Ryan); CI should fetch from that once it exists, so upstream takedown doesn't matter.
+  - Two images have non-standard sizes (1,048,731 and 1,048,784 bytes: `JDM/Legacy/AE5I410A…` and one other). They may be CRLF-mangled or have trailing bytes. The manifest marks them `suspect`, and the corpus suite must classify them rather than crash.
   - The manifest also catches corrupted files: that repo uses `* text=auto`, so we verify sizes and hashes.
 
 ---
