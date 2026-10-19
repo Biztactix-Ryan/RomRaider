@@ -81,7 +81,7 @@ fn known_answers() -> Vec<(Storage, Endian, [u8; 8], i128)> {
         (I16, BE, POS, 0x1234),
         (I16, LE, POS, 0x3412),
         // MOVI20: (0x81 >> 4) = 8 -> imm20[19:16]; then 0x92, 0xA3.
-        (U20, BE, NEG, 0x8_92A3),
+        (U20, BE, NEG, 0x8_92A3 - 0x10_0000),
         (U20, BE, POS, 0x1_3456),
         (U24, BE, NEG, 0x81_92A3),
         (U24, LE, NEG, 0xA3_9281),
@@ -164,13 +164,15 @@ fn u20_keeps_the_movi20_opcode_nibble() {
     // The low nibble of the first cell byte is opcode, whatever its value.
     for opcode in 0..=0x0F_u8 {
         let mut cell = [0xA0 | opcode, 0xBC, 0xDE];
-        assert_eq!(u20.decode(&cell), Ok(Raw::Int(0xA_BCDE)));
+        assert_eq!(u20.decode(&cell), Ok(Raw::Int(0xA_BCDE - 0x10_0000)));
         u20.encode_into(Raw::Int(0x5_1234), &mut cell).unwrap();
         assert_eq!(cell, [0x50 | opcode, 0x12, 0x34]);
     }
-    assert_eq!(u20.encode(Raw::Int(0xF_FFFF)), Ok(vec![0xF0, 0xFF, 0xFF]));
-    // Bit 19 does not sign-extend (U20_BIT19_SIGN_EXTENDS is false).
-    assert_eq!(u20.decode(&[0x8F, 0, 0]), Ok(Raw::Int(0x8_0000)));
+    assert_eq!(u20.encode(Raw::Int(-1)), Ok(vec![0xF0, 0xFF, 0xFF]));
+    assert_eq!(u20.encode(Raw::Int(0x7_FFFF)), Ok(vec![0x70, 0xFF, 0xFF]));
+    assert!(u20.encode(Raw::Int(0x8_0000)).is_err());
+    // Bit 19 sign-extends (U20_BIT19_SIGN_EXTENDS is true).
+    assert_eq!(u20.decode(&[0x8F, 0, 0]), Ok(Raw::Int(-0x8_0000)));
 }
 
 #[test]
@@ -197,7 +199,11 @@ fn extremes() -> Vec<(Storage, Extreme, Extreme)> {
         (I8, (-0x80, &[0x80]), (0x7F, &[0x7F])),
         (U16, (0, &[0, 0]), (0xFFFF, &[0xFF, 0xFF])),
         (I16, (-0x8000, &[0x80, 0]), (0x7FFF, &[0x7F, 0xFF])),
-        (U20, (0, &[0, 0, 0]), (0xF_FFFF, &[0xF0, 0xFF, 0xFF])),
+        (
+            U20,
+            (-0x8_0000, &[0x80, 0, 0]),
+            (0x7_FFFF, &[0x70, 0xFF, 0xFF]),
+        ),
         (U24, (0, &[0, 0, 0]), (0xFF_FFFF, &[0xFF, 0xFF, 0xFF])),
         (
             I24,

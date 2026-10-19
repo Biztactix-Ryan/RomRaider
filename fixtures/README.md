@@ -89,8 +89,8 @@ Good complete examples in the seed set:
 - [`kat/f32-be.toml`](kat/f32-be.toml): float working (sign, exponent and
   fraction), and a `standard` source for +Inf.
 - [`kat/bitfield-u8.toml`](kat/bitfield-u8.toml): mask and shift.
-- [`kat/u20-movi20.toml`](kat/u20-movi20.toml): the MOVI20 immediate. See
-  [Open questions](#open-questions).
+- [`kat/u20-movi20.toml`](kat/u20-movi20.toml): the MOVI20 immediate, with
+  bit 19 sign-extended (decided in US-RR-19, to match legacy).
 - [`checksum_sum16.toml`](../crates/rr-testkit/tests/data/kat/checksum_sum16.toml):
   a checksum fixture.
 - [`decode_rom_ref.toml`](../crates/rr-testkit/tests/data/kat/decode_rom_ref.toml):
@@ -453,13 +453,6 @@ Every new or changed fixture is reviewed in its PR. The reviewer:
 
 ## Open questions
 
-- **`u20` (MOVI20) bit 19.** The open question is whether a `u20` raw value
-  with bit 19 set is sign-extended (as the SH-2A CPU and the legacy reader do)
-  or read unsigned (as the name `u20` says). This is undecided, and story
-  US-RR-19 will decide it. Until then, `u20` fixtures keep imm20 bit 19 clear
-  (raw at most `0x7FFFF`), as [`kat/u20-movi20.toml`](kat/u20-movi20.toml)
-  does. When the decision is made, add the bit-19 cases to that fixture.
-  Adding cases needs no changelog entry.
 - **`bosch-subtract` layout and checksums.** The format can express both, but
   there are no seed fixtures for them yet, and no checksum algorithm registry
   to check `algorithm` names against. A `bosch-subtract` value depends on

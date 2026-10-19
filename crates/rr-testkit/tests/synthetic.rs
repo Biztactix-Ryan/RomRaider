@@ -485,13 +485,14 @@ fn hand_computed_integer_cells() {
     assert_eq!(raw_texts(&m, "i24-le-extremes"), ["-8388608", "8388607"]);
     // i16 BE specials start 0, 1: 00 00 00 01.
     assert_eq!(bytes_at(&rom, &m, "i16-be-specials", 4), [0, 0, 0, 1]);
-    // u20 extremes, fill 0xFF keeps the opcode nibble: imm20 0 -> 0F 00 00;
-    // imm20 0xFFFFF = 1048575 -> FF FF FF.
+    // u20 extremes (bit 19 sign-extends), fill 0xFF keeps the opcode nibble:
+    // -2^19 = -524288 -> imm20 0x80000 -> 8F 00 00;
+    // 2^19-1 = 524287 -> imm20 0x7FFFF -> 7F FF FF.
     assert_eq!(
         bytes_at(&rom, &m, "u20-be-extremes", 6),
-        [0x0F, 0x00, 0x00, 0xFF, 0xFF, 0xFF]
+        [0x8F, 0x00, 0x00, 0x7F, 0xFF, 0xFF]
     );
-    assert_eq!(raw_texts(&m, "u20-be-extremes"), ["0", "1048575"]);
+    assert_eq!(raw_texts(&m, "u20-be-extremes"), ["-524288", "524287"]);
 }
 
 #[test]

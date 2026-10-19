@@ -91,20 +91,20 @@ use crate::diag::{Code, Diagnostic, Provenance, codes};
 
 /// THE `u20` (`MOVI20`) bit-19 decision point.
 ///
-/// `false`: a `u20` raw value is the 20-bit immediate read **unsigned**
-/// (`0..=0xFFFFF`), as the name says. `true` would sign-extend bit 19, giving
+/// `true`: bit 19 of the 20-bit immediate **sign-extends**, giving
 /// `-0x80000..=0x7FFFF`, as the SH-2A CPU and legacy do (legacy treats
 /// `movi20` as signed: `RomAttributeParser.java:73-81` and `getMovi20`,
-/// `RomAttributeParser.java:181-191`).
+/// `RomAttributeParser.java:181-191`). `false` would read it unsigned
+/// (`0..=0xFFFFF`), as the name `u20` suggests.
 ///
 /// This matches the independent reference codec
-/// (`rr_testkit::reference::U20_BIT19_SIGN_EXTENDS`, also `false`).
+/// (`rr_testkit::reference::U20_BIT19_SIGN_EXTENDS`, also `true`).
 ///
-/// **Pending maintainer sign-off** (US-RR-19; fixtures/README.md "Open
-/// questions"). [`Storage::is_signed`], [`Storage::int_range`] and the raw
-/// ranges ([`Encoding::raw_range`]) follow this constant, so flipping it
-/// changes every `u20` helper at once.
-pub const U20_BIT19_SIGN_EXTENDS: bool = false;
+/// Decided by the maintainer in US-RR-19, to match legacy.
+/// [`Storage::is_signed`], [`Storage::int_range`] and the raw ranges
+/// ([`Encoding::raw_range`]) follow this constant, so flipping it changes
+/// every `u20` helper at once.
+pub const U20_BIT19_SIGN_EXTENDS: bool = true;
 
 /// Storage type of one cell: width, signedness and number kind.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

@@ -29,10 +29,9 @@
 //!   the instruction's second byte; `imm20 = (c0 >> 4) * 65536 + c1 * 256 + c2`
 //!   (legacy `RomAttributeParser.java:137-158,181-191`). The low nibble of `c0`
 //!   is part of the opcode and is preserved on encode. `u20` is big-endian only
-//!   (it is an SH-2A instruction field); little-endian is an error. Whether
-//!   bit 19 sign-extends is **undecided** (US-RR-19); the single decision point
-//!   is [`U20_BIT19_SIGN_EXTENDS`], currently `false` (unsigned, as the name
-//!   says).
+//!   (it is an SH-2A instruction field); little-endian is an error. Bit 19
+//!   sign-extends, as in legacy and on the SH-2A (decided in US-RR-19); the
+//!   single decision point is [`U20_BIT19_SIGN_EXTENDS`].
 //! * **Floats.** `f32` / `f64` are IEEE 754 binary32 / binary64 bit patterns;
 //!   decoding and encoding are bit-exact (NaN payloads, `-0.0` and subnormals
 //!   included).
@@ -73,15 +72,13 @@ use std::fmt;
 
 pub mod synthetic;
 
-/// THE `u20` bit-19 decision point (open question, US-RR-19; fixtures/README.md
-/// "Open questions").
+/// THE `u20` bit-19 decision point (decided in US-RR-19: sign-extend).
 ///
-/// `false`: a `u20` raw value is the 20-bit immediate read unsigned
-/// (`0..=0xFFFFF`), as the name says. `true` would sign-extend bit 19 (as the
-/// SH-2A CPU and legacy's `getMovi20`, `RomAttributeParser.java:181-191`, do),
-/// giving `-0x80000..=0x7FFFF`. Decode, encode and the encode range all follow
-/// this one constant.
-pub const U20_BIT19_SIGN_EXTENDS: bool = false;
+/// `true`: bit 19 of the 20-bit immediate sign-extends, as the SH-2A CPU and
+/// legacy's `getMovi20` (`RomAttributeParser.java:181-191`) do, giving
+/// `-0x80000..=0x7FFFF`. `false` would read it unsigned (`0..=0xFFFFF`).
+/// Decode, encode and the encode range all follow this one constant.
+pub const U20_BIT19_SIGN_EXTENDS: bool = true;
 
 /// Storage types the reference codec understands.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

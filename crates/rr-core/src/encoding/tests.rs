@@ -15,8 +15,8 @@ const EXPECTED: [(Storage, &str, usize, u32, bool, bool, Option<(i128, i128)>); 
         3,
         20,
         false,
-        false,
-        Some((0, 0xF_FFFF)),
+        true,
+        Some((-0x8_0000, 0x7_FFFF)),
     ),
     (
         Storage::U24,
@@ -111,11 +111,11 @@ fn all_lists_every_storage_once_in_table_order() {
 
 #[test]
 fn u20_signedness_is_the_single_decision_point() {
-    // Pending maintainer sign-off; consistent with
-    // rr_testkit::reference::U20_BIT19_SIGN_EXTENDS.
-    const { assert!(!U20_BIT19_SIGN_EXTENDS) };
+    // Decided by the maintainer (US-RR-19): sign-extend, as legacy and the
+    // SH-2A do; consistent with rr_testkit::reference::U20_BIT19_SIGN_EXTENDS.
+    const { assert!(U20_BIT19_SIGN_EXTENDS) };
     assert_eq!(Storage::U20.is_signed(), U20_BIT19_SIGN_EXTENDS);
-    assert_eq!(Storage::U20.int_range(), Some((0, 0xF_FFFF)));
+    assert_eq!(Storage::U20.int_range(), Some((-0x8_0000, 0x7_FFFF)));
 }
 
 #[test]

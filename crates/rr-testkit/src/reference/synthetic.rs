@@ -1016,7 +1016,7 @@ pub fn generate(plan: &Plan) -> Result<(Vec<u8>, Manifest), SyntheticError> {
 // ---------------------------------------------------------------------------
 
 /// Note on every non-bitfield `u20` table of the standard plan.
-pub const U20_NOTE: &str = "u20 raw values with imm20 bit 19 set depend on the open bit-19 decision (US-RR-19); generated with U20_BIT19_SIGN_EXTENDS = false (unsigned); the low nibble of each cell's first byte is opcode and keeps the fill byte's";
+pub const U20_NOTE: &str = "u20 raw values sign-extend imm20 bit 19 (US-RR-19; U20_BIT19_SIGN_EXTENDS = true), so the range is -524288..=524287; the low nibble of each cell's first byte is opcode and keeps the fill byte's";
 
 /// Lays tables out one after another.
 struct Cursor {
