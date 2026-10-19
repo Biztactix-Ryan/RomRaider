@@ -20,12 +20,14 @@ GitHub Actions workflows (`.github/workflows/`):
 
 | Workflow | Trigger | Jobs |
 |----------|---------|------|
-| `ci.yml` | push, PR | `fmt` + `clippy -D warnings`; `nextest` matrix (see below); `insta` snapshot check (no pending snapshots); `cargo-deny` (licences, advisories, bans); T6 safety-invariant suite |
-| `coverage.yml` | push to main, PR | `cargo-llvm-cov`; fails if rr-core/rr-rom/rr-comms < 90% or a PR regresses coverage |
-| `mutants.yml` | PR touching gated modules (incremental `--in-diff`); weekly full run | `cargo-mutants` on encoding, expr, journal, checksum, write gating; 0 survivors |
+| `ci.yml` | push, PR | `fmt` + `clippy -D warnings`; `nextest` matrix (see below); `insta` snapshot check (no pending snapshots); `cargo-deny` (licences, advisories, bans); T6 safety-invariant suite; aggregate check `ci-ok` |
+| `coverage.yml` | push to `master` / `rust-rewrite`, PR | `cargo-llvm-cov`; fails if rr-core/rr-rom/rr-comms < 90% or a PR regresses coverage; check `coverage-gate` |
+| `mutants.yml` | every PR (job `scope` skips the gate jobs unless gated crates, test support or the gate changed; incremental `--in-diff`); weekly full run | `cargo-mutants` on encoding, expr, journal, checksum, write gating; 0 survivors; aggregate check `mutants-ok` (always runs) |
 | `fuzz.yml` | nightly | Each `cargo-fuzz` target for 10 min; corpus cached; crashes opened as issues |
-| `fixtures.yml` | push touching `fixtures/` or `rr-testkit` | KAT schema validation; every expected value has a source; synthetic ROMs regenerate byte-identically; ROM-leak guard |
+| `fixtures.yml` | every push and PR (job `scope` skips the fixture jobs unless `fixtures/`, `rr-testkit`, `xtask` or the build config changed) | KAT schema validation; every expected value has a source; synthetic ROMs regenerate byte-identically; ROM-leak guard; aggregate check `fixtures-ok` (always runs) |
 | `release.yml` | tag `v*` / nightly schedule | `cargo-dist` builds and uploads artifacts |
+
+**Required status checks** (branch protection; CONTRIBUTING.md "Branch protection (maintainers)", verified by `cargo xtask check-branch-protection`): `ci-ok` on `master` and `rust-rewrite`; on `rust-rewrite` also `coverage-gate`, `mutants-ok` and `fixtures-ok`. Every required check comes from a job that reports on every pull request. A path-filtered workflow never starts on other changes and would leave its check at "Expected", so `mutants.yml` and `fixtures.yml` have no trigger-level `paths:`. Their first job, `scope`, does a `git diff` of the change against the gate's path list. `coverage.yml`'s `gate` (`coverage-gate`) also runs `if: always()` and fails unless both coverage runs succeeded, so it is never skipped. The aggregate job runs `if: always()`: it fails when `scope` failed, a gate job failed or was cancelled, or a job that should have run was skipped, and passes when the change is out of scope (`xtask/tests/{mutants,fixtures}_ci_config.rs`, `xtask/tests/common/scoped_gate.rs`).
 
 **Test matrix:**
 - `x86_64-unknown-linux-gnu`: tier 1.

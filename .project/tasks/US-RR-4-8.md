@@ -1,13 +1,13 @@
 ---
 archived: false
-assignee: null
-claimed_at: null
-claimed_by_run: null
+assignee: claude
+claimed_at: '2026-10-19T20:14:02.310412+00:00'
+claimed_by_run: orch-2026-10-20-fe2d
 created: '2026-10-20'
 depends_on: []
 id: US-RR-4-8
 points: 2
-status: todo
+status: done
 story_id: US-RR-4
 tags:
 - ci

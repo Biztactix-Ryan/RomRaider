@@ -785,7 +785,7 @@ entries:
 - id: US-RR-9
   title: Known-answer fixture format
   type: story
-  status: active
+  status: done
   archived: false
   points: 5
   story_id: null
@@ -3399,7 +3399,7 @@ entries:
   title: 'Test: A PR that drops coverage of rr-core/rr-rom/rr-comms below 90% or below
     the base branch fails'
   type: task
-  status: review
+  status: done
   archived: false
   points: 3
   story_id: US-RR-4
@@ -3409,7 +3409,7 @@ entries:
   title: 'Test: A deliberately weakened test on a gated module produces a surviving
     mutant and fails the mutants job'
   type: task
-  status: review
+  status: done
   archived: false
   points: 2
   story_id: US-RR-4
@@ -3428,7 +3428,7 @@ entries:
 - id: US-RR-4-4
   title: 'Test: The weekly full mutation run publishes its report as a CI artifact'
   type: task
-  status: review
+  status: done
   archived: false
   points: 2
   story_id: US-RR-4
@@ -3464,7 +3464,7 @@ entries:
 - id: US-RR-4-8
   title: Always-run gate jobs so Mutants/Fixtures can be required status checks
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-4
@@ -4233,7 +4233,7 @@ entries:
   title: 'Test: A template fuzz target runs locally with cargo +nightly fuzz run and
     in the nightly workflow'
   type: task
-  status: review
+  status: done
   archived: false
   points: 1
   story_id: US-RR-5
@@ -4243,7 +4243,7 @@ entries:
   title: 'Test: A planted panic in a toy target is found by the nightly job and auto-filed
     as an issue'
   type: task
-  status: review
+  status: done
   archived: false
   points: 3
   story_id: US-RR-5
@@ -6439,7 +6439,7 @@ entries:
   title: 'Test: Changing an expected value in an existing fixture requires a changelog
     line in the fixture explaining why (CI c...'
   type: task
-  status: review
+  status: done
   archived: false
   points: 1
   story_id: US-RR-9
@@ -6491,7 +6491,7 @@ entries:
   epic_id: null
   tags: []
 total_points: 1286
-completed_points: 186
+completed_points: 205
 story_count: 78
 task_count: 604
 epic_count: 10

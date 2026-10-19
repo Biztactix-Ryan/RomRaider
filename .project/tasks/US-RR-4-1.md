@@ -8,7 +8,7 @@ depends_on:
 - US-RR-4-5
 id: US-RR-4-1
 points: 3
-status: review
+status: done
 story_id: US-RR-4
 tags: []
 title: 'Test: A PR that drops coverage of rr-core/rr-rom/rr-comms below 90% or below

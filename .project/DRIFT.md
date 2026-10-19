@@ -1,6 +1,6 @@
 # Project Audit Report
 
-digest: 138d31c7b15cf244
+digest: fc74b90124c17f85
 
 **Errors:** 0 | **Warnings:** 0 | **Info:** 69
 
@@ -37,7 +37,7 @@ digest: 138d31c7b15cf244
 - [INFO] Story US-RR-37 has 8pts but tasks sum to 13pts
 - [INFO] Story US-RR-38 has 5pts but tasks sum to 8pts
 - [INFO] Story US-RR-39 has 5pts but tasks sum to 6pts
-- [INFO] Story US-RR-4 has 5pts but tasks sum to 15pts
+- [INFO] Story US-RR-4 has 5pts but tasks sum to 17pts
 - [INFO] Story US-RR-40 has 8pts but tasks sum to 12pts
 - [INFO] Story US-RR-41 has 13pts but tasks sum to 14pts
 - [INFO] Story US-RR-43 has 5pts but tasks sum to 7pts

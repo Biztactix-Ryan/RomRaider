@@ -15,13 +15,13 @@ epic_id: EPIC-RR-2
 id: US-RR-9
 points: 5
 priority: must
-status: active
+status: done
 tags:
 - m0
 - testing
 - fixtures
 title: Known-answer fixture format
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 As a developer, I want a reviewed, human-readable known-answer fixture format, so that expected values are hand-checked, sourced and not derived from the code under test (or from Java).

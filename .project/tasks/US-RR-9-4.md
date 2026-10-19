@@ -9,7 +9,7 @@ depends_on:
 - US-RR-9-7
 id: US-RR-9-4
 points: 1
-status: review
+status: done
 story_id: US-RR-9
 tags: []
 title: 'Test: Changing an expected value in an existing fixture requires a changelog

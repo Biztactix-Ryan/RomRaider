@@ -79,4 +79,4 @@
 | [US-RR-77](stories/US-RR-77.md) | OBD-II codec (SAE J1979) | 📋 backlog | could | 5 | m6, comms, obd | [EPIC-RR-10](epics/EPIC-RR-10.md) | 3 | 6 |
 | [US-RR-78](stories/US-RR-78.md) | NCS codec (Nissan, K-line and CAN) | 📋 backlog | could | 8 | m6, comms, ncs | [EPIC-RR-10](epics/EPIC-RR-10.md) | 3 | 6 |
 | [US-RR-8](stories/US-RR-8.md) | Contribution rules and Definition of Done | ✅ done | must | 2 | m0, process | [EPIC-RR-1](epics/EPIC-RR-1.md) | 4 | 7 |
-| [US-RR-9](stories/US-RR-9.md) | Known-answer fixture format | 🏃 active | must | 5 | m0, testing, fixtures | [EPIC-RR-2](epics/EPIC-RR-2.md) | 4 | 9 |
+| [US-RR-9](stories/US-RR-9.md) | Known-answer fixture format | ✅ done | must | 5 | m0, testing, fixtures | [EPIC-RR-2](epics/EPIC-RR-2.md) | 4 | 9 |
