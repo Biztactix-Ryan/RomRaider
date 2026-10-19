@@ -3,7 +3,7 @@
 | ID | Title | Status | Priority | Points | Tags | Epic | ACs | Tasks |
 | -- | ----- | ------ | -------- | ------ | ---- | ---- | --- | ----- |
 | [US-RR-1](stories/US-RR-1.md) | Cargo workspace and crate boundaries | ✅ done | must | 3 | m0, foundation | [EPIC-RR-1](epics/EPIC-RR-1.md) | 4 | 7 |
-| [US-RR-10](stories/US-RR-10.md) | Independent reference encoder/decoder and synthetic ROM generator | 🏃 active | must | 8 | m0, testing, fixtures, safety | [EPIC-RR-2](epics/EPIC-RR-2.md) | 4 | 8 |
+| [US-RR-10](stories/US-RR-10.md) | Independent reference encoder/decoder and synthetic ROM generator | ✅ done | must | 8 | m0, testing, fixtures, safety | [EPIC-RR-2](epics/EPIC-RR-2.md) | 4 | 8 |
 | [US-RR-11](stories/US-RR-11.md) | External stock-ROM corpus: fetch, manifest, suspect classification | 📋 backlog | must | 5 | m0, testing, corpus | [EPIC-RR-2](epics/EPIC-RR-2.md) | 4 | 9 |
 | [US-RR-12](stories/US-RR-12.md) | Legacy behaviour catalogue (read-only) | 📋 backlog | must | 8 | m0, docs, fixtures | [EPIC-RR-2](epics/EPIC-RR-2.md) | 4 | 9 |
 | [US-RR-13](stories/US-RR-13.md) | Private corpus wiring and ROM-leak guard | 📋 backlog | must | 3 | m0, security, fixtures | [EPIC-RR-2](epics/EPIC-RR-2.md) | 4 | 7 |

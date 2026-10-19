@@ -9,10 +9,10 @@
 | [US-RR-1-5](tasks/US-RR-1-5.md) | Scaffold Cargo workspace and crates | ✅ done | 3 |  | claude | — | [US-RR-1](stories/US-RR-1.md) |
 | [US-RR-1-6](tasks/US-RR-1-6.md) | Add romraider-cli and romraider-rs binary stubs with --version | ✅ done | 1 |  | claude | US-RR-1-5 | [US-RR-1](stories/US-RR-1.md) |
 | [US-RR-1-7](tasks/US-RR-1-7.md) | Implement dependency-rule checker test | ✅ done | 3 |  | claude | US-RR-1-5 | [US-RR-1](stories/US-RR-1.md) |
-| [US-RR-10-1](tasks/US-RR-10-1.md) | Test: The dependency-rule test fails if the reference codec module imports anything from rr-core encoding or conversion | ⚪ todo | 1 |  | — | US-RR-10-8 | [US-RR-10](stories/US-RR-10.md) |
-| [US-RR-10-2](tasks/US-RR-10-2.md) | Test: The reference codec passes the seed known-answer fixtures for every storage type independently of rr-core | ⚪ todo | 1 |  | — | US-RR-10-5 | [US-RR-10](stories/US-RR-10.md) |
-| [US-RR-10-3](tasks/US-RR-10-3.md) | Test: gen-synthetic output is byte-identical across runs and platforms (CI compares hashes on Linux and Windows) | ⚪ todo | 1 |  | — | US-RR-10-7 | [US-RR-10](stories/US-RR-10.md) |
-| [US-RR-10-4](tasks/US-RR-10-4.md) | Test: Generated ROMs exercise overlapping tables, tables ending exactly at ROM end, NaN/Inf/denormal floats and min/m... | ⚪ todo | 2 |  | — | US-RR-10-6 | [US-RR-10](stories/US-RR-10.md) |
+| [US-RR-10-1](tasks/US-RR-10-1.md) | Test: The dependency-rule test fails if the reference codec module imports anything from rr-core encoding or conversion | ✅ done | 1 |  | claude | US-RR-10-8 | [US-RR-10](stories/US-RR-10.md) |
+| [US-RR-10-2](tasks/US-RR-10-2.md) | Test: The reference codec passes the seed known-answer fixtures for every storage type independently of rr-core | ✅ done | 1 |  | claude | US-RR-10-5 | [US-RR-10](stories/US-RR-10.md) |
+| [US-RR-10-3](tasks/US-RR-10-3.md) | Test: gen-synthetic output is byte-identical across runs and platforms (CI compares hashes on Linux and Windows) | ✅ done | 1 |  | claude | US-RR-10-7 | [US-RR-10](stories/US-RR-10.md) |
+| [US-RR-10-4](tasks/US-RR-10-4.md) | Test: Generated ROMs exercise overlapping tables, tables ending exactly at ROM end, NaN/Inf/denormal floats and min/m... | ✅ done | 2 |  | claude | US-RR-10-6 | [US-RR-10](stories/US-RR-10.md) |
 | [US-RR-10-5](tasks/US-RR-10-5.md) | Implement naive reference codec in rr-testkit | ✅ done | 5 |  | claude | — | [US-RR-10](stories/US-RR-10.md) |
 | [US-RR-10-6](tasks/US-RR-10-6.md) | Implement synthetic ROM generator with value plans | ✅ done | 5 |  | claude | US-RR-10-5 | [US-RR-10](stories/US-RR-10.md) |
 | [US-RR-10-7](tasks/US-RR-10-7.md) | Add xtask gen-synthetic with cross-platform hash check | ✅ done | 2 |  | claude | US-RR-10-6 | [US-RR-10](stories/US-RR-10.md) |

@@ -1,14 +1,14 @@
 ---
 archived: false
-assignee: null
-claimed_at: null
-claimed_by_run: null
+assignee: claude
+claimed_at: '2026-10-19T21:01:18.227760+00:00'
+claimed_by_run: orch-2026-10-20-fe2d
 created: '2026-10-19'
 depends_on:
 - US-RR-10-6
 id: US-RR-10-4
 points: 2
-status: todo
+status: done
 story_id: US-RR-10
 tags: []
 title: 'Test: Generated ROMs exercise overlapping tables, tables ending exactly at

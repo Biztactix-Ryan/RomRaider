@@ -101,7 +101,7 @@ entries:
 - id: US-RR-10
   title: Independent reference encoder/decoder and synthetic ROM generator
   type: story
-  status: active
+  status: done
   archived: false
   points: 8
   story_id: null
@@ -862,7 +862,7 @@ entries:
   title: 'Test: The dependency-rule test fails if the reference codec module imports
     anything from rr-core encoding or conversion'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-10
@@ -872,7 +872,7 @@ entries:
   title: 'Test: The reference codec passes the seed known-answer fixtures for every
     storage type independently of rr-core'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-10
@@ -882,7 +882,7 @@ entries:
   title: 'Test: gen-synthetic output is byte-identical across runs and platforms (CI
     compares hashes on Linux and Windows)'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-10
@@ -892,7 +892,7 @@ entries:
   title: 'Test: Generated ROMs exercise overlapping tables, tables ending exactly
     at ROM end, NaN/Inf/denormal floats and min/m...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-10
@@ -6491,7 +6491,7 @@ entries:
   epic_id: null
   tags: []
 total_points: 1286
-completed_points: 215
+completed_points: 228
 story_count: 78
 task_count: 604
 epic_count: 10
