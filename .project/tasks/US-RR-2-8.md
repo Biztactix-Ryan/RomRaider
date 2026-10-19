@@ -8,7 +8,7 @@ depends_on:
 - US-RR-2-5
 id: US-RR-2-8
 points: 1
-status: review
+status: done
 story_id: US-RR-2
 tags: []
 title: Enable branch protection requiring CI checks

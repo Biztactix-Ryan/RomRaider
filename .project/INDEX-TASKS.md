@@ -86,14 +86,14 @@
 | [US-RR-19-7](tasks/US-RR-19-7.md) | Define Encoding types and parse from definition strings | ⚪ todo | 3 |  | — | — | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-8](tasks/US-RR-19-8.md) | Implement integer codecs incl U20/U24/I24/I64 | ⚪ todo | 3 |  | — | US-RR-19-7 | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-9](tasks/US-RR-19-9.md) | Implement float codecs with NaN/Inf/denormal flags | ⚪ todo | 2 |  | — | US-RR-19-7 | [US-RR-19](stories/US-RR-19.md) |
-| [US-RR-2-1](tasks/US-RR-2-1.md) | Test: A PR with a rustfmt violation, a clippy warning, or a failing test is blocked on every matrix target | ⚪ todo | 3 |  | — | US-RR-2-5, US-RR-2-8 | [US-RR-2](stories/US-RR-2.md) |
+| [US-RR-2-1](tasks/US-RR-2-1.md) | Test: A PR with a rustfmt violation, a clippy warning, or a failing test is blocked on every matrix target | 🔍 review | 3 |  | — | US-RR-2-5, US-RR-2-8 | [US-RR-2](stories/US-RR-2.md) |
 | [US-RR-2-2](tasks/US-RR-2-2.md) | Test: cargo-deny fails the build for a dependency with a GPL-incompatible licence or an open RUSTSEC advisory (demons... | ✅ done | 2 |  | claude | US-RR-2-6 | [US-RR-2](stories/US-RR-2.md) |
 | [US-RR-2-3](tasks/US-RR-2-3.md) | Test: A PR that leaves pending insta snapshots fails CI | ✅ done | 2 |  | claude | US-RR-2-7 | [US-RR-2](stories/US-RR-2.md) |
 | [US-RR-2-4](tasks/US-RR-2-4.md) | Test: The i686-pc-windows-msvc target builds and runs the test suite | 🔍 review | 2 |  | — | US-RR-2-7 | [US-RR-2](stories/US-RR-2.md) |
 | [US-RR-2-5](tasks/US-RR-2-5.md) | Write ci.yml: fmt, clippy -D warnings, nextest matrix | ✅ done | 3 |  | claude | US-RR-1-5 | [US-RR-2](stories/US-RR-2.md) |
 | [US-RR-2-6](tasks/US-RR-2-6.md) | Add cargo-deny configuration | ✅ done | 2 |  | claude | US-RR-1-5 | [US-RR-2](stories/US-RR-2.md) |
 | [US-RR-2-7](tasks/US-RR-2-7.md) | Add insta pending-snapshot check and i686 target setup | ✅ done | 2 |  | claude | US-RR-2-5 | [US-RR-2](stories/US-RR-2.md) |
-| [US-RR-2-8](tasks/US-RR-2-8.md) | Enable branch protection requiring CI checks | 🔍 review | 1 |  | — | US-RR-2-5 | [US-RR-2](stories/US-RR-2.md) |
+| [US-RR-2-8](tasks/US-RR-2-8.md) | Enable branch protection requiring CI checks | ✅ done | 1 |  | — | US-RR-2-5 | [US-RR-2](stories/US-RR-2.md) |
 | [US-RR-20-1](tasks/US-RR-20-1.md) | Test: Every distinct formula in the pinned ECU and logger definition corpora parses, and a sample of at least 50 has ... | ⚪ todo | — |  | — | US-RR-20-10 | [US-RR-20](stories/US-RR-20.md) |
 | [US-RR-20-10](tasks/US-RR-20-10.md) | Harvest corpus formulas into a KAT set | ⚪ todo | 3 |  | — | US-RR-20-7, US-RR-16 | [US-RR-20](stories/US-RR-20.md) |
 | [US-RR-20-2](tasks/US-RR-20-2.md) | Test: JEP operator precedence and ^ semantics match documented JEP behaviour via KAT fixtures citing the JEP document... | ⚪ todo | — |  | — | US-RR-20-7 | [US-RR-20](stories/US-RR-20.md) |
@@ -590,12 +590,12 @@
 | [US-RR-78-5](tasks/US-RR-78-5.md) | Implement NCS CAN (0x2C) and supported-PID discovery | ⚪ todo | 3 |  | — | US-RR-78-4 | [US-RR-78](stories/US-RR-78.md) |
 | [US-RR-78-6](tasks/US-RR-78-6.md) | Implement NCS simulator responder | ⚪ todo | 2 |  | — | US-RR-78-4 | [US-RR-78](stories/US-RR-78.md) |
 | [US-RR-8-1](tasks/US-RR-8-1.md) | Test: PR template contains a checklist covering test tiers touched, ledger entries closed with test names, concept ca... | ✅ done | 1 |  | claude | US-RR-8-6 | [US-RR-8](stories/US-RR-8.md) |
-| [US-RR-8-2](tasks/US-RR-8-2.md) | Test: CODEOWNERS requires a second approval for changes under the gated safety modules and branch protection enforces it | ⚪ todo | 2 |  | — | US-RR-8-7 | [US-RR-8](stories/US-RR-8.md) |
+| [US-RR-8-2](tasks/US-RR-8-2.md) | Test: CODEOWNERS requires a second approval for changes under the gated safety modules and branch protection enforces it | 🔍 review | 2 |  | — | US-RR-8-7 | [US-RR-8](stories/US-RR-8.md) |
 | [US-RR-8-3](tasks/US-RR-8-3.md) | Test: Issue template instructs users to run romraider-cli trace scrub before attaching traces | ✅ done | 1 |  | claude | US-RR-8-6 | [US-RR-8](stories/US-RR-8.md) |
 | [US-RR-8-4](tasks/US-RR-8-4.md) | Test: CONTRIBUTING.md states the Definition of Done and links PROJECT.md Testing Strategy and the ledgers | ✅ done | 1 |  | claude | US-RR-8-5 | [US-RR-8](stories/US-RR-8.md) |
 | [US-RR-8-5](tasks/US-RR-8-5.md) | Write CONTRIBUTING.md with Definition of Done | ✅ done | 2 |  | claude | US-RR-2-5 | [US-RR-8](stories/US-RR-8.md) |
 | [US-RR-8-6](tasks/US-RR-8-6.md) | Add PR and issue templates | ✅ done | 1 |  | claude | US-RR-2-5 | [US-RR-8](stories/US-RR-8.md) |
-| [US-RR-8-7](tasks/US-RR-8-7.md) | Add CODEOWNERS for safety modules | 🔍 review | 1 |  | — | US-RR-2-5 | [US-RR-8](stories/US-RR-8.md) |
+| [US-RR-8-7](tasks/US-RR-8-7.md) | Add CODEOWNERS for safety modules | ✅ done | 1 |  | — | US-RR-2-5 | [US-RR-8](stories/US-RR-8.md) |
 | [US-RR-9-1](tasks/US-RR-9-1.md) | Test: The validator rejects any expected value without a source field, and CI runs it on every fixture | ⚪ todo | — |  | — | US-RR-9-6, US-RR-9-7 | [US-RR-9](stories/US-RR-9.md) |
 | [US-RR-9-2](tasks/US-RR-9-2.md) | Test: A fixture with hand-calc source must include the working (formula and intermediate values) or it is rejected | ⚪ todo | — |  | — | US-RR-9-6 | [US-RR-9](stories/US-RR-9.md) |
 | [US-RR-9-3](tasks/US-RR-9-3.md) | Test: At least 10 seed fixtures exist covering every storage type the format supports, each reviewed and sourced | ⚪ todo | — |  | — | US-RR-9-8 | [US-RR-9](stories/US-RR-9.md) |

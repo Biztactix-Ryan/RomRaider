@@ -1591,7 +1591,7 @@ entries:
   title: 'Test: A PR with a rustfmt violation, a clippy warning, or a failing test
     is blocked on every matrix target'
   type: task
-  status: todo
+  status: review
   archived: false
   points: 3
   story_id: US-RR-2
@@ -1655,7 +1655,7 @@ entries:
 - id: US-RR-2-8
   title: Enable branch protection requiring CI checks
   type: task
-  status: review
+  status: done
   archived: false
   points: 1
   story_id: US-RR-2
@@ -6343,7 +6343,7 @@ entries:
   title: 'Test: CODEOWNERS requires a second approval for changes under the gated
     safety modules and branch protection enforces it'
   type: task
-  status: todo
+  status: review
   archived: false
   points: 2
   story_id: US-RR-8
@@ -6390,7 +6390,7 @@ entries:
 - id: US-RR-8-7
   title: Add CODEOWNERS for safety modules
   type: task
-  status: review
+  status: done
   archived: false
   points: 1
   story_id: US-RR-8
@@ -6482,7 +6482,7 @@ entries:
   epic_id: null
   tags: []
 total_points: 1250
-completed_points: 97
+completed_points: 99
 story_count: 78
 task_count: 603
 epic_count: 10

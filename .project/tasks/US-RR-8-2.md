@@ -8,7 +8,7 @@ depends_on:
 - US-RR-8-7
 id: US-RR-8-2
 points: 2
-status: todo
+status: review
 story_id: US-RR-8
 tags: []
 title: 'Test: CODEOWNERS requires a second approval for changes under the gated safety

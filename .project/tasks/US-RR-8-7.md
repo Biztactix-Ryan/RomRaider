@@ -8,7 +8,7 @@ depends_on:
 - US-RR-2-5
 id: US-RR-8-7
 points: 1
-status: review
+status: done
 story_id: US-RR-8
 tags: []
 title: Add CODEOWNERS for safety modules
