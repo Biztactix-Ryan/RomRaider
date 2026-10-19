@@ -285,6 +285,7 @@
 | [US-RR-4-5](tasks/US-RR-4-5.md) | Add coverage.yml with per-crate thresholds | ✅ done | 3 |  | — | — | [US-RR-4](stories/US-RR-4.md) |
 | [US-RR-4-6](tasks/US-RR-4-6.md) | Add mutants.yml and mutants.toml | ✅ done | 3 |  | claude | — | [US-RR-4](stories/US-RR-4.md) |
 | [US-RR-4-7](tasks/US-RR-4-7.md) | Add mutants.toml exclusion-justification checker | ✅ done | 1 |  | claude | US-RR-4-6 | [US-RR-4](stories/US-RR-4.md) |
+| [US-RR-4-8](tasks/US-RR-4-8.md) | Always-run gate jobs so Mutants/Fixtures can be required status checks | ⚪ todo | 2 | ci, safety | — | — | [US-RR-4](stories/US-RR-4.md) |
 | [US-RR-40-1](tasks/US-RR-40-1.md) | Test: Every table in every synthetic ROM decodes to the generator's manifest values (raw and real) via the Table API | ⚪ todo | — |  | — | US-RR-40-7, US-RR-40-8 | [US-RR-40](stories/US-RR-40.md) |
 | [US-RR-40-10](tasks/US-RR-40-10.md) | Add corpus decode snapshot | ⚪ todo | 2 |  | — | US-RR-40-7 | [US-RR-40](stories/US-RR-40.md) |
 | [US-RR-40-2](tasks/US-RR-40-2.md) | Test: Two tables overlapping the same bytes with different storage widths always reflect the current image after any ... | ⚪ todo | — |  | — | US-RR-40-7 | [US-RR-40](stories/US-RR-40.md) |
@@ -366,7 +367,7 @@
 | [US-RR-49-4](tasks/US-RR-49-4.md) | Add WiX MSI packaging via cargo-dist | ⚪ todo | 3 |  | — | — | [US-RR-49](stories/US-RR-49.md) |
 | [US-RR-49-5](tasks/US-RR-49-5.md) | Add PE architecture check and signing-status release notes | ⚪ todo | 1 |  | — | — | [US-RR-49](stories/US-RR-49.md) |
 | [US-RR-5-1](tasks/US-RR-5-1.md) | Test: A template fuzz target runs locally with cargo +nightly fuzz run and in the nightly workflow | 🔍 review | 1 |  | — | US-RR-5-5, US-RR-5-6 | [US-RR-5](stories/US-RR-5.md) |
-| [US-RR-5-2](tasks/US-RR-5-2.md) | Test: A planted panic in a toy target is found by the nightly job and auto-filed as an issue | ⚪ todo | 3 |  | — | US-RR-5-6 | [US-RR-5](stories/US-RR-5.md) |
+| [US-RR-5-2](tasks/US-RR-5-2.md) | Test: A planted panic in a toy target is found by the nightly job and auto-filed as an issue | 🔍 review | 3 |  | claude | US-RR-5-6 | [US-RR-5](stories/US-RR-5.md) |
 | [US-RR-5-3](tasks/US-RR-5-3.md) | Test: Committed crash inputs run as ordinary regression tests in ci.yml without nightly | ⚪ todo | 1 |  | — | US-RR-5-7 | [US-RR-5](stories/US-RR-5.md) |
 | [US-RR-5-4](tasks/US-RR-5-4.md) | Test: Fuzz targets enforce a per-input time and memory limit so hangs and unbounded allocation count as failures | ⚪ todo | 1 |  | — | US-RR-5-5 | [US-RR-5](stories/US-RR-5.md) |
 | [US-RR-5-5](tasks/US-RR-5-5.md) | Create fuzz crate with template target and docs | ✅ done | 2 |  | claude | — | [US-RR-5](stories/US-RR-5.md) |

@@ -35,7 +35,7 @@
 | [US-RR-37](stories/US-RR-37.md) | Serial Link and KKL cable profile | 📋 backlog | must | 8 | m2, comms, kkl, linux | [EPIC-RR-6](epics/EPIC-RR-6.md) | 5 | 11 |
 | [US-RR-38](stories/US-RR-38.md) | Release skeleton: nightly CLI tarball, AppImage and .deb | 📋 backlog | must | 5 | m0, release, linux | [EPIC-RR-9](epics/EPIC-RR-9.md) | 4 | 8 |
 | [US-RR-39](stories/US-RR-39.md) | Resolved-definition known-answer suite | 📋 backlog | must | 5 | m1, definitions, testing | [EPIC-RR-4](epics/EPIC-RR-4.md) | 3 | 6 |
-| [US-RR-4](stories/US-RR-4.md) | Coverage and mutation gates | 🏃 active | must | 5 | m0, testing, mutation, coverage, safety | [EPIC-RR-1](epics/EPIC-RR-1.md) | 4 | 7 |
+| [US-RR-4](stories/US-RR-4.md) | Coverage and mutation gates | 🏃 active | must | 5 | m0, testing, mutation, coverage, safety | [EPIC-RR-1](epics/EPIC-RR-1.md) | 4 | 8 |
 | [US-RR-40](stories/US-RR-40.md) | N-D Table as views over the image (C11) | 📋 backlog | must | 8 | m1, rom, safety | [EPIC-RR-5](epics/EPIC-RR-5.md) | 5 | 10 |
 | [US-RR-41](stories/US-RR-41.md) | Transaction engine: timing, framing, echo, recovery, quirks | 📋 backlog | must | 13 | m2, comms, safety | [EPIC-RR-6](epics/EPIC-RR-6.md) | 6 | 11 |
 | [US-RR-42](stories/US-RR-42.md) | glibc 2.28 baseline and aarch64 builds | 📋 backlog | should | 5 | release, linux, aarch64 | [EPIC-RR-9](epics/EPIC-RR-9.md) | 3 | 6 |

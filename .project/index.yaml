@@ -3461,6 +3461,15 @@ entries:
   story_id: US-RR-4
   epic_id: null
   tags: []
+- id: US-RR-4-8
+  title: Always-run gate jobs so Mutants/Fixtures can be required status checks
+  type: task
+  status: todo
+  archived: false
+  points: 2
+  story_id: US-RR-4
+  epic_id: null
+  tags: []
 - id: US-RR-40-1
   title: 'Test: Every table in every synthetic ROM decodes to the generator''s manifest
     values (raw and real) via the Table API'
@@ -4234,7 +4243,7 @@ entries:
   title: 'Test: A planted panic in a toy target is found by the nightly job and auto-filed
     as an issue'
   type: task
-  status: todo
+  status: review
   archived: false
   points: 3
   story_id: US-RR-5
@@ -6481,8 +6490,8 @@ entries:
   story_id: US-RR-9
   epic_id: null
   tags: []
-total_points: 1284
+total_points: 1286
 completed_points: 186
 story_count: 78
-task_count: 603
+task_count: 604
 epic_count: 10
