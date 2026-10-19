@@ -1,0 +1,92 @@
+# CODEOWNERS: safety-gated code and the machinery that enforces it.
+#
+# Scope: the "Safety-gated code" list in CONTRIBUTING.md "Safety review
+# process" (D-013, SECURITY.md Authorization), plus the files that enforce
+# the rules: lint config, dependency/global/write-gating checks, CI, and this
+# file. There is deliberately no catch-all `*` line: other paths have no code
+# owner and need only the normal review.
+#
+# How the "second approval" is enforced (US-RR-8, US-RR-8-7):
+# - This file only takes effect when branch protection has "Require review
+#   from Code Owners" (require_code_owner_reviews) switched on. GitHub reads
+#   CODEOWNERS from the PR's *base* branch, so it must be committed on every
+#   protected branch (master and rust-rewrite).
+# - GitHub cannot vary the required approval count per path. The chosen setup
+#   is "Required approving reviews: 1" + "Require review from Code Owners" +
+#   "Require approval of the most recent reviewable push". A PR author can
+#   never approve their own PR, so a PR touching a path below needs an
+#   approval from a code owner who is not the author: the author plus a
+#   second, owning reviewer. Other paths need one approval from anyone.
+# - Limit, stated plainly: with a single code owner, a PR the owner authors
+#   on these paths cannot get a code-owner approval from anyone else. Until a
+#   second maintainer is listed here, such PRs need an admin bypass (which
+#   is visible in the PR timeline). For a strict two-approval rule, set
+#   "Required approving reviews: 2"; that then applies to every PR.
+# - Patterns are file-based. Write code added to an unowned file (e.g. a
+#   crate's lib.rs) is caught by the T6 check (`cargo xtask check-writes`),
+#   not by this file.
+# The exact branch-protection command is in CONTRIBUTING.md, "Branch
+# protection (maintainers)".
+#
+# Syntax: gitignore-style patterns, a leading `/` anchors at the repo root,
+# and the LAST matching line wins. Paths that do not exist yet are listed so
+# they are owned from their first commit.
+
+# --- Capability tokens (rr-core::capability) and the minting feature ------
+/crates/rr-core/src/capability.rs           @Biztactix-Ryan
+/crates/rr-core/src/capability/             @Biztactix-Ryan
+# Defines the `confirmation-authority` feature; any crate's manifest can
+# enable it, and only rr-app and rr-cli may.
+/crates/*/Cargo.toml                        @Biztactix-Ryan
+
+# --- Mutation-gated modules (T7): rr-core::encoding, rr-core::expr ---------
+/crates/rr-core/src/encoding.rs             @Biztactix-Ryan
+/crates/rr-core/src/encoding/               @Biztactix-Ryan
+/crates/rr-core/src/expr.rs                 @Biztactix-Ryan
+/crates/rr-core/src/expr/                   @Biztactix-Ryan
+
+# --- rr-rom write path: save, journal, checksum, table write --------------
+/crates/rr-rom/src/save.rs                  @Biztactix-Ryan
+/crates/rr-rom/src/save/                    @Biztactix-Ryan
+/crates/rr-rom/src/journal.rs               @Biztactix-Ryan
+/crates/rr-rom/src/journal/                 @Biztactix-Ryan
+/crates/rr-rom/src/checksum.rs              @Biztactix-Ryan
+/crates/rr-rom/src/checksum/                @Biztactix-Ryan
+/crates/rr-rom/src/**/*write*               @Biztactix-Ryan
+# A wildcard last segment may match files only (GitHub: `docs/*` does not
+# own `docs/a/b.md`), so directory modules are listed as well.
+/crates/rr-rom/src/**/write/                @Biztactix-Ryan
+
+# --- rr-comms write gating ------------------------------------------------
+/crates/rr-comms/src/**/*write*             @Biztactix-Ryan
+/crates/rr-comms/src/**/gate*               @Biztactix-Ryan
+/crates/rr-comms/src/**/gating*             @Biztactix-Ryan
+/crates/rr-comms/src/**/write/              @Biztactix-Ryan
+/crates/rr-comms/src/**/gate/               @Biztactix-Ryan
+/crates/rr-comms/src/**/gating/             @Biztactix-Ryan
+
+# --- T6 write gating: markers, check, and suites --------------------------
+/crates/rr-write-marker/                    @Biztactix-Ryan
+/xtask/src/writes.rs                        @Biztactix-Ryan
+/xtask/tests/t6_*                           @Biztactix-Ryan
+/crates/*/tests/t6_*                        @Biztactix-Ryan
+# trybuild compile-fail fixtures driven by rr-core's t6_token_compile_fail.
+/crates/rr-core/tests/ui/                   @Biztactix-Ryan
+/mutants.toml                               @Biztactix-Ryan
+
+# --- Enforcement machinery: lints, dependency rule, globals, supply chain -
+/Cargo.toml                                 @Biztactix-Ryan
+/clippy.toml                                @Biztactix-Ryan
+/deny.toml                                  @Biztactix-Ryan
+/xtask/src/deps.rs                          @Biztactix-Ryan
+/xtask/tests/architecture.rs                @Biztactix-Ryan
+/xtask/src/globals.rs                       @Biztactix-Ryan
+/xtask/tests/globals.rs                     @Biztactix-Ryan
+/xtask/globals-allowlist.toml               @Biztactix-Ryan
+
+# --- CI and this file -----------------------------------------------------
+/.github/workflows/                         @Biztactix-Ryan
+/.github/CODEOWNERS                         @Biztactix-Ryan
+# The check that this file owns every gated path (US-RR-8-2).
+/xtask/src/codeowners.rs                    @Biztactix-Ryan
+/xtask/tests/codeowners.rs                  @Biztactix-Ryan
