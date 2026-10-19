@@ -3,7 +3,7 @@
 //! reference codec (PROJECT.md T2).
 //!
 //! * Every table of `fixtures/public/synthetic/standard.bin` (the five
-//!   Bosch-subtract and nine bitfield tables among them) decodes through
+//!   Bosch-subtract and fourteen bitfield tables among them) decodes through
 //!   rr-core, using only what `standard.manifest.toml` says about it, to the
 //!   manifest's values; writing those values back leaves the ROM unchanged,
 //!   and over inverted bytes they decode to the same values again.
@@ -179,7 +179,7 @@ fn every_table_of_the_synthetic_rom_decodes_to_its_manifest_values() {
         }
     }
     assert_eq!(bosch.len(), 5, "Bosch-subtract tables: {bosch:?}");
-    assert_eq!(bitfield.len(), 9, "bitfield tables: {bitfield:?}");
+    assert_eq!(bitfield.len(), 14, "bitfield tables: {bitfield:?}");
 }
 
 #[test]

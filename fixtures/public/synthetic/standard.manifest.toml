@@ -6,7 +6,7 @@ synthetic = true
 plan = "standard"
 rom_size = 2048
 fill = 0xff
-rom_fnv1a64 = "0xb0cc588ef1740728"
+rom_fnv1a64 = "0x4ae7fee1af6f21f0"
 u20_bit19_sign_extends = true
 marker = { offset = 0x0, length = 32, hex = "52 6f 6d 52 61 69 64 65 72 2d 52 53 20 53 59 4e 54 48 45 54 49 43 20 52 4f 4d 20 76 31 00 00 00" }
 overlap_rule = "tables are written in plan order and the last write wins; a bitfield table rewrites only its mask bits and a u20 cell keeps its opcode nibble; expected values are decoded from the final ROM"
@@ -1074,10 +1074,95 @@ cells = [
 ]
 
 [[table]]
-name = "bits-shared-hi"
+name = "bitfield-i8-le-mask-0xf0"
 write_order = 55
 address = 0x660
-end = 0x664
+end = 0x662
+storage = "i8"
+endian = "little"
+layout = "default"
+bitfield = { mask = "0xf0", shift = 4 }
+cols = 2
+rows = 1
+overlapped_by = []
+cells = [
+  { index = 0, offset = 0x660, raw = "0" },
+  { index = 1, offset = 0x661, raw = "15" },
+]
+
+[[table]]
+name = "bitfield-u24-le-mask-0xfff00"
+write_order = 56
+address = 0x670
+end = 0x676
+storage = "u24"
+endian = "little"
+layout = "default"
+bitfield = { mask = "0xfff00", shift = 8 }
+cols = 2
+rows = 1
+overlapped_by = []
+cells = [
+  { index = 0, offset = 0x670, raw = "0" },
+  { index = 1, offset = 0x673, raw = "4095" },
+]
+
+[[table]]
+name = "bitfield-i24-be-mask-all"
+write_order = 57
+address = 0x680
+end = 0x686
+storage = "i24"
+endian = "big"
+layout = "default"
+bitfield = { mask = "0xffffff", shift = 0 }
+cols = 2
+rows = 1
+overlapped_by = []
+cells = [
+  { index = 0, offset = 0x680, raw = "0" },
+  { index = 1, offset = 0x683, raw = "16777215" },
+]
+
+[[table]]
+name = "bitfield-i32-le-mask-0x7ffffffe"
+write_order = 58
+address = 0x690
+end = 0x698
+storage = "i32"
+endian = "little"
+layout = "default"
+bitfield = { mask = "0x7ffffffe", shift = 1 }
+cols = 2
+rows = 1
+overlapped_by = []
+cells = [
+  { index = 0, offset = 0x690, raw = "0" },
+  { index = 1, offset = 0x694, raw = "1073741823" },
+]
+
+[[table]]
+name = "bitfield-i64-be-mask-0xffff000000000000"
+write_order = 59
+address = 0x6a0
+end = 0x6b0
+storage = "i64"
+endian = "big"
+layout = "default"
+bitfield = { mask = "0xffff000000000000", shift = 48 }
+cols = 2
+rows = 1
+overlapped_by = []
+cells = [
+  { index = 0, offset = 0x6a0, raw = "0" },
+  { index = 1, offset = 0x6a8, raw = "65535" },
+]
+
+[[table]]
+name = "bits-shared-hi"
+write_order = 60
+address = 0x6b0
+end = 0x6b4
 storage = "u16"
 endian = "big"
 layout = "default"
@@ -1086,15 +1171,15 @@ cols = 2
 rows = 1
 overlapped_by = ["bits-shared-mid", "bits-shared-lo", "bits-shared-clash"]
 cells = [
-  { index = 0, offset = 0x660, raw = "0" },
-  { index = 1, offset = 0x662, raw = "15" },
+  { index = 0, offset = 0x6b0, raw = "0" },
+  { index = 1, offset = 0x6b2, raw = "15" },
 ]
 
 [[table]]
 name = "bits-shared-mid"
-write_order = 56
-address = 0x660
-end = 0x664
+write_order = 61
+address = 0x6b0
+end = 0x6b4
 storage = "u16"
 endian = "big"
 layout = "default"
@@ -1103,15 +1188,15 @@ cols = 2
 rows = 1
 overlapped_by = ["bits-shared-lo", "bits-shared-clash"]
 cells = [
-  { index = 0, offset = 0x660, raw = "10", clobbered = true, planned = "0" },
-  { index = 1, offset = 0x662, raw = "245", clobbered = true, planned = "255" },
+  { index = 0, offset = 0x6b0, raw = "10", clobbered = true, planned = "0" },
+  { index = 1, offset = 0x6b2, raw = "245", clobbered = true, planned = "255" },
 ]
 
 [[table]]
 name = "bits-shared-lo"
-write_order = 57
-address = 0x660
-end = 0x664
+write_order = 62
+address = 0x6b0
+end = 0x6b4
 storage = "u16"
 endian = "big"
 layout = "default"
@@ -1120,15 +1205,15 @@ cols = 2
 rows = 1
 overlapped_by = ["bits-shared-clash"]
 cells = [
-  { index = 0, offset = 0x660, raw = "0" },
-  { index = 1, offset = 0x662, raw = "15" },
+  { index = 0, offset = 0x6b0, raw = "0" },
+  { index = 1, offset = 0x6b2, raw = "15" },
 ]
 
 [[table]]
 name = "bits-shared-clash"
-write_order = 58
-address = 0x660
-end = 0x664
+write_order = 63
+address = 0x6b0
+end = 0x6b4
 storage = "u16"
 endian = "big"
 layout = "default"
@@ -1137,15 +1222,15 @@ cols = 2
 rows = 1
 overlapped_by = []
 cells = [
-  { index = 0, offset = 0x660, raw = "10" },
-  { index = 1, offset = 0x662, raw = "5" },
+  { index = 0, offset = 0x6b0, raw = "10" },
+  { index = 1, offset = 0x6b2, raw = "5" },
 ]
 
 [[table]]
 name = "bosch-u8-be-explicit"
-write_order = 59
-address = 0x670
-end = 0x673
+write_order = 64
+address = 0x6c0
+end = 0x6c3
 storage = "u8"
 endian = "big"
 layout = "bosch-subtract"
@@ -1153,16 +1238,16 @@ cols = 3
 rows = 1
 overlapped_by = []
 cells = [
-  { index = 0, offset = 0x670, raw = "10" },
-  { index = 1, offset = 0x671, raw = "20" },
-  { index = 2, offset = 0x672, raw = "156" },
+  { index = 0, offset = 0x6c0, raw = "10" },
+  { index = 1, offset = 0x6c1, raw = "20" },
+  { index = 2, offset = 0x6c2, raw = "156" },
 ]
 
 [[table]]
 name = "bosch-u16-be-extremes"
-write_order = 60
-address = 0x680
-end = 0x688
+write_order = 65
+address = 0x6d0
+end = 0x6d8
 storage = "u16"
 endian = "big"
 layout = "bosch-subtract"
@@ -1170,17 +1255,17 @@ cols = 4
 rows = 1
 overlapped_by = []
 cells = [
-  { index = 0, offset = 0x680, raw = "-65534" },
-  { index = 1, offset = 0x682, raw = "-65534" },
-  { index = 2, offset = 0x684, raw = "1" },
-  { index = 3, offset = 0x686, raw = "1" },
+  { index = 0, offset = 0x6d0, raw = "-65534" },
+  { index = 1, offset = 0x6d2, raw = "-65534" },
+  { index = 2, offset = 0x6d4, raw = "1" },
+  { index = 3, offset = 0x6d6, raw = "1" },
 ]
 
 [[table]]
 name = "bosch-i32-le-specials"
-write_order = 61
-address = 0x690
-end = 0x6b0
+write_order = 66
+address = 0x6e0
+end = 0x700
 storage = "i32"
 endian = "little"
 layout = "bosch-subtract"
@@ -1188,21 +1273,21 @@ cols = 8
 rows = 1
 overlapped_by = []
 cells = [
-  { index = 0, offset = 0x690, raw = "4278058238" },
-  { index = 1, offset = 0x694, raw = "4278058238" },
-  { index = 2, offset = 0x698, raw = "4278058239" },
-  { index = 3, offset = 0x69c, raw = "6425541886" },
-  { index = 4, offset = 0x6a0, raw = "8573025532" },
-  { index = 5, offset = 0x6a4, raw = "6425541884" },
-  { index = 6, offset = 0x6a8, raw = "4278058237" },
-  { index = 7, offset = 0x6ac, raw = "4278058236" },
+  { index = 0, offset = 0x6e0, raw = "4278058238" },
+  { index = 1, offset = 0x6e4, raw = "4278058238" },
+  { index = 2, offset = 0x6e8, raw = "4278058239" },
+  { index = 3, offset = 0x6ec, raw = "6425541886" },
+  { index = 4, offset = 0x6f0, raw = "8573025532" },
+  { index = 5, offset = 0x6f4, raw = "6425541884" },
+  { index = 6, offset = 0x6f8, raw = "4278058237" },
+  { index = 7, offset = 0x6fc, raw = "4278058236" },
 ]
 
 [[table]]
 name = "bosch-u64-be-extremes"
-write_order = 62
-address = 0x6b0
-end = 0x6c0
+write_order = 67
+address = 0x700
+end = 0x710
 storage = "u64"
 endian = "big"
 layout = "bosch-subtract"
@@ -1210,15 +1295,15 @@ cols = 2
 rows = 1
 overlapped_by = []
 cells = [
-  { index = 0, offset = 0x6b0, raw = "1" },
-  { index = 1, offset = 0x6b8, raw = "1" },
+  { index = 0, offset = 0x700, raw = "1" },
+  { index = 1, offset = 0x708, raw = "1" },
 ]
 
 [[table]]
 name = "grid-u16-le-3x2"
-write_order = 63
-address = 0x6c0
-end = 0x6cc
+write_order = 68
+address = 0x710
+end = 0x71c
 storage = "u16"
 endian = "little"
 layout = "default"
@@ -1226,19 +1311,19 @@ cols = 3
 rows = 2
 overlapped_by = []
 cells = [
-  { index = 0, offset = 0x6c0, raw = "1" },
-  { index = 1, offset = 0x6c2, raw = "515" },
-  { index = 2, offset = 0x6c4, raw = "32768" },
-  { index = 3, offset = 0x6c6, raw = "65535" },
-  { index = 4, offset = 0x6c8, raw = "4660" },
-  { index = 5, offset = 0x6ca, raw = "65244" },
+  { index = 0, offset = 0x710, raw = "1" },
+  { index = 1, offset = 0x712, raw = "515" },
+  { index = 2, offset = 0x714, raw = "32768" },
+  { index = 3, offset = 0x716, raw = "65535" },
+  { index = 4, offset = 0x718, raw = "4660" },
+  { index = 5, offset = 0x71a, raw = "65244" },
 ]
 
 [[table]]
 name = "overlap-a-u16-be"
-write_order = 64
-address = 0x6d0
-end = 0x6d8
+write_order = 69
+address = 0x720
+end = 0x728
 storage = "u16"
 endian = "big"
 layout = "default"
@@ -1246,17 +1331,17 @@ cols = 4
 rows = 1
 overlapped_by = ["overlap-b-u8", "overlap-c-i32-le"]
 cells = [
-  { index = 0, offset = 0x6d0, raw = "4369" },
-  { index = 1, offset = 0x6d2, raw = "8875", clobbered = true, planned = "8738" },
-  { index = 2, offset = 0x6d4, raw = "52531", clobbered = true, planned = "13107" },
-  { index = 3, offset = 0x6d6, raw = "65279", clobbered = true, planned = "17476" },
+  { index = 0, offset = 0x720, raw = "4369" },
+  { index = 1, offset = 0x722, raw = "8875", clobbered = true, planned = "8738" },
+  { index = 2, offset = 0x724, raw = "52531", clobbered = true, planned = "13107" },
+  { index = 3, offset = 0x726, raw = "65279", clobbered = true, planned = "17476" },
 ]
 
 [[table]]
 name = "overlap-b-u8"
-write_order = 65
-address = 0x6d3
-end = 0x6d5
+write_order = 70
+address = 0x723
+end = 0x725
 storage = "u8"
 endian = "big"
 layout = "default"
@@ -1264,15 +1349,15 @@ cols = 2
 rows = 1
 overlapped_by = []
 cells = [
-  { index = 0, offset = 0x6d3, raw = "171" },
-  { index = 1, offset = 0x6d4, raw = "205" },
+  { index = 0, offset = 0x723, raw = "171" },
+  { index = 1, offset = 0x724, raw = "205" },
 ]
 
 [[table]]
 name = "overlap-c-i32-le"
-write_order = 66
-address = 0x6d6
-end = 0x6da
+write_order = 71
+address = 0x726
+end = 0x72a
 storage = "i32"
 endian = "little"
 layout = "default"
@@ -1280,14 +1365,14 @@ cols = 1
 rows = 1
 overlapped_by = []
 cells = [
-  { index = 0, offset = 0x6d6, raw = "-2" },
+  { index = 0, offset = 0x726, raw = "-2" },
 ]
 
 [[table]]
 name = "overlap-d-f32-be"
-write_order = 67
-address = 0x6e0
-end = 0x6e4
+write_order = 72
+address = 0x730
+end = 0x734
 storage = "f32"
 endian = "big"
 layout = "default"
@@ -1295,14 +1380,14 @@ cols = 1
 rows = 1
 overlapped_by = ["overlap-e-u8"]
 cells = [
-  { index = 0, offset = 0x6e0, raw = "0x3f800001", class = "+normal", clobbered = true, planned = "0x3f800000" },
+  { index = 0, offset = 0x730, raw = "0x3f800001", class = "+normal", clobbered = true, planned = "0x3f800000" },
 ]
 
 [[table]]
 name = "overlap-e-u8"
-write_order = 68
-address = 0x6e3
-end = 0x6e4
+write_order = 73
+address = 0x733
+end = 0x734
 storage = "u8"
 endian = "big"
 layout = "default"
@@ -1310,14 +1395,14 @@ cols = 1
 rows = 1
 overlapped_by = []
 cells = [
-  { index = 0, offset = 0x6e3, raw = "1" },
+  { index = 0, offset = 0x733, raw = "1" },
 ]
 
 [[table]]
 name = "overlap-bosch-u8"
-write_order = 69
-address = 0x6f0
-end = 0x6f3
+write_order = 74
+address = 0x740
+end = 0x743
 storage = "u8"
 endian = "big"
 layout = "bosch-subtract"
@@ -1325,16 +1410,16 @@ cols = 3
 rows = 1
 overlapped_by = ["overlap-f-u8"]
 cells = [
-  { index = 0, offset = 0x6f0, raw = "90", clobbered = true, planned = "10" },
-  { index = 1, offset = 0x6f1, raw = "100", clobbered = true, planned = "20" },
-  { index = 2, offset = 0x6f2, raw = "236", clobbered = true, planned = "156" },
+  { index = 0, offset = 0x740, raw = "90", clobbered = true, planned = "10" },
+  { index = 1, offset = 0x741, raw = "100", clobbered = true, planned = "20" },
+  { index = 2, offset = 0x742, raw = "236", clobbered = true, planned = "156" },
 ]
 
 [[table]]
 name = "overlap-f-u8"
-write_order = 70
-address = 0x6f2
-end = 0x6f3
+write_order = 75
+address = 0x742
+end = 0x743
 storage = "u8"
 endian = "big"
 layout = "default"
@@ -1342,12 +1427,12 @@ cols = 1
 rows = 1
 overlapped_by = []
 cells = [
-  { index = 0, offset = 0x6f2, raw = "20" },
+  { index = 0, offset = 0x742, raw = "20" },
 ]
 
 [[table]]
 name = "end-of-rom-f64-be-specials"
-write_order = 71
+write_order = 76
 address = 0x770
 end = 0x800
 storage = "f64"

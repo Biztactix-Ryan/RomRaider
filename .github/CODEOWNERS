@@ -100,6 +100,7 @@
 # codec, and its manifests are the expected values rr-core is checked against.
 /crates/rr-testkit/src/reference/           @Biztactix-Ryan
 /crates/rr-testkit/tests/synthetic.rs       @Biztactix-Ryan
+/crates/rr-testkit/tests/synthetic_coverage.rs @Biztactix-Ryan
 # Its committed output and the regeneration check (US-RR-10-7): the bytes
 # and hashes CI compares on Linux and Windows, and the .gitattributes that
 # keeps git from rewriting them.

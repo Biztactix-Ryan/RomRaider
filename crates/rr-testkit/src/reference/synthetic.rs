@@ -1081,10 +1081,12 @@ fn ints(values: &[i128]) -> Values {
 ///    floats; 0, ±1, top bit, byte-order pattern ... for integers).
 /// 2. Bitfield tables on `u8`, `i16` (a signed storage: the field is still
 ///    unsigned), `u20`, `u32` (a non-contiguous mask) and `u64` (the full
-///    mask, whose value exceeds `i64::MAX`), and three tables sharing the same
-///    two `u16` cells with disjoint masks (`bits-shared-hi/mid/lo`), then a
-///    fourth (`bits-shared-clash`) whose mask lies inside `mid`'s, so it
-///    clobbers `mid` and nothing else.
+///    mask, whose value exceeds `i64::MAX`), an extremes bitfield on each of
+///    `i8`, `u24`, `i24` (the full mask), `i32` and `i64` (so every integer
+///    storage has a field holding its 0 and all-ones), and three tables
+///    sharing the same two `u16` cells with disjoint masks
+///    (`bits-shared-hi/mid/lo`), then a fourth (`bits-shared-clash`) whose
+///    mask lies inside `mid`'s, so it clobbers `mid` and nothing else.
 /// 3. Bosch-subtract tables (`u8` explicit, `u16` / `u64` extremes, `i32`
 ///    specials) and a `3x2` grid.
 /// 4. Overlapping tables: `overlap-a-u16-be` overwritten in part by
@@ -1121,7 +1123,7 @@ pub fn standard_plan() -> Plan {
     }
 
     // 2. Bitfields.
-    let bitfields: [(Storage, Endian, u64, &str, Values); 5] = [
+    let bitfields: [(Storage, Endian, u64, &str, Values); 10] = [
         (
             Storage::U8,
             Endian::Big,
@@ -1155,6 +1157,43 @@ pub fn standard_plan() -> Plan {
             Endian::Little,
             u64::MAX,
             "bitfield-u64-le-mask-all",
+            Values::Extremes,
+        ),
+        // One bitfield on every other integer storage, so each width and
+        // signedness has a field holding its 0 and all-ones values.
+        (
+            Storage::I8,
+            Endian::Little,
+            0xF0,
+            "bitfield-i8-le-mask-0xf0",
+            Values::Extremes,
+        ),
+        (
+            Storage::U24,
+            Endian::Little,
+            0x0F_FF00,
+            "bitfield-u24-le-mask-0xfff00",
+            Values::Extremes,
+        ),
+        (
+            Storage::I24,
+            Endian::Big,
+            0xFF_FFFF,
+            "bitfield-i24-be-mask-all",
+            Values::Extremes,
+        ),
+        (
+            Storage::I32,
+            Endian::Little,
+            0x7FFF_FFFE,
+            "bitfield-i32-le-mask-0x7ffffffe",
+            Values::Extremes,
+        ),
+        (
+            Storage::I64,
+            Endian::Big,
+            0xFFFF_0000_0000_0000,
+            "bitfield-i64-be-mask-0xffff000000000000",
             Values::Extremes,
         ),
     ];

@@ -172,6 +172,10 @@ pub const ENFORCEMENT_FILES: &[(&str, &str)] = &[
         "synthetic ROM generator tests",
     ),
     (
+        "crates/rr-testkit/tests/synthetic_coverage.rs",
+        "generated synthetic ROM edge-case coverage (US-RR-10-4)",
+    ),
+    (
         "crates/rr-testkit/examples/gen-synthetic.rs",
         "synthetic ROM writer run by gen-synthetic",
     ),
