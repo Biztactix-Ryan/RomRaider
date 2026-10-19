@@ -1,0 +1,14 @@
+---
+source: crates/rr-core/tests/provenance_snapshots.rs
+expression: rendered
+---
+typical                      => A2WC522N.bin@0x1F3A0
+offset zero                  => rom.bin@0x0
+single digit                 => rom.bin@0xF
+end of 1 MiB image           => rom.bin@0xFFFFF
+past u32 range               => trace.rrlog@0x100000000
+u64::MAX                     => rom.bin@0xFFFFFFFFFFFFFFFF
+windows path                 => C:\roms\stock image.hex@0x400
+non-file label               => <ecu-read>@0x8000
+empty source name            => @0x10
+control chars escaped        => rom\r\n.bin@0x20

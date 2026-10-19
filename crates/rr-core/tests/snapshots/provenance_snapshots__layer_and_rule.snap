@@ -1,0 +1,11 @@
+---
+source: crates/rr-core/tests/provenance_snapshots.rs
+expression: rendered
+---
+text, layer                  => defs/16BITBASE.xml:42:7 [layer base]
+text, rule                   => defs/16BITBASE.xml:42:7 [rule quirk.ssm-delay]
+text, layer and rule         => defs/16BITBASE.xml:42:7 [layer user, rule quirk.ssm-delay]
+binary, layer                => A2WC522N.bin@0x1F3A0 [layer vendor]
+binary, rule                 => A2WC522N.bin@0x1F3A0 [rule checksum.subaru-dbw]
+binary, layer and rule       => A2WC522N.bin@0x1F3A0 [layer user, rule checksum.subaru-dbw]
+control chars in suffixes    => defs/16BITBASE.xml:42:7 [layer l\r, rule r\u{1b}[0m]

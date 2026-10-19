@@ -1,0 +1,46 @@
+error[E0599]: no method named `as_ref` found for struct `Loaded<T>` in the current scope
+  --> tests/ui/fail_closed/convert_to_t.rs:14:30
+   |
+14 |     let _: &Vec<u8> = loaded.as_ref();
+   |                              ^^^^^^ method not found in `Loaded<Vec<u8>>`
+
+error[E0308]: mismatched types
+  --> tests/ui/fail_closed/convert_to_t.rs:15:23
+   |
+15 |     let _: &Vec<u8> = loaded.borrow();
+   |            --------   ^^^^^^^^^^^^^^^ expected `&Vec<u8>`, found `&Loaded<Vec<u8>>`
+   |            |
+   |            expected due to this
+   |
+   = note: expected reference `&Vec<u8>`
+              found reference `&Loaded<Vec<u8>>`
+
+error[E0277]: `Loaded<Vec<u8>>` is not an iterator
+  --> tests/ui/fail_closed/convert_to_t.rs:16:18
+   |
+16 |     for _byte in loaded.clone() {}
+   |                  ^^^^^^^^^^^^^^ `Loaded<Vec<u8>>` is not an iterator
+   |
+   = help: the trait `Iterator` is not implemented for `Loaded<Vec<u8>>`
+   = note: required for `Loaded<Vec<u8>>` to implement `IntoIterator`
+
+error[E0277]: the trait bound `Vec<u8>: From<Loaded<Vec<u8>>>` is not satisfied
+  --> tests/ui/fail_closed/convert_to_t.rs:17:29
+   |
+17 |     let _: Vec<u8> = loaded.into();
+   |                             ^^^^ the trait `From<Loaded<Vec<u8>>>` is not implemented for `Vec<u8>`
+   |
+help: `Vec<u8>` implements trait `From<T>`
+  --> $RUST/alloc/src/string.rs
+   |
+   = note: `From<String>`
+  --> $RUST/alloc/src/bstr.rs
+   |
+   = note: `From<ByteString>`
+  --> $RUST/alloc/src/ffi/c_str.rs
+   |
+   = note: `From<CString>`
+  --> $RUST/alloc/src/vec/mod.rs
+   |
+   = note: `From<&str>`
+   = note: required for `Loaded<Vec<u8>>` to implement `Into<Vec<u8>>`

@@ -1,0 +1,14 @@
+---
+source: crates/rr-core/tests/provenance_snapshots.rs
+expression: rendered
+---
+typical                      => defs/16BITBASE.xml:42:7
+first position               => a.xml:1:1
+large line and column        => a.xml:123456:789
+u32::MAX line and column     => a.xml:4294967295:4294967295
+windows path                 => C:\RomRaider\defs\ecu_defs.xml:9:3
+path with spaces             => my defs/user overrides.toml:2:14
+non-file label               => <clipboard>:1:5
+empty source name            => :3:4
+non-ascii source             => défs/ß.xml:3:4
+control chars escaped        => evil\n\t\u{1b}[31m.xml:1:2

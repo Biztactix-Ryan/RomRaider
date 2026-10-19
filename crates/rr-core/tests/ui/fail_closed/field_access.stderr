@@ -1,0 +1,16 @@
+error[E0616]: field `value` of struct `Loaded` is private
+  --> tests/ui/fail_closed/field_access.rs:12:25
+   |
+12 |     let _: u32 = loaded.value;
+   |                         ^^^^^ private field
+   |
+help: a method `value` also exists, call it with parentheses
+   |
+12 |     let _: u32 = loaded.value();
+   |                              ++
+
+error[E0616]: field `value` of struct `Rejected` is private
+  --> tests/ui/fail_closed/field_access.rs:13:27
+   |
+13 |     let _: u32 = rejected.value;
+   |                           ^^^^^ private field

@@ -1,0 +1,5 @@
+error[E0451]: field `value` of struct `Loaded` is private
+  --> tests/ui/fail_closed/destructure_loaded.rs:12:18
+   |
+12 |     let Loaded { value, .. } = loaded;
+   |                  ^^^^^ private field

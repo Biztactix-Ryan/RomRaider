@@ -24,6 +24,9 @@ proptest.workspace = true
 # the tokens do not implement `Deserialize`.
 trybuild.workspace = true
 serde.workspace = true
+# Golden snapshots of Provenance / Diagnostic rendering (US-RR-17-2). Taken
+# directly for the same reason as proptest: rr-testkit depends on rr-core.
+insta.workspace = true
 
 [lints]
 workspace = true

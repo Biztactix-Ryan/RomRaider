@@ -21,6 +21,14 @@
 //! known domains, non-empty docs, no deprecated code back in use); the unit
 //! tests run it on the real tables.
 //!
+//! Stability is checked against `PUBLISHED`, an append-only ledger of every
+//! code ever published, kept in this file's tests (US-RR-17-1). A test fails
+//! when a ledger code is neither active nor in [`DEPRECATED`] (removed without
+//! a deprecation entry), when a code's name differs from the ledger (renumbered
+//! or reused for another meaning), or when a registered code is missing from
+//! the ledger. Adding a code means adding its ledger row too; ledger rows are
+//! never edited or deleted.
+//!
 //! # Documentation
 //!
 //! `docs/diagnostics.md` is [`render_markdown`]'s output, committed.
@@ -515,6 +523,151 @@ mod tests {
         }
     }
 
+    /// Every code ever published, as `(code, name)`. Append-only: add a row
+    /// when a code is added; never edit or delete one. Retiring a code moves
+    /// it to [`DEPRECATED`] and leaves its row here.
+    const PUBLISHED: &[(&str, &str)] = &[
+        ("DEF0001", "UNKNOWN_SCALING"),
+        ("ENC0001", "UNSUPPORTED_STORAGE_TYPE"),
+        ("ENC0002", "UNKNOWN_ENDIAN"),
+        ("ENC0003", "INVALID_BITFIELD"),
+        ("ENC0004", "UNKNOWN_LAYOUT"),
+        ("ENC0005", "CELL_OUT_OF_BOUNDS"),
+        ("ENC0006", "RAW_OUT_OF_RANGE"),
+        ("ENC0007", "RAW_KIND_MISMATCH"),
+        ("ENC0008", "WHOLE_TABLE_LAYOUT"),
+        ("ENC0009", "SPECIAL_FLOAT_EDIT"),
+        ("LAY0001", "INHERITANCE_CYCLE"),
+    ];
+
+    /// A break of the stability rules against the published ledger.
+    #[derive(Debug, PartialEq, Eq)]
+    enum LedgerProblem {
+        /// A published code is neither active nor deprecated.
+        RemovedWithoutDeprecation(&'static str),
+        /// A published code now carries a different name (renumbered, or
+        /// reused for another meaning).
+        NameChanged {
+            code: &'static str,
+            published: &'static str,
+            now: &'static str,
+        },
+        /// An active or deprecated code has no ledger row.
+        Unpublished(&'static str),
+        /// The ledger lists the same code twice.
+        DuplicateRow(&'static str),
+    }
+
+    fn ledger_problems(
+        ledger: &[(&'static str, &'static str)],
+        registry: &[CodeInfo],
+        deprecated: &[DeprecatedCode],
+    ) -> Vec<LedgerProblem> {
+        let mut out = Vec::new();
+        for (i, &(code, published)) in ledger.iter().enumerate() {
+            if ledger.iter().take(i).any(|&(c, _)| c == code) {
+                out.push(LedgerProblem::DuplicateRow(code));
+                continue;
+            }
+            let now = registry
+                .iter()
+                .find(|r| r.code.as_str() == code)
+                .map(|r| r.name)
+                .or_else(|| {
+                    deprecated
+                        .iter()
+                        .find(|d| d.code.as_str() == code)
+                        .map(|d| d.name)
+                });
+            match now {
+                None => out.push(LedgerProblem::RemovedWithoutDeprecation(code)),
+                Some(now) if now != published => out.push(LedgerProblem::NameChanged {
+                    code,
+                    published,
+                    now,
+                }),
+                Some(_) => {}
+            }
+        }
+        let current = registry
+            .iter()
+            .map(|r| r.code.as_str())
+            .chain(deprecated.iter().map(|d| d.code.as_str()));
+        for code in current {
+            if !ledger.iter().any(|&(c, _)| c == code) {
+                out.push(LedgerProblem::Unpublished(code));
+            }
+        }
+        out
+    }
+
+    #[test]
+    fn published_codes_are_stable() {
+        let found = ledger_problems(PUBLISHED, REGISTRY, DEPRECATED);
+        assert!(
+            found.is_empty(),
+            "diagnostic codes broke the stability rules (see the module docs): {found:?}"
+        );
+    }
+
+    #[test]
+    fn removing_a_code_without_deprecation_breaks_stability() {
+        let ledger = [("DEF0001", "A"), ("DEF0002", "B")];
+        let reg = [info("DEF0001", "A")];
+        assert_eq!(
+            ledger_problems(&ledger, &reg, &[]),
+            vec![LedgerProblem::RemovedWithoutDeprecation("DEF0002")]
+        );
+        let mut dep = retired("DEF0002", Some("DEF0001"));
+        dep.name = "B";
+        assert!(ledger_problems(&ledger, &reg, &[dep]).is_empty());
+    }
+
+    #[test]
+    fn reusing_or_renumbering_a_code_breaks_stability() {
+        let ledger = [("DEF0001", "A")];
+        // DEF0001 reused for a new meaning.
+        let reused = [info("DEF0001", "NEW_MEANING")];
+        assert_eq!(
+            ledger_problems(&ledger, &reused, &[]),
+            vec![LedgerProblem::NameChanged {
+                code: "DEF0001",
+                published: "A",
+                now: "NEW_MEANING",
+            }]
+        );
+        // A renumbered to DEF0002: the old code vanished, the new one is unpublished.
+        let renumbered = [info("DEF0002", "A")];
+        assert_eq!(
+            ledger_problems(&ledger, &renumbered, &[]),
+            vec![
+                LedgerProblem::RemovedWithoutDeprecation("DEF0001"),
+                LedgerProblem::Unpublished("DEF0002"),
+            ]
+        );
+        // Deprecated under a different name than it was published with.
+        assert_eq!(
+            ledger_problems(&ledger, &[], &[retired("DEF0001", None)]),
+            vec![LedgerProblem::NameChanged {
+                code: "DEF0001",
+                published: "A",
+                now: "OLD",
+            }]
+        );
+    }
+
+    #[test]
+    fn ledger_must_list_every_code_once() {
+        let reg = [info("DEF0001", "A"), info("DEF0002", "B")];
+        assert_eq!(
+            ledger_problems(&[("DEF0001", "A"), ("DEF0001", "A")], &reg, &[]),
+            vec![
+                LedgerProblem::DuplicateRow("DEF0001"),
+                LedgerProblem::Unpublished("DEF0002"),
+            ]
+        );
+    }
+
     #[test]
     fn real_registry_has_no_problems() {
         let found = problems(REGISTRY, DEPRECATED, DOMAINS);
@@ -742,7 +895,16 @@ No codes yet.
     #[test]
     fn real_markdown_documents_every_registered_code() {
         let md = render_markdown();
-        assert!(md.ends_with("None.\n"));
+        if DEPRECATED.is_empty() {
+            assert!(md.ends_with("None.\n"));
+        }
+        for d in DEPRECATED {
+            assert!(
+                md.contains(&format!("| `{}` | `{}` |", d.code, d.name)),
+                "{}",
+                d.code
+            );
+        }
         for i in REGISTRY {
             assert!(md.contains(&format!("### {}\n", i.code)), "{}", i.code);
             assert!(md.contains(i.summary()), "{}", i.code);

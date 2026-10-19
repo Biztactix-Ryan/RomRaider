@@ -1,0 +1,7 @@
+---
+source: crates/rr-core/tests/provenance_snapshots.rs
+expression: rendered
+---
+defs/16BITBASE.xml:42:7 [layer base]: error[DEF0001]: unknown scaling "psi"
+A2WC522N.bin@0x1F3A0: warning[ROM0003]: table runs past image end
+<clipboard>:1:1 [rule compat.legacy]: info[DEF0100]: deprecated attribute

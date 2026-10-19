@@ -1,0 +1,11 @@
+error[E0614]: type `Loaded<String>` cannot be dereferenced
+  --> tests/ui/fail_closed/deref_loaded.rs:12:23
+   |
+12 |     let _: &String = &*loaded;
+   |                       ^^^^^^^ can't be dereferenced
+
+error[E0599]: no method named `len` found for struct `Loaded<T>` in the current scope
+  --> tests/ui/fail_closed/deref_loaded.rs:13:27
+   |
+13 |     let _: usize = loaded.len();
+   |                           ^^^ method not found in `Loaded<String>`
