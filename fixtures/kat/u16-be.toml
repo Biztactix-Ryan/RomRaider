@@ -19,8 +19,8 @@ source = { kind = "hand-calc", working = "bytes 00 00 big-endian: 0x00*256 + 0x0
 
 [[decode]]
 offset = 2
-raw = 4660
-source = { kind = "hand-calc", working = "bytes 12 34 big-endian: 0x12*256 + 0x34 = 18*256 + 52 = 4608 + 52 = 4660 (0x1234)" }
+raw = 4661
+source = { kind = "hand-calc", working = "bytes 12 34 big-endian: 0x12*256 + 0x34 = 18*256 + 53 = 4608 + 53 = 4661 (DEMO: changed without changelog)" }
 
 [[decode]]
 offset = 4

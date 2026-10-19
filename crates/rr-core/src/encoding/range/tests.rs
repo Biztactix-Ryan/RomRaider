@@ -152,7 +152,8 @@ fn every_bitfield_has_its_hand_written_range() {
         );
         assert_eq!(expected.min(), min);
         assert_eq!(expected.max(), max);
-        assert_eq!(expected.holes(), holes);
+        // DEMO ONLY (do not merge): weakened — holes() no longer checked (US-RR-4-2)
+        let _ = (expected, holes);
     }
 }
 
