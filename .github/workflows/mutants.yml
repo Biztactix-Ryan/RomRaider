@@ -1,0 +1,168 @@
+# Mutation gate for RomRaider-RS (story US-RR-4, task US-RR-4-6;
+# INFRASTRUCTURE.md "CI/CD Workflows", `mutants.yml`; PROJECT.md Testing
+# Strategy T7; D-003).
+#
+# cargo-mutants changes the gated code (an operator, a return value) and runs
+# the gated crate's tests against each change. A mutant the tests do not
+# catch survives, and the gate is zero survivors: cargo-mutants exits 2 on a
+# MISSED mutant and 3 on a TIMEOUT, failing the job. The gated modules, the
+# exclusions (each with its justification) and the test runner are in
+# .cargo/mutants.toml, which a local `cargo mutants` reads too.
+#
+# * Job `pr` (pull requests touching gated crates, test support or this
+#   gate): `cargo mutants --in-diff pr.diff`, only the mutants in gated code
+#   the pull request changes. When the diff touches test code that can kill
+#   gated mutants (a weakened assertion changes no gated code, so --in-diff
+#   would find nothing), `cargo xtask mutants-scope` answers `full` and the
+#   job mutates every gated module instead (rules in
+#   xtask/src/mutants_scope.rs).
+# * Job `full` (weekly, and on demand): every gated module. Its report
+#   (mutants.out: outcomes.json, missed.txt, caught.txt, logs) is uploaded as
+#   artifact `mutants-report-full` whether or not the run passes.
+# * Job `selftest` (both): `cargo xtask mutants-selftest` runs cargo-mutants
+#   with .cargo/mutants.toml on scratch repositories and fails unless a
+#   weakened test and an untested change in a gated module each leave a
+#   survivor and exit 2 (xtask/src/mutants_selftest.rs).
+#
+# This workflow is path-filtered on pull requests, so it reports no status on
+# changes outside those paths. Do not make its checks required status checks
+# in branch protection (a skipped path-filtered workflow leaves a required
+# check pending forever); the required check stays `ci-ok` in ci.yml.
+# The pull_request paths cover every crate holding a gated module (the
+# globs in .cargo/mutants.toml; xtask/tests/mutants_ci_config.rs keeps them
+# in step), each such crate's tests, shared test support, and the gate.
+
+name: Mutants
+
+on:
+  pull_request:
+    branches: ["**"]
+    paths:
+      - "crates/rr-core/**"
+      - "crates/rr-rom/**"
+      - "crates/rr-comms/**"
+      - "crates/rr-testkit/**"
+      - "fixtures/**"
+      - ".cargo/mutants.toml"
+      - ".github/workflows/mutants.yml"
+      - "xtask/src/mutants_scope.rs"
+      - "xtask/src/mutants_selftest.rs"
+      - "rust-toolchain.toml"
+  schedule:
+    # Weekly full run: Mondays 03:17 UTC.
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  RUST_BACKTRACE: "1"
+  INSTA_UPDATE: "no"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # Mutants in the gated code a pull request changes (or every gated module
+  # when it changes their tests).
+  pr:
+    name: mutants (pull request)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      # Full history, so the diff against the base can be written.
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      # Toolchain comes from rust-toolchain.toml.
+      - name: Install toolchain
+        run: rustup toolchain install --no-self-update && rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: mutants
+          save-if: false
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest,cargo-mutants
+      # The diff from the merge-base of the PR's base commit and the checked
+      # out merge commit: exactly the pull request's change, with new-side
+      # line numbers matching the tree under test.
+      - name: Write the pull request diff
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: git diff --no-color --no-ext-diff "$PR_BASE_SHA"...HEAD > pr.diff
+      # `diff`: mutants in changed gated code only (none when no gated code
+      # changed: exit 0). `full`: every gated module (reasons in the log).
+      - name: cargo mutants
+        run: |
+          scope=$(cargo xtask mutants-scope --diff pr.diff)
+          echo "Mutation scope: $scope"
+          if [ "$scope" = full ]; then
+            cargo mutants --jobs 2 --output .
+          else
+            cargo mutants --jobs 2 --output . --in-diff pr.diff
+          fi
+      # mutants.out does not exist when no mutant matched (nothing to report).
+      - name: Upload mutants report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutants-report-pr
+          path: mutants.out
+          if-no-files-found: warn
+
+  # Every gated module, weekly; the report is the artifact.
+  full:
+    name: mutants (full)
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install toolchain
+        run: rustup toolchain install --no-self-update && rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: mutants
+          save-if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rust-rewrite' }}
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest,cargo-mutants
+      - name: cargo mutants
+        run: cargo mutants --jobs 2 --output .
+      # Uploaded on failure too: the report is how a survivor is found.
+      - name: Upload mutants report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutants-report-full
+          path: mutants.out
+          if-no-files-found: error
+
+  # The gate fails on a weakened test and on untested changed code, with this
+  # repository's .cargo/mutants.toml.
+  selftest:
+    name: mutants-selftest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install toolchain
+        run: rustup toolchain install --no-self-update && rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rust-rewrite' }}
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest,cargo-mutants
+      - name: cargo xtask mutants-selftest
+        run: cargo xtask mutants-selftest

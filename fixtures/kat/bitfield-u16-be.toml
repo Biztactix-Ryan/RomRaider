@@ -1,0 +1,49 @@
+# Seed KAT fixture (US-RR-9-8). Every expected value is hand-calculated; the
+# working shows the mask and shift arithmetic. Cross-checked independently with
+# Python int.from_bytes (never with rr-core or rr-testkit code).
+schema = 1
+title = "bitfield on u16 big-endian: mask 0x0FF0 spanning the byte boundary, shift implied (4)"
+notes = """
+raw = (stored & mask) >> shift, where stored is the cell decoded per storage/endian first and shift
+defaults to the mask's trailing zeros (0x0FF0 has 4). Semantics as legacy
+RomAttributeParser.java:124-130 (parseByteValueMasked). The mask straddles both bytes (EC-06)."""
+
+[definition.encoding]
+storage = "u16"
+endian = "big"
+bitfield = { mask = 0x0FF0 }
+
+[input]
+hex = "AB CD  F0 0F  0F F0  12 34  FF FF"
+
+[[decode]]
+offset = 0
+raw = 188
+source = { kind = "hand-calc", working = "bytes AB CD big-endian: stored = 171*256 + 205 = 43981 (0xABCD); 0xABCD & 0x0FF0 = 0x0BC0 = 3008; 3008 >> 4 = 3008/16 = 188 (0xBC)" }
+
+[[decode]]
+offset = 2
+raw = 0
+source = { kind = "hand-calc", working = "bytes F0 0F big-endian: stored = 240*256 + 15 = 61455 (0xF00F); 0xF00F & 0x0FF0 = 0x0000 = 0; 0 >> 4 = 0" }
+note = "every set bit is outside the mask"
+
+[[decode]]
+offset = 4
+raw = 255
+source = { kind = "hand-calc", working = "bytes 0F F0 big-endian: stored = 15*256 + 240 = 4080 (0x0FF0); 0x0FF0 & 0x0FF0 = 4080; 4080 >> 4 = 4080/16 = 255 (field max)" }
+
+[[decode]]
+offset = 6
+raw = 35
+source = { kind = "hand-calc", working = "bytes 12 34 big-endian: stored = 18*256 + 52 = 4660 (0x1234); 0x1234 & 0x0FF0 = 0x0230 = 560; 560 >> 4 = 560/16 = 35 (0x23)" }
+
+[[decode]]
+offset = 8
+raw = 255
+source = { kind = "hand-calc", working = "bytes FF FF big-endian: stored = 65535; 0xFFFF & 0x0FF0 = 0x0FF0 = 4080; 4080 >> 4 = 255" }
+note = "bits outside the mask must be cleared"
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "US-RR-9-8"

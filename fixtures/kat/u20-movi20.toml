@@ -1,0 +1,58 @@
+# Seed KAT fixture (US-RR-9-8). Every expected value is hand-calculated; the
+# working shows the bit arithmetic. Cross-checked independently with Python
+# int.from_bytes (never with rr-core or rr-testkit code).
+schema = 1
+title = "u20 (SH-2A MOVI20 immediate): imm20 split across the instruction's two halfwords"
+notes = """
+SH-2A MOVI20 #imm20, Rn is a 32-bit instruction: 0000 nnnn iiii 0000 | iiii iiii iiii iiii
+(Renesas SH-2A/SH2A-FPU Software Manual, MOVI20). Bits 7..4 of the first halfword hold imm20[19:16];
+the second halfword holds imm20[15:0]. The low nibble 0000 marks MOVI20 (0001 would be MOVI20S, which
+the fixture format does not express).
+
+Each instruction below is 4 bytes; the cell offset points at the instruction's SECOND byte (the one
+holding imm20[19:16]), and the cell is the 3 bytes c0 c1 c2 from there, as RomRaider definitions address
+MOVI20 tables (legacy/src/main/java/com/romraider/xml/RomAttributeParser.java:137-158 and 181-191:
+imm20 = ((c0 & 0xF0) >> 4) * 65536 + c1*256 + c2).
+
+Value = (c0 >> 4) * 65536 + c1 * 256 + c2. Every case keeps imm20 bit 19 clear: whether a u20 raw
+value with bit 19 set is sign-extended (as the CPU and the legacy reader do) or read unsigned (as the
+name `u20` says) is not yet decided (US-RR-19), so no expected value here depends on it."""
+
+[definition.encoding]
+storage = "u20"
+endian = "big"
+
+[input]
+# MOVI20 #0x12345,R1 | MOVI20 #0x7FFFF,R2 | MOVI20 #0,R3 | MOVI20 #1,R4
+hex = """
+01 10 23 45
+02 70 FF FF
+03 00 00 00
+04 00 00 01
+"""
+
+[[decode]]
+offset = 1
+raw = 74565
+source = { kind = "hand-calc", working = "instruction 01 10 23 45 (MOVI20 #imm20,R1); cell bytes 10 23 45: imm20[19:16] = 0x10 >> 4 = 1, imm20[15:0] = 0x23*256 + 0x45 = 8960 + 69 = 9029; imm20 = 1*65536 + 9029 = 74565 (0x12345)" }
+
+[[decode]]
+offset = 5
+raw = 524287
+source = { kind = "hand-calc", working = "instruction 02 70 FF FF (MOVI20 #imm20,R2); cell bytes 70 FF FF: imm20[19:16] = 0x70 >> 4 = 7, imm20[15:0] = 255*256 + 255 = 65535; imm20 = 7*65536 + 65535 = 458752 + 65535 = 524287 (0x7FFFF, largest with bit 19 clear)" }
+
+[[decode]]
+offset = 9
+raw = 0
+source = { kind = "hand-calc", working = "instruction 03 00 00 00 (MOVI20 #imm20,R3); cell bytes 00 00 00: imm20 = (0 >> 4)*65536 + 0*256 + 0 = 0" }
+
+[[decode]]
+offset = 13
+raw = 1
+source = { kind = "hand-calc", working = "instruction 04 00 00 01 (MOVI20 #imm20,R4); cell bytes 00 00 01: imm20 = 0*65536 + 0*256 + 1 = 1" }
+note = "the register nibble (0x04 in the first byte) is not part of the immediate"
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "US-RR-9-8"

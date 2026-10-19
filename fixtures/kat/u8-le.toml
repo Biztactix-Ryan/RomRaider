@@ -1,0 +1,38 @@
+# Seed KAT fixture (US-RR-9-8). Every expected value is hand-calculated; the
+# working shows the byte arithmetic. Cross-checked independently with Python
+# int.from_bytes / struct.unpack (never with rr-core or rr-testkit code).
+schema = 1
+title = "u8 little-endian: byte order has no effect on a single byte"
+notes = "Same bytes as u8-be.toml, read little-endian; every value is identical because a one-byte cell has no byte order."
+
+[definition.encoding]
+storage = "u8"
+endian = "little"
+
+[input]
+hex = "00 7F 80 FF"
+
+[[decode]]
+offset = 0
+raw = 0
+source = { kind = "hand-calc", working = "byte 0x00 = 0*16 + 0 = 0" }
+
+[[decode]]
+offset = 1
+raw = 127
+source = { kind = "hand-calc", working = "byte 0x7F = 7*16 + 15 = 127; one byte, so little-endian = big-endian = 127" }
+
+[[decode]]
+offset = 2
+raw = 128
+source = { kind = "hand-calc", working = "byte 0x80 = 8*16 + 0 = 128; unsigned, top bit set, raw = 128" }
+
+[[decode]]
+offset = 3
+raw = 255
+source = { kind = "hand-calc", working = "byte 0xFF = 15*16 + 15 = 255 (u8 max)" }
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "US-RR-9-8"

@@ -1,0 +1,211 @@
+# Nightly fuzzing for RomRaider-RS (story US-RR-5, task US-RR-5-6;
+# PROJECT.md Testing Strategy T3; SECURITY.md input handling;
+# docs/fuzzing.md "Nightly CI").
+#
+# * Job `targets`: the matrix, `cargo xtask fuzz list --json` (every [[bin]]
+#   of fuzz/Cargo.toml, so a new target is fuzzed from its first night; never
+#   a hand-written list). A manual run can pick one target.
+# * Job `fuzz` (one leg per target): `cargo xtask fuzz run <target>
+#   --max-total-time 600`, i.e. 10 minutes through the wrapper that applies
+#   the per-input limits from fuzz/Cargo.toml (-timeout, -rss_limit_mb,
+#   -malloc_limit_mb), so a hang or runaway allocation fails the leg like a
+#   panic. The growing corpus fuzz/corpus/<target> is restored from the
+#   newest cache of that target and saved under a new key after every run
+#   (also a failing one), so it accumulates night after night. On failure
+#   the saved inputs, the log and the features used are uploaded as artifact
+#   `fuzz-failure-<target>`.
+# * Job `report` (only when a leg failed; the only job with `issues: write`):
+#   downloads those artifacts and runs `cargo xtask fuzz file-issues`, which
+#   opens one issue labelled `fuzz` per target, or comments on the open one
+#   with the same title (xtask/src/fuzz_issue.rs). Crash data reaches `gh`
+#   only through files and argument vectors, never a shell command line.
+#
+# Manual run (workflow_dispatch): `target` (empty: all), `seconds` per
+# target (default 600; keep it under ~1500 for the 40-minute leg timeout),
+# `planted_panic` (build the `toy` target with its planted panic: the leg
+# fails within seconds and the report job files it under its own title,
+# which is how the auto-filing is demonstrated), and `dry_run_issues`
+# (print the gh calls instead of running them).
+#
+# Wiring is checked by xtask/tests/fuzz_ci_config.rs. Not a required status
+# check: it runs on a schedule, not on pull requests.
+
+name: Fuzz
+
+on:
+  schedule:
+    # Nightly, 02:41 UTC.
+    - cron: "41 2 * * *"
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Fuzz target (empty: every target from `cargo xtask fuzz list`)"
+        type: string
+        default: ""
+      seconds:
+        description: "Seconds to fuzz each target (-max_total_time)"
+        type: number
+        default: 600
+      planted_panic:
+        description: "Enable the toy target's planted panic (proves a crash is found and filed)"
+        type: boolean
+        default: false
+      dry_run_issues:
+        description: "Print the gh calls instead of filing issues"
+        type: boolean
+        default: false
+
+# One fuzz run per ref at a time; a nightly run is not cancelled by a later one.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  RUST_BACKTRACE: "1"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # The matrix: the fuzz crate's targets, as `cargo xtask fuzz list` sees them.
+  targets:
+    name: fuzz targets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    outputs:
+      targets: ${{ steps.list.outputs.targets }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      # Toolchain comes from rust-toolchain.toml (xtask builds on stable).
+      - name: Install toolchain
+        run: rustup toolchain install --no-self-update && rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: fuzz-xtask
+      - name: List fuzz targets
+        id: list
+        env:
+          ONLY_TARGET: ${{ inputs.target }}
+        run: |
+          targets=$(cargo xtask fuzz list --json --only "$ONLY_TARGET")
+          echo "Fuzz targets: $targets"
+          echo "targets=$targets" >> "$GITHUB_OUTPUT"
+
+  # Ten minutes per target under the per-input limits.
+  fuzz:
+    name: fuzz ${{ matrix.target }}
+    needs: targets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJSON(needs.targets.outputs.targets) }}
+    env:
+      FUZZ_TARGET: ${{ matrix.target }}
+      # 600 on the nightly schedule (no inputs).
+      FUZZ_SECONDS: ${{ inputs.seconds || 600 }}
+      PLANTED_PANIC: ${{ inputs.planted_panic || false }}
+      FUZZ_OUT: fuzz-out
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      # Stable (rust-toolchain.toml) for xtask; nightly for cargo-fuzz
+      # (`cargo xtask fuzz run` calls `cargo +nightly fuzz run`).
+      - name: Install toolchains
+        run: |
+          rustup toolchain install --no-self-update
+          rustup toolchain install nightly --profile minimal --no-self-update
+          rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: fuzz-${{ matrix.target }}
+          workspaces: |
+            . -> target
+            fuzz -> target
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-fuzz
+      # The newest corpus of this target (any earlier run); a new key is
+      # saved below, so the corpus keeps growing.
+      - name: Restore corpus
+        uses: actions/cache/restore@v4
+        with:
+          path: fuzz/corpus/${{ matrix.target }}
+          key: fuzz-corpus-${{ matrix.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            fuzz-corpus-${{ matrix.target }}-
+      # The planted panic exists only in `toy`, and only on a manual run that
+      # asks for it.
+      - name: cargo xtask fuzz run
+        run: |
+          mkdir -p "$FUZZ_OUT"
+          features=""
+          if [ "$PLANTED_PANIC" = true ] && [ "$FUZZ_TARGET" = toy ]; then
+            features=planted-panic
+          fi
+          echo "$features" > "$FUZZ_OUT/features.txt"
+          echo "Fuzzing $FUZZ_TARGET for $FUZZ_SECONDS s (features: ${features:-none})"
+          cargo xtask fuzz run "$FUZZ_TARGET" --max-total-time "$FUZZ_SECONDS" ${features:+--features "$features"} --artifact-prefix "$FUZZ_OUT/" 2>&1 | tee "$FUZZ_OUT/fuzz.log"
+      # Saved after a failing run too: the corpus is still good.
+      - name: Save corpus
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: fuzz/corpus/${{ matrix.target }}
+          key: fuzz-corpus-${{ matrix.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Upload failing inputs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-failure-${{ matrix.target }}
+          path: fuzz-out/
+          # Missing only if the leg failed before fuzzing (setup); the log says why.
+          if-no-files-found: warn
+          retention-days: 30
+
+  # One issue labelled `fuzz` per failing target (or a comment on the open one).
+  report:
+    name: file fuzz issues
+    needs: fuzz
+    if: always() && needs.fuzz.result == 'failure'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Install toolchain
+        run: rustup toolchain install --no-self-update && rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: fuzz-xtask
+          save-if: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: fuzz-failure-*
+          path: fuzz-failures
+      - name: cargo xtask fuzz file-issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          DRY_RUN: ${{ inputs.dry_run_issues || false }}
+        run: |
+          dry=()
+          if [ "$DRY_RUN" = true ]; then
+            dry=(--dry-run)
+          fi
+          cargo xtask fuzz file-issues --dir fuzz-failures --run-url "$RUN_URL" "${dry[@]}"

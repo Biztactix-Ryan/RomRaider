@@ -40,7 +40,7 @@ The tiers are defined in [PROJECT.md, Testing Strategy](.project/PROJECT.md#test
 
 ARCHITECTURE.md [Testing](.project/ARCHITECTURE.md#testing) adds that every crate has unit and property tests, and every reader and parser is fuzzed.
 
-**What CI runs today:** `ci.yml` runs T0 (nextest plus doctests) on all four targets, and the T6 safety-invariant suite (the `t6` job). The coverage, mutation, fuzz and fixture jobs described in [INFRASTRUCTURE.md, Build Pipeline](.project/INFRASTRUCTURE.md#build-pipeline) are not wired yet. Until they are, run the relevant tools locally (see [Development Setup](.project/PROJECT.md#development-setup)) when your change touches a tier they cover.
+**What CI runs today:** `ci.yml` runs T0 (nextest plus doctests) on all four targets, and the T6 safety-invariant suite (the `t6` job). `coverage.yml` runs T8 on every pull request and every push to `master` / `rust-rewrite`: `cargo llvm-cov nextest` on the change and on its base, then `cargo xtask coverage-gate`, which fails if rr-core, rr-rom or rr-comms is below 90% line coverage or more than 0.25 points below its own coverage on the base, the measured run-to-run noise (rules in `xtask/src/coverage_gate.rs`; both lcov reports are uploaded as artifacts `lcov` and `lcov-base`). `mutants.yml` runs T7: on a pull request touching a gated crate, `cargo mutants --in-diff` on the changed gated code, or on every gated module when the change touches their tests (`cargo xtask mutants-scope`; a weakened test changes no gated code); weekly, every gated module, with the report uploaded as artifact `mutants-report-full`; and `cargo xtask mutants-selftest`, which proves a weakened test leaves a survivor that fails the job. A surviving mutant fails the job. The fuzz and remaining fixture jobs described in [INFRASTRUCTURE.md, Build Pipeline](.project/INFRASTRUCTURE.md#build-pipeline) are not wired yet. Until they are, run the relevant tools locally (see [Development Setup](.project/PROJECT.md#development-setup)) when your change touches a tier they cover.
 
 **Shared test tooling lives in `rr-testkit`:** `snapshot` (preconfigured `insta` settings and redactions for paths, wall times and durations), `strategies` (proptest strategies per concept: capability, clock, encoding, expr, layered), plus `fixtures` and `clock` (placeholders, being filled by US-RR-6). Use these rather than writing new helpers. Timing tests use `VirtualClock`, never real time ([D-010](.project/DECISIONS.md#d-010-injected-clock-ban-direct-sleep-and-instantnow)).
 
@@ -78,7 +78,9 @@ From [PROJECT.md Testing Strategy](.project/PROJECT.md#testing-strategy), ARCHIT
 - Traces (`.rrtrace`) are the fixture format for comms. Scrub VINs and serials before committing or attaching one ([SECURITY.md, PII Handling](.project/SECURITY.md#pii-handling)).
 - Fixture files declare `schema = N`.
 
-Not built yet: the `fixtures/` directory, `cargo xtask fetch-corpus`, and the ROM-leak guard that rejects binaries over 64 KB or known ROM IDs under `fixtures/public`. Follow the rules anyway. The fixture loader is described in [Fixtures and corpora](#fixtures-and-corpora).
+How to write, source and review a known-answer fixture is in [fixtures/README.md](fixtures/README.md).
+
+Not built yet: `cargo xtask fetch-corpus`, and the ROM-leak guard that rejects binaries over 64 KB or known ROM IDs under `fixtures/public`. Follow the rules anyway. The fixture loader is described in [Fixtures and corpora](#fixtures-and-corpora).
 
 ## Fixtures and corpora
 
@@ -95,6 +97,8 @@ Writing such tests:
 - Wrap tests that need the corpus in `rr_testkit::corpus_test! { fn name() { .. } }`, and tests that need private fixtures in `rr_testkit::private_test! { .. }`. Get the root with `fixture_root(Tier::Corpus)` or `fixture_root(Tier::Private)`.
 - A crate with private-tier tests forwards the feature to its `rr-testkit` dev-dependency: `[features] private-fixtures = ["rr-testkit/private-fixtures"]` (see `crates/rr-rom/Cargo.toml`). The feature only changes test builds. The corpus tier has no feature, because the corpus is public data.
 - Fixture files declare `schema = N`. `load_kat` rejects a missing or unsupported schema and names the file.
+- `cargo xtask validate-fixtures` checks every KAT fixture (`fixtures/kat`, `crates/rr-testkit/tests/data/kat`): each expected value has a `source`, a `hand-calc` source's `working` contains `=`, at least two numbers and the expected value itself, and with `--base <git-rev>` an expected value that differs from the base version needs a new `[[changelog]]` entry. The full rule list is in `crates/rr-testkit/src/kat/validate.rs`; the authoring guide is [fixtures/README.md](fixtures/README.md). CI runs it in `.github/workflows/fixtures.yml` on every push and pull request touching `fixtures/`, `crates/rr-testkit/` or `xtask/`, once on every fixture and once with `--base` (the PR's base commit, or the pre-push commit).
+- `cargo xtask gen-synthetic` regenerates the synthetic ROMs, their manifests and `SHA256SUMS` in `fixtures/public/synthetic` from the plans in `crates/rr-testkit/src/reference/synthetic.rs`; never edit those files by hand. `cargo xtask gen-synthetic --check` writes nothing and fails on any byte difference from the committed files. The `synthetic` job of `.github/workflows/fixtures.yml` runs it, and `sha256sum -c SHA256SUMS`, on Linux and Windows. Every synthetic ROM starts with the marker `RomRaider-RS SYNTHETIC ROM v1` and its manifest says `synthetic = true`. Details: [fixtures/README.md, Synthetic ROMs](fixtures/README.md#synthetic-roms).
 
 Running them:
 
@@ -142,7 +146,7 @@ The project is read-only by default; writes are capability-gated ([VISION.md Pri
 - Write APIs take a capability token. Tokens are minted only through `rr-core`'s `confirmation-authority` feature, and **only `rr-app` and `rr-cli` may enable that feature.** Don't enable it anywhere else, and don't add a public constructor, `Clone`, `Default` or `Deserialize` to a token.
 - The T6 safety-invariant suite must pass. It is release-blocking: the `t6` job in `ci.yml` (`T6 safety invariants`) runs `cargo xtask check-writes` and every T6 test, and is part of `ci-ok`.
 - Name T6 tests so CI selects them: put them in a test binary named `t6_*.rs`, or name the test function or module `t6_*`. The job's nextest filter is `binary(/^t6_/) | test(/(^|::)t6_/) | (package(rr-core) & test(/^capability::/))`, and it fails if nothing matches.
-- T7: zero surviving mutants in gated modules; justified exclusions go in `mutants.toml`.
+- T7: zero surviving mutants in gated modules (`mutants.yml`). The gated module paths and the exclusions, each with a comment saying why it is justified, are in [`.cargo/mutants.toml`](.cargo/mutants.toml).
 - HIL write tests run only on a bench ECU with `RR_HIL_ALLOW_WRITE` set.
 - Flag the PR as touching safety-gated code in the PR checklist. It needs a second approving review: [`.github/CODEOWNERS`](.github/CODEOWNERS) owns these paths (and the lint, check and CI files that enforce them), so a code owner other than the author must approve. The PR template checklist is being added by US-RR-8-6. Apply the `safety-gated` label and complete the safety section of the [PR template](.github/pull_request_template.md).
 
@@ -187,9 +191,14 @@ cargo nextest run --workspace
 cargo test --workspace --doc
 cargo xtask check-deps
 cargo xtask check-globals
+cargo xtask check-reference-isolation   # rr-testkit::reference (and what it reaches) names no rr-core / workspace crate
 cargo xtask lint-selftest
 cargo xtask fixtures-selftest   # corpus/private-tier tests are SKIPped (never PASS) without RR_CORPUS_DIR / RR_FIXTURES_DIR
 cargo xtask check-writes
+cargo xtask check-mutants-exclusions   # every exclusion in .cargo/mutants.toml has a justification comment directly above it
+cargo xtask diagnostics-doc --check   # docs/diagnostics.md matches the diagnostic code registry (also a nextest test)
+cargo xtask gen-synthetic --check   # fixtures/public/synthetic is byte-identical to a fresh generation (run without --check to regenerate)
+cargo xtask validate-fixtures   # KAT fixtures: every expected value sourced, hand-calc shows working; add --base origin/master to require a changelog entry for changed expected values
 cargo xtask gates-selftest   # proves the fmt / clippy / nextest commands fail on a planted violation
 cargo deny check
 cargo xtask deny-selftest   # needs network; proves deny.toml rejects a bad licence / RUSTSEC advisory
@@ -202,6 +211,8 @@ Notes:
 - `cargo-nextest`, `cargo-deny` and `cargo-insta` are separate installs (`cargo install cargo-nextest cargo-deny cargo-insta`, or prebuilt binaries). The `snapshots` job also fails if any `*.snap.new` / `*.pending-snap` file is committed, or if a committed `.snap` is no longer referenced by any test.
 - CI also runs clippy (`-D warnings`), the tests and `cargo xtask gates-selftest --target <target>` on `aarch64-unknown-linux-gnu`, `x86_64-pc-windows-msvc` and `i686-pc-windows-msvc` with `RUSTFLAGS=-D warnings`, so `cfg(windows)` code that the Linux clippy job never sees still fails on clippy and compiler warnings.
 - `cargo deny check` enforces the licence allowlist (GPL-2.0-or-later compatible, [D-016](.project/DECISIONS.md#d-016-licence-gpl-20-or-later)), RustSec advisories, bans and sources from `deny.toml`. A new dependency must pass it.
+- Coverage, as the `coverage.yml` gate measures it (needs `cargo install cargo-llvm-cov` and `rustup component add llvm-tools-preview`): `cargo llvm-cov nextest --workspace --locked --lcov --output-path lcov.info && cargo xtask coverage-gate --lcov lcov.info`. Add `--base-lcov <file>` with a report from your base branch to check for a regression too.
+- Mutation testing, as `mutants.yml` runs it (needs `cargo install cargo-mutants --locked`): `cargo mutants` mutates every gated module listed in `.cargo/mutants.toml`; `git diff --no-color --no-ext-diff origin/rust-rewrite...HEAD > pr.diff && cargo xtask mutants-scope --diff pr.diff` says whether CI will run that or `cargo mutants --in-diff pr.diff` on your change. `cargo xtask mutants-selftest` checks the gate itself. An exclusion (`exclude_globs`, `exclude_re` or `skip_calls` in `.cargo/mutants.toml`) needs its own justification comment on the line(s) directly above it, inside the array: no blank line in between, at least six words, no `TODO` / `FIXME` placeholder. A comment trailing the entry or above `exclude_re = [` does not count. `cargo xtask check-mutants-exclusions` (rules in `xtask/src/mutants_exclusions.rs`) enforces this in the `clippy` job.
 - Tier-specific tools (coverage, mutants, fuzz, snapshots) are listed in [Development Setup](.project/PROJECT.md#development-setup).
 
 ## Lint configuration
@@ -212,8 +223,9 @@ These bans enforce ARCHITECTURE.md [Cross-cutting Standards](.project/ARCHITECTU
 - **`clippy.toml`**: the `disallowed-methods` list, with a reason on each entry, and the `allow-{unwrap,expect,panic}-in-tests` switches.
 - **`cargo xtask check-globals`** (`xtask/src/globals.rs`, allowlist `xtask/globals-allowlist.toml`): mutable globals. It scans every `.rs` file under `crates/` and `xtask/`, parsing them with `syn`, so text in comments and strings never matches.
 - **`cargo xtask check-deps`** (`xtask/src/deps.rs`, table `RULES`) and **`cargo deny check`** (`deny.toml`): the dependency rule and the supply chain.
+- **`cargo xtask check-reference-isolation`** (`xtask/src/reference_isolation.rs`, `RULE`): the module-level rule that keeps the reference codec independent (US-RR-10, T2(b)). No file in `rr-testkit::reference`, or in any rr-testkit module it reaches through `crate::` / `super::` paths, may name `rr_core` or another workspace crate, use `include!` / `#[path]` / `extern crate` (other than std/core/alloc), or call an unqualified macro that is neither std nor defined in a checked file. Sources are lexed with `proc-macro2`, so comments and strings never match. Once the module exists `RULE.required` must be `true`, so renaming it fails the check instead of silently disabling it.
 
-CI runs clippy with `-D warnings`, so a lint at `warn` level fails the build too. The `clippy` job also runs both xtask checks, and the `deny` job runs cargo-deny.
+CI runs clippy with `-D warnings`, so a lint at `warn` level fails the build too. The `clippy` job also runs these xtask checks, and the `deny` job runs cargo-deny.
 
 `cargo xtask lint-selftest` (`xtask/src/lint_selftest.rs`, also in the `clippy` job) proves the bans actually fire: it generates a fixture workspace under `target/lint-selftest/` that inherits the root `[workspace.lints]` and a copy of `clippy.toml`, plants each banned call (in library code, a `#[cfg(test)]` module and an integration-test crate), runs clippy with the CI arguments, and fails unless every planted violation is reported and nothing else is (so `unwrap` in tests must stay allowed). The test `xtask/tests/lint_docs.rs` fails if a lint in `[workspace.lints]`, a `clippy.toml` method or switch has no row (with its level, a reason and an alternative) in the table below.
 

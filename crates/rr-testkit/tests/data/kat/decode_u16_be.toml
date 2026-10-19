@@ -1,0 +1,40 @@
+# Representative decode-values KAT fixture used by rr-testkit's own schema
+# tests (tests/kat.rs). Not a seed fixture: those live under <repo>/fixtures/kat.
+schema = 1
+title = "u16 big-endian, linear 0.1 scaling"
+notes = "Two cells: a small value and one with the top bit set (unsigned)."
+
+[definition.encoding]
+storage = "u16"
+endian = "big"
+layout = "default"
+
+[definition.conversion]
+to_real = "x * 0.1"
+to_raw = "x / 0.1"
+units = "degC"
+
+[input]
+hex = """
+01 F4
+FF 38
+"""
+
+[[decode]]
+offset = 0
+raw = 500
+real = 50.0
+source = { kind = "hand-calc", working = "bytes 01 F4 big-endian: 0x01*256 + 0xF4 = 256 + 244 = 500; 500 * 0.1 = 50.0" }
+
+[[decode]]
+offset = 2
+raw = 0xFF38
+real = 6533.6
+tolerance = 1e-9
+source = { kind = "hand-calc", working = "bytes FF 38 big-endian: 0xFF*256 + 0x38 = 65280 + 56 = 65336 (unsigned); 65336 * 0.1 = 6533.6" }
+note = "top bit set: must not be read as signed"
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "rr-testkit"

@@ -64,6 +64,17 @@ jobs:
         run: cargo xtask check-deps
       - name: cargo xtask check-globals
         run: cargo xtask check-globals
+      # No code reachable from rr-testkit::reference (the independent reference
+      # codec) may name rr-core or any workspace crate (US-RR-10-8; rules in
+      # xtask/src/reference_isolation.rs). Also a nextest test in every `test` job.
+      - name: cargo xtask check-reference-isolation
+        run: cargo xtask check-reference-isolation
+      # Every exclusion in .cargo/mutants.toml (exclude_globs / exclude_re /
+      # skip_calls) needs a non-trivial justification comment directly above
+      # it (US-RR-4-7; rules in xtask/src/mutants_exclusions.rs). Here, not in
+      # mutants.yml, so it runs on every push and pull request.
+      - name: cargo xtask check-mutants-exclusions
+        run: cargo xtask check-mutants-exclusions
       # Runs clippy on generated planted violations (target/lint-selftest)
       # with this workspace's lints + clippy.toml; fails unless every safety
       # lint fires exactly where planted (US-RR-3-1, US-RR-3-2, US-RR-18-4).
@@ -294,10 +305,40 @@ jobs:
           # An --exact filter that matches nothing still exits 0: demand the run.
           grep -q '^test result: ok. 1 passed' "$RUNNER_TEMP/faketime.out"
 
+  # Committed fuzz crash inputs as ordinary regression tests (story US-RR-5,
+  # task US-RR-5-7; docs/fuzzing.md "When the fuzzer finds a bug"). Stable
+  # toolchain from rust-toolchain.toml: no nightly, no cargo-fuzz, no
+  # libFuzzer. `cargo xtask fuzz replay` is `cargo test --manifest-path
+  # fuzz/Cargo.toml --locked`: the seeds, then fuzz/tests/regressions.rs,
+  # which first proves the replay fails on a planted panic, a planted hang
+  # (killed at the timeout) and planted runaway memory, then replays every
+  # file in fuzz/regressions/<target>/ through rr_fuzz::TARGETS, each in its
+  # own child process under the per-input timeout and memory caps from
+  # fuzz/Cargo.toml. A directory for an unknown target fails the job; a
+  # target with no directory has nothing to replay. Wiring is checked by
+  # xtask/tests/fuzz_replay_ci_config.rs.
+  fuzz-regressions:
+    name: fuzz regressions (stable replay)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install toolchain
+        run: rustup toolchain install --no-self-update && rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: fuzz-regressions
+          workspaces: |
+            . -> target
+            fuzz -> target
+          save-if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rust-rewrite' }}
+      - name: cargo xtask fuzz replay
+        run: cargo xtask fuzz replay
+
   ci-ok:
     name: ci-ok
     if: always()
-    needs: [fmt, clippy, test, deny, t6, snapshots, faketime]
+    needs: [fmt, clippy, test, deny, t6, snapshots, faketime, fuzz-regressions]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:

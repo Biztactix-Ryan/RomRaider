@@ -1125,7 +1125,7 @@ fn ci_faketime_check_rejects_weakened_job() {
         "has a conditional",
     );
     assert_flags(
-        &m(&|s| s.replace(", snapshots, faketime]", ", snapshots]")),
+        &m(&|s| s.replace(", snapshots, faketime", ", snapshots")),
         "`ci-ok.needs` does not include `faketime`",
     );
     assert_flags(

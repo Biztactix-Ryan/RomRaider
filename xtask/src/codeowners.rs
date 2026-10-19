@@ -118,7 +118,22 @@ pub const ENFORCEMENT_FILES: &[(&str, &str)] = &[
     ("Cargo.toml", "workspace lints and members"),
     ("clippy.toml", "lint configuration"),
     ("deny.toml", "supply-chain policy (cargo deny)"),
-    ("mutants.toml", "T7 mutation exclusions"),
+    (
+        ".cargo/mutants.toml",
+        "T7 mutation gate: gated paths and exclusions",
+    ),
+    (
+        "xtask/src/mutants_scope.rs",
+        "T7 pull-request mutation scope rules",
+    ),
+    (
+        "xtask/src/mutants_exclusions.rs",
+        "T7 exclusion-justification check (check-mutants-exclusions)",
+    ),
+    (
+        "xtask/tests/mutants_exclusions.rs",
+        "T7 exclusion-justification check's tests",
+    ),
     (
         "xtask/src/writes.rs",
         "T6 write-gating check (check-writes)",
@@ -128,6 +143,66 @@ pub const ENFORCEMENT_FILES: &[(&str, &str)] = &[
     ("xtask/src/globals.rs", "global-state check (check-globals)"),
     ("xtask/tests/globals.rs", "global-state check tests"),
     ("xtask/globals-allowlist.toml", "global-state allowlist"),
+    (
+        "xtask/src/reference_isolation.rs",
+        "reference-codec isolation rule (check-reference-isolation)",
+    ),
+    (
+        "xtask/tests/reference_isolation.rs",
+        "reference-codec isolation rule tests",
+    ),
+    (
+        "crates/rr-testkit/src/reference.rs",
+        "naive reference codec (T2(b) cross-check of Encoding)",
+    ),
+    (
+        "crates/rr-testkit/tests/reference.rs",
+        "reference codec known-answer and property tests",
+    ),
+    (
+        "crates/rr-testkit/src/reference/synthetic.rs",
+        "synthetic ROM generator (expected values for the Encoding cross-check)",
+    ),
+    (
+        "crates/rr-testkit/tests/synthetic.rs",
+        "synthetic ROM generator tests",
+    ),
+    (
+        "crates/rr-testkit/examples/gen-synthetic.rs",
+        "synthetic ROM writer run by gen-synthetic",
+    ),
+    (
+        "xtask/src/gen_synthetic.rs",
+        "synthetic ROM regeneration check (gen-synthetic --check)",
+    ),
+    (
+        "xtask/tests/gen_synthetic.rs",
+        "synthetic ROM regeneration check tests",
+    ),
+    (
+        "fixtures/public/synthetic/SHA256SUMS",
+        "committed synthetic ROM hashes",
+    ),
+    (
+        "fixtures/public/synthetic/.gitattributes",
+        "keeps git from rewriting the committed synthetic ROM bytes",
+    ),
+    (
+        "fuzz/Cargo.toml",
+        "T3 fuzz per-input time and memory limits",
+    ),
+    (
+        "xtask/src/fuzz.rs",
+        "T3 fuzz runner that applies the limits (cargo xtask fuzz)",
+    ),
+    (
+        "fuzz/src/replay.rs",
+        "T3 stable replay of committed crash inputs under the limits",
+    ),
+    (
+        "fuzz/tests/regressions.rs",
+        "T3 regression replay harness: memory caps and its self-test",
+    ),
     (
         "xtask/src/codeowners.rs",
         "this CODEOWNERS / branch-protection check",

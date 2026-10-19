@@ -1,0 +1,50 @@
+# Seed KAT fixture (US-RR-9-8). Every expected value is hand-calculated; the
+# working shows the byte arithmetic. Cross-checked independently with Python
+# int.from_bytes / struct.unpack (never with rr-core or rr-testkit code).
+schema = 1
+title = "u32 big-endian: zero, mixed bytes, top bit set, max, 0xDEADBEEF"
+notes = "Big-endian: value = b0*16777216 + b1*65536 + b2*256 + b3. Compare u32-le.toml (same bytes)."
+
+[definition.encoding]
+storage = "u32"
+endian = "big"
+
+[input]
+hex = """
+00 00 00 00
+12 34 56 78
+80 00 00 00
+FF FF FF FF
+DE AD BE EF
+"""
+
+[[decode]]
+offset = 0
+raw = 0
+source = { kind = "hand-calc", working = "bytes 00 00 00 00: 0*16777216 + 0*65536 + 0*256 + 0 = 0" }
+
+[[decode]]
+offset = 4
+raw = 305419896
+source = { kind = "hand-calc", working = "bytes 12 34 56 78 big-endian: 18*16777216 + 52*65536 + 86*256 + 120 = 301989888 + 3407872 + 22016 + 120 = 305419896 (0x12345678)" }
+
+[[decode]]
+offset = 8
+raw = 2147483648
+source = { kind = "hand-calc", working = "bytes 80 00 00 00 big-endian: 128*16777216 + 0 + 0 + 0 = 2147483648 = 2^31; unsigned, so no sign extension" }
+note = "top bit set: must not be read as signed"
+
+[[decode]]
+offset = 12
+raw = 4294967295
+source = { kind = "hand-calc", working = "bytes FF FF FF FF big-endian: 255*16777216 + 255*65536 + 255*256 + 255 = 4278190080 + 16711680 + 65280 + 255 = 4294967295 = 2^32 - 1 (u32 max)" }
+
+[[decode]]
+offset = 16
+raw = 3735928559
+source = { kind = "hand-calc", working = "bytes DE AD BE EF big-endian: 222*16777216 + 173*65536 + 190*256 + 239 = 3724541952 + 11337728 + 48640 + 239 = 3735928559 (0xDEADBEEF)" }
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "US-RR-9-8"

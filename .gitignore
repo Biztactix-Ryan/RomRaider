@@ -4,3 +4,5 @@ legacy/3rdparty/launch4j/
 legacy/build/
 target/
 tmp/
+/lcov.info
+/mutants.out*/

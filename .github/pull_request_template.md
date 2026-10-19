@@ -82,7 +82,7 @@ Sources:
   - [ ] the PR has the `safety-gated` label;
   - [ ] a second approving review has been requested;
   - [ ] the T6 safety-invariant suite passes;
-  - [ ] T7 shows zero surviving mutants in gated modules (exclusions justified in `mutants.toml`);
+  - [ ] T7 shows zero surviving mutants in gated modules (exclusions justified in `.cargo/mutants.toml`);
   - [ ] no capability token gained a public constructor, `Clone`, `Default` or `Deserialize`, and `confirmation-authority` is enabled only by `rr-app` / `rr-cli`.
 
 ### 7. CI and standards

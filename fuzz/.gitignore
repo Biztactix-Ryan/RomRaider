@@ -1,0 +1,8 @@
+# cargo-fuzz working state: build output, the growing corpus (cached by the
+# nightly job, never committed), crash artifacts and coverage reports.
+# Committed inputs live in seeds/ (starting points) and regressions/ (minimised
+# crashes); see docs/fuzzing.md.
+target/
+corpus/
+artifacts/
+coverage/

@@ -1,0 +1,158 @@
+# Coverage gate for RomRaider-RS (story US-RR-4, task US-RR-4-5;
+# INFRASTRUCTURE.md "CI/CD Workflows", `coverage.yml`; PROJECT.md Testing
+# Strategy T8; D-003).
+#
+# `cargo llvm-cov nextest` runs the whole workspace's tests twice, once on the
+# change (job `coverage`) and once on its base (job `base-coverage`), in
+# parallel. Each uploads its lcov report as an artifact. Job `gate` then runs
+# `cargo xtask coverage-gate` (rules in xtask/src/coverage_gate.rs), which
+# fails if rr-core, rr-rom or rr-comms is below 90% line coverage or below its
+# own coverage on the base (by more than 0.25 points of measurement noise).
+#
+# The base is measured in this run rather than taken from an earlier run's
+# artifact: artifacts expire, a base push may have no successful run, and the
+# same runner image and toolchain measure both sides. The base is the PR's
+# base commit (the tip of the branch it merges into); on a push, the commit
+# before the push, or the default branch when there is none (new branch) or
+# it is gone (force push), as in fixtures.yml.
+#
+# Not path-filtered, so it reports on every push to master / rust-rewrite and
+# every pull request. To make it blocking, add the `coverage-gate` check to
+# branch protection next to `ci-ok` (CONTRIBUTING.md "Branch protection").
+
+name: Coverage
+
+on:
+  push:
+    branches: [master, rust-rewrite]
+  pull_request:
+    branches: ["**"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  RUST_BACKTRACE: "1"
+  INSTA_UPDATE: "no"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # Line coverage of the change under test.
+  coverage:
+    name: coverage (head)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      # Toolchain comes from rust-toolchain.toml; cargo-llvm-cov needs the
+      # matching llvm-tools.
+      - name: Install toolchain
+        run: |
+          rustup toolchain install --no-self-update
+          rustup component add llvm-tools-preview
+          rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: coverage
+          save-if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rust-rewrite' }}
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest,cargo-llvm-cov
+      - name: cargo llvm-cov nextest
+        run: cargo llvm-cov nextest --workspace --locked --lcov --output-path lcov.info
+      - name: Upload lcov report
+        uses: actions/upload-artifact@v4
+        with:
+          name: lcov
+          path: lcov.info
+          if-no-files-found: error
+
+  # Line coverage of the base, for the regression check.
+  base-coverage:
+    name: coverage (base)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      # Full history, so the base commit can be checked out.
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Check out the base
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BEFORE: ${{ github.event.before }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if [ "$EVENT" = pull_request ]; then
+            base="$PR_BASE_SHA"
+          elif [ -n "$BEFORE" ] && [ "$BEFORE" != 0000000000000000000000000000000000000000 ] \
+              && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            base="$BEFORE"
+          else
+            base="origin/$DEFAULT_BRANCH"
+          fi
+          echo "Measuring base $base"
+          git checkout --quiet --detach "$base"
+      # After the base checkout: the base's own rust-toolchain.toml.
+      - name: Install toolchain
+        run: |
+          rustup toolchain install --no-self-update
+          rustup component add llvm-tools-preview
+          rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: coverage
+          save-if: false
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest,cargo-llvm-cov
+      - name: cargo llvm-cov nextest
+        run: cargo llvm-cov nextest --workspace --locked --lcov --output-path lcov.info
+      - name: Upload lcov report
+        uses: actions/upload-artifact@v4
+        with:
+          name: lcov-base
+          path: lcov.info
+          if-no-files-found: error
+
+  # >= 90% line coverage per gated crate, and no regression against the base.
+  gate:
+    name: coverage-gate
+    needs: [coverage, base-coverage]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install toolchain
+        run: rustup toolchain install --no-self-update && rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rust-rewrite' }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: lcov
+          path: coverage/head
+      - uses: actions/download-artifact@v4
+        with:
+          name: lcov-base
+          path: coverage/base
+      # --max-drop 0.25: measurement noise only. Coverage of one commit is
+      # not perfectly repeatable (a racing test in rr-core's clock tests hits
+      # 3 of 2176 lines in some runs only: 0.14 points); a larger drop fails.
+      # See xtask/src/coverage_gate.rs, "Regression".
+      - name: cargo xtask coverage-gate
+        run: >-
+          cargo xtask coverage-gate --lcov coverage/head/lcov.info
+          --base-lcov coverage/base/lcov.info --min 90 --max-drop 0.25
+          --crates rr-core,rr-rom,rr-comms

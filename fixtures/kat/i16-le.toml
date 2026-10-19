@@ -1,0 +1,48 @@
+# Seed KAT fixture (US-RR-9-8). Every expected value is hand-calculated; the
+# working shows the byte arithmetic. Cross-checked independently with Python
+# int.from_bytes / struct.unpack (never with rr-core or rr-testkit code).
+schema = 1
+title = "i16 little-endian: zero, max, min, -1, a negative, a positive"
+notes = "u = b1*256 + b0; two's complement: raw = u if u < 32768, else u - 65536. Same values as i16-be.toml with each cell's bytes swapped."
+
+[definition.encoding]
+storage = "i16"
+endian = "little"
+
+[input]
+hex = "00 00  FF 7F  00 80  FF FF  38 FF  00 01"
+
+[[decode]]
+offset = 0
+raw = 0
+source = { kind = "hand-calc", working = "bytes 00 00 little-endian: u = 0*256 + 0 = 0; raw = 0" }
+
+[[decode]]
+offset = 2
+raw = 32767
+source = { kind = "hand-calc", working = "bytes FF 7F little-endian: u = 0x7F*256 + 0xFF = 32512 + 255 = 32767; 32767 < 32768, raw = 32767 (i16 max)" }
+
+[[decode]]
+offset = 4
+raw = -32768
+source = { kind = "hand-calc", working = "bytes 00 80 little-endian: u = 0x80*256 + 0x00 = 32768; top bit set, two's complement: 32768 - 65536 = -32768 (i16 min)" }
+
+[[decode]]
+offset = 6
+raw = -1
+source = { kind = "hand-calc", working = "bytes FF FF little-endian: u = 255*256 + 255 = 65535; two's complement: 65535 - 65536 = -1" }
+
+[[decode]]
+offset = 8
+raw = -200
+source = { kind = "hand-calc", working = "bytes 38 FF little-endian: u = 0xFF*256 + 0x38 = 65280 + 56 = 65336; top bit set, two's complement: 65336 - 65536 = -200" }
+
+[[decode]]
+offset = 10
+raw = 256
+source = { kind = "hand-calc", working = "bytes 00 01 little-endian: u = 0x01*256 + 0x00 = 256; 256 < 32768, raw = 256" }
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "US-RR-9-8"

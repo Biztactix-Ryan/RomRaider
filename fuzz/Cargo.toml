@@ -1,0 +1,86 @@
+# Fuzz targets for RomRaider-RS (story US-RR-5, test tier T3). How to run them
+# and how to add one: docs/fuzzing.md.
+#
+# Deliberately NOT a member of the root workspace (root Cargo.toml
+# `exclude = ["fuzz"]`, and the `[workspace]` table below makes this its own
+# workspace with its own Cargo.lock): building it needs nightly Rust and
+# cargo-fuzz, while the main workspace stays on the stable toolchain pinned in
+# rust-toolchain.toml. Stable `cargo build/clippy/nextest --workspace` never
+# sees this crate.
+[package]
+name = "rr-fuzz"
+version = "0.0.0"
+edition = "2024"
+license = "GPL-2.0-or-later"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+# Per-input limits, passed to libFuzzer on every run by `cargo xtask fuzz run`
+# (and so by the nightly job, which runs targets through it) as -timeout,
+# -rss_limit_mb and -malloc_limit_mb. An input that runs longer than
+# `timeout_secs`, drives resident memory past `rss_limit_mb`, or makes a
+# single allocation larger than `malloc_limit_mb` is reported by libFuzzer as
+# a failure ("timeout" / "out-of-memory") exactly like a panic, and its input
+# is saved as an artifact. Bare libFuzzer would allow 1200 s per input and no
+# separate allocation cap. `cargo xtask fuzz check` (run by the xtask test
+# suite in CI) fails if any is missing or out of range; `cargo xtask fuzz
+# selftest` proves each fires. rss_limit_mb leaves headroom for ASan's
+# quarantine (~600 MB peak RSS on the template target over 90 s).
+[package.metadata.rr-fuzz]
+timeout_secs = 10
+rss_limit_mb = 2048
+malloc_limit_mb = 512
+
+[features]
+# Planted bugs in the `toy` target, used only to prove the harness reports
+# them (`cargo xtask fuzz selftest`, the nightly job's issue filing). Never
+# enable them for a real run.
+planted-panic = []
+planted-hang = []
+planted-oom = []
+
+[dependencies]
+libfuzzer-sys = "0.4"
+rr-core = { path = "../crates/rr-core" }
+
+[lib]
+name = "rr_fuzz"
+path = "src/lib.rs"
+
+# One [[bin]] per target: name = file stem in fuzz_targets/, and a matching
+# entry in src/lib.rs TARGETS (`cargo xtask fuzz check` enforces both).
+[[bin]]
+name = "ecu_id"
+path = "fuzz_targets/ecu_id.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "toy"
+path = "fuzz_targets/toy.rs"
+test = false
+doc = false
+bench = false
+
+# Replays every committed crash input in regressions/<target>/ through its
+# target body, each in a child process under the limits above, after a
+# self-test that the replay fails on a planted panic, hang and memory
+# blow-up (US-RR-5-7). Stable, no libFuzzer: `cargo xtask fuzz replay`, and
+# the `fuzz-regressions` job in ci.yml. A custom harness (its own `main`),
+# because each input runs in a re-executed copy of the test binary.
+[[test]]
+name = "regressions"
+path = "tests/regressions.rs"
+harness = false
+
+[profile.release]
+# cargo-fuzz builds in release mode; keep overflow checks and debug
+# assertions on so arithmetic bugs are found, not wrapped.
+debug = 1
+overflow-checks = true
+
+[workspace]
+members = ["."]

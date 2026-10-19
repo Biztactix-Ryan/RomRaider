@@ -1,0 +1,82 @@
+# Seed KAT fixture (US-RR-9-8). Every expected value is hand-calculated; the
+# working shows the IEEE 754 sign / exponent / fraction breakdown. Cross-checked
+# independently with Python struct.unpack (never with rr-core or rr-testkit code).
+schema = 1
+title = "f32 big-endian: +0, -0, exact values, a rounded value, max finite, smallest subnormal, +Inf"
+notes = """
+binary32 fields: S = bit 31, E = bits 30..23 (bias 127), T = bits 22..0 (2^23 = 8388608).
+Normal (0 < E < 255): value = (-1)^S * (1 + T/8388608) * 2^(E - 127).
+Subnormal (E = 0, T != 0): value = (-1)^S * T * 2^-149.
+Raw values are the binary32 value widened exactly to f64.
+The -0.0 case compares equal to +0.0 as a float; check its sign bit too.
+NaN is deliberately not included: it has no single raw value to compare (EC-07 is US-RR-19's)."""
+
+[definition.encoding]
+storage = "f32"
+endian = "big"
+
+[input]
+hex = """
+00 00 00 00
+80 00 00 00
+3F 80 00 00
+C1 20 00 00
+3E 20 00 00
+3D CC CC CD
+7F 7F FF FF
+00 00 00 01
+7F 80 00 00
+"""
+
+[[decode]]
+offset = 0
+raw = 0.0
+source = { kind = "hand-calc", working = "bits 0x00000000: S = 0, E = 0, T = 0; E = 0 and T = 0 is zero, value = +0.0" }
+
+[[decode]]
+offset = 4
+raw = -0.0
+source = { kind = "hand-calc", working = "bits 0x80000000: S = 1, E = 0, T = 0; E = 0 and T = 0 is zero with the sign bit set, value = -0.0" }
+note = "negative zero: the sign bit must survive decoding"
+
+[[decode]]
+offset = 8
+raw = 1.0
+source = { kind = "hand-calc", working = "bits 0x3F800000 = 0 01111111 000..0: S = 0, E = 0x7F = 127, T = 0; value = (1 + 0/8388608) * 2^(127 - 127) = 1 * 1 = 1.0" }
+
+[[decode]]
+offset = 12
+raw = -10.0
+source = { kind = "hand-calc", working = "bits 0xC1200000 = 1 10000010 0100..0: S = 1, E = 0x82 = 130, T = 0x200000 = 2097152; value = -(1 + 2097152/8388608) * 2^(130 - 127) = -1.25 * 8 = -10.0" }
+
+[[decode]]
+offset = 16
+raw = 0.15625
+source = { kind = "hand-calc", working = "bits 0x3E200000 = 0 01111100 0100..0: S = 0, E = 0x7C = 124, T = 0x200000 = 2097152; value = (1 + 0.25) * 2^(124 - 127) = 1.25 / 8 = 0.15625" }
+
+[[decode]]
+offset = 20
+raw = 0.10000000149011612
+source = { kind = "hand-calc", working = "bits 0x3DCCCCCD = 0 01111011 10011001100110011001101: S = 0, E = 0x7B = 123, T = 0x4CCCCD = 5033165; value = (8388608 + 5033165)/8388608 * 2^(123 - 127) = 13421773/134217728 = 0.100000001490116119384765625, written as the shortest f64 0.10000000149011612" }
+note = "binary32 nearest to 0.1: decoding must not round it to the f64 0.1"
+
+[[decode]]
+offset = 24
+raw = 3.4028234663852886e38
+source = { kind = "hand-calc", working = "bits 0x7F7FFFFF = 0 11111110 111..1: S = 0, E = 0xFE = 254, T = 0x7FFFFF = 8388607; value = (8388608 + 8388607)/8388608 * 2^(254 - 127) = 16777215 * 2^104 = 2^128 - 2^104 = 340282346638528859811704183484516925440 = 3.4028234663852886e38 (f32 max finite)" }
+
+[[decode]]
+offset = 28
+raw = 1.401298464324817e-45
+source = { kind = "hand-calc", working = "bits 0x00000001: S = 0, E = 0, T = 1, subnormal; value = 1 * 2^-149 = 1.401298464324817e-45 (smallest positive f32)" }
+note = "subnormal: a codec that flushes to zero reads 0.0"
+
+[[decode]]
+offset = 32
+raw = inf
+source = { kind = "standard", doc = "IEEE 754-2019", section = "3.4 Binary interchange format encodings: biased exponent E all ones (255 for binary32) with trailing significand T = 0 encodes (-1)^S * infinity; bits 0x7F800000 have S = 0, E = 255, T = 0, so +infinity" }
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "US-RR-9-8"

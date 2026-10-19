@@ -1,0 +1,4 @@
+# Fuzz inputs are raw bytes: never convert line endings (a CRLF checkout
+# would change the input a seed or regression replays).
+seeds/** binary
+regressions/** binary

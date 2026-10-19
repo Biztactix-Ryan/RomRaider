@@ -72,7 +72,14 @@
 /crates/*/tests/t6_*                        @Biztactix-Ryan
 # trybuild compile-fail fixtures driven by rr-core's t6_token_compile_fail.
 /crates/rr-core/tests/ui/                   @Biztactix-Ryan
-/mutants.toml                               @Biztactix-Ryan
+# T7 mutation gate: gated module paths and justified exclusions
+# (cargo-mutants' default config location).
+/.cargo/mutants.toml                        @Biztactix-Ryan
+# Which pull requests mutate every gated module (US-RR-4-6).
+/xtask/src/mutants_scope.rs                 @Biztactix-Ryan
+# The check that every mutants.toml exclusion is justified (US-RR-4-7).
+/xtask/src/mutants_exclusions.rs            @Biztactix-Ryan
+/xtask/tests/mutants_exclusions.rs          @Biztactix-Ryan
 
 # --- Enforcement machinery: lints, dependency rule, globals, supply chain -
 /Cargo.toml                                 @Biztactix-Ryan
@@ -83,6 +90,31 @@
 /xtask/src/globals.rs                       @Biztactix-Ryan
 /xtask/tests/globals.rs                     @Biztactix-Ryan
 /xtask/globals-allowlist.toml               @Biztactix-Ryan
+# The reference codec (US-RR-10-5) and the rule that it shares no code with
+# rr-core (US-RR-10-8, T2(b)).
+/xtask/src/reference_isolation.rs           @Biztactix-Ryan
+/xtask/tests/reference_isolation.rs         @Biztactix-Ryan
+/crates/rr-testkit/src/reference.rs         @Biztactix-Ryan
+/crates/rr-testkit/tests/reference.rs       @Biztactix-Ryan
+# The synthetic ROM generator (US-RR-10-6): it writes with the reference
+# codec, and its manifests are the expected values rr-core is checked against.
+/crates/rr-testkit/src/reference/           @Biztactix-Ryan
+/crates/rr-testkit/tests/synthetic.rs       @Biztactix-Ryan
+# Its committed output and the regeneration check (US-RR-10-7): the bytes
+# and hashes CI compares on Linux and Windows, and the .gitattributes that
+# keeps git from rewriting them.
+/fixtures/public/synthetic/                 @Biztactix-Ryan
+/crates/rr-testkit/examples/gen-synthetic.rs @Biztactix-Ryan
+/xtask/src/gen_synthetic.rs                 @Biztactix-Ryan
+/xtask/tests/gen_synthetic.rs               @Biztactix-Ryan
+# T3 fuzz limits (per-input timeout / RSS / allocation caps, US-RR-5-5) and
+# the runner that applies them on every run.
+/fuzz/Cargo.toml                            @Biztactix-Ryan
+/xtask/src/fuzz.rs                          @Biztactix-Ryan
+# The stable replay of committed crash inputs under the same limits
+# (US-RR-5-7): timeout, memory caps and the self-test that they bite.
+/fuzz/src/replay.rs                         @Biztactix-Ryan
+/fuzz/tests/regressions.rs                  @Biztactix-Ryan
 
 # --- CI and this file -----------------------------------------------------
 /.github/workflows/                         @Biztactix-Ryan

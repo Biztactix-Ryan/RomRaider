@@ -1,0 +1,44 @@
+# Seed KAT fixture (US-RR-9-8). Every expected value is hand-calculated; the
+# working shows the byte arithmetic. Cross-checked independently with Python
+# int.from_bytes / struct.unpack (never with rr-core or rr-testkit code).
+schema = 1
+title = "u8: zero, one, 0x7F, top bit set and max"
+notes = "Unsigned 8-bit. 0x80 and 0xFF have the top bit set and must not be sign-extended. Endian has no effect on one byte (see u8-le.toml)."
+
+[definition.encoding]
+storage = "u8"
+endian = "big"
+
+[input]
+hex = "00 01 7F 80 FF"
+
+[[decode]]
+offset = 0
+raw = 0
+source = { kind = "hand-calc", working = "byte 0x00 = 0*16 + 0 = 0; unsigned, so raw = 0" }
+
+[[decode]]
+offset = 1
+raw = 1
+source = { kind = "hand-calc", working = "byte 0x01 = 0*16 + 1 = 1; unsigned, so raw = 1" }
+
+[[decode]]
+offset = 2
+raw = 127
+source = { kind = "hand-calc", working = "byte 0x7F = 7*16 + 15 = 112 + 15 = 127" }
+
+[[decode]]
+offset = 3
+raw = 128
+source = { kind = "hand-calc", working = "byte 0x80 = 8*16 + 0 = 128; top bit set but storage is unsigned, so raw = 128 (not -128)" }
+note = "top bit set: must not be read as signed"
+
+[[decode]]
+offset = 4
+raw = 255
+source = { kind = "hand-calc", working = "byte 0xFF = 15*16 + 15 = 240 + 15 = 255 = 2^8 - 1 (u8 max)" }
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "US-RR-9-8"

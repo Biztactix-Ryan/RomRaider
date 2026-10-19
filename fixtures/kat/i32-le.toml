@@ -1,0 +1,33 @@
+# Seed KAT fixture (US-RR-9-8). Every expected value is hand-calculated; the
+# working shows the byte arithmetic. Cross-checked independently with Python
+# int.from_bytes / struct.unpack (never with rr-core or rr-testkit code).
+schema = 1
+title = "i32 little-endian: max, min, a negative"
+notes = "u = b3*16777216 + b2*65536 + b1*256 + b0; two's complement: raw = u if u < 2^31, else u - 2^32."
+
+[definition.encoding]
+storage = "i32"
+endian = "little"
+
+[input]
+hex = "FF FF FF 7F  00 00 00 80  85 FF FF FF"
+
+[[decode]]
+offset = 0
+raw = 2147483647
+source = { kind = "hand-calc", working = "bytes FF FF FF 7F little-endian = 0x7FFFFFFF: u = 127*16777216 + 255*65536 + 255*256 + 255 = 2147483647; below 2147483648, raw = 2147483647 (i32 max)" }
+
+[[decode]]
+offset = 4
+raw = -2147483648
+source = { kind = "hand-calc", working = "bytes 00 00 00 80 little-endian = 0x80000000: u = 128*16777216 = 2147483648; two's complement: 2147483648 - 4294967296 = -2147483648 (i32 min)" }
+
+[[decode]]
+offset = 8
+raw = -123
+source = { kind = "hand-calc", working = "bytes 85 FF FF FF little-endian = 0xFFFFFF85: u = 4278190080 + 16711680 + 65280 + 133 = 4294967173; two's complement: 4294967173 - 4294967296 = -123" }
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "US-RR-9-8"

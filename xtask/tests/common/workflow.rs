@@ -1,6 +1,7 @@
 //! A std-only reader for the subset of GitHub Actions YAML that
-//! `.github/workflows/ci.yml` uses, shared by the ci-config guard tests
-//! (`t6_ci_config.rs`, `ci_config_gates.rs`).
+//! `.github/workflows/ci.yml` and `fixtures.yml` use, shared by the
+//! ci-config guard tests (`t6_ci_config.rs`, `ci_config_gates.rs`,
+//! `fixtures_ci_config.rs`).
 //!
 //! The workspace has no YAML parser (and `cargo deny` keeps the dependency
 //! set small), so [`Workflow`] reads: top-level keys at column 0, jobs at
@@ -23,7 +24,15 @@ pub const GATE_JOB: &str = "ci-ok";
 /// `\n` so the `\n`-based mutations in these tests also apply on a Windows
 /// checkout, where git's autocrlf turns them into `\r\n`.
 pub fn ci_yml() -> String {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../.github/workflows/ci.yml");
+    workflow_yml("ci.yml")
+}
+
+/// The committed `.github/workflows/<file>`, read and normalised like
+/// [`ci_yml`].
+pub fn workflow_yml(file: &str) -> String {
+    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../.github/workflows")
+        .join(file);
     fs::read_to_string(&path)
         .map(|s| s.replace("\r\n", "\n"))
         .unwrap_or_else(|e| format!("<unreadable {}: {e}>", path.display()))

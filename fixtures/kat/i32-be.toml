@@ -1,0 +1,43 @@
+# Seed KAT fixture (US-RR-9-8). Every expected value is hand-calculated; the
+# working shows the byte arithmetic. Cross-checked independently with Python
+# int.from_bytes / struct.unpack (never with rr-core or rr-testkit code).
+schema = 1
+title = "i32 big-endian: max, min, -1, a negative, a positive"
+notes = "u = b0*16777216 + b1*65536 + b2*256 + b3; two's complement: raw = u if u < 2147483648 (2^31), else u - 4294967296 (2^32)."
+
+[definition.encoding]
+storage = "i32"
+endian = "big"
+
+[input]
+hex = "7F FF FF FF  80 00 00 00  FF FF FF FF  FF FF FF 85  00 01 00 00"
+
+[[decode]]
+offset = 0
+raw = 2147483647
+source = { kind = "hand-calc", working = "bytes 7F FF FF FF big-endian: u = 127*16777216 + 255*65536 + 255*256 + 255 = 2130706432 + 16711680 + 65280 + 255 = 2147483647; below 2147483648, raw = 2147483647 (i32 max)" }
+
+[[decode]]
+offset = 4
+raw = -2147483648
+source = { kind = "hand-calc", working = "bytes 80 00 00 00 big-endian: u = 128*16777216 = 2147483648; top bit set, two's complement: 2147483648 - 4294967296 = -2147483648 (i32 min)" }
+
+[[decode]]
+offset = 8
+raw = -1
+source = { kind = "hand-calc", working = "bytes FF FF FF FF big-endian: u = 4278190080 + 16711680 + 65280 + 255 = 4294967295; two's complement: 4294967295 - 4294967296 = -1" }
+
+[[decode]]
+offset = 12
+raw = -123
+source = { kind = "hand-calc", working = "bytes FF FF FF 85 big-endian: u = 4278190080 + 16711680 + 65280 + 133 = 4294967173; top bit set, two's complement: 4294967173 - 4294967296 = -123" }
+
+[[decode]]
+offset = 16
+raw = 65536
+source = { kind = "hand-calc", working = "bytes 00 01 00 00 big-endian: u = 0*16777216 + 1*65536 + 0*256 + 0 = 65536; positive, raw = 65536" }
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "US-RR-9-8"

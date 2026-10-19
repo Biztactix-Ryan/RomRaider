@@ -1,0 +1,47 @@
+# Seed KAT fixture (US-RR-9-8). Every expected value is hand-calculated; the
+# working shows the byte arithmetic and the scaling. Cross-checked independently
+# with Python (never with rr-core or rr-testkit code).
+schema = 1
+title = "linear scaling x*0.25 - 50 on u16 big-endian"
+notes = "Linear conversion; 0.25 is exact in binary, so every real value is exact and no tolerance is needed."
+
+[definition.encoding]
+storage = "u16"
+endian = "big"
+
+[definition.conversion]
+to_real = "x*0.25-50"
+to_raw = "(x+50)/0.25"
+units = "degC"
+
+[input]
+hex = "00 00  00 C8  01 F4  FF FF"
+
+[[decode]]
+offset = 0
+raw = 0
+real = -50.0
+source = { kind = "hand-calc", working = "bytes 00 00: raw = 0*256 + 0 = 0; real = 0*0.25 - 50 = 0 - 50 = -50.0" }
+
+[[decode]]
+offset = 2
+raw = 200
+real = 0.0
+source = { kind = "hand-calc", working = "bytes 00 C8: raw = 0*256 + 200 = 200; real = 200*0.25 - 50 = 50 - 50 = 0.0" }
+
+[[decode]]
+offset = 4
+raw = 500
+real = 75.0
+source = { kind = "hand-calc", working = "bytes 01 F4: raw = 1*256 + 244 = 500; real = 500*0.25 - 50 = 125 - 50 = 75.0" }
+
+[[decode]]
+offset = 6
+raw = 65535
+real = 16333.75
+source = { kind = "hand-calc", working = "bytes FF FF: raw = 255*256 + 255 = 65535; real = 65535*0.25 - 50 = 16383.75 - 50 = 16333.75" }
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "US-RR-9-8"

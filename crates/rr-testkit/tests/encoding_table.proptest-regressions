@@ -1,0 +1,9 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 20e585817d190b765e7e23c7c468ed3db11d73c39f90b5a4988064d06f3db5a9 # shrinks to (encoding, bytes) = (Encoding { storage: U8, endian: Big, bitfield: Some(BitField { mask: 83, shift: 0, signed: false }), layout: BoschSubtract }, [103])
+cc 20a72b8a51fdd1f4154334e7fd4862359ebb10e75bee137e7a5ff57e96dd3c6d # shrinks to (encoding, bytes) = (Encoding { storage: U64, endian: Big, bitfield: Some(BitField { mask: 3, shift: 0, signed: true }), layout: BoschSubtract }, [0, 0, 0, 0, 0, 0, 0, 29])
+cc accd6bed14615dae3f0d7a0161cfd2765f22ecde845fe41d1cd6895e5e20b256 # shrinks to (encoding, stored, start) = (Encoding { storage: U64, endian: Little, bitfield: None, layout: BoschSubtract }, [Int(6299953806954705661)], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])

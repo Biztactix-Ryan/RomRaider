@@ -1,0 +1,144 @@
+# Known-answer fixture checks for RomRaider-RS (story US-RR-9, task US-RR-9-7;
+# INFRASTRUCTURE.md "CI/CD Workflows", `fixtures.yml`).
+#
+# Runs `cargo xtask validate-fixtures` (rules in
+# crates/rr-testkit/src/kat/validate.rs) on every KAT fixture, and
+# `cargo xtask gen-synthetic --check` on Linux and Windows (US-RR-10-7),
+# whenever a push or pull request touches the fixtures, rr-testkit, or the
+# xtask wiring.
+#
+# This workflow is path-filtered, so it does not report a status on changes
+# outside those paths. Do not make its check a required status check in branch
+# protection (a skipped path-filtered workflow leaves a required check pending
+# forever); the required check stays `ci-ok` in ci.yml.
+
+name: Fixtures
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "fixtures/**"
+      - "crates/rr-testkit/**"
+      # The validator is started by `cargo xtask validate-fixtures`
+      # (xtask/src/validate_fixtures.rs, dispatched from xtask/src/main.rs).
+      - "xtask/**"
+      - ".cargo/config.toml"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rust-toolchain.toml"
+      - ".gitattributes"
+      - ".github/workflows/fixtures.yml"
+  pull_request:
+    branches: ["**"]
+    paths:
+      - "fixtures/**"
+      - "crates/rr-testkit/**"
+      - "xtask/**"
+      - ".cargo/config.toml"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rust-toolchain.toml"
+      - ".gitattributes"
+      - ".github/workflows/fixtures.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  RUST_BACKTRACE: "1"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # KAT schema validation; every expected value has a source; a hand-calc
+  # source shows its working; a changed expected value needs a new
+  # [[changelog]] line in the fixture (US-RR-9 acceptance criteria).
+  validate:
+    name: KAT fixtures (validate-fixtures)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      # Full history: `--base` compares each fixture with its version at the
+      # merge-base of the base revision and HEAD.
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      # Toolchain comes from rust-toolchain.toml.
+      - name: Install toolchain
+        run: rustup toolchain install --no-self-update && rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rust-rewrite' }}
+      # No paths: the validator's defaults, fixtures/kat and
+      # crates/rr-testkit/tests/data/kat, i.e. every fixture.
+      - name: cargo xtask validate-fixtures
+        run: cargo xtask validate-fixtures
+      # Base mode: a fixture whose expected values differ from the base
+      # version must add a [[changelog]] entry saying why
+      # (`changed-without-changelog`). The base is the PR's base commit; on a
+      # push, the commit before the push, or the default branch when there is
+      # none (new branch) or it is gone (force push). A bad base exits 2 and
+      # fails the job.
+      - name: cargo xtask validate-fixtures --base (changed expected values need a changelog line)
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BEFORE: ${{ github.event.before }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if [ "$EVENT" = pull_request ]; then
+            base="$PR_BASE_SHA"
+          elif [ -n "$BEFORE" ] && [ "$BEFORE" != 0000000000000000000000000000000000000000 ] \
+              && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            base="$BEFORE"
+          else
+            base="origin/$DEFAULT_BRANCH"
+          fi
+          echo "Comparing fixtures with base $base"
+          cargo xtask validate-fixtures --base "$base"
+
+  # Synthetic ROMs regenerate byte-identically on every platform (US-RR-10,
+  # task US-RR-10-7). `cargo xtask gen-synthetic --check` regenerates every
+  # published plan (rr_testkit::reference::synthetic) into a scratch
+  # directory and fails on any byte difference from fixtures/public/synthetic
+  # (ROM images, manifests and SHA256SUMS). `sha256sum -c` then checks the
+  # checked-out bytes against the committed hashes with a tool that shares no
+  # code with the generator. Both run on Linux and Windows (where a CRLF
+  # checkout or platform-dependent float handling would show up); the
+  # directory's .gitattributes keeps git from rewriting the bytes.
+  synthetic:
+    name: Synthetic ROMs (gen-synthetic --check, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      # Report both platforms even when one differs.
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    steps:
+      - uses: actions/checkout@v5
+      # Toolchain comes from rust-toolchain.toml.
+      - name: Install toolchain
+        run: rustup toolchain install --no-self-update && rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: synthetic-${{ matrix.os }}
+          save-if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rust-rewrite' }}
+      - name: cargo xtask gen-synthetic --check
+        run: cargo xtask gen-synthetic --check
+      - name: sha256sum -c SHA256SUMS (committed bytes match the committed hashes)
+        working-directory: fixtures/public/synthetic
+        run: sha256sum -c SHA256SUMS
+
+  # PLACEHOLDER (story US-RR-13, not implemented yet): ROM-leak guard. Add a
+  # job here that fails when a real (non-synthetic) ROM image is committed.

@@ -1,0 +1,45 @@
+# Seed KAT fixture (US-RR-9-8). Every expected value is hand-calculated; the
+# working shows the byte arithmetic. Cross-checked independently with Python
+# int.from_bytes / struct.unpack (never with rr-core or rr-testkit code).
+schema = 1
+title = "u16 big-endian: zero, mixed bytes, top bit set, max, low byte only"
+notes = "Big-endian: value = b0*256 + b1. Compare u16-le.toml (same bytes, little-endian)."
+
+[definition.encoding]
+storage = "u16"
+endian = "big"
+
+[input]
+hex = "00 00 12 34 80 00 FF FF 00 FF"
+
+[[decode]]
+offset = 0
+raw = 0
+source = { kind = "hand-calc", working = "bytes 00 00 big-endian: 0x00*256 + 0x00 = 0 + 0 = 0" }
+
+[[decode]]
+offset = 2
+raw = 4660
+source = { kind = "hand-calc", working = "bytes 12 34 big-endian: 0x12*256 + 0x34 = 18*256 + 52 = 4608 + 52 = 4660 (0x1234)" }
+
+[[decode]]
+offset = 4
+raw = 32768
+source = { kind = "hand-calc", working = "bytes 80 00 big-endian: 0x80*256 + 0x00 = 128*256 + 0 = 32768; unsigned, so no sign extension" }
+note = "top bit set: must not be read as signed"
+
+[[decode]]
+offset = 6
+raw = 65535
+source = { kind = "hand-calc", working = "bytes FF FF big-endian: 0xFF*256 + 0xFF = 65280 + 255 = 65535 = 2^16 - 1 (u16 max)" }
+
+[[decode]]
+offset = 8
+raw = 255
+source = { kind = "hand-calc", working = "bytes 00 FF big-endian: 0x00*256 + 0xFF = 0 + 255 = 255" }
+note = "reads 65280 if the byte order is wrong"
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "US-RR-9-8"

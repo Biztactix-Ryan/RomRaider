@@ -119,7 +119,7 @@
 //! ([`SUPPORTED_SCHEMA`]). [`load_kat`] rejects a missing, non-integer or
 //! unknown/newer schema with an error naming the file, the version found and
 //! the version supported, then deserializes the remaining keys into the
-//! caller's type.
+//! caller's type. The schema-1 KAT types themselves live in [`crate::kat`].
 
 use std::fmt;
 use std::path::{Path, PathBuf};
@@ -143,7 +143,11 @@ pub const PRIVATE_FEATURE: &str = "private-fixtures";
 pub const PRIVATE_FEATURE_ENABLED: bool = cfg!(feature = "private-fixtures");
 
 /// One of the three fixture tiers (see the module docs).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+///
+/// Deserializes from `"public"`, `"corpus"` or `"private"` (used by KAT
+/// fixtures that reference a ROM or definition file, see [`crate::kat`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum Tier {
     /// In-repo fixtures under `<repo>/fixtures`; always present.
     Public,
@@ -375,11 +379,26 @@ pub fn require_tier(tier: Tier) {
 /// [`FixtureError::Shape`]; each names the file.
 pub fn load_kat<T: DeserializeOwned>(path: impl AsRef<Path>) -> Result<Fixture<T>, FixtureError> {
     let path = path.as_ref().to_path_buf();
-    let text = match std::fs::read_to_string(&path) {
-        Ok(text) => text,
-        Err(source) => return Err(FixtureError::Io { path, source }),
-    };
-    let mut table = match toml::from_str::<toml::Table>(&text) {
+    match std::fs::read_to_string(&path) {
+        Ok(text) => parse_kat(path, &text),
+        Err(source) => Err(FixtureError::Io { path, source }),
+    }
+}
+
+/// [`load_kat`] for fixture text already in memory; `path` is used only to
+/// name the fixture in errors and in the returned [`Fixture`].
+///
+/// # Errors
+///
+/// [`FixtureError::Toml`], [`FixtureError::MissingSchema`],
+/// [`FixtureError::UnsupportedSchema`] or [`FixtureError::Shape`]; each names
+/// `path`.
+pub fn parse_kat<T: DeserializeOwned>(
+    path: impl Into<PathBuf>,
+    text: &str,
+) -> Result<Fixture<T>, FixtureError> {
+    let path = path.into();
+    let mut table = match toml::from_str::<toml::Table>(text) {
         Ok(table) => table,
         Err(source) => return Err(FixtureError::Toml { path, source }),
     };

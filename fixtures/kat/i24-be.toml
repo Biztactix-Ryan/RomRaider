@@ -1,0 +1,48 @@
+# Seed KAT fixture (US-RR-9-8). Every expected value is hand-calculated; the
+# working shows the byte arithmetic. Cross-checked independently with Python
+# int.from_bytes / struct.unpack (never with rr-core or rr-testkit code).
+schema = 1
+title = "i24 big-endian: zero, max, min, -1, a negative, a positive (sign extension from bit 23)"
+notes = "u = b0*65536 + b1*256 + b2; sign-extend from bit 23: raw = u if u < 8388608 (2^23), else u - 16777216 (2^24). A codec that reads 3 bytes into a wider integer without sign-extending gets 8388608, 16777215 and 16777016 instead of the negatives."
+
+[definition.encoding]
+storage = "i24"
+endian = "big"
+
+[input]
+hex = "00 00 00  7F FF FF  80 00 00  FF FF FF  FF FF 38  12 34 56"
+
+[[decode]]
+offset = 0
+raw = 0
+source = { kind = "hand-calc", working = "bytes 00 00 00 big-endian: u = 0*65536 + 0*256 + 0 = 0; raw = 0" }
+
+[[decode]]
+offset = 3
+raw = 8388607
+source = { kind = "hand-calc", working = "bytes 7F FF FF big-endian: u = 127*65536 + 255*256 + 255 = 8323072 + 65280 + 255 = 8388607; 8388607 < 8388608, raw = 8388607 = 2^23 - 1 (i24 max)" }
+
+[[decode]]
+offset = 6
+raw = -8388608
+source = { kind = "hand-calc", working = "bytes 80 00 00 big-endian: u = 128*65536 + 0 + 0 = 8388608; bit 23 set, sign-extend: 8388608 - 16777216 = -8388608 (i24 min)" }
+
+[[decode]]
+offset = 9
+raw = -1
+source = { kind = "hand-calc", working = "bytes FF FF FF big-endian: u = 255*65536 + 255*256 + 255 = 16777215; bit 23 set, sign-extend: 16777215 - 16777216 = -1" }
+
+[[decode]]
+offset = 12
+raw = -200
+source = { kind = "hand-calc", working = "bytes FF FF 38 big-endian: u = 255*65536 + 255*256 + 56 = 16711680 + 65280 + 56 = 16777016; bit 23 set, sign-extend: 16777016 - 16777216 = -200" }
+
+[[decode]]
+offset = 15
+raw = 1193046
+source = { kind = "hand-calc", working = "bytes 12 34 56 big-endian: u = 18*65536 + 52*256 + 86 = 1179648 + 13312 + 86 = 1193046; 1193046 < 8388608, raw = 1193046" }
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "US-RR-9-8"

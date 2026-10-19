@@ -1,0 +1,19 @@
+# Decode fixture whose input is a slice of a corpus ROM and whose definition is
+# a reference to a definition file; exercises the non-inline shapes.
+schema = 1
+title = "u64 at the top of its range, from a corpus ROM"
+
+[definition]
+reference = { tier = "corpus", path = "defs/example.xml", item = "Example Table" }
+
+[input]
+rom = { tier = "corpus", path = "roms/example.bin", sha256 = "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855", offset = 0x1000, length = 8 }
+
+[[decode]]
+raw = "0xFFFF_FFFF_FFFF_FFFF"
+source = { kind = "cross-source", sources = ["RomRaider ECU XML", "TunerPro XDF"] }
+
+[[decode]]
+offset = 0
+raw = -1
+source = { kind = "stock-rom", rom = "A2WC510N", note = "same cell read as i64" }

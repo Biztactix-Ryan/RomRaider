@@ -13,6 +13,10 @@ members = [
     "crates/rr-write-marker",
     "xtask",
 ]
+# The fuzz targets (fuzz/, cargo-fuzz) are their own workspace: they need
+# nightly Rust and libFuzzer, while this workspace builds on stable
+# (docs/fuzzing.md, US-RR-5).
+exclude = ["fuzz"]
 
 [workspace.package]
 version = "0.1.0"
@@ -68,6 +72,9 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 syn = { version = "3.0", default-features = false, features = ["full", "parsing", "visit"] }
 toml = "1.1"
+# gen-synthetic: SHA-256 of the committed synthetic ROMs (fixtures/public/synthetic/SHA256SUMS,
+# checkable with `sha256sum -c` on Linux and Windows).
+sha2 = "0.10"
 # Test-only edges (taken via rr-testkit, itself dev-dependency only).
 insta = { version = "1.43", features = ["yaml", "redactions", "filters"] }
 proptest = "1.6"

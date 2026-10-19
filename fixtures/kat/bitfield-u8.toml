@@ -1,0 +1,40 @@
+# Seed KAT fixture (US-RR-9-8). Every expected value is hand-calculated; the
+# working shows the mask and shift arithmetic. Cross-checked independently with
+# Python (never with rr-core or rr-testkit code).
+schema = 1
+title = "bitfield on u8: top three bits, mask 0xE0 with an explicit shift of 5"
+notes = "raw = (stored & 0xE0) >> 5; the explicit shift equals the mask's trailing zeros. Semantics as legacy RomAttributeParser.java:124-130."
+
+[definition.encoding]
+storage = "u8"
+endian = "big"
+bitfield = { mask = 0xE0, shift = 5 }
+
+[input]
+hex = "A5 FF 1F 60"
+
+[[decode]]
+offset = 0
+raw = 5
+source = { kind = "hand-calc", working = "byte 0xA5 = 165 = 0b1010_0101; 0xA5 & 0xE0 = 0xA0 = 160; 160 >> 5 = 160/32 = 5 (0b101)" }
+
+[[decode]]
+offset = 1
+raw = 7
+source = { kind = "hand-calc", working = "byte 0xFF = 255; 0xFF & 0xE0 = 0xE0 = 224; 224 >> 5 = 224/32 = 7 (field max)" }
+
+[[decode]]
+offset = 2
+raw = 0
+source = { kind = "hand-calc", working = "byte 0x1F = 31 = 0b0001_1111; 0x1F & 0xE0 = 0; 0 >> 5 = 0" }
+note = "every set bit is outside the mask"
+
+[[decode]]
+offset = 3
+raw = 3
+source = { kind = "hand-calc", working = "byte 0x60 = 96 = 0b0110_0000; 0x60 & 0xE0 = 0x60 = 96; 96 >> 5 = 96/32 = 3" }
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "US-RR-9-8"

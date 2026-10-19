@@ -1,0 +1,49 @@
+# Seed KAT fixture (US-RR-9-8). Every expected value is hand-calculated; the
+# working shows the byte arithmetic. Cross-checked independently with Python
+# int.from_bytes / struct.unpack (never with rr-core or rr-testkit code).
+schema = 1
+title = "i64 little-endian: max, min, -1, a negative, a positive"
+notes = "u = hi*2^32 + lo (2^32 = 4294967296; lo = bytes 0..4, hi = bytes 4..8, each little-endian); two's complement: raw = u if u < 2^63 (9223372036854775808), else u - 2^64 (18446744073709551616)."
+
+[definition.encoding]
+storage = "i64"
+endian = "little"
+
+[input]
+hex = """
+FF FF FF FF FF FF FF 7F
+00 00 00 00 00 00 00 80
+FF FF FF FF FF FF FF FF
+85 FF FF FF FF FF FF FF
+EF CD AB 89 67 45 23 01
+"""
+
+[[decode]]
+offset = 0
+raw = 9223372036854775807
+source = { kind = "hand-calc", working = "bytes FF FF FF FF FF FF FF 7F little-endian: lo = 4294967295, hi = 0x7FFFFFFF = 2147483647; u = 2147483647*4294967296 + 4294967295 = 9223372032559808512 + 4294967295 = 9223372036854775807 = 2^63 - 1; below 2^63, raw = 9223372036854775807 (i64 max)" }
+
+[[decode]]
+offset = 8
+raw = -9223372036854775808
+source = { kind = "hand-calc", working = "bytes 00 00 00 00 00 00 00 80 little-endian: lo = 0, hi = 0x80000000 = 2147483648; u = 2147483648*4294967296 = 9223372036854775808; top bit set, two's complement: 9223372036854775808 - 18446744073709551616 = -9223372036854775808 (i64 min)" }
+
+[[decode]]
+offset = 16
+raw = -1
+source = { kind = "hand-calc", working = "bytes FF x8: lo = hi = 4294967295; u = 18446744069414584320 + 4294967295 = 18446744073709551615; two's complement: 18446744073709551615 - 18446744073709551616 = -1" }
+
+[[decode]]
+offset = 24
+raw = -123
+source = { kind = "hand-calc", working = "bytes 85 FF FF FF FF FF FF FF little-endian: lo = 0xFFFFFF85 = 4294967173, hi = 4294967295; u = 18446744069414584320 + 4294967173 = 18446744073709551493; two's complement: 18446744073709551493 - 18446744073709551616 = -123" }
+
+[[decode]]
+offset = 32
+raw = 81985529216486895
+source = { kind = "hand-calc", working = "bytes EF CD AB 89 67 45 23 01 little-endian: lo = 0x89ABCDEF = 2309737967, hi = 0x01234567 = 19088743; u = 19088743*4294967296 + 2309737967 = 81985526906748928 + 2309737967 = 81985529216486895; below 2^63, raw = 81985529216486895" }
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "US-RR-9-8"

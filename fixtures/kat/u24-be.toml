@@ -1,0 +1,39 @@
+# Seed KAT fixture (US-RR-9-8). Every expected value is hand-calculated; the
+# working shows the byte arithmetic. Cross-checked independently with Python
+# int.from_bytes / struct.unpack (never with rr-core or rr-testkit code).
+schema = 1
+title = "u24 big-endian: zero, mixed bytes, top bit set, max"
+notes = "Three-byte cells: value = b0*65536 + b1*256 + b2. 0x800000 has bit 23 set and must not be sign-extended (compare i24-be.toml)."
+
+[definition.encoding]
+storage = "u24"
+endian = "big"
+
+[input]
+hex = "00 00 00  12 34 56  80 00 00  FF FF FF"
+
+[[decode]]
+offset = 0
+raw = 0
+source = { kind = "hand-calc", working = "bytes 00 00 00: 0*65536 + 0*256 + 0 = 0" }
+
+[[decode]]
+offset = 3
+raw = 1193046
+source = { kind = "hand-calc", working = "bytes 12 34 56 big-endian: 0x12*65536 + 0x34*256 + 0x56 = 18*65536 + 52*256 + 86 = 1179648 + 13312 + 86 = 1193046 (0x123456)" }
+
+[[decode]]
+offset = 6
+raw = 8388608
+source = { kind = "hand-calc", working = "bytes 80 00 00 big-endian: 0x80*65536 + 0 + 0 = 128*65536 = 8388608 = 2^23; unsigned, so no sign extension" }
+note = "bit 23 set: must not be read as signed"
+
+[[decode]]
+offset = 9
+raw = 16777215
+source = { kind = "hand-calc", working = "bytes FF FF FF big-endian: 255*65536 + 255*256 + 255 = 16711680 + 65280 + 255 = 16777215 = 2^24 - 1 (u24 max)" }
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "US-RR-9-8"

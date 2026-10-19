@@ -1,0 +1,32 @@
+# Seed KAT fixture (US-RR-9-8). Every expected value is hand-calculated; the
+# working shows the mask and shift arithmetic. Cross-checked independently with
+# Python int.from_bytes (never with rr-core or rr-testkit code).
+schema = 1
+title = "bitfield on u16 little-endian: the mask applies to the decoded value, not the byte image"
+notes = """
+raw = (stored & mask) >> shift with stored decoded little-endian first. Same mask and values as
+bitfield-u16-be.toml with each cell's bytes swapped; masking the raw bytes in file order instead
+gives different answers (e.g. 0xCDAB & 0x0FF0 = 0x0DA0 -> 218, not 188)."""
+
+[definition.encoding]
+storage = "u16"
+endian = "little"
+bitfield = { mask = 0x0FF0 }
+
+[input]
+hex = "CD AB  34 12"
+
+[[decode]]
+offset = 0
+raw = 188
+source = { kind = "hand-calc", working = "bytes CD AB little-endian: stored = 0xAB*256 + 0xCD = 43776 + 205 = 43981 (0xABCD); 0xABCD & 0x0FF0 = 0x0BC0 = 3008; 3008 >> 4 = 188" }
+
+[[decode]]
+offset = 2
+raw = 35
+source = { kind = "hand-calc", working = "bytes 34 12 little-endian: stored = 0x12*256 + 0x34 = 4608 + 52 = 4660 (0x1234); 0x1234 & 0x0FF0 = 0x0230 = 560; 560 >> 4 = 35" }
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "US-RR-9-8"

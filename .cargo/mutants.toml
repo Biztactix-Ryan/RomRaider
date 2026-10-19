@@ -1,0 +1,84 @@
+# cargo-mutants configuration: the T7 mutation gate (story US-RR-4, task
+# US-RR-4-6; PROJECT.md Testing Strategy T7, D-003).
+#
+# cargo-mutants reads this file by default (`.cargo/mutants.toml`), so a local
+# `cargo mutants` and CI (.github/workflows/mutants.yml) mutate the same code
+# with the same settings. The gate is zero surviving mutants: any MISSED or
+# TIMEOUT mutant fails the run (cargo-mutants exits 2 or 3). An unviable
+# mutant (one that does not compile) is not a survivor.
+#
+# Gated modules are listed by PATH, so a module is gated from the commit that
+# creates it. A glob that matches no file yet (most of them, at the time of
+# writing) matches nothing and is harmless; it never breaks the run. When one
+# of these modules is created somewhere else, move its glob here in the same
+# change; the PR path filter in mutants.yml is checked against this list by
+# xtask/tests/mutants_ci_config.rs.
+#
+# Exclusions: every `exclude_globs` / `exclude_re` (and `skip_calls`) entry
+# needs a comment on the line(s) directly above it saying why the surviving
+# mutants it hides cannot be killed by a test (or are not worth killing), and
+# what proves the code right instead. "No test catches it" is not a
+# justification; it is the bug this gate exists to find. Put each entry on its
+# own line inside the array with its own comment block directly above it: no
+# blank line in between, at least six words, no TODO/FIXME placeholder; a
+# comment above `exclude_re = [` or trailing the entry does not count.
+# `cargo xtask check-mutants-exclusions` (ci.yml `clippy` job; rules in
+# xtask/src/mutants_exclusions.rs) rejects anything else (task US-RR-4-7).
+
+examine_globs = [
+    # --- rr-core (PROJECT.md T7; ARCHITECTURE.md C1, C3, C4) ---
+    # C3 Encoding: storage, endianness, bitfields, layout.
+    "crates/rr-core/src/encoding.rs",
+    "crates/rr-core/src/encoding/**",
+    # C4 Expr: formula AST, evaluation, inversion.
+    "crates/rr-core/src/expr.rs",
+    "crates/rr-core/src/expr/**",
+    # C4 Conversion: Linear / Expr / Lut, raw <-> real.
+    "crates/rr-core/src/conversion.rs",
+    "crates/rr-core/src/conversion/**",
+    # C1 Layered<T> + Resolver.
+    "crates/rr-core/src/layer.rs",
+    "crates/rr-core/src/layer/**",
+    # Capability tokens (D-011, US-RR-7): the type-level half of write
+    # gating; rr-rom and rr-comms write APIs take these tokens.
+    "crates/rr-core/src/capability.rs",
+    # Fail-closed loads (US-RR-17): Diagnostics / Loaded<T>, which withholds
+    # the value while errors are unaccepted. Only diag.rs: the code registry
+    # and its docs renderer (diag/codes.rs) are checked by
+    # `cargo xtask diagnostics-doc --check` and are not load logic.
+    "crates/rr-core/src/diag.rs",
+
+    # --- rr-rom (ARCHITECTURE.md C10, C11) ---
+    # C10 Patch journal: every mutation of a ROM image.
+    "crates/rr-rom/src/journal.rs",
+    "crates/rr-rom/src/journal/**",
+    # Checksum engine and algorithm registry.
+    "crates/rr-rom/src/checksum.rs",
+    "crates/rr-rom/src/checksum/**",
+    # C11 table write path: cell writes through Encoding + Conversion.
+    "crates/rr-rom/src/table/write.rs",
+    "crates/rr-rom/src/table/write/**",
+
+    # --- rr-comms (ARCHITECTURE.md "Crates": transaction engine, write gating) ---
+    "crates/rr-comms/src/engine.rs",
+    "crates/rr-comms/src/engine/**",
+    "crates/rr-comms/src/write.rs",
+    "crates/rr-comms/src/write/**",
+]
+
+exclude_globs = []
+
+exclude_re = [
+    # capability::authority::mint_* are compiled only with rr-core's
+    # `confirmation-authority` feature, which rr-core's own test build never
+    # enables (only rr-app and rr-cli may; T6 suite). A mutant of code that
+    # is not compiled can never fail a test, so these always "survive". Each
+    # wrapper is one call to the matching `mint::*` function, which is gated
+    # above and has its mutants killed; the wrappers' only mutation,
+    # `Ok(Default::default())`, cannot compile with the feature on because no
+    # token implements Default (tests/t6_token_compile_fail.rs).
+    "replace authority::mint_",
+]
+
+# Same runner as CI and local test runs.
+test_tool = "nextest"

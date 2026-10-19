@@ -1,0 +1,54 @@
+# Seed KAT fixture (US-RR-9-8). Every expected value is hand-calculated; the
+# working shows the byte arithmetic and the scaling. Cross-checked independently
+# with Python (never with rr-core or rr-testkit code).
+schema = 1
+title = "non-linear (reciprocal) scaling 14.7/(1+x*0.0078125) on u8"
+notes = """
+An air/fuel-ratio style reciprocal conversion (0.0078125 = 1/128). Real values are rounded decimals
+of exact rationals; f64 evaluation can differ in the last bit, hence tolerance = 1e-9."""
+
+[definition.encoding]
+storage = "u8"
+endian = "big"
+
+[definition.conversion]
+to_real = "14.7/(1+x*0.0078125)"
+to_raw = "(14.7/x-1)/0.0078125"
+units = "AFR"
+
+[input]
+hex = "00 40 80 FF"
+
+[[decode]]
+offset = 0
+raw = 0
+real = 14.7
+tolerance = 1e-9
+source = { kind = "hand-calc", working = "byte 0x00 = 0; 1 + 0*0.0078125 = 1; real = 14.7/1 = 14.7" }
+
+[[decode]]
+offset = 1
+raw = 64
+real = 9.8
+tolerance = 1e-9
+source = { kind = "hand-calc", working = "byte 0x40 = 4*16 + 0 = 64; 64*0.0078125 = 64/128 = 0.5; 1 + 0.5 = 1.5; real = 14.7/1.5 = 9.8" }
+
+[[decode]]
+offset = 2
+raw = 128
+real = 7.35
+tolerance = 1e-9
+source = { kind = "hand-calc", working = "byte 0x80 = 8*16 + 0 = 128; 128*0.0078125 = 128/128 = 1; 1 + 1 = 2; real = 14.7/2 = 7.35" }
+
+[[decode]]
+offset = 3
+raw = 255
+real = 4.912793733681462
+tolerance = 1e-9
+source = { kind = "hand-calc", working = "byte 0xFF = 255; 255*0.0078125 = 255/128 = 1.9921875; 1 + 1.9921875 = 2.9921875 = 383/128; real = 14.7*128/383 = 1881.6/383 = 4.912793733681462 (long division: 383*4 = 1532, remainder 349.6, then digits 9 1 2 7 9 3 7 3 3 6 8 1 4 6 2)" }
+note = "doubling raw does not halve or double real: the conversion is not linear"
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "US-RR-9-8"

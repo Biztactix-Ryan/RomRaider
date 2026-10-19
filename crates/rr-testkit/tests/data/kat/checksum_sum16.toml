@@ -1,0 +1,14 @@
+# Representative checksum KAT fixture used by rr-testkit's own schema tests
+# (tests/kat.rs). Not a seed fixture: those live under <repo>/fixtures/kat.
+schema = 1
+title = "16-bit big-endian additive checksum over bytes 0..4"
+
+[input]
+hex = "01 02 03 04 00 00"
+
+[[checksum]]
+algorithm = "sum16-be"
+params = { start = 0, end = 4 }
+offset = 4
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 4..6 are 00 00 = 0; computed 1+2+3+4 = 10; 0 != 10 so it does not verify" } }
+after = { hex = "00 0A", valid = true, source = { kind = "hand-calc", working = "1+2+3+4 = 10 = 0x000A, stored big-endian as 00 0A" } }

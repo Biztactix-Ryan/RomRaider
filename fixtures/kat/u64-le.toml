@@ -1,0 +1,38 @@
+# Seed KAT fixture (US-RR-9-8). Every expected value is hand-calculated; the
+# working shows the byte arithmetic. Cross-checked independently with Python
+# int.from_bytes / struct.unpack (never with rr-core or rr-testkit code).
+schema = 1
+title = "u64 little-endian: mixed bytes, top bit set, max"
+notes = "Little-endian: the byte order of u64-be.toml reversed. value = hi*2^32 + lo, where lo is bytes 0..4 and hi bytes 4..8, each read little-endian."
+
+[definition.encoding]
+storage = "u64"
+endian = "little"
+
+[input]
+hex = """
+EF CD AB 89 67 45 23 01
+00 00 00 00 00 00 00 80
+FF FF FF FF FF FF FF FF
+"""
+
+[[decode]]
+offset = 0
+raw = 81985529216486895
+source = { kind = "hand-calc", working = "bytes EF CD AB 89 67 45 23 01 little-endian: lo = 0x89ABCDEF = 2309737967, hi = 0x01234567 = 19088743; 19088743*4294967296 + 2309737967 = 81985526906748928 + 2309737967 = 81985529216486895 (0x0123456789ABCDEF)" }
+
+[[decode]]
+offset = 8
+raw = "9223372036854775808"
+source = { kind = "hand-calc", working = "bytes 00 00 00 00 00 00 00 80 little-endian: lo = 0, hi = 0x80000000 = 2147483648; 2147483648*4294967296 + 0 = 9223372036854775808 = 2^63; unsigned, no sign extension" }
+note = "top bit set, above i64::MAX: must not be read as signed"
+
+[[decode]]
+offset = 16
+raw = "18446744073709551615"
+source = { kind = "hand-calc", working = "bytes FF x8: lo = hi = 4294967295; 4294967295*4294967296 + 4294967295 = 18446744069414584320 + 4294967295 = 18446744073709551615 (u64 max)" }
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "US-RR-9-8"

@@ -1,0 +1,74 @@
+# Seed KAT fixture (US-RR-9-8). Every expected value is hand-calculated; the
+# working shows the IEEE 754 sign / exponent / fraction breakdown. Cross-checked
+# independently with Python struct.unpack (never with rr-core or rr-testkit code).
+schema = 1
+title = "f64 big-endian: exact values, 0.1, max finite, smallest subnormal, -0, -Inf"
+notes = """
+binary64 fields: S = bit 63, E = bits 62..52 (bias 1023), T = bits 51..0 (2^52 = 4503599627370496).
+Normal (0 < E < 2047): value = (-1)^S * (1 + T/2^52) * 2^(E - 1023).
+Subnormal (E = 0, T != 0): value = (-1)^S * T * 2^-1074.
+The -0.0 case compares equal to +0.0 as a float; check its sign bit too.
+NaN is deliberately not included: it has no single raw value to compare (EC-07 is US-RR-19's)."""
+
+[definition.encoding]
+storage = "f64"
+endian = "big"
+
+[input]
+hex = """
+3F F0 00 00 00 00 00 00
+C0 00 00 00 00 00 00 00
+3F B9 99 99 99 99 99 9A
+40 59 00 00 00 00 00 00
+7F EF FF FF FF FF FF FF
+00 00 00 00 00 00 00 01
+80 00 00 00 00 00 00 00
+FF F0 00 00 00 00 00 00
+"""
+
+[[decode]]
+offset = 0
+raw = 1.0
+source = { kind = "hand-calc", working = "bits 0x3FF0000000000000: S = 0, E = 0x3FF = 1023, T = 0; value = (1 + 0) * 2^(1023 - 1023) = 1.0" }
+
+[[decode]]
+offset = 8
+raw = -2.0
+source = { kind = "hand-calc", working = "bits 0xC000000000000000: S = 1, E = 0x400 = 1024, T = 0; value = -(1 + 0) * 2^(1024 - 1023) = -1 * 2 = -2.0" }
+
+[[decode]]
+offset = 16
+raw = 0.1
+source = { kind = "hand-calc", working = "bits 0x3FB999999999999A: S = 0, E = 0x3FB = 1019, T = 0x999999999999A = 2702159776422298; value = (4503599627370496 + 2702159776422298)/4503599627370496 * 2^(1019 - 1023) = 7205759403792794/72057594037927936 = 0.1000000000000000055511151231257827, the binary64 nearest 0.1, written 0.1" }
+
+[[decode]]
+offset = 24
+raw = 100.0
+source = { kind = "hand-calc", working = "bits 0x4059000000000000: S = 0, E = 0x405 = 1029, T = 0x9000000000000 = 2533274790395904; value = (1 + 2533274790395904/4503599627370496) * 2^(1029 - 1023) = 1.5625 * 64 = 100.0" }
+
+[[decode]]
+offset = 32
+raw = 1.7976931348623157e308
+source = { kind = "hand-calc", working = "bits 0x7FEFFFFFFFFFFFFF: S = 0, E = 0x7FE = 2046, T = 0xFFFFFFFFFFFFF = 4503599627370495; value = (1 + 4503599627370495/4503599627370496) * 2^(2046 - 1023) = (2 - 2^-52) * 2^1023 = 1.7976931348623157e308 (f64 max finite)" }
+
+[[decode]]
+offset = 40
+raw = 4.9406564584124654e-324
+source = { kind = "hand-calc", working = "bits 0x0000000000000001: S = 0, E = 0, T = 1, subnormal; value = 1 * 2^-1074 = 4.9406564584124654e-324 (smallest positive f64)" }
+note = "subnormal: a codec that flushes to zero reads 0.0"
+
+[[decode]]
+offset = 48
+raw = -0.0
+source = { kind = "hand-calc", working = "bits 0x8000000000000000: S = 1, E = 0, T = 0; E = 0 and T = 0 is zero with the sign bit set, value = -0.0" }
+note = "negative zero: the sign bit must survive decoding"
+
+[[decode]]
+offset = 56
+raw = -inf
+source = { kind = "standard", doc = "IEEE 754-2019", section = "3.4 Binary interchange format encodings: biased exponent E all ones (2047 for binary64) with trailing significand T = 0 encodes (-1)^S * infinity; bits 0xFFF0000000000000 have S = 1, E = 2047, T = 0, so -infinity" }
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "US-RR-9-8"

@@ -1,0 +1,45 @@
+# Seed KAT fixture (US-RR-9-8). Every expected value is hand-calculated; the
+# working shows the IEEE 754 sign / exponent / fraction breakdown. Cross-checked
+# independently with Python struct.unpack (never with rr-core or rr-testkit code).
+schema = 1
+title = "f32 little-endian: exact values and the binary32 nearest 0.1"
+notes = """
+Each cell is the binary32 bit pattern stored least significant byte first; the bits are reassembled as b3 b2 b1 b0.
+binary32: value = (-1)^S * (1 + T/8388608) * 2^(E - 127) for normal E."""
+
+[definition.encoding]
+storage = "f32"
+endian = "little"
+
+[input]
+hex = """
+00 00 80 3F
+00 00 20 C1
+CD CC CC 3D
+00 00 48 42
+"""
+
+[[decode]]
+offset = 0
+raw = 1.0
+source = { kind = "hand-calc", working = "bytes 00 00 80 3F little-endian = bits 0x3F800000: S = 0, E = 127, T = 0; value = (1 + 0) * 2^(127 - 127) = 1.0" }
+
+[[decode]]
+offset = 4
+raw = -10.0
+source = { kind = "hand-calc", working = "bytes 00 00 20 C1 little-endian = bits 0xC1200000: S = 1, E = 0x82 = 130, T = 0x200000 = 2097152; value = -(1 + 2097152/8388608) * 2^(130 - 127) = -1.25 * 8 = -10.0" }
+
+[[decode]]
+offset = 8
+raw = 0.10000000149011612
+source = { kind = "hand-calc", working = "bytes CD CC CC 3D little-endian = bits 0x3DCCCCCD: S = 0, E = 0x7B = 123, T = 0x4CCCCD = 5033165; value = 13421773/8388608 * 2^-4 = 13421773/134217728 = 0.100000001490116119384765625, shortest f64 0.10000000149011612" }
+
+[[decode]]
+offset = 12
+raw = 50.0
+source = { kind = "hand-calc", working = "bytes 00 00 48 42 little-endian = bits 0x42480000 = 0 10000100 1001000..0: S = 0, E = 0x84 = 132, T = 0x480000 = 4718592; value = (1 + 4718592/8388608) * 2^(132 - 127) = 1.5625 * 32 = 50.0" }
+
+[[changelog]]
+date = 2026-10-19
+reason = "initial values"
+author = "US-RR-9-8"
