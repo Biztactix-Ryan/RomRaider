@@ -3437,7 +3437,7 @@ entries:
 - id: US-RR-4-5
   title: Add coverage.yml with per-crate thresholds
   type: task
-  status: review
+  status: done
   archived: false
   points: 3
   story_id: US-RR-4
@@ -6482,7 +6482,7 @@ entries:
   epic_id: null
   tags: []
 total_points: 1250
-completed_points: 173
+completed_points: 176
 story_count: 78
 task_count: 603
 epic_count: 10

@@ -1424,3 +1424,8 @@
 {"event_type":"update","item_id":"US-RR-19-11","item_type":"task","changes":{},"timestamp":"2026-10-19T15:16:56.049836Z","actor":"Ryan Tregea","source":"cli","run_id":"orch-2026-10-19-d2c2"}
 {"event_type":"update","item_id":"US-RR-19-11","item_type":"task","changes":{"status":{"before":"in-progress","after":"done"}},"timestamp":"2026-10-19T15:27:26.535282Z","actor":"Ryan Tregea","source":"cli","run_id":"orch-2026-10-19-d2c2"}
 {"event_type":"update","item_id":"US-RR-19-11","item_type":"task","changes":{},"timestamp":"2026-10-19T15:30:22.297522Z","actor":"Ryan Tregea","source":"cli","run_id":"orch-2026-10-19-d2c2"}
+{"event_type":"update","item_id":"US-RR-4-5","item_type":"task","changes":{"status":{"before":"review","after":"done"}},"timestamp":"2026-10-19T18:41:32.013032Z","actor":"Ryan Tregea","source":"cli","run_id":null}
+{"event_type":"update","item_id":"US-RR-19","item_type":"story","changes":{},"timestamp":"2026-10-19T18:41:32.289179Z","actor":"Ryan Tregea","source":"cli","run_id":null}
+{"event_type":"update","item_id":"US-RR-5-7","item_type":"task","changes":{},"timestamp":"2026-10-19T18:41:32.482389Z","actor":"Ryan Tregea","source":"cli","run_id":null}
+{"event_type":"update","item_id":"US-RR-10-7","item_type":"task","changes":{},"timestamp":"2026-10-19T18:41:32.670193Z","actor":"Ryan Tregea","source":"cli","run_id":null}
+{"event_type":"update","item_id":"US-RR-9-7","item_type":"task","changes":{},"timestamp":"2026-10-19T18:41:32.878229Z","actor":"Ryan Tregea","source":"cli","run_id":null}

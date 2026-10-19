@@ -282,7 +282,7 @@
 | [US-RR-4-2](tasks/US-RR-4-2.md) | Test: A deliberately weakened test on a gated module produces a surviving mutant and fails the mutants job | ⚪ todo | — |  | — | US-RR-4-6 | [US-RR-4](stories/US-RR-4.md) |
 | [US-RR-4-3](tasks/US-RR-4-3.md) | Test: Every exclusion in mutants.toml has a justification comment and a CI check rejects uncommented exclusions | ⚪ todo | — |  | — | US-RR-4-7 | [US-RR-4](stories/US-RR-4.md) |
 | [US-RR-4-4](tasks/US-RR-4-4.md) | Test: The weekly full mutation run publishes its report as a CI artifact | ⚪ todo | — |  | — | US-RR-4-6 | [US-RR-4](stories/US-RR-4.md) |
-| [US-RR-4-5](tasks/US-RR-4-5.md) | Add coverage.yml with per-crate thresholds | 🔍 review | 3 |  | — | — | [US-RR-4](stories/US-RR-4.md) |
+| [US-RR-4-5](tasks/US-RR-4-5.md) | Add coverage.yml with per-crate thresholds | ✅ done | 3 |  | — | — | [US-RR-4](stories/US-RR-4.md) |
 | [US-RR-4-6](tasks/US-RR-4-6.md) | Add mutants.yml and mutants.toml | ✅ done | 3 |  | claude | — | [US-RR-4](stories/US-RR-4.md) |
 | [US-RR-4-7](tasks/US-RR-4-7.md) | Add mutants.toml exclusion-justification checker | ✅ done | 1 |  | claude | US-RR-4-6 | [US-RR-4](stories/US-RR-4.md) |
 | [US-RR-40-1](tasks/US-RR-40-1.md) | Test: Every table in every synthetic ROM decodes to the generator's manifest values (raw and real) via the Table API | ⚪ todo | — |  | — | US-RR-40-7, US-RR-40-8 | [US-RR-40](stories/US-RR-40.md) |

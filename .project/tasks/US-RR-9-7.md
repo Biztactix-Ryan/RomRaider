@@ -12,7 +12,7 @@ status: done
 story_id: US-RR-9
 tags: []
 title: Add fixtures.yml CI job
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 Runs validate-fixtures on push/PR touching fixtures/ or rr-testkit.

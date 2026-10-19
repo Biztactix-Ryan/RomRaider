@@ -4,6 +4,20 @@ Newest first. Each entry has a Title, Date, Status, Context, Decision and Conseq
 
 ---
 
+## D-027: Coverage gate tolerates a 0.25-point drop
+- **Date:** 2026-10-20
+- **Status:** Accepted
+- **Context:** `cargo xtask coverage-gate` (US-RR-4-5) fails if a gated crate (rr-core, rr-rom, rr-comms) is below 90% line coverage or falls below its coverage on the base. llvm-cov line coverage varies slightly from run to run (inlining, generic instantiation), so a zero-drop rule would fail randomly.
+- **Decision:** A crate may fall up to 0.25 points below its base coverage (`--max-drop 0.25`) without failing. The 90% floor still applies.
+- **Consequences:** Real regressions are still caught; slow erosion of under 0.25 points per change can pass, but the 90% floor bounds it. If noise turns out larger or smaller in practice, revisit the number here.
+
+## D-026: `u20` (MOVI20) bit 19 sign-extends, matching legacy
+- **Date:** 2026-10-20
+- **Status:** Accepted
+- **Context:** A `u20` raw value is the SH-2A `MOVI20` 20-bit immediate. The CPU and legacy `getMovi20` (`RomAttributeParser.java:181-191`) sign-extend bit 19; the name `u20` suggests unsigned. US-RR-19 left this open until a maintainer decided it.
+- **Decision:** Bit 19 sign-extends, so a `u20` value ranges `-0x80000..=0x7FFFF`. The single decision point is `U20_BIT19_SIGN_EXTENDS = true`, in rr-core `encoding.rs` and in the independent reference codec. Legacy `movi20s` (the shifted form) is still refused.
+- **Consequences:** Definitions decode `movi20` tables to the same values as legacy RomRaider, so this is not a Must-Fix departure. The synthetic ROM and the `u20-movi20.toml` KAT fixture cover the signed range.
+
 ## D-025: External stock-ROM corpus, fetched and pinned, never vendored
 - **Date:** 2026-10-19
 - **Status:** Accepted
