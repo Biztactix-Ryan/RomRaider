@@ -164,7 +164,7 @@ entries:
 - id: US-RR-17
   title: Diagnostic and Provenance (C15)
   type: story
-  status: active
+  status: done
   archived: false
   points: 3
   story_id: null
@@ -1354,7 +1354,7 @@ entries:
   title: 'Test: Diagnostic codes are unique and stable - a test fails if a code is
     reused or removed without a deprecation entry'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-17
@@ -1364,7 +1364,7 @@ entries:
   title: 'Test: Provenance renders as file:line:col for text sources and as an offset
     for binary sources, with snapshot tests'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-17
@@ -1374,7 +1374,7 @@ entries:
   title: 'Test: Severity Error diagnostics make the owning load fail closed (the caller
     cannot get a usable T without explicitl...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-17
@@ -3399,7 +3399,7 @@ entries:
   title: 'Test: A PR that drops coverage of rr-core/rr-rom/rr-comms below 90% or below
     the base branch fails'
   type: task
-  status: todo
+  status: review
   archived: false
   points: 3
   story_id: US-RR-4
@@ -3409,7 +3409,7 @@ entries:
   title: 'Test: A deliberately weakened test on a gated module produces a surviving
     mutant and fails the mutants job'
   type: task
-  status: todo
+  status: review
   archived: false
   points: 2
   story_id: US-RR-4
@@ -3419,7 +3419,7 @@ entries:
   title: 'Test: Every exclusion in mutants.toml has a justification comment and a
     CI check rejects uncommented exclusions'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-4
@@ -3428,7 +3428,7 @@ entries:
 - id: US-RR-4-4
   title: 'Test: The weekly full mutation run publishes its report as a CI artifact'
   type: task
-  status: todo
+  status: review
   archived: false
   points: 2
   story_id: US-RR-4
@@ -4224,7 +4224,7 @@ entries:
   title: 'Test: A template fuzz target runs locally with cargo +nightly fuzz run and
     in the nightly workflow'
   type: task
-  status: todo
+  status: review
   archived: false
   points: 1
   story_id: US-RR-5
@@ -6400,7 +6400,7 @@ entries:
   title: 'Test: The validator rejects any expected value without a source field, and
     CI runs it on every fixture'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-9
@@ -6410,7 +6410,7 @@ entries:
   title: 'Test: A fixture with hand-calc source must include the working (formula
     and intermediate values) or it is rejected'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-9
@@ -6420,7 +6420,7 @@ entries:
   title: 'Test: At least 10 seed fixtures exist covering every storage type the format
     supports, each reviewed and sourced'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-9
@@ -6430,7 +6430,7 @@ entries:
   title: 'Test: Changing an expected value in an existing fixture requires a changelog
     line in the fixture explaining why (CI c...'
   type: task
-  status: todo
+  status: review
   archived: false
   points: 1
   story_id: US-RR-9
@@ -6482,7 +6482,7 @@ entries:
   epic_id: null
   tags: []
 total_points: 1284
-completed_points: 176
+completed_points: 186
 story_count: 78
 task_count: 603
 epic_count: 10

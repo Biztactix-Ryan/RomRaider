@@ -10,7 +10,7 @@
 | [US-RR-14](stories/US-RR-14.md) | Standard test-vector library | 📋 backlog | must | 5 | m0, testing, fixtures, standards | [EPIC-RR-2](epics/EPIC-RR-2.md) | 4 | 8 |
 | [US-RR-15](stories/US-RR-15.md) | Cross-source agreement harness | 📋 backlog | should | 3 | m0, testing, fixtures | [EPIC-RR-2](epics/EPIC-RR-2.md) | 3 | 5 |
 | [US-RR-16](stories/US-RR-16.md) | ECU-definition corpus: source, pin, manifest | 📋 backlog | must | 3 | m0, corpus, definitions | [EPIC-RR-2](epics/EPIC-RR-2.md) | 3 | 6 |
-| [US-RR-17](stories/US-RR-17.md) | Diagnostic and Provenance (C15) | 🏃 active | must | 3 | m0, core, concepts | [EPIC-RR-3](epics/EPIC-RR-3.md) | 3 | 6 |
+| [US-RR-17](stories/US-RR-17.md) | Diagnostic and Provenance (C15) | ✅ done | must | 3 | m0, core, concepts | [EPIC-RR-3](epics/EPIC-RR-3.md) | 3 | 6 |
 | [US-RR-18](stories/US-RR-18.md) | Clock: RealClock and VirtualClock (C9) | ✅ done | must | 3 | m0, core, concepts, timing | [EPIC-RR-3](epics/EPIC-RR-3.md) | 4 | 7 |
 | [US-RR-19](stories/US-RR-19.md) | Encoding (C3): one codec for every storage type | 🏃 active | must | 8 | m0, core, concepts, safety | [EPIC-RR-3](epics/EPIC-RR-3.md) | 6 | 12 |
 | [US-RR-2](stories/US-RR-2.md) | CI gates: fmt, clippy, nextest matrix, cargo-deny | ✅ done | must | 5 | m0, ci, testing | [EPIC-RR-1](epics/EPIC-RR-1.md) | 4 | 8 |

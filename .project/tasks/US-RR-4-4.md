@@ -8,7 +8,7 @@ depends_on:
 - US-RR-4-6
 id: US-RR-4-4
 points: 2
-status: todo
+status: review
 story_id: US-RR-4
 tags: []
 title: 'Test: The weekly full mutation run publishes its report as a CI artifact'

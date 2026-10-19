@@ -9,7 +9,7 @@ depends_on:
 - US-RR-5-6
 id: US-RR-5-1
 points: 1
-status: todo
+status: review
 story_id: US-RR-5
 tags: []
 title: 'Test: A template fuzz target runs locally with cargo +nightly fuzz run and

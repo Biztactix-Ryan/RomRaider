@@ -8,7 +8,7 @@ depends_on:
 - US-RR-4-6
 id: US-RR-4-2
 points: 2
-status: todo
+status: review
 story_id: US-RR-4
 tags: []
 title: 'Test: A deliberately weakened test on a gated module produces a surviving

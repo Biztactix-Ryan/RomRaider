@@ -8,7 +8,7 @@ depends_on:
 - US-RR-9-8
 id: US-RR-9-3
 points: 1
-status: todo
+status: done
 story_id: US-RR-9
 tags: []
 title: 'Test: At least 10 seed fixtures exist covering every storage type the format

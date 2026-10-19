@@ -1,15 +1,15 @@
 ---
 archived: false
-assignee: null
-claimed_at: null
-claimed_by_run: null
+assignee: claude
+claimed_at: '2026-10-19T18:54:11.535636+00:00'
+claimed_by_run: orch-2026-10-20-fe2d
 created: '2026-10-19'
 depends_on:
 - US-RR-9-6
 - US-RR-9-7
 id: US-RR-9-1
 points: 1
-status: todo
+status: done
 story_id: US-RR-9
 tags: []
 title: 'Test: The validator rejects any expected value without a source field, and

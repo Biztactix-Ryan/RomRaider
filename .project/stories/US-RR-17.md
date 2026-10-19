@@ -13,13 +13,13 @@ epic_id: EPIC-RR-3
 id: US-RR-17
 points: 3
 priority: must
-status: active
+status: done
 tags:
 - m0
 - core
 - concepts
 title: Diagnostic and Provenance (C15)
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 As a developer, I want one Diagnostic type, collected rather than thrown, with provenance pointing at the exact source location, so that every load or resolve problem is visible, testable and never shows up as a popup or a swallowed exception.

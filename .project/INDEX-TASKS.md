@@ -61,9 +61,9 @@
 | [US-RR-16-4](tasks/US-RR-16-4.md) | Identify and select the authoritative RomRaider definition source | ⚪ todo | 2 |  | — | — | [US-RR-16](stories/US-RR-16.md) |
 | [US-RR-16-5](tasks/US-RR-16-5.md) | Mirror and pin definitions; extend fetch-corpus and manifest | ⚪ todo | 2 |  | — | US-RR-16-4 | [US-RR-16](stories/US-RR-16.md) |
 | [US-RR-16-6](tasks/US-RR-16-6.md) | Generate ROM-ID coverage report | ⚪ todo | 3 |  | — | US-RR-16-5 | [US-RR-16](stories/US-RR-16.md) |
-| [US-RR-17-1](tasks/US-RR-17-1.md) | Test: Diagnostic codes are unique and stable - a test fails if a code is reused or removed without a deprecation entry | ⚪ todo | 1 |  | — | US-RR-17-6 | [US-RR-17](stories/US-RR-17.md) |
-| [US-RR-17-2](tasks/US-RR-17-2.md) | Test: Provenance renders as file:line:col for text sources and as an offset for binary sources, with snapshot tests | ⚪ todo | 1 |  | — | US-RR-17-4 | [US-RR-17](stories/US-RR-17.md) |
-| [US-RR-17-3](tasks/US-RR-17-3.md) | Test: Severity Error diagnostics make the owning load fail closed (the caller cannot get a usable T without explicitl... | ⚪ todo | 1 |  | — | US-RR-17-5 | [US-RR-17](stories/US-RR-17.md) |
+| [US-RR-17-1](tasks/US-RR-17-1.md) | Test: Diagnostic codes are unique and stable - a test fails if a code is reused or removed without a deprecation entry | ✅ done | 1 |  | claude | US-RR-17-6 | [US-RR-17](stories/US-RR-17.md) |
+| [US-RR-17-2](tasks/US-RR-17-2.md) | Test: Provenance renders as file:line:col for text sources and as an offset for binary sources, with snapshot tests | ✅ done | 1 |  | claude | US-RR-17-4 | [US-RR-17](stories/US-RR-17.md) |
+| [US-RR-17-3](tasks/US-RR-17-3.md) | Test: Severity Error diagnostics make the owning load fail closed (the caller cannot get a usable T without explicitl... | ✅ done | 1 |  | claude | US-RR-17-5 | [US-RR-17](stories/US-RR-17.md) |
 | [US-RR-17-4](tasks/US-RR-17-4.md) | Implement Diagnostic, Severity and Provenance types | ✅ done | 2 |  | claude | — | [US-RR-17](stories/US-RR-17.md) |
 | [US-RR-17-5](tasks/US-RR-17-5.md) | Implement Diagnostics collector and fail-closed Loaded<T> | ✅ done | 2 |  | claude | US-RR-17-4 | [US-RR-17](stories/US-RR-17.md) |
 | [US-RR-17-6](tasks/US-RR-17-6.md) | Add stable diagnostic code registry and docs | ✅ done | 1 |  | claude | US-RR-17-4 | [US-RR-17](stories/US-RR-17.md) |
@@ -278,10 +278,10 @@
 | [US-RR-39-4](tasks/US-RR-39-4.md) | Author inheritance-case KAT fixtures | ⚪ todo | 3 |  | — | — | [US-RR-39](stories/US-RR-39.md) |
 | [US-RR-39-5](tasks/US-RR-39-5.md) | Snapshot 20 real corpus definitions | ⚪ todo | 2 |  | — | — | [US-RR-39](stories/US-RR-39.md) |
 | [US-RR-39-6](tasks/US-RR-39-6.md) | Cross-link MF ledger and fixtures | ⚪ todo | 1 |  | — | US-RR-39-4 | [US-RR-39](stories/US-RR-39.md) |
-| [US-RR-4-1](tasks/US-RR-4-1.md) | Test: A PR that drops coverage of rr-core/rr-rom/rr-comms below 90% or below the base branch fails | ⚪ todo | 3 |  | — | US-RR-4-5 | [US-RR-4](stories/US-RR-4.md) |
-| [US-RR-4-2](tasks/US-RR-4-2.md) | Test: A deliberately weakened test on a gated module produces a surviving mutant and fails the mutants job | ⚪ todo | 2 |  | — | US-RR-4-6 | [US-RR-4](stories/US-RR-4.md) |
-| [US-RR-4-3](tasks/US-RR-4-3.md) | Test: Every exclusion in mutants.toml has a justification comment and a CI check rejects uncommented exclusions | ⚪ todo | 1 |  | — | US-RR-4-7 | [US-RR-4](stories/US-RR-4.md) |
-| [US-RR-4-4](tasks/US-RR-4-4.md) | Test: The weekly full mutation run publishes its report as a CI artifact | ⚪ todo | 2 |  | — | US-RR-4-6 | [US-RR-4](stories/US-RR-4.md) |
+| [US-RR-4-1](tasks/US-RR-4-1.md) | Test: A PR that drops coverage of rr-core/rr-rom/rr-comms below 90% or below the base branch fails | 🔍 review | 3 |  | — | US-RR-4-5 | [US-RR-4](stories/US-RR-4.md) |
+| [US-RR-4-2](tasks/US-RR-4-2.md) | Test: A deliberately weakened test on a gated module produces a surviving mutant and fails the mutants job | 🔍 review | 2 |  | — | US-RR-4-6 | [US-RR-4](stories/US-RR-4.md) |
+| [US-RR-4-3](tasks/US-RR-4-3.md) | Test: Every exclusion in mutants.toml has a justification comment and a CI check rejects uncommented exclusions | ✅ done | 1 |  | claude | US-RR-4-7 | [US-RR-4](stories/US-RR-4.md) |
+| [US-RR-4-4](tasks/US-RR-4-4.md) | Test: The weekly full mutation run publishes its report as a CI artifact | 🔍 review | 2 |  | — | US-RR-4-6 | [US-RR-4](stories/US-RR-4.md) |
 | [US-RR-4-5](tasks/US-RR-4-5.md) | Add coverage.yml with per-crate thresholds | ✅ done | 3 |  | — | — | [US-RR-4](stories/US-RR-4.md) |
 | [US-RR-4-6](tasks/US-RR-4-6.md) | Add mutants.yml and mutants.toml | ✅ done | 3 |  | claude | — | [US-RR-4](stories/US-RR-4.md) |
 | [US-RR-4-7](tasks/US-RR-4-7.md) | Add mutants.toml exclusion-justification checker | ✅ done | 1 |  | claude | US-RR-4-6 | [US-RR-4](stories/US-RR-4.md) |
@@ -365,7 +365,7 @@
 | [US-RR-49-3](tasks/US-RR-49-3.md) | Test: Release notes state signing status explicitly | ⚪ todo | — |  | — | US-RR-49-5 | [US-RR-49](stories/US-RR-49.md) |
 | [US-RR-49-4](tasks/US-RR-49-4.md) | Add WiX MSI packaging via cargo-dist | ⚪ todo | 3 |  | — | — | [US-RR-49](stories/US-RR-49.md) |
 | [US-RR-49-5](tasks/US-RR-49-5.md) | Add PE architecture check and signing-status release notes | ⚪ todo | 1 |  | — | — | [US-RR-49](stories/US-RR-49.md) |
-| [US-RR-5-1](tasks/US-RR-5-1.md) | Test: A template fuzz target runs locally with cargo +nightly fuzz run and in the nightly workflow | ⚪ todo | 1 |  | — | US-RR-5-5, US-RR-5-6 | [US-RR-5](stories/US-RR-5.md) |
+| [US-RR-5-1](tasks/US-RR-5-1.md) | Test: A template fuzz target runs locally with cargo +nightly fuzz run and in the nightly workflow | 🔍 review | 1 |  | — | US-RR-5-5, US-RR-5-6 | [US-RR-5](stories/US-RR-5.md) |
 | [US-RR-5-2](tasks/US-RR-5-2.md) | Test: A planted panic in a toy target is found by the nightly job and auto-filed as an issue | ⚪ todo | 3 |  | — | US-RR-5-6 | [US-RR-5](stories/US-RR-5.md) |
 | [US-RR-5-3](tasks/US-RR-5-3.md) | Test: Committed crash inputs run as ordinary regression tests in ci.yml without nightly | ⚪ todo | 1 |  | — | US-RR-5-7 | [US-RR-5](stories/US-RR-5.md) |
 | [US-RR-5-4](tasks/US-RR-5-4.md) | Test: Fuzz targets enforce a per-input time and memory limit so hangs and unbounded allocation count as failures | ⚪ todo | 1 |  | — | US-RR-5-5 | [US-RR-5](stories/US-RR-5.md) |
@@ -596,10 +596,10 @@
 | [US-RR-8-5](tasks/US-RR-8-5.md) | Write CONTRIBUTING.md with Definition of Done | ✅ done | 2 |  | claude | US-RR-2-5 | [US-RR-8](stories/US-RR-8.md) |
 | [US-RR-8-6](tasks/US-RR-8-6.md) | Add PR and issue templates | ✅ done | 1 |  | claude | US-RR-2-5 | [US-RR-8](stories/US-RR-8.md) |
 | [US-RR-8-7](tasks/US-RR-8-7.md) | Add CODEOWNERS for safety modules | ✅ done | 1 |  | — | US-RR-2-5 | [US-RR-8](stories/US-RR-8.md) |
-| [US-RR-9-1](tasks/US-RR-9-1.md) | Test: The validator rejects any expected value without a source field, and CI runs it on every fixture | ⚪ todo | 1 |  | — | US-RR-9-6, US-RR-9-7 | [US-RR-9](stories/US-RR-9.md) |
-| [US-RR-9-2](tasks/US-RR-9-2.md) | Test: A fixture with hand-calc source must include the working (formula and intermediate values) or it is rejected | ⚪ todo | 1 |  | — | US-RR-9-6 | [US-RR-9](stories/US-RR-9.md) |
-| [US-RR-9-3](tasks/US-RR-9-3.md) | Test: At least 10 seed fixtures exist covering every storage type the format supports, each reviewed and sourced | ⚪ todo | 1 |  | — | US-RR-9-8 | [US-RR-9](stories/US-RR-9.md) |
-| [US-RR-9-4](tasks/US-RR-9-4.md) | Test: Changing an expected value in an existing fixture requires a changelog line in the fixture explaining why (CI c... | ⚪ todo | 1 |  | — | US-RR-9-6, US-RR-9-7 | [US-RR-9](stories/US-RR-9.md) |
+| [US-RR-9-1](tasks/US-RR-9-1.md) | Test: The validator rejects any expected value without a source field, and CI runs it on every fixture | ✅ done | 1 |  | claude | US-RR-9-6, US-RR-9-7 | [US-RR-9](stories/US-RR-9.md) |
+| [US-RR-9-2](tasks/US-RR-9-2.md) | Test: A fixture with hand-calc source must include the working (formula and intermediate values) or it is rejected | ✅ done | 1 |  | claude | US-RR-9-6 | [US-RR-9](stories/US-RR-9.md) |
+| [US-RR-9-3](tasks/US-RR-9-3.md) | Test: At least 10 seed fixtures exist covering every storage type the format supports, each reviewed and sourced | ✅ done | 1 |  | — | US-RR-9-8 | [US-RR-9](stories/US-RR-9.md) |
+| [US-RR-9-4](tasks/US-RR-9-4.md) | Test: Changing an expected value in an existing fixture requires a changelog line in the fixture explaining why (CI c... | 🔍 review | 1 |  | — | US-RR-9-6, US-RR-9-7 | [US-RR-9](stories/US-RR-9.md) |
 | [US-RR-9-5](tasks/US-RR-9-5.md) | Define KAT TOML schema and serde types | ✅ done | 3 |  | claude | — | [US-RR-9](stories/US-RR-9.md) |
 | [US-RR-9-6](tasks/US-RR-9-6.md) | Implement KAT validator | ✅ done | 3 |  | claude | US-RR-9-5 | [US-RR-9](stories/US-RR-9.md) |
 | [US-RR-9-7](tasks/US-RR-9-7.md) | Add fixtures.yml CI job | ✅ done | 1 |  | claude | US-RR-9-6 | [US-RR-9](stories/US-RR-9.md) |
