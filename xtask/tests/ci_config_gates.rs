@@ -1,11 +1,27 @@
-//! CI gate wiring for story US-RR-2 (ci.yml: cargo-deny, pending insta
-//! snapshots, the i686-pc-windows-msvc test target).
+//! CI gate wiring for story US-RR-2 (ci.yml: fmt / clippy / nextest on every
+//! matrix target, cargo-deny, pending insta snapshots, the
+//! i686-pc-windows-msvc test target).
 //!
 //! Each criterion is a pure check over the text of `.github/workflows/ci.yml`
 //! that returns a list of problems. One test runs it on the committed file
 //! (so the nextest jobs fail if the wiring regresses), and `*_rejects_*`
 //! tests prove each assertion bites on a mutated copy of the real file.
 //!
+//! * **US-RR-2-1** ([`pr_gates_problems`]): a rustfmt violation, a clippy
+//!   warning or a failing test blocks the PR on every matrix target. Job
+//!   `fmt` runs `cargo fmt --all --check`; job `clippy` runs clippy with
+//!   `-D warnings` on the host; the `test` matrix covers the four US-RR-2
+//!   targets (`fail-fast: false`, no `exclude:`, `RUSTFLAGS=-D warnings`) and
+//!   for each entry runs clippy (`-D warnings`) and `cargo nextest run
+//!   --workspace` with `--target <entry>`, plus `cargo xtask gates-selftest
+//!   --target <entry>`, which proves on that target that those exact
+//!   commands fail on a planted violation (`xtask/src/gates_selftest.rs`; the
+//!   commands are compared with its [`Gate::ci_command`]). No step of those
+//!   jobs can be skipped or softened (`if:`, `continue-on-error`, `|| true`),
+//!   none has a job-level `if:`, the default shell is bash (`-eo pipefail`,
+//!   also on Windows), and `ci-ok` (the only required check) needs all three
+//!   jobs, is `if: always()` and fails when any needed job's result is
+//!   `failure`, `cancelled` or `skipped`.
 //! * **US-RR-2-2** ([`deny_problems`]): job `deny` runs `cargo deny --locked
 //!   check` (every check, no subset) and `cargo xtask deny-selftest` (which
 //!   proves that command rejects a GPL-incompatible licence and an open
@@ -30,9 +46,10 @@
 mod workflow;
 
 use workflow::{
-    Job, Workflow, assert_flags, ci_yml, gate_needs_problems, normalize, skippable_problems,
-    trigger_problems,
+    GATE_JOB, Job, Workflow, assert_flags, ci_yml, gate_needs_problems, normalize,
+    skippable_problems, trigger_problems,
 };
+use xtask::gates_selftest::Gate;
 
 fn words(s: &str) -> Vec<&str> {
     s.split(' ').collect()
@@ -546,6 +563,433 @@ fn ci_i686_check_rejects_weakened_matrix() {
             )
         }),
         "`ci-ok.needs` does not include `test`",
+    );
+}
+
+// --- US-RR-2-1: fmt / clippy / nextest block a PR on every matrix target --
+
+const FMT_JOB: &str = "fmt";
+const CLIPPY_JOB: &str = "clippy";
+
+/// The story's tier-1/2 targets (US-RR-2: "nextest on x86_64-linux,
+/// aarch64-linux, x86_64-windows-msvc, i686-windows-msvc").
+const MATRIX_TARGETS: [&str; 4] = [
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+    "x86_64-pc-windows-msvc",
+    I686,
+];
+
+/// The `ci-ok` failing step's condition terms: any needed job not `success`.
+const GATE_FAIL_RESULTS: [&str; 3] = ["failure", "cancelled", "skipped"];
+
+/// Problems if `job` has a job-level `if:` (a skipped job is not a pass, but
+/// it must not be conditional either).
+fn job_if_problems(job: &Job<'_>) -> Vec<String> {
+    job.value_at("if", 4)
+        .map(|v| format!("`{}` has a job-level `if: {v}`", job.id))
+        .into_iter()
+        .collect()
+}
+
+/// Problems if no step of `job` runs exactly `cmd` (after matrix expansion
+/// with `entry`).
+fn runs_problems(job: &Job<'_>, entry: &[(String, String)], cmd: &str, label: &str) -> Vec<String> {
+    let found = job
+        .steps()
+        .iter()
+        .any(|st| st.run_scripts().iter().any(|s| expand(s, entry) == cmd));
+    if found {
+        Vec::new()
+    } else {
+        vec![format!("`{}`{label} does not run `{cmd}`", job.id)]
+    }
+}
+
+/// Problems with the aggregate gate's own logic: it must run even when a
+/// needed job failed (`if: always()`) and must fail when any needed job's
+/// result is `failure`, `cancelled` or `skipped`.
+fn gate_logic_problems(wf: &Workflow<'_>) -> Vec<String> {
+    let Some(gate) = wf.job(GATE_JOB) else {
+        return vec![format!("no `{GATE_JOB}` job")];
+    };
+    let mut problems = Vec::new();
+    if gate.value_at("if", 4).map(|v| normalize(&v)).as_deref() != Some("always()") {
+        problems.push(format!(
+            "`{GATE_JOB}` is not `if: always()`, so a failed gate skips it (a skipped required check counts as passed)"
+        ));
+    }
+    if gate
+        .content_lines()
+        .any(|l| l.trim_start_matches("- ").starts_with("continue-on-error"))
+    {
+        problems.push(format!("`{GATE_JOB}` uses continue-on-error"));
+    }
+    let steps = gate.steps();
+    let failing: Vec<&Job<'_>> = steps
+        .iter()
+        .filter(|st| st.run_scripts().iter().any(|s| s.contains("exit 1")))
+        .collect();
+    if failing.is_empty() {
+        problems.push(format!("`{GATE_JOB}` has no failing (`exit 1`) step"));
+    }
+    for st in failing {
+        for s in st.run_scripts() {
+            if s.contains("|| true") || s.contains("|| :") || s.contains("exit 0") {
+                problems.push(format!("`{GATE_JOB}` failing step swallows failures: {s}"));
+            }
+        }
+        // No `if:` means the step always fails: never a weakening.
+        let Some(cond) = st.value_at("if", 8) else {
+            continue;
+        };
+        let inner = cond
+            .trim()
+            .strip_prefix("${{")
+            .and_then(|c| c.strip_suffix("}}"))
+            .unwrap_or(&cond);
+        let terms: Vec<String> = inner.split("||").map(normalize).collect();
+        let wanted: Vec<String> = GATE_FAIL_RESULTS
+            .iter()
+            .map(|r| format!("contains(needs.*.result, '{r}')"))
+            .collect();
+        for (r, w) in GATE_FAIL_RESULTS.iter().zip(&wanted) {
+            if !terms.contains(w) {
+                problems.push(format!(
+                    "`{GATE_JOB}` does not fail on a needed job's `{r}` result (if: {cond})"
+                ));
+            }
+        }
+        for t in terms.iter().filter(|t| !wanted.contains(t)) {
+            problems.push(format!(
+                "`{GATE_JOB}` failing step has an unexpected condition term `{t}`"
+            ));
+        }
+    }
+    problems
+}
+
+/// Every way `src` fails the US-RR-2-1 wiring; empty when it holds.
+fn pr_gates_problems(src: &str) -> Vec<String> {
+    let wf = Workflow::parse(src);
+    let mut problems = trigger_problems(&wf);
+    if !wf
+        .section("defaults")
+        .iter()
+        .any(|l| normalize(l) == "shell: bash")
+    {
+        problems.push(
+            "`defaults.run.shell` is not `bash`, so a failing command in a multi-line `run:` may not fail its step"
+                .to_owned(),
+        );
+    }
+    problems.extend(gate_logic_problems(&wf));
+
+    for (id, gate) in [(FMT_JOB, Gate::Fmt), (CLIPPY_JOB, Gate::Clippy)] {
+        problems.extend(gate_needs_problems(&wf, id));
+        let Some(job) = wf.job(id) else {
+            problems.push(format!("no `{id}` job"));
+            continue;
+        };
+        problems.extend(runs_problems(job, &[], &gate.ci_command(None), ""));
+        problems.extend(skippable_problems(job, &[]));
+        problems.extend(job_if_problems(job));
+    }
+
+    problems.extend(gate_needs_problems(&wf, TEST_JOB));
+    let Some(job) = wf.job(TEST_JOB) else {
+        problems.push(format!("no `{TEST_JOB}` job"));
+        return problems;
+    };
+    problems.extend(skippable_problems(job, &[]));
+    problems.extend(job_if_problems(job));
+    if job.value_at("fail-fast", 6).as_deref() != Some("false") {
+        problems.push(format!(
+            "`{TEST_JOB}` matrix is not `fail-fast: false`, so one target's failure hides the others' results"
+        ));
+    }
+    if job.lines.iter().any(|l| l.trim() == "exclude:") {
+        problems.push(format!("`{TEST_JOB}` matrix has an `exclude:` list"));
+    }
+    let rustflags: Vec<String> = job
+        .content_lines()
+        .filter(|l| l.starts_with("RUSTFLAGS:"))
+        .map(|l| normalize(l).replace(['"', '\''], ""))
+        .collect();
+    if rustflags != ["RUSTFLAGS: -D warnings"] {
+        problems.push(format!(
+            "`{TEST_JOB}` does not set `RUSTFLAGS: -D warnings` exactly once (found {rustflags:?})"
+        ));
+    }
+    let include = matrix_include(job);
+    for t in MATRIX_TARGETS {
+        if !include
+            .iter()
+            .any(|e| e.iter().any(|(k, v)| k == "target" && v == t))
+        {
+            problems.push(format!("`{TEST_JOB}` matrix has no `target: {t}` entry"));
+        }
+    }
+    for entry in &include {
+        let Some((_, t)) = entry.iter().find(|(k, _)| k == "target") else {
+            problems.push(format!(
+                "`{TEST_JOB}` matrix entry without a target: {entry:?}"
+            ));
+            continue;
+        };
+        let label = format!(" ({t})");
+        for cmd in [
+            Gate::Clippy.ci_command(Some(t)),
+            Gate::Nextest.ci_command(Some(t)),
+            format!("cargo xtask gates-selftest --target {t}"),
+        ] {
+            problems.extend(runs_problems(job, entry, &cmd, &label));
+        }
+    }
+    problems
+}
+
+#[test]
+fn ci_blocks_fmt_clippy_and_test_failures_on_every_matrix_target() {
+    let problems = pr_gates_problems(&ci_yml());
+    assert!(
+        problems.is_empty(),
+        ".github/workflows/ci.yml violates US-RR-2-1:\n{}",
+        problems.join("\n")
+    );
+}
+
+#[test]
+fn ci_pr_gates_check_rejects_weakened_fmt_and_clippy_jobs() {
+    let m = |edit: &dyn Fn(&str) -> String| workflow::mutated(pr_gates_problems, edit);
+    assert_flags(
+        &m(&|s| s.replace("run: cargo fmt --all --check\n", "run: cargo fmt --all\n")),
+        "`fmt` does not run `cargo fmt --all --check`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replace(
+                "      - name: cargo fmt --check\n",
+                "      - name: cargo fmt --check\n        continue-on-error: true\n",
+            )
+        }),
+        "continue-on-error",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replace(
+                "    name: fmt\n",
+                "    name: fmt\n    if: github.event_name == 'push'\n",
+            )
+        }),
+        "`fmt` has a job-level `if:",
+    );
+    assert_flags(
+        &m(&|s| s.replace("needs: [fmt, clippy, ", "needs: [clippy, ")),
+        "`ci-ok.needs` does not include `fmt`",
+    );
+    assert_flags(
+        &m(&|s| s.replace("\n  fmt:\n", "\n  format:\n")),
+        "no `fmt` job",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replace(
+                "run: cargo clippy --workspace --all-targets --locked -- -D warnings\n",
+                "run: cargo clippy --workspace --all-targets --locked\n",
+            )
+        }),
+        "`clippy` does not run `cargo clippy --workspace --all-targets --locked -- -D warnings`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replace(
+                "run: cargo clippy --workspace --all-targets --locked -- -D warnings\n",
+                "run: cargo clippy --workspace --all-targets --locked -- -D warnings || true\n",
+            )
+        }),
+        "swallows failures",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replace(
+                "      - name: cargo clippy\n",
+                "      - name: cargo clippy\n        if: github.event_name == 'push'\n",
+            )
+        }),
+        "`clippy` step `cargo clippy` has a conditional",
+    );
+    assert_flags(
+        &m(&|s| s.replace("needs: [fmt, clippy, ", "needs: [fmt, ")),
+        "`ci-ok.needs` does not include `clippy`",
+    );
+    assert_flags(
+        &m(&|s| s.replace("    shell: bash\n", "    shell: pwsh\n")),
+        "`defaults.run.shell` is not `bash`",
+    );
+}
+
+#[test]
+fn ci_pr_gates_check_rejects_weakened_test_matrix() {
+    let m = |edit: &dyn Fn(&str) -> String| workflow::mutated(pr_gates_problems, edit);
+    assert_flags(
+        &m(&|s| {
+            s.replace(
+                "          - target: aarch64-unknown-linux-gnu\n            os: ubuntu-24.04-arm\n",
+                "",
+            )
+        }),
+        "matrix has no `target: aarch64-unknown-linux-gnu` entry",
+    );
+    assert_flags(
+        &m(&|s| s.replace("      fail-fast: false\n", "      fail-fast: true\n")),
+        "not `fail-fast: false`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replace(
+                "      matrix:\n        include:\n",
+                "      matrix:\n        exclude:\n          - target: x86_64-pc-windows-msvc\n        include:\n",
+            )
+        }),
+        "has an `exclude:` list",
+    );
+    assert_flags(
+        &m(&|s| s.replace("      RUSTFLAGS: -D warnings\n", "")),
+        "RUSTFLAGS: -D warnings",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replace(
+                "      - name: cargo nextest\n",
+                "      - name: cargo nextest\n        env:\n          RUSTFLAGS: \"\"\n",
+            )
+        }),
+        "RUSTFLAGS: -D warnings",
+    );
+    // Per-target clippy: dropped, host-only, or conditional on the target.
+    let clippy_target = "cargo clippy --workspace --all-targets --locked --target ${{ matrix.target }} -- -D warnings";
+    for t in MATRIX_TARGETS {
+        assert_flags(
+            &m(&|s| {
+                s.replace(
+                    clippy_target,
+                    "cargo clippy --workspace --all-targets --locked -- -D warnings",
+                )
+            }),
+            &format!(
+                "`test` ({t}) does not run `cargo clippy --workspace --all-targets --locked --target {t} -- -D warnings`"
+            ),
+        );
+        assert_flags(
+            &m(&|s| {
+                s.replace("cargo nextest run --workspace --locked --target ${{ matrix.target }}", "cargo nextest run --workspace --locked --target ${{ matrix.target }} -E 'not test(/slow/)'")
+            }),
+            &format!(
+                "`test` ({t}) does not run `cargo nextest run --workspace --locked --target {t}`"
+            ),
+        );
+        assert_flags(
+            &m(&|s| {
+                s.replace(
+                    "cargo xtask gates-selftest --target ${{ matrix.target }}",
+                    "cargo xtask gates-selftest",
+                )
+            }),
+            &format!("`test` ({t}) does not run `cargo xtask gates-selftest --target {t}`"),
+        );
+    }
+    assert_flags(
+        &m(&|s| {
+            s.replace(
+                "      - name: cargo clippy (target)\n",
+                "      - name: cargo clippy (target)\n        if: runner.os == 'Linux'\n",
+            )
+        }),
+        "`test` step `cargo clippy (target)` has a conditional",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replace(
+                "      - name: cargo nextest\n",
+                "      - name: cargo nextest\n        continue-on-error: ${{ matrix.target == 'i686-pc-windows-msvc' }}\n",
+            )
+        }),
+        "continue-on-error",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replace(
+                "    name: test (${{ matrix.target }})\n",
+                "    name: test (${{ matrix.target }})\n    continue-on-error: true\n",
+            )
+        }),
+        "continue-on-error",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replace(
+                "run: cargo nextest run --workspace --locked --target ${{ matrix.target }}\n",
+                "run: cargo nextest run --workspace --locked --target ${{ matrix.target }} || true\n",
+            )
+        }),
+        "swallows failures",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replace(
+                "      - name: cargo xtask gates-selftest\n",
+                "      - name: cargo xtask gates-selftest\n        if: false\n",
+            )
+        }),
+        "`test` step `cargo xtask gates-selftest` has a conditional",
+    );
+    assert_flags(
+        &m(&|s| s.replace("needs: [fmt, clippy, test, ", "needs: [fmt, clippy, ")),
+        "`ci-ok.needs` does not include `test`",
+    );
+}
+
+#[test]
+fn ci_pr_gates_check_rejects_weakened_ci_ok() {
+    let m = |edit: &dyn Fn(&str) -> String| workflow::mutated(pr_gates_problems, edit);
+    let fail_if = "        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}\n";
+    assert_flags(
+        &m(&|s| s.replace("    name: ci-ok\n    if: always()\n", "    name: ci-ok\n")),
+        "is not `if: always()`",
+    );
+    for r in GATE_FAIL_RESULTS {
+        assert_flags(
+            &m(&|s| {
+                let weakened = fail_if
+                    .replace(&format!(" || contains(needs.*.result, '{r}')"), "")
+                    .replace(&format!("contains(needs.*.result, '{r}') || "), "");
+                s.replace(fail_if, &weakened)
+            }),
+            &format!("does not fail on a needed job's `{r}` result"),
+        );
+    }
+    assert_flags(
+        &m(&|s| s.replace(fail_if, &fail_if.replace(" }}", " && false }}"))),
+        "unexpected condition term",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replace(
+                "join(needs.*.result, ', ') }}\"\n          exit 1\n",
+                "join(needs.*.result, ', ') }}\"\n          exit 0\n",
+            )
+        }),
+        "has no failing (`exit 1`) step",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replace(
+                "      - name: A gate failed, was cancelled, or was skipped\n",
+                "      - name: A gate failed, was cancelled, or was skipped\n        continue-on-error: true\n",
+            )
+        }),
+        "`ci-ok` uses continue-on-error",
     );
 }
 

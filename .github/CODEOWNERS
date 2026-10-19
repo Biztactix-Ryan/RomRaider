@@ -53,17 +53,25 @@
 /crates/rr-rom/src/checksum.rs              @Biztactix-Ryan
 /crates/rr-rom/src/checksum/                @Biztactix-Ryan
 /crates/rr-rom/src/**/*write*               @Biztactix-Ryan
+# A wildcard last segment may match files only (GitHub: `docs/*` does not
+# own `docs/a/b.md`), so directory modules are listed as well.
+/crates/rr-rom/src/**/write/                @Biztactix-Ryan
 
 # --- rr-comms write gating ------------------------------------------------
 /crates/rr-comms/src/**/*write*             @Biztactix-Ryan
 /crates/rr-comms/src/**/gate*               @Biztactix-Ryan
 /crates/rr-comms/src/**/gating*             @Biztactix-Ryan
+/crates/rr-comms/src/**/write/              @Biztactix-Ryan
+/crates/rr-comms/src/**/gate/               @Biztactix-Ryan
+/crates/rr-comms/src/**/gating/             @Biztactix-Ryan
 
 # --- T6 write gating: markers, check, and suites --------------------------
 /crates/rr-write-marker/                    @Biztactix-Ryan
 /xtask/src/writes.rs                        @Biztactix-Ryan
 /xtask/tests/t6_*                           @Biztactix-Ryan
 /crates/*/tests/t6_*                        @Biztactix-Ryan
+# trybuild compile-fail fixtures driven by rr-core's t6_token_compile_fail.
+/crates/rr-core/tests/ui/                   @Biztactix-Ryan
 /mutants.toml                               @Biztactix-Ryan
 
 # --- Enforcement machinery: lints, dependency rule, globals, supply chain -
@@ -79,3 +87,6 @@
 # --- CI and this file -----------------------------------------------------
 /.github/workflows/                         @Biztactix-Ryan
 /.github/CODEOWNERS                         @Biztactix-Ryan
+# The check that this file owns every gated path (US-RR-8-2).
+/xtask/src/codeowners.rs                    @Biztactix-Ryan
+/xtask/tests/codeowners.rs                  @Biztactix-Ryan

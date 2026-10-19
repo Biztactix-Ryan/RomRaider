@@ -26,8 +26,15 @@ fn docs_root() -> PathBuf {
 }
 
 fn read(rel: &str) -> io::Result<String> {
-    let path = docs_root().join(rel);
-    fs::read_to_string(&path)
+    read_text(&docs_root().join(rel))
+}
+
+/// Reads a text file with line endings normalised to `\n`, so the
+/// `\n`-based checks and mutations in these tests also apply on a Windows
+/// checkout, where git's autocrlf turns them into `\r\n`.
+fn read_text(path: &Path) -> io::Result<String> {
+    fs::read_to_string(path)
+        .map(|s| s.replace("\r\n", "\n"))
         .map_err(|e| io::Error::new(e.kind(), format!("{}: {e}", path.display())))
 }
 
@@ -510,7 +517,7 @@ fn other_issue_templates() -> io::Result<Vec<(String, String)>> {
             .unwrap_or_default()
             .to_owned();
         if path.is_file() && name != "bug_report.yml" && name != "config.yml" {
-            out.push((name, fs::read_to_string(&path)?));
+            out.push((name, read_text(&path)?));
         }
     }
     out.sort();
@@ -547,8 +554,35 @@ fn issue_form_reader_sees_real_form_elements() {
 /// reported.
 #[test]
 fn issue_template_check_catches_violations() {
-    let form = read(".github/ISSUE_TEMPLATE/bug_report.yml").unwrap();
-    let config = read(".github/ISSUE_TEMPLATE/config.yml").unwrap();
+    assert_issue_template_violations_caught(
+        &read(".github/ISSUE_TEMPLATE/bug_report.yml").unwrap(),
+        &read(".github/ISSUE_TEMPLATE/config.yml").unwrap(),
+    );
+}
+
+/// The violation demo above on a `\r\n` copy of the issue templates, as a
+/// Windows runner checks them out: the reader normalises them to the same
+/// text as the `\n` originals, and every mutation still applies. Exercises
+/// the CRLF path on every platform.
+#[test]
+fn issue_template_check_works_on_crlf_checkout() {
+    let dir = Path::new(env!("CARGO_TARGET_TMPDIR")).join("contribution-docs-crlf");
+    fs::create_dir_all(&dir).unwrap();
+    let crlf_copy = |rel: &str| {
+        let lf = read(rel).unwrap().replace("\r\n", "\n");
+        let path = dir.join(Path::new(rel).file_name().unwrap());
+        fs::write(&path, lf.replace('\n', "\r\n")).unwrap();
+        (lf, read_text(&path).unwrap())
+    };
+    let (form_lf, form) = crlf_copy(".github/ISSUE_TEMPLATE/bug_report.yml");
+    let (config_lf, config) = crlf_copy(".github/ISSUE_TEMPLATE/config.yml");
+    assert_eq!(form, form_lf, "CRLF bug_report.yml not normalised");
+    assert_eq!(config, config_lf, "CRLF config.yml not normalised");
+    assert_issue_template_violations_caught(&form, &config);
+}
+
+fn assert_issue_template_violations_caught(form: &str, config: &str) {
+    let (form, config) = (form.to_owned(), config.to_owned());
     assert!(issue_template_problems(&form, &config, &[]).is_empty());
 
     let check = |form: &str, config: &str, others: &[(String, String)], expect: &str| {
@@ -690,7 +724,7 @@ fn relative_link_problems(root: &Path, rel: &str, text: &str) -> Vec<String> {
         if let Some(anchor) = anchor
             && file.extension().is_some_and(|e| e == "md")
         {
-            let linked = fs::read_to_string(&file).unwrap_or_default();
+            let linked = read_text(&file).unwrap_or_default();
             if !anchors(&linked).iter().any(|a| a == anchor) {
                 problems.push(format!(
                     "{rel}:{n}: `{target}`: no heading `#{anchor}` in {}",

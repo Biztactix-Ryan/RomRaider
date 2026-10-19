@@ -128,16 +128,20 @@ pub fn bans(cargo_toml: &str, clippy_toml: &str) -> Result<Vec<Ban>> {
 }
 
 /// The body of the `## Lint configuration` section (up to the next `## `).
+///
+/// Byte offsets are taken from `split_inclusive('\n')`, which keeps each
+/// line's terminator, so they stay exact on a `\r\n` checkout (git's
+/// autocrlf on Windows) as well as a `\n` one.
 pub fn section(contributing: &str) -> Result<&str> {
     let start = contributing
-        .lines()
+        .split_inclusive('\n')
         .scan(0usize, |off, l| {
             let here = *off;
-            *off += l.len() + 1;
+            *off += l.len();
             Some((here, l))
         })
         .find(|(_, l)| l.trim_end() == SECTION)
-        .map(|(off, l)| off + l.len())
+        .map(|(off, l)| off + l.trim_end().len())
         .with_context(|| format!("CONTRIBUTING.md has no `{SECTION}` section"))?;
     let rest = &contributing[start..];
     let end = rest.find("\n## ").map_or(rest.len(), |i| i + 1);
@@ -390,6 +394,19 @@ disallowed-methods = [
         let p = problems(CARGO, &clippy, DOC);
         assert_eq!(p.len(), 1, "{p:?}");
         assert!(p[0].contains("`allow-panic-in-tests`"), "{p:?}");
+    }
+
+    /// A Windows checkout has `\r\n` line endings: the section is still
+    /// found at the right offset, however many lines precede it.
+    #[test]
+    fn crlf_document_is_read_like_lf() {
+        let lf = format!("{}{DOC}", "Intro line.\n".repeat(40));
+        let crlf = lf.replace('\n', "\r\n");
+        assert_eq!(
+            section(&crlf).unwrap().replace("\r\n", "\n"),
+            section(&lf).unwrap()
+        );
+        assert_eq!(problems(CARGO, CLIPPY, &crlf), Vec::<String>::new());
     }
 
     #[test]

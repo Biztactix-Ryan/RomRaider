@@ -121,10 +121,20 @@ jobs:
       - uses: taiki-e/install-action@v2
         with:
           tool: cargo-nextest
+      # Clippy per target: a clippy warning in cfg(windows) / cfg(target_arch)
+      # code fails on the target that compiles it, not only on Linux.
+      - name: cargo clippy (target)
+        run: cargo clippy --workspace --all-targets --locked --target ${{ matrix.target }} -- -D warnings
       - name: cargo nextest
         run: cargo nextest run --workspace --locked --target ${{ matrix.target }}
       - name: doctests
         run: cargo test --doc --workspace --locked --target ${{ matrix.target }}
+      # Runs `cargo fmt --all --check` and this job's clippy and nextest
+      # commands on generated scratch crates (target/gates-selftest); fails
+      # unless a rustfmt violation, a clippy warning and a failing test each
+      # fail their gate on this target and a clean control passes (US-RR-2-1).
+      - name: cargo xtask gates-selftest
+        run: cargo xtask gates-selftest --target ${{ matrix.target }}
 
   # Supply-chain gate: licences (GPL-2.0-or-later compatible, D-016), RustSec
   # advisories, bans and sources, per deny.toml.

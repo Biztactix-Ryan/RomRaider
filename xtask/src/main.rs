@@ -6,7 +6,9 @@ use std::process::ExitCode;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use xtask::deps::{DepGraph, check};
-use xtask::{deny_selftest, fixtures_selftest, globals, lint_selftest, writes};
+use xtask::{
+    codeowners, deny_selftest, fixtures_selftest, gates_selftest, globals, lint_selftest, writes,
+};
 
 #[derive(Parser)]
 #[command(name = "xtask", about = "Workspace automation tasks")]
@@ -49,8 +51,35 @@ enum Cmd {
         #[arg(long)]
         root: Option<PathBuf>,
     },
-    /// T6 write gating: every #[rr_write] fn in rr-rom / rr-comms takes a
-    /// capability token, and no public fn there looks like an unmarked write.
+    /// Run the CI fmt, clippy and nextest commands on generated scratch
+    /// crates and fail unless a rustfmt violation, a clippy warning and a
+    /// failing test each fail exactly their gate and a clean control passes
+    /// all three (US-RR-2-1). Offline.
+    GatesSelftest {
+        /// Workspace root whose lint configuration is used (defaults to this workspace).
+        #[arg(long)]
+        root: Option<PathBuf>,
+        /// Target triple for clippy and nextest, as in the CI `test` matrix
+        /// (defaults to the host).
+        #[arg(long)]
+        target: Option<String>,
+    },
+    /// Compare the live branch protection, CODEOWNERS and CODEOWNERS errors
+    /// of each protected branch on GitHub with CONTRIBUTING.md "Branch
+    /// protection (maintainers)" and the local .github/CODEOWNERS
+    /// (US-RR-8-2). Read-only `gh api` GETs; needs network and repo-admin
+    /// read access, so it is opt-in and never part of the test suite.
+    CheckBranchProtection {
+        /// Workspace root (defaults to this workspace).
+        #[arg(long)]
+        root: Option<PathBuf>,
+        /// Repository as owner/name (defaults to the one in CONTRIBUTING.md).
+        #[arg(long)]
+        repo: Option<String>,
+        /// Branch to check; repeatable (defaults to the CONTRIBUTING.md loop).
+        #[arg(long)]
+        branch: Vec<String>,
+    },
     /// Run cargo-nextest with RR_CORPUS_DIR / RR_FIXTURES_DIR removed and
     /// fail unless every corpus/private-tier test is reported as skipped
     /// (named after the variable to set), never passed, and fails when forced
@@ -60,6 +89,8 @@ enum Cmd {
         #[arg(long)]
         root: Option<PathBuf>,
     },
+    /// T6 write gating: every #[rr_write] fn in rr-rom / rr-comms takes a
+    /// capability token, and no public fn there looks like an unmarked write.
     CheckWrites {
         /// Workspace root to scan (defaults to this workspace).
         #[arg(long)]
@@ -163,6 +194,80 @@ fn main() -> Result<ExitCode> {
                 return Ok(ExitCode::SUCCESS);
             }
             eprintln!("deny-selftest: {failed} problem(s)");
+            Ok(ExitCode::FAILURE)
+        }
+        Cmd::GatesSelftest { root, target } => {
+            let root =
+                root.unwrap_or_else(|| PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/..")));
+            let reports = gates_selftest::run(&root, target.as_deref())?;
+            let on = target.as_deref().unwrap_or("host");
+            let mut failed = 0;
+            for r in &reports {
+                let verdicts: Vec<String> = r
+                    .runs
+                    .iter()
+                    .map(|g| format!("{} {}", g.gate, if g.success { "passed" } else { "failed" }))
+                    .collect();
+                if r.runs.iter().all(|g| g.problem.is_none()) {
+                    println!(
+                        "gates-selftest: {} ({on}): {} as expected",
+                        r.case.name,
+                        verdicts.join(", ")
+                    );
+                }
+                for p in r.runs.iter().filter_map(|g| g.problem.as_ref()) {
+                    failed += 1;
+                    eprintln!("gates-selftest: {p} (scratch: {})", r.dir.display());
+                }
+            }
+            if failed == 0 {
+                println!(
+                    "gates-selftest: ok ({} case(s), target {on})",
+                    reports.len()
+                );
+                return Ok(ExitCode::SUCCESS);
+            }
+            eprintln!("gates-selftest: {failed} problem(s)");
+            Ok(ExitCode::FAILURE)
+        }
+        Cmd::CheckBranchProtection { root, repo, branch } => {
+            let root =
+                root.unwrap_or_else(|| PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/..")));
+            let payload = codeowners::contributing_payload(&codeowners::read_text(
+                &root.join(codeowners::CONTRIBUTING),
+            )?)?;
+            let local = codeowners::read_text(&root.join(codeowners::CODEOWNERS))?;
+            let repo = repo.unwrap_or(payload.repo);
+            let branches = if branch.is_empty() {
+                payload.branches
+            } else {
+                branch
+            };
+            let reports = codeowners::check_live(
+                &codeowners::Gh,
+                &repo,
+                &branches,
+                &payload.protection,
+                &local,
+            )?;
+            let mut failed = 0;
+            for r in &reports {
+                if r.problems.is_empty() {
+                    println!(
+                        "check-branch-protection: {repo} {}: ok (protection matches {}, CODEOWNERS matches, no CODEOWNERS errors)",
+                        r.branch,
+                        codeowners::CONTRIBUTING
+                    );
+                }
+                for p in &r.problems {
+                    failed += 1;
+                    eprintln!("check-branch-protection: {repo} {}: {p}", r.branch);
+                }
+            }
+            if failed == 0 {
+                return Ok(ExitCode::SUCCESS);
+            }
+            eprintln!("check-branch-protection: {failed} problem(s)");
             Ok(ExitCode::FAILURE)
         }
         Cmd::FixturesSelftest { root } => {

@@ -174,7 +174,7 @@ JSON
 done
 ```
 
-Check it with `gh api repos/Biztactix-Ryan/RomRaider/branches/master/protection --jq '.required_pull_request_reviews'`.
+Check it with `cargo xtask check-branch-protection`. It makes read-only `gh api` calls (network and repo-admin read access needed, so CI doesn't run it). For each branch in the loop above, it fails unless the live protection equals this payload, `.github/CODEOWNERS` on that branch matches the local file, and GitHub reports no CODEOWNERS errors. Offline, `xtask/tests/codeowners.rs` checks in CI that CODEOWNERS owns every gated path and that this payload requires code-owner review.
 
 ## Local checks before a PR
 
@@ -190,6 +190,7 @@ cargo xtask check-globals
 cargo xtask lint-selftest
 cargo xtask fixtures-selftest   # corpus/private-tier tests are SKIPped (never PASS) without RR_CORPUS_DIR / RR_FIXTURES_DIR
 cargo xtask check-writes
+cargo xtask gates-selftest   # proves the fmt / clippy / nextest commands fail on a planted violation
 cargo deny check
 cargo xtask deny-selftest   # needs network; proves deny.toml rejects a bad licence / RUSTSEC advisory
 cargo insta test --workspace --check --unreferenced=reject --test-runner nextest --disable-nextest-doctest
@@ -199,7 +200,7 @@ Notes:
 
 - The toolchain is pinned in `rust-toolchain.toml`; rustup picks it up automatically.
 - `cargo-nextest`, `cargo-deny` and `cargo-insta` are separate installs (`cargo install cargo-nextest cargo-deny cargo-insta`, or prebuilt binaries). The `snapshots` job also fails if any `*.snap.new` / `*.pending-snap` file is committed, or if a committed `.snap` is no longer referenced by any test.
-- CI also runs tests on `aarch64-unknown-linux-gnu`, `x86_64-pc-windows-msvc` and `i686-pc-windows-msvc` with `RUSTFLAGS=-D warnings`, so `cfg(windows)` code that the Linux clippy job never sees still fails on warnings.
+- CI also runs clippy (`-D warnings`), the tests and `cargo xtask gates-selftest --target <target>` on `aarch64-unknown-linux-gnu`, `x86_64-pc-windows-msvc` and `i686-pc-windows-msvc` with `RUSTFLAGS=-D warnings`, so `cfg(windows)` code that the Linux clippy job never sees still fails on clippy and compiler warnings.
 - `cargo deny check` enforces the licence allowlist (GPL-2.0-or-later compatible, [D-016](.project/DECISIONS.md#d-016-licence-gpl-20-or-later)), RustSec advisories, bans and sources from `deny.toml`. A new dependency must pass it.
 - Tier-specific tools (coverage, mutants, fuzz, snapshots) are listed in [Development Setup](.project/PROJECT.md#development-setup).
 
