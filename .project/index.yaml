@@ -1525,7 +1525,7 @@ entries:
   title: 'Test: Two images with different endianness decode correctly in the same
     process concurrently (MF-04)'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-19
@@ -1535,7 +1535,7 @@ entries:
   title: 'Test: Float min/max ranges are derived from the Encoding and are correct
     for F32/F64 signed and unsigned contexts (MF...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-19
@@ -1545,7 +1545,7 @@ entries:
   title: 'Test: NaN, +/-Inf and denormal floats decode faithfully and are flagged
     so edit layers can refuse them (EC-07)'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-19
@@ -6491,7 +6491,7 @@ entries:
   epic_id: null
   tags: []
 total_points: 1286
-completed_points: 230
+completed_points: 234
 story_count: 78
 task_count: 604
 epic_count: 10

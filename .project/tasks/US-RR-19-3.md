@@ -1,14 +1,14 @@
 ---
 archived: false
-assignee: null
-claimed_at: null
-claimed_by_run: null
+assignee: claude
+claimed_at: '2026-10-19T21:23:14.877637+00:00'
+claimed_by_run: orch-2026-10-20-fe2d
 created: '2026-10-19'
 depends_on:
 - US-RR-19-8
 id: US-RR-19-3
 points: 2
-status: todo
+status: done
 story_id: US-RR-19
 tags: []
 title: 'Test: Two images with different endianness decode correctly in the same process

@@ -79,9 +79,9 @@
 | [US-RR-19-11](tasks/US-RR-19-11.md) | Derive value ranges from Encoding | ✅ done | 2 |  | claude | US-RR-19-8, US-RR-19-9 | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-12](tasks/US-RR-19-12.md) | Add Encoding proptest strategies to rr-testkit | ✅ done | 2 |  | claude | US-RR-19-7 | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-2](tasks/US-RR-19-2.md) | Test: U24, I24 and I64 values decode correctly; an unsupported storage string in a definition produces an Error diagn... | ✅ done | 1 |  | claude | US-RR-19-7, US-RR-19-8 | [US-RR-19](stories/US-RR-19.md) |
-| [US-RR-19-3](tasks/US-RR-19-3.md) | Test: Two images with different endianness decode correctly in the same process concurrently (MF-04) | ⚪ todo | 2 |  | — | US-RR-19-8 | [US-RR-19](stories/US-RR-19.md) |
-| [US-RR-19-4](tasks/US-RR-19-4.md) | Test: Float min/max ranges are derived from the Encoding and are correct for F32/F64 signed and unsigned contexts (MF... | ⚪ todo | 1 |  | — | US-RR-19-11 | [US-RR-19](stories/US-RR-19.md) |
-| [US-RR-19-5](tasks/US-RR-19-5.md) | Test: NaN, +/-Inf and denormal floats decode faithfully and are flagged so edit layers can refuse them (EC-07) | ⚪ todo | 1 |  | — | US-RR-19-9 | [US-RR-19](stories/US-RR-19.md) |
+| [US-RR-19-3](tasks/US-RR-19-3.md) | Test: Two images with different endianness decode correctly in the same process concurrently (MF-04) | ✅ done | 2 |  | claude | US-RR-19-8 | [US-RR-19](stories/US-RR-19.md) |
+| [US-RR-19-4](tasks/US-RR-19-4.md) | Test: Float min/max ranges are derived from the Encoding and are correct for F32/F64 signed and unsigned contexts (MF... | ✅ done | 1 |  | claude | US-RR-19-11 | [US-RR-19](stories/US-RR-19.md) |
+| [US-RR-19-5](tasks/US-RR-19-5.md) | Test: NaN, +/-Inf and denormal floats decode faithfully and are flagged so edit layers can refuse them (EC-07) | ✅ done | 1 |  | claude | US-RR-19-9 | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-6](tasks/US-RR-19-6.md) | Test: cargo-mutants reports zero surviving mutants in the encoding module | ⚪ todo | 2 |  | — | US-RR-19-8, US-RR-19-9, US-RR-19-10, US-RR-19-11 | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-7](tasks/US-RR-19-7.md) | Define Encoding types and parse from definition strings | ✅ done | 3 |  | claude | — | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-8](tasks/US-RR-19-8.md) | Implement integer codecs incl U20/U24/I24/I64 | ✅ done | 3 |  | claude | US-RR-19-7 | [US-RR-19](stories/US-RR-19.md) |
