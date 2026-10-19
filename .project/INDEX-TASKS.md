@@ -9,10 +9,10 @@
 | [US-RR-1-5](tasks/US-RR-1-5.md) | Scaffold Cargo workspace and crates | ✅ done | 3 |  | claude | — | [US-RR-1](stories/US-RR-1.md) |
 | [US-RR-1-6](tasks/US-RR-1-6.md) | Add romraider-cli and romraider-rs binary stubs with --version | ✅ done | 1 |  | claude | US-RR-1-5 | [US-RR-1](stories/US-RR-1.md) |
 | [US-RR-1-7](tasks/US-RR-1-7.md) | Implement dependency-rule checker test | ✅ done | 3 |  | claude | US-RR-1-5 | [US-RR-1](stories/US-RR-1.md) |
-| [US-RR-10-1](tasks/US-RR-10-1.md) | Test: The dependency-rule test fails if the reference codec module imports anything from rr-core encoding or conversion | ⚪ todo | — |  | — | US-RR-10-8 | [US-RR-10](stories/US-RR-10.md) |
-| [US-RR-10-2](tasks/US-RR-10-2.md) | Test: The reference codec passes the seed known-answer fixtures for every storage type independently of rr-core | ⚪ todo | — |  | — | US-RR-10-5 | [US-RR-10](stories/US-RR-10.md) |
-| [US-RR-10-3](tasks/US-RR-10-3.md) | Test: gen-synthetic output is byte-identical across runs and platforms (CI compares hashes on Linux and Windows) | ⚪ todo | — |  | — | US-RR-10-7 | [US-RR-10](stories/US-RR-10.md) |
-| [US-RR-10-4](tasks/US-RR-10-4.md) | Test: Generated ROMs exercise overlapping tables, tables ending exactly at ROM end, NaN/Inf/denormal floats and min/m... | ⚪ todo | — |  | — | US-RR-10-6 | [US-RR-10](stories/US-RR-10.md) |
+| [US-RR-10-1](tasks/US-RR-10-1.md) | Test: The dependency-rule test fails if the reference codec module imports anything from rr-core encoding or conversion | ⚪ todo | 1 |  | — | US-RR-10-8 | [US-RR-10](stories/US-RR-10.md) |
+| [US-RR-10-2](tasks/US-RR-10-2.md) | Test: The reference codec passes the seed known-answer fixtures for every storage type independently of rr-core | ⚪ todo | 1 |  | — | US-RR-10-5 | [US-RR-10](stories/US-RR-10.md) |
+| [US-RR-10-3](tasks/US-RR-10-3.md) | Test: gen-synthetic output is byte-identical across runs and platforms (CI compares hashes on Linux and Windows) | ⚪ todo | 1 |  | — | US-RR-10-7 | [US-RR-10](stories/US-RR-10.md) |
+| [US-RR-10-4](tasks/US-RR-10-4.md) | Test: Generated ROMs exercise overlapping tables, tables ending exactly at ROM end, NaN/Inf/denormal floats and min/m... | ⚪ todo | 2 |  | — | US-RR-10-6 | [US-RR-10](stories/US-RR-10.md) |
 | [US-RR-10-5](tasks/US-RR-10-5.md) | Implement naive reference codec in rr-testkit | ✅ done | 5 |  | claude | — | [US-RR-10](stories/US-RR-10.md) |
 | [US-RR-10-6](tasks/US-RR-10-6.md) | Implement synthetic ROM generator with value plans | ✅ done | 5 |  | claude | US-RR-10-5 | [US-RR-10](stories/US-RR-10.md) |
 | [US-RR-10-7](tasks/US-RR-10-7.md) | Add xtask gen-synthetic with cross-platform hash check | ✅ done | 2 |  | claude | US-RR-10-6 | [US-RR-10](stories/US-RR-10.md) |
@@ -61,9 +61,9 @@
 | [US-RR-16-4](tasks/US-RR-16-4.md) | Identify and select the authoritative RomRaider definition source | ⚪ todo | 2 |  | — | — | [US-RR-16](stories/US-RR-16.md) |
 | [US-RR-16-5](tasks/US-RR-16-5.md) | Mirror and pin definitions; extend fetch-corpus and manifest | ⚪ todo | 2 |  | — | US-RR-16-4 | [US-RR-16](stories/US-RR-16.md) |
 | [US-RR-16-6](tasks/US-RR-16-6.md) | Generate ROM-ID coverage report | ⚪ todo | 3 |  | — | US-RR-16-5 | [US-RR-16](stories/US-RR-16.md) |
-| [US-RR-17-1](tasks/US-RR-17-1.md) | Test: Diagnostic codes are unique and stable - a test fails if a code is reused or removed without a deprecation entry | ⚪ todo | — |  | — | US-RR-17-6 | [US-RR-17](stories/US-RR-17.md) |
-| [US-RR-17-2](tasks/US-RR-17-2.md) | Test: Provenance renders as file:line:col for text sources and as an offset for binary sources, with snapshot tests | ⚪ todo | — |  | — | US-RR-17-4 | [US-RR-17](stories/US-RR-17.md) |
-| [US-RR-17-3](tasks/US-RR-17-3.md) | Test: Severity Error diagnostics make the owning load fail closed (the caller cannot get a usable T without explicitl... | ⚪ todo | — |  | — | US-RR-17-5 | [US-RR-17](stories/US-RR-17.md) |
+| [US-RR-17-1](tasks/US-RR-17-1.md) | Test: Diagnostic codes are unique and stable - a test fails if a code is reused or removed without a deprecation entry | ⚪ todo | 1 |  | — | US-RR-17-6 | [US-RR-17](stories/US-RR-17.md) |
+| [US-RR-17-2](tasks/US-RR-17-2.md) | Test: Provenance renders as file:line:col for text sources and as an offset for binary sources, with snapshot tests | ⚪ todo | 1 |  | — | US-RR-17-4 | [US-RR-17](stories/US-RR-17.md) |
+| [US-RR-17-3](tasks/US-RR-17-3.md) | Test: Severity Error diagnostics make the owning load fail closed (the caller cannot get a usable T without explicitl... | ⚪ todo | 1 |  | — | US-RR-17-5 | [US-RR-17](stories/US-RR-17.md) |
 | [US-RR-17-4](tasks/US-RR-17-4.md) | Implement Diagnostic, Severity and Provenance types | ✅ done | 2 |  | claude | — | [US-RR-17](stories/US-RR-17.md) |
 | [US-RR-17-5](tasks/US-RR-17-5.md) | Implement Diagnostics collector and fail-closed Loaded<T> | ✅ done | 2 |  | claude | US-RR-17-4 | [US-RR-17](stories/US-RR-17.md) |
 | [US-RR-17-6](tasks/US-RR-17-6.md) | Add stable diagnostic code registry and docs | ✅ done | 1 |  | claude | US-RR-17-4 | [US-RR-17](stories/US-RR-17.md) |
@@ -74,15 +74,15 @@
 | [US-RR-18-5](tasks/US-RR-18-5.md) | Define Clock trait and RealClock | ✅ done | 2 |  | claude | US-RR-1-5 | [US-RR-18](stories/US-RR-18.md) |
 | [US-RR-18-6](tasks/US-RR-18-6.md) | Implement VirtualClock | ✅ done | 3 |  | claude | US-RR-18-5 | [US-RR-18](stories/US-RR-18.md) |
 | [US-RR-18-7](tasks/US-RR-18-7.md) | Separate monotonic and wall-clock time | ✅ done | 1 |  | claude | US-RR-18-5 | [US-RR-18](stories/US-RR-18.md) |
-| [US-RR-19-1](tasks/US-RR-19-1.md) | Test: Property test: decode(encode(x)) == x for every storage/endian/bitfield/layout combination over the full value ... | ⚪ todo | — |  | — | US-RR-19-8, US-RR-19-9, US-RR-19-10, US-RR-19-12 | [US-RR-19](stories/US-RR-19.md) |
+| [US-RR-19-1](tasks/US-RR-19-1.md) | Test: Property test: decode(encode(x)) == x for every storage/endian/bitfield/layout combination over the full value ... | ⚪ todo | 1 |  | — | US-RR-19-8, US-RR-19-9, US-RR-19-10, US-RR-19-12 | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-10](tasks/US-RR-19-10.md) | Implement bitfields and Bosch-subtract layout | ✅ done | 3 |  | claude | US-RR-19-8 | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-11](tasks/US-RR-19-11.md) | Derive value ranges from Encoding | ✅ done | 2 |  | claude | US-RR-19-8, US-RR-19-9 | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-12](tasks/US-RR-19-12.md) | Add Encoding proptest strategies to rr-testkit | ✅ done | 2 |  | claude | US-RR-19-7 | [US-RR-19](stories/US-RR-19.md) |
-| [US-RR-19-2](tasks/US-RR-19-2.md) | Test: U24, I24 and I64 values decode correctly; an unsupported storage string in a definition produces an Error diagn... | ⚪ todo | — |  | — | US-RR-19-7, US-RR-19-8 | [US-RR-19](stories/US-RR-19.md) |
-| [US-RR-19-3](tasks/US-RR-19-3.md) | Test: Two images with different endianness decode correctly in the same process concurrently (MF-04) | ⚪ todo | — |  | — | US-RR-19-8 | [US-RR-19](stories/US-RR-19.md) |
-| [US-RR-19-4](tasks/US-RR-19-4.md) | Test: Float min/max ranges are derived from the Encoding and are correct for F32/F64 signed and unsigned contexts (MF... | ⚪ todo | — |  | — | US-RR-19-11 | [US-RR-19](stories/US-RR-19.md) |
-| [US-RR-19-5](tasks/US-RR-19-5.md) | Test: NaN, +/-Inf and denormal floats decode faithfully and are flagged so edit layers can refuse them (EC-07) | ⚪ todo | — |  | — | US-RR-19-9 | [US-RR-19](stories/US-RR-19.md) |
-| [US-RR-19-6](tasks/US-RR-19-6.md) | Test: cargo-mutants reports zero surviving mutants in the encoding module | ⚪ todo | — |  | — | US-RR-19-8, US-RR-19-9, US-RR-19-10, US-RR-19-11 | [US-RR-19](stories/US-RR-19.md) |
+| [US-RR-19-2](tasks/US-RR-19-2.md) | Test: U24, I24 and I64 values decode correctly; an unsupported storage string in a definition produces an Error diagn... | ⚪ todo | 1 |  | — | US-RR-19-7, US-RR-19-8 | [US-RR-19](stories/US-RR-19.md) |
+| [US-RR-19-3](tasks/US-RR-19-3.md) | Test: Two images with different endianness decode correctly in the same process concurrently (MF-04) | ⚪ todo | 2 |  | — | US-RR-19-8 | [US-RR-19](stories/US-RR-19.md) |
+| [US-RR-19-4](tasks/US-RR-19-4.md) | Test: Float min/max ranges are derived from the Encoding and are correct for F32/F64 signed and unsigned contexts (MF... | ⚪ todo | 1 |  | — | US-RR-19-11 | [US-RR-19](stories/US-RR-19.md) |
+| [US-RR-19-5](tasks/US-RR-19-5.md) | Test: NaN, +/-Inf and denormal floats decode faithfully and are flagged so edit layers can refuse them (EC-07) | ⚪ todo | 1 |  | — | US-RR-19-9 | [US-RR-19](stories/US-RR-19.md) |
+| [US-RR-19-6](tasks/US-RR-19-6.md) | Test: cargo-mutants reports zero surviving mutants in the encoding module | ⚪ todo | 2 |  | — | US-RR-19-8, US-RR-19-9, US-RR-19-10, US-RR-19-11 | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-7](tasks/US-RR-19-7.md) | Define Encoding types and parse from definition strings | ✅ done | 3 |  | claude | — | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-8](tasks/US-RR-19-8.md) | Implement integer codecs incl U20/U24/I24/I64 | ✅ done | 3 |  | claude | US-RR-19-7 | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-9](tasks/US-RR-19-9.md) | Implement float codecs with NaN/Inf/denormal flags | ✅ done | 2 |  | claude | US-RR-19-7 | [US-RR-19](stories/US-RR-19.md) |
@@ -278,10 +278,10 @@
 | [US-RR-39-4](tasks/US-RR-39-4.md) | Author inheritance-case KAT fixtures | ⚪ todo | 3 |  | — | — | [US-RR-39](stories/US-RR-39.md) |
 | [US-RR-39-5](tasks/US-RR-39-5.md) | Snapshot 20 real corpus definitions | ⚪ todo | 2 |  | — | — | [US-RR-39](stories/US-RR-39.md) |
 | [US-RR-39-6](tasks/US-RR-39-6.md) | Cross-link MF ledger and fixtures | ⚪ todo | 1 |  | — | US-RR-39-4 | [US-RR-39](stories/US-RR-39.md) |
-| [US-RR-4-1](tasks/US-RR-4-1.md) | Test: A PR that drops coverage of rr-core/rr-rom/rr-comms below 90% or below the base branch fails | ⚪ todo | — |  | — | US-RR-4-5 | [US-RR-4](stories/US-RR-4.md) |
-| [US-RR-4-2](tasks/US-RR-4-2.md) | Test: A deliberately weakened test on a gated module produces a surviving mutant and fails the mutants job | ⚪ todo | — |  | — | US-RR-4-6 | [US-RR-4](stories/US-RR-4.md) |
-| [US-RR-4-3](tasks/US-RR-4-3.md) | Test: Every exclusion in mutants.toml has a justification comment and a CI check rejects uncommented exclusions | ⚪ todo | — |  | — | US-RR-4-7 | [US-RR-4](stories/US-RR-4.md) |
-| [US-RR-4-4](tasks/US-RR-4-4.md) | Test: The weekly full mutation run publishes its report as a CI artifact | ⚪ todo | — |  | — | US-RR-4-6 | [US-RR-4](stories/US-RR-4.md) |
+| [US-RR-4-1](tasks/US-RR-4-1.md) | Test: A PR that drops coverage of rr-core/rr-rom/rr-comms below 90% or below the base branch fails | ⚪ todo | 3 |  | — | US-RR-4-5 | [US-RR-4](stories/US-RR-4.md) |
+| [US-RR-4-2](tasks/US-RR-4-2.md) | Test: A deliberately weakened test on a gated module produces a surviving mutant and fails the mutants job | ⚪ todo | 2 |  | — | US-RR-4-6 | [US-RR-4](stories/US-RR-4.md) |
+| [US-RR-4-3](tasks/US-RR-4-3.md) | Test: Every exclusion in mutants.toml has a justification comment and a CI check rejects uncommented exclusions | ⚪ todo | 1 |  | — | US-RR-4-7 | [US-RR-4](stories/US-RR-4.md) |
+| [US-RR-4-4](tasks/US-RR-4-4.md) | Test: The weekly full mutation run publishes its report as a CI artifact | ⚪ todo | 2 |  | — | US-RR-4-6 | [US-RR-4](stories/US-RR-4.md) |
 | [US-RR-4-5](tasks/US-RR-4-5.md) | Add coverage.yml with per-crate thresholds | ✅ done | 3 |  | — | — | [US-RR-4](stories/US-RR-4.md) |
 | [US-RR-4-6](tasks/US-RR-4-6.md) | Add mutants.yml and mutants.toml | ✅ done | 3 |  | claude | — | [US-RR-4](stories/US-RR-4.md) |
 | [US-RR-4-7](tasks/US-RR-4-7.md) | Add mutants.toml exclusion-justification checker | ✅ done | 1 |  | claude | US-RR-4-6 | [US-RR-4](stories/US-RR-4.md) |
@@ -365,10 +365,10 @@
 | [US-RR-49-3](tasks/US-RR-49-3.md) | Test: Release notes state signing status explicitly | ⚪ todo | — |  | — | US-RR-49-5 | [US-RR-49](stories/US-RR-49.md) |
 | [US-RR-49-4](tasks/US-RR-49-4.md) | Add WiX MSI packaging via cargo-dist | ⚪ todo | 3 |  | — | — | [US-RR-49](stories/US-RR-49.md) |
 | [US-RR-49-5](tasks/US-RR-49-5.md) | Add PE architecture check and signing-status release notes | ⚪ todo | 1 |  | — | — | [US-RR-49](stories/US-RR-49.md) |
-| [US-RR-5-1](tasks/US-RR-5-1.md) | Test: A template fuzz target runs locally with cargo +nightly fuzz run and in the nightly workflow | ⚪ todo | — |  | — | US-RR-5-5, US-RR-5-6 | [US-RR-5](stories/US-RR-5.md) |
-| [US-RR-5-2](tasks/US-RR-5-2.md) | Test: A planted panic in a toy target is found by the nightly job and auto-filed as an issue | ⚪ todo | — |  | — | US-RR-5-6 | [US-RR-5](stories/US-RR-5.md) |
-| [US-RR-5-3](tasks/US-RR-5-3.md) | Test: Committed crash inputs run as ordinary regression tests in ci.yml without nightly | ⚪ todo | — |  | — | US-RR-5-7 | [US-RR-5](stories/US-RR-5.md) |
-| [US-RR-5-4](tasks/US-RR-5-4.md) | Test: Fuzz targets enforce a per-input time and memory limit so hangs and unbounded allocation count as failures | ⚪ todo | — |  | — | US-RR-5-5 | [US-RR-5](stories/US-RR-5.md) |
+| [US-RR-5-1](tasks/US-RR-5-1.md) | Test: A template fuzz target runs locally with cargo +nightly fuzz run and in the nightly workflow | ⚪ todo | 1 |  | — | US-RR-5-5, US-RR-5-6 | [US-RR-5](stories/US-RR-5.md) |
+| [US-RR-5-2](tasks/US-RR-5-2.md) | Test: A planted panic in a toy target is found by the nightly job and auto-filed as an issue | ⚪ todo | 3 |  | — | US-RR-5-6 | [US-RR-5](stories/US-RR-5.md) |
+| [US-RR-5-3](tasks/US-RR-5-3.md) | Test: Committed crash inputs run as ordinary regression tests in ci.yml without nightly | ⚪ todo | 1 |  | — | US-RR-5-7 | [US-RR-5](stories/US-RR-5.md) |
+| [US-RR-5-4](tasks/US-RR-5-4.md) | Test: Fuzz targets enforce a per-input time and memory limit so hangs and unbounded allocation count as failures | ⚪ todo | 1 |  | — | US-RR-5-5 | [US-RR-5](stories/US-RR-5.md) |
 | [US-RR-5-5](tasks/US-RR-5-5.md) | Create fuzz crate with template target and docs | ✅ done | 2 |  | claude | — | [US-RR-5](stories/US-RR-5.md) |
 | [US-RR-5-6](tasks/US-RR-5-6.md) | Add nightly fuzz.yml with corpus cache and issue filing | ✅ done | 3 |  | claude | US-RR-5-5 | [US-RR-5](stories/US-RR-5.md) |
 | [US-RR-5-7](tasks/US-RR-5-7.md) | Run committed crash inputs as regression tests | ✅ done | 2 |  | claude | US-RR-5-5 | [US-RR-5](stories/US-RR-5.md) |
@@ -596,10 +596,10 @@
 | [US-RR-8-5](tasks/US-RR-8-5.md) | Write CONTRIBUTING.md with Definition of Done | ✅ done | 2 |  | claude | US-RR-2-5 | [US-RR-8](stories/US-RR-8.md) |
 | [US-RR-8-6](tasks/US-RR-8-6.md) | Add PR and issue templates | ✅ done | 1 |  | claude | US-RR-2-5 | [US-RR-8](stories/US-RR-8.md) |
 | [US-RR-8-7](tasks/US-RR-8-7.md) | Add CODEOWNERS for safety modules | ✅ done | 1 |  | — | US-RR-2-5 | [US-RR-8](stories/US-RR-8.md) |
-| [US-RR-9-1](tasks/US-RR-9-1.md) | Test: The validator rejects any expected value without a source field, and CI runs it on every fixture | ⚪ todo | — |  | — | US-RR-9-6, US-RR-9-7 | [US-RR-9](stories/US-RR-9.md) |
-| [US-RR-9-2](tasks/US-RR-9-2.md) | Test: A fixture with hand-calc source must include the working (formula and intermediate values) or it is rejected | ⚪ todo | — |  | — | US-RR-9-6 | [US-RR-9](stories/US-RR-9.md) |
-| [US-RR-9-3](tasks/US-RR-9-3.md) | Test: At least 10 seed fixtures exist covering every storage type the format supports, each reviewed and sourced | ⚪ todo | — |  | — | US-RR-9-8 | [US-RR-9](stories/US-RR-9.md) |
-| [US-RR-9-4](tasks/US-RR-9-4.md) | Test: Changing an expected value in an existing fixture requires a changelog line in the fixture explaining why (CI c... | ⚪ todo | — |  | — | US-RR-9-6, US-RR-9-7 | [US-RR-9](stories/US-RR-9.md) |
+| [US-RR-9-1](tasks/US-RR-9-1.md) | Test: The validator rejects any expected value without a source field, and CI runs it on every fixture | ⚪ todo | 1 |  | — | US-RR-9-6, US-RR-9-7 | [US-RR-9](stories/US-RR-9.md) |
+| [US-RR-9-2](tasks/US-RR-9-2.md) | Test: A fixture with hand-calc source must include the working (formula and intermediate values) or it is rejected | ⚪ todo | 1 |  | — | US-RR-9-6 | [US-RR-9](stories/US-RR-9.md) |
+| [US-RR-9-3](tasks/US-RR-9-3.md) | Test: At least 10 seed fixtures exist covering every storage type the format supports, each reviewed and sourced | ⚪ todo | 1 |  | — | US-RR-9-8 | [US-RR-9](stories/US-RR-9.md) |
+| [US-RR-9-4](tasks/US-RR-9-4.md) | Test: Changing an expected value in an existing fixture requires a changelog line in the fixture explaining why (CI c... | ⚪ todo | 1 |  | — | US-RR-9-6, US-RR-9-7 | [US-RR-9](stories/US-RR-9.md) |
 | [US-RR-9-5](tasks/US-RR-9-5.md) | Define KAT TOML schema and serde types | ✅ done | 3 |  | claude | — | [US-RR-9](stories/US-RR-9.md) |
 | [US-RR-9-6](tasks/US-RR-9-6.md) | Implement KAT validator | ✅ done | 3 |  | claude | US-RR-9-5 | [US-RR-9](stories/US-RR-9.md) |
 | [US-RR-9-7](tasks/US-RR-9-7.md) | Add fixtures.yml CI job | ✅ done | 1 |  | claude | US-RR-9-6 | [US-RR-9](stories/US-RR-9.md) |

@@ -8,13 +8,13 @@ depends_on:
 - US-RR-19-7
 - US-RR-19-8
 id: US-RR-19-2
-points: null
+points: 1
 status: todo
 story_id: US-RR-19
 tags: []
 title: 'Test: U24, I24 and I64 values decode correctly; an unsupported storage string
   in a definition produces an Error diagn...'
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 Verify acceptance criterion for story US-RR-19:

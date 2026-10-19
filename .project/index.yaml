@@ -864,7 +864,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-10
   epic_id: null
   tags: []
@@ -874,7 +874,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-10
   epic_id: null
   tags: []
@@ -884,7 +884,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-10
   epic_id: null
   tags: []
@@ -894,7 +894,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-10
   epic_id: null
   tags: []
@@ -1356,7 +1356,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-17
   epic_id: null
   tags: []
@@ -1366,7 +1366,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-17
   epic_id: null
   tags: []
@@ -1376,7 +1376,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-17
   epic_id: null
   tags: []
@@ -1480,7 +1480,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-19
   epic_id: null
   tags: []
@@ -1517,7 +1517,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-19
   epic_id: null
   tags: []
@@ -1527,7 +1527,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-19
   epic_id: null
   tags: []
@@ -1537,7 +1537,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-19
   epic_id: null
   tags: []
@@ -1547,7 +1547,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-19
   epic_id: null
   tags: []
@@ -1556,7 +1556,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-19
   epic_id: null
   tags: []
@@ -3401,7 +3401,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 3
   story_id: US-RR-4
   epic_id: null
   tags: []
@@ -3411,7 +3411,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-4
   epic_id: null
   tags: []
@@ -3421,7 +3421,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-4
   epic_id: null
   tags: []
@@ -3430,7 +3430,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-4
   epic_id: null
   tags: []
@@ -4226,7 +4226,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-5
   epic_id: null
   tags: []
@@ -4236,7 +4236,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 3
   story_id: US-RR-5
   epic_id: null
   tags: []
@@ -4246,7 +4246,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-5
   epic_id: null
   tags: []
@@ -4256,7 +4256,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-5
   epic_id: null
   tags: []
@@ -6402,7 +6402,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-9
   epic_id: null
   tags: []
@@ -6412,7 +6412,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-9
   epic_id: null
   tags: []
@@ -6422,7 +6422,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-9
   epic_id: null
   tags: []
@@ -6432,7 +6432,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-9
   epic_id: null
   tags: []
@@ -6481,7 +6481,7 @@ entries:
   story_id: US-RR-9
   epic_id: null
   tags: []
-total_points: 1250
+total_points: 1284
 completed_points: 176
 story_count: 78
 task_count: 603

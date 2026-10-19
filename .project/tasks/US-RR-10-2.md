@@ -7,13 +7,13 @@ created: '2026-10-19'
 depends_on:
 - US-RR-10-5
 id: US-RR-10-2
-points: null
+points: 1
 status: todo
 story_id: US-RR-10
 tags: []
 title: 'Test: The reference codec passes the seed known-answer fixtures for every
   storage type independently of rr-core'
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 Verify acceptance criterion for story US-RR-10:

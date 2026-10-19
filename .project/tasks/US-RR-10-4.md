@@ -7,13 +7,13 @@ created: '2026-10-19'
 depends_on:
 - US-RR-10-6
 id: US-RR-10-4
-points: null
+points: 2
 status: todo
 story_id: US-RR-10
 tags: []
 title: 'Test: Generated ROMs exercise overlapping tables, tables ending exactly at
   ROM end, NaN/Inf/denormal floats and min/m...'
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 Verify acceptance criterion for story US-RR-10:

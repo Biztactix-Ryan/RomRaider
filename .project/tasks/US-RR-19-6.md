@@ -10,12 +10,12 @@ depends_on:
 - US-RR-19-10
 - US-RR-19-11
 id: US-RR-19-6
-points: null
+points: 2
 status: todo
 story_id: US-RR-19
 tags: []
 title: 'Test: cargo-mutants reports zero surviving mutants in the encoding module'
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 Verify acceptance criterion for story US-RR-19:

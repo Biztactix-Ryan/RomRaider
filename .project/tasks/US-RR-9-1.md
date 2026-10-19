@@ -8,13 +8,13 @@ depends_on:
 - US-RR-9-6
 - US-RR-9-7
 id: US-RR-9-1
-points: null
+points: 1
 status: todo
 story_id: US-RR-9
 tags: []
 title: 'Test: The validator rejects any expected value without a source field, and
   CI runs it on every fixture'
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 Verify acceptance criterion for story US-RR-9:

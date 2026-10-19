@@ -7,12 +7,12 @@ created: '2026-10-19'
 depends_on:
 - US-RR-4-6
 id: US-RR-4-4
-points: null
+points: 2
 status: todo
 story_id: US-RR-4
 tags: []
 title: 'Test: The weekly full mutation run publishes its report as a CI artifact'
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 Verify acceptance criterion for story US-RR-4:
