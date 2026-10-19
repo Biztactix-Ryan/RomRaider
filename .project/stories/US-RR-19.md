@@ -22,14 +22,14 @@ epic_id: EPIC-RR-3
 id: US-RR-19
 points: 8
 priority: must
-status: backlog
+status: active
 tags:
 - m0
 - core
 - concepts
 - safety
 title: 'Encoding (C3): one codec for every storage type'
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 As a tuner, I want every byte-to-raw-value conversion done by one exhaustively tested codec, so that no table, logger parameter or device field is ever decoded or written with the wrong width, sign or byte order.

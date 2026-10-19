@@ -13,7 +13,7 @@ epic_id: EPIC-RR-3
 id: US-RR-17
 points: 3
 priority: must
-status: backlog
+status: active
 tags:
 - m0
 - core

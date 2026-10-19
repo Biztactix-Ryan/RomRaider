@@ -101,7 +101,7 @@ entries:
 - id: US-RR-10
   title: Independent reference encoder/decoder and synthetic ROM generator
   type: story
-  status: backlog
+  status: active
   archived: false
   points: 8
   story_id: null
@@ -164,7 +164,7 @@ entries:
 - id: US-RR-17
   title: Diagnostic and Provenance (C15)
   type: story
-  status: backlog
+  status: active
   archived: false
   points: 3
   story_id: null
@@ -182,7 +182,7 @@ entries:
 - id: US-RR-19
   title: 'Encoding (C3): one codec for every storage type'
   type: story
-  status: backlog
+  status: active
   archived: false
   points: 8
   story_id: null
@@ -389,7 +389,7 @@ entries:
 - id: US-RR-4
   title: Coverage and mutation gates
   type: story
-  status: backlog
+  status: active
   archived: false
   points: 5
   story_id: null
@@ -488,7 +488,7 @@ entries:
 - id: US-RR-5
   title: Fuzz infrastructure
   type: story
-  status: backlog
+  status: active
   archived: false
   points: 3
   story_id: null
@@ -785,7 +785,7 @@ entries:
 - id: US-RR-9
   title: Known-answer fixture format
   type: story
-  status: backlog
+  status: active
   archived: false
   points: 5
   story_id: null
@@ -901,7 +901,7 @@ entries:
 - id: US-RR-10-5
   title: Implement naive reference codec in rr-testkit
   type: task
-  status: todo
+  status: done
   archived: false
   points: 5
   story_id: US-RR-10
@@ -910,7 +910,7 @@ entries:
 - id: US-RR-10-6
   title: Implement synthetic ROM generator with value plans
   type: task
-  status: todo
+  status: done
   archived: false
   points: 5
   story_id: US-RR-10
@@ -919,7 +919,7 @@ entries:
 - id: US-RR-10-7
   title: Add xtask gen-synthetic with cross-platform hash check
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-10
@@ -928,7 +928,7 @@ entries:
 - id: US-RR-10-8
   title: Add isolation rule for the reference codec
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-10
@@ -1383,7 +1383,7 @@ entries:
 - id: US-RR-17-4
   title: Implement Diagnostic, Severity and Provenance types
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-17
@@ -1392,7 +1392,7 @@ entries:
 - id: US-RR-17-5
   title: Implement Diagnostics collector and fail-closed Loaded<T>
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-17
@@ -1401,7 +1401,7 @@ entries:
 - id: US-RR-17-6
   title: Add stable diagnostic code registry and docs
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-17
@@ -1487,7 +1487,7 @@ entries:
 - id: US-RR-19-10
   title: Implement bitfields and Bosch-subtract layout
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-19
@@ -1496,7 +1496,7 @@ entries:
 - id: US-RR-19-11
   title: Derive value ranges from Encoding
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-19
@@ -1505,7 +1505,7 @@ entries:
 - id: US-RR-19-12
   title: Add Encoding proptest strategies to rr-testkit
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-19
@@ -1563,7 +1563,7 @@ entries:
 - id: US-RR-19-7
   title: Define Encoding types and parse from definition strings
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-19
@@ -1572,7 +1572,7 @@ entries:
 - id: US-RR-19-8
   title: Implement integer codecs incl U20/U24/I24/I64
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-19
@@ -1581,7 +1581,7 @@ entries:
 - id: US-RR-19-9
   title: Implement float codecs with NaN/Inf/denormal flags
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-19
@@ -3437,7 +3437,7 @@ entries:
 - id: US-RR-4-5
   title: Add coverage.yml with per-crate thresholds
   type: task
-  status: todo
+  status: review
   archived: false
   points: 3
   story_id: US-RR-4
@@ -3446,7 +3446,7 @@ entries:
 - id: US-RR-4-6
   title: Add mutants.yml and mutants.toml
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-4
@@ -3455,7 +3455,7 @@ entries:
 - id: US-RR-4-7
   title: Add mutants.toml exclusion-justification checker
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-4
@@ -4263,7 +4263,7 @@ entries:
 - id: US-RR-5-5
   title: Create fuzz crate with template target and docs
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-5
@@ -4272,7 +4272,7 @@ entries:
 - id: US-RR-5-6
   title: Add nightly fuzz.yml with corpus cache and issue filing
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-5
@@ -4281,7 +4281,7 @@ entries:
 - id: US-RR-5-7
   title: Run committed crash inputs as regression tests
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-5
@@ -6439,7 +6439,7 @@ entries:
 - id: US-RR-9-5
   title: Define KAT TOML schema and serde types
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-9
@@ -6448,7 +6448,7 @@ entries:
 - id: US-RR-9-6
   title: Implement KAT validator
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-9
@@ -6457,7 +6457,7 @@ entries:
 - id: US-RR-9-7
   title: Add fixtures.yml CI job
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-9
@@ -6466,7 +6466,7 @@ entries:
 - id: US-RR-9-8
   title: Author 10 seed KAT fixtures across storage types
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-9
@@ -6475,14 +6475,14 @@ entries:
 - id: US-RR-9-9
   title: Write fixture authoring README
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-9
   epic_id: null
   tags: []
 total_points: 1250
-completed_points: 118
+completed_points: 173
 story_count: 78
 task_count: 603
 epic_count: 10

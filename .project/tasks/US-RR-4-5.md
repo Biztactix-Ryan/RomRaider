@@ -7,7 +7,7 @@ created: '2026-10-19'
 depends_on: []
 id: US-RR-4-5
 points: 3
-status: todo
+status: review
 story_id: US-RR-4
 tags: []
 title: Add coverage.yml with per-crate thresholds

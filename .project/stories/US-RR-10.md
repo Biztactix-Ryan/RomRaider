@@ -16,14 +16,14 @@ epic_id: EPIC-RR-2
 id: US-RR-10
 points: 8
 priority: must
-status: backlog
+status: active
 tags:
 - m0
 - testing
 - fixtures
 - safety
 title: Independent reference encoder/decoder and synthetic ROM generator
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 As a developer, I want a deliberately naive second implementation of byte encoding and decoding that shares no code with rr-core, plus a generator that builds synthetic ROMs from known values, so that public CI has real ROM-shaped test data and an independent cross-check of Encoding.
