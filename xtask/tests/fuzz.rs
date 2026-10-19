@@ -221,9 +221,13 @@ fn args(cmd: &std::process::Command) -> Vec<String> {
         .collect()
 }
 
-/// `base.join(rel)` as the command line shows it (portable separators).
+/// `base` joined with each `/`-separated part of `rel`, as the command line
+/// shows it (the platform's separators).
 fn p(base: &Path, rel: &str) -> String {
-    base.join(rel).to_string_lossy().into_owned()
+    rel.split('/')
+        .fold(base.to_path_buf(), |path, part| path.join(part))
+        .to_string_lossy()
+        .into_owned()
 }
 
 const LIMITS: Limits = Limits {
@@ -252,8 +256,8 @@ fn run_command_always_applies_the_limits_before_extra_flags() {
             "--fuzz-dir",
             &p(r, "fuzz"),
             "ecu_id",
-            &p(&r.join("fuzz/corpus"), "ecu_id"),
-            &p(&r.join("fuzz/seeds"), "ecu_id"),
+            &p(r, "fuzz/corpus/ecu_id"),
+            &p(r, "fuzz/seeds/ecu_id"),
             "--",
             "-timeout=7",
             "-rss_limit_mb=1500",
@@ -445,7 +449,7 @@ fn replay_command_is_a_stable_cargo_test_of_the_fuzz_crate() {
         [
             "test",
             "--manifest-path",
-            &p(&r.join("fuzz"), "Cargo.toml"),
+            &p(r, "fuzz/Cargo.toml"),
             "--locked"
         ]
     );
