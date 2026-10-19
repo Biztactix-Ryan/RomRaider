@@ -1,0 +1,7 @@
+---
+source: crates/rr-testkit/tests/snapshot.rs
+expression: map
+---
+alpha: 1
+mu: 2
+zeta: 3

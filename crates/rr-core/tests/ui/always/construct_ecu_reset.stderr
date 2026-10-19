@@ -1,0 +1,9 @@
+error[E0451]: fields `ecu_id` and `kind` of struct `rr_core::capability::EcuReset` are private
+ --> tests/ui/always/construct_ecu_reset.rs:8:9
+  |
+7 |     let _forged = EcuReset {
+  |                   -------- in this type
+8 |         ecu_id,
+  |         ^^^^^^ private field
+9 |         kind: ResetKind::Ecu,
+  |         ^^^^ private field

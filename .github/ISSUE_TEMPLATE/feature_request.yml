@@ -1,0 +1,41 @@
+name: Feature request
+description: Suggest an improvement to romraider-rs or romraider-cli.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        RomRaider-RS is read-only by default; ECU writes are capability-gated and ECU flashing is out of scope (D-013). Requests that need ECU writes will be weighed against that.
+
+        If you attach traces or logs, scrub them first with `romraider-cli trace scrub <file>` / `romraider-cli log scrub <file>`.
+  - type: dropdown
+    id: app
+    attributes:
+      label: App
+      options:
+        - romraider-rs (desktop app)
+        - romraider-cli
+        - Both
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do, and what gets in the way today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What you'd like to happen. Include adapter, protocol or ECU details if the request is specific to them.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false

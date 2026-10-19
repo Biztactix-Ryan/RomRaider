@@ -1,0 +1,13 @@
+[package]
+name = "rr-link"
+description = "Link trait and transport implementations (serial, J2534, ELM327, replay, sim)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+
+[lints]
+workspace = true

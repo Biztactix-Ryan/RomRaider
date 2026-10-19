@@ -1,0 +1,18 @@
+# unwrap()/expect() are banned outside tests (ARCHITECTURE.md "Errors").
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+# panic!() is banned outside tests (US-RR-3); tests may panic.
+allow-panic-in-tests = true
+
+# Injected time (D-010, US-RR-3). All timing goes through rr_core::clock::Clock.
+# The only sanctioned caller of these is rr-core::clock::RealClock (private
+# `std_time` module), which carries #[expect(clippy::disallowed_methods)].
+# There is no allow-in-tests switch for this lint, on purpose: tests use
+# VirtualClock (rr-testkit) so they are deterministic and instant.
+disallowed-methods = [
+    { path = "std::thread::sleep", reason = "use Clock::sleep / Clock::sleep_until from rr_core::clock (D-010); only RealClock may block on OS time" },
+    { path = "std::time::Instant::now", reason = "use Clock::now from rr_core::clock (D-010); only RealClock may read the OS monotonic clock" },
+    { path = "std::time::Instant::elapsed", reason = "reads the OS clock implicitly; use Clock::now() - start from rr_core::clock (D-010)" },
+    { path = "std::time::SystemTime::now", reason = "use Clock::wall_now from rr_core::clock (D-010); only RealClock may read the OS wall clock" },
+    { path = "std::time::SystemTime::elapsed", reason = "reads the OS clock implicitly and wall time must not measure intervals (EC-26); use Clock::now from rr_core::clock (D-010)" },
+]

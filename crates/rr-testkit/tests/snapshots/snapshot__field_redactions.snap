@@ -1,0 +1,8 @@
+---
+source: crates/rr-testkit/tests/snapshot.rs
+expression: record
+---
+ecu: 4B12785207
+elapsed: "[duration]"
+rom: "[path]"
+started_at: "[wall-time]"

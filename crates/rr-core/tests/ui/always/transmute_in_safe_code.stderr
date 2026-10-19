@@ -1,0 +1,23 @@
+error[E0133]: call to unsafe function `std::intrinsics::transmute` is unsafe and requires unsafe block
+ --> tests/ui/always/transmute_in_safe_code.rs:9:32
+  |
+9 |     let _from_bool: RomWrite = mem::transmute::<bool, RomWrite>(true);
+  |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ call to unsafe function
+  |
+  = note: consult the function's documentation for information on how to avoid undefined behavior
+
+error[E0133]: call to unsafe function `zeroed` is unsafe and requires unsafe block
+  --> tests/ui/always/transmute_in_safe_code.rs:10:29
+   |
+10 |     let _zeroed: RomWrite = mem::zeroed();
+   |                             ^^^^^^^^^^^^^ call to unsafe function
+   |
+   = note: consult the function's documentation for information on how to avoid undefined behavior
+
+error[E0133]: call to unsafe function `MaybeUninit::<T>::assume_init` is unsafe and requires unsafe block
+  --> tests/ui/always/transmute_in_safe_code.rs:11:29
+   |
+11 |     let _uninit: EcuReset = MaybeUninit::<EcuReset>::uninit().assume_init();
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ call to unsafe function
+   |
+   = note: consult the function's documentation for information on how to avoid undefined behavior

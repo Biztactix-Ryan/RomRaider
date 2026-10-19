@@ -1,0 +1,24 @@
+[package]
+name = "rr-rom"
+description = "ROM byte image, patch journal, tables, checksums and diff."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+# #[rr_write] on every write API; `cargo xtask check-writes` requires a token.
+rr-write-marker.workspace = true
+
+[dev-dependencies]
+rr-testkit = { path = "../rr-testkit" }
+
+[features]
+# Test-only: run the private-tier (`RR_FIXTURES_DIR`) tests. Forwards to the
+# rr-testkit dev-dependency; changes no library code. See CONTRIBUTING.md
+# "Fixtures and corpora".
+private-fixtures = ["rr-testkit/private-fixtures"]
+
+[lints]
+workspace = true

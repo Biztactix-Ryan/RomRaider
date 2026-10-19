@@ -1,0 +1,30 @@
+[package]
+name = "rr-testkit"
+description = "Test fixtures, snapshot helpers, proptest strategies and VirtualClock harness (dev-dependency only)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+# rr-testkit *is* the test-only crate: these are normal dependencies here, and
+# every other crate takes rr-testkit as a dev-dependency (enforced by
+# `cargo xtask check-deps`).
+[dependencies]
+insta.workspace = true
+proptest.workspace = true
+rr-core = { path = "../rr-core" }
+# Fixture loader: TOML known-answer files with `schema = N`.
+serde.workspace = true
+thiserror.workspace = true
+toml.workspace = true
+
+# `private-fixtures`: compile the private fixture tier (`RR_FIXTURES_DIR`) into
+# `private_test!`. Off by default, so public CI never touches it. Crates with
+# private-tier tests forward it (`private-fixtures = ["rr-testkit/private-fixtures"]`);
+# see CONTRIBUTING.md "Fixtures and corpora".
+[features]
+private-fixtures = []
+
+[lints]
+workspace = true

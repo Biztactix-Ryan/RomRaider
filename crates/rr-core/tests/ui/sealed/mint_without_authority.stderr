@@ -1,0 +1,27 @@
+error[E0433]: cannot find `authority` in `capability`
+ --> tests/ui/sealed/mint_without_authority.rs:8:35
+  |
+8 |     let _a = rr_core::capability::authority::mint_rom_write;
+  |                                   ^^^^^^^^^ could not find `authority` in `capability`
+  |
+note: found an item that was configured out
+ --> src/capability.rs
+  |
+  | #[cfg(feature = "confirmation-authority")]
+  |       ---------------------------------- the item is gated behind the `confirmation-authority` feature
+  | pub mod authority {
+  |         ^^^^^^^^^
+
+error[E0433]: cannot find `mint` in `capability`
+ --> tests/ui/sealed/mint_without_authority.rs:9:35
+  |
+9 |     let _b = rr_core::capability::mint::rom_write;
+  |                                   ^^^^ could not find `mint` in `capability`
+  |
+note: found an item that was configured out
+ --> src/capability.rs
+  |
+  | #[cfg(any(test, feature = "confirmation-authority"))]
+  |          ------------------------------------------ the item is gated here
+  | mod mint {
+  |     ^^^^

@@ -1,0 +1,41 @@
+error[E0308]: mismatched types
+ --> tests/ui/always/clone_tokens.rs:6:5
+  |
+5 | fn rom(token: &RomWrite) -> RomWrite {
+  |                             -------- expected `rr_core::capability::RomWrite` because of return type
+6 |     token.clone()
+  |     ^^^^^^^^^^^^^ expected `RomWrite`, found `&RomWrite`
+  |
+note: `rr_core::capability::RomWrite` does not implement `Clone`, so `&rr_core::capability::RomWrite` was cloned instead
+ --> tests/ui/always/clone_tokens.rs:6:5
+  |
+6 |     token.clone()
+  |     ^^^^^
+
+error[E0308]: mismatched types
+  --> tests/ui/always/clone_tokens.rs:10:5
+   |
+ 9 | fn memory(token: &EcuMemoryWrite) -> EcuMemoryWrite {
+   |                                      -------------- expected `rr_core::capability::EcuMemoryWrite` because of return type
+10 |     token.clone()
+   |     ^^^^^^^^^^^^^ expected `EcuMemoryWrite`, found `&EcuMemoryWrite`
+   |
+note: `rr_core::capability::EcuMemoryWrite` does not implement `Clone`, so `&rr_core::capability::EcuMemoryWrite` was cloned instead
+  --> tests/ui/always/clone_tokens.rs:10:5
+   |
+10 |     token.clone()
+   |     ^^^^^
+
+error[E0308]: mismatched types
+  --> tests/ui/always/clone_tokens.rs:14:5
+   |
+13 | fn reset(token: &EcuReset) -> EcuReset {
+   |                               -------- expected `rr_core::capability::EcuReset` because of return type
+14 |     token.clone()
+   |     ^^^^^^^^^^^^^ expected `EcuReset`, found `&EcuReset`
+   |
+note: `rr_core::capability::EcuReset` does not implement `Clone`, so `&rr_core::capability::EcuReset` was cloned instead
+  --> tests/ui/always/clone_tokens.rs:14:5
+   |
+14 |     token.clone()
+   |     ^^^^^

@@ -1,0 +1,17 @@
+# Allowlist for `cargo xtask check-globals` (US-RR-3, ARCHITECTURE.md
+# "Cross-cutting Standards", D-011, D-019).
+#
+# The workspace bans `static mut`, statics holding mutable state (Mutex, RwLock,
+# Cell/RefCell/UnsafeCell, Atomic*, ...), lazy_static!/LazyLock/once_cell
+# singletons holding such state, and thread_local! globals. An exception needs
+# an entry here, reviewed like code:
+#
+#   [[allow]]
+#   path = "crates/rr-example/src/ffi.rs"   # relative to the workspace root
+#   item = "CALLBACK_CTX"                   # the static's name
+#   justification = "why no owned/passed-in alternative works"
+#
+# Entries with an empty justification fail the check, and so do stale entries
+# whose item no longer exists.
+#
+# There are no exceptions today.

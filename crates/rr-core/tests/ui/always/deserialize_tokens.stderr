@@ -1,0 +1,68 @@
+error[E0277]: the trait bound `rr_core::capability::RomWrite: serde::de::DeserializeOwned` is not satisfied
+ --> tests/ui/always/deserialize_tokens.rs:8:22
+  |
+8 |     deserializable::<RomWrite>();
+  |                      ^^^^^^^^ the trait `for<'de> Deserialize<'de>` is not implemented for `rr_core::capability::RomWrite`
+  |
+  = help: the following other types implement trait `Deserialize<'de>`:
+            &'a Path
+            &'a [u8]
+            &'a str
+            ()
+            (T,)
+            (T0, T1)
+            (T0, T1, T2)
+            (T0, T1, T2, T3)
+          and $N others
+  = note: required for `rr_core::capability::RomWrite` to implement `DeserializeOwned`
+note: required by a bound in `deserializable`
+ --> tests/ui/always/deserialize_tokens.rs:5:22
+  |
+5 | fn deserializable<T: serde::de::DeserializeOwned>() {}
+  |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `deserializable`
+
+error[E0277]: the trait bound `rr_core::capability::EcuMemoryWrite: serde::de::DeserializeOwned` is not satisfied
+ --> tests/ui/always/deserialize_tokens.rs:9:22
+  |
+9 |     deserializable::<EcuMemoryWrite>();
+  |                      ^^^^^^^^^^^^^^ the trait `for<'de> Deserialize<'de>` is not implemented for `rr_core::capability::EcuMemoryWrite`
+  |
+  = help: the following other types implement trait `Deserialize<'de>`:
+            &'a Path
+            &'a [u8]
+            &'a str
+            ()
+            (T,)
+            (T0, T1)
+            (T0, T1, T2)
+            (T0, T1, T2, T3)
+          and $N others
+  = note: required for `rr_core::capability::EcuMemoryWrite` to implement `DeserializeOwned`
+note: required by a bound in `deserializable`
+ --> tests/ui/always/deserialize_tokens.rs:5:22
+  |
+5 | fn deserializable<T: serde::de::DeserializeOwned>() {}
+  |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `deserializable`
+
+error[E0277]: the trait bound `rr_core::capability::EcuReset: serde::de::DeserializeOwned` is not satisfied
+  --> tests/ui/always/deserialize_tokens.rs:10:22
+   |
+10 |     deserializable::<EcuReset>();
+   |                      ^^^^^^^^ the trait `for<'de> Deserialize<'de>` is not implemented for `rr_core::capability::EcuReset`
+   |
+   = help: the following other types implement trait `Deserialize<'de>`:
+             &'a Path
+             &'a [u8]
+             &'a str
+             ()
+             (T,)
+             (T0, T1)
+             (T0, T1, T2)
+             (T0, T1, T2, T3)
+           and $N others
+   = note: required for `rr_core::capability::EcuReset` to implement `DeserializeOwned`
+note: required by a bound in `deserializable`
+  --> tests/ui/always/deserialize_tokens.rs:5:22
+   |
+ 5 | fn deserializable<T: serde::de::DeserializeOwned>() {}
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `deserializable`

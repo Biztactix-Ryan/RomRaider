@@ -1,0 +1,11 @@
+# Blank issues are disabled so every bug report goes through bug_report.yml,
+# which carries the required "I scrubbed attached traces/logs" confirmation.
+# Traces and logs can contain VINs and ECU serials (.project/SECURITY.md, PII Handling).
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability or ECU-safety incident
+    url: https://github.com/Biztactix-Ryan/RomRaider/security/advisories/new
+    about: Report privately via a GitHub security advisory. Do not open a public issue.
+  - name: Contributing guide
+    url: https://github.com/Biztactix-Ryan/RomRaider/blob/master/CONTRIBUTING.md
+    about: Definition of Done, test tiers, and the rules every change follows.

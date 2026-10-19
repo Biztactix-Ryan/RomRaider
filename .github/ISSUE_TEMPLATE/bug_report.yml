@@ -1,0 +1,130 @@
+name: Bug report
+description: Something in romraider-rs (desktop app) or romraider-cli is wrong or crashes.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. RomRaider-RS talks to real ECUs, so precise details matter.
+
+        **Before you attach anything:** ECU traces (`.rrtrace`) and CSV logs can contain your **VIN, ECU serial and calibration IDs**, and timestamps that reveal driving patterns. Scrub them first:
+
+        ```sh
+        romraider-cli trace scrub <file.rrtrace>
+        romraider-cli log scrub <file.csv>
+        ```
+
+        Attach only the scrubbed output. Never attach a ROM image you don't have the right to share.
+
+        Security vulnerability or an incident where the software wrote to an ECU unexpectedly? Don't file it here; use the private security advisory link on the previous page.
+  - type: dropdown
+    id: app
+    attributes:
+      label: App
+      description: Which program shows the problem?
+      options:
+        - romraider-rs (desktop app)
+        - romraider-cli
+        - Both
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Paste the output of `romraider-cli --version` (or the version from the app's About dialog). If built from source, include the git commit.
+      placeholder: romraider-cli 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - Linux
+        - macOS
+        - Other (say in Additional context)
+    validations:
+      required: true
+  - type: input
+    id: os-details
+    attributes:
+      label: OS version and architecture
+      description: e.g. Windows 11 x86_64, Ubuntu 24.04 aarch64 (Raspberry Pi), Windows 10 i686 build.
+      placeholder: Ubuntu 24.04, x86_64
+    validations:
+      required: true
+  - type: input
+    id: adapter
+    attributes:
+      label: Adapter / cable
+      description: Make and model, and the USB chip if you know it (FTDI FT232R KKL, CH340 KKL, ELM327 clone, Tactrix OpenPort 2.0, other J2534 device). Write "none" for ROM-editing-only issues.
+      placeholder: FTDI FT232R KKL cable
+    validations:
+      required: true
+  - type: input
+    id: protocol
+    attributes:
+      label: Protocol
+      description: Communication protocol in use, if known (SSM over K-line, KWP2000 / NCS, OBD-II, ISO 15765 CAN, DS2). Write "n/a" for ROM-editing-only issues.
+      placeholder: SSM over K-line
+    validations:
+      required: true
+  - type: input
+    id: ecu-rom-id
+    attributes:
+      label: ECU ID / ROM ID
+      description: The ECU ID reported when connecting and/or the ROM ID (CAL ID) of the image. These identify the calibration, not you; do not paste your VIN.
+      placeholder: ECU ID 3D12345678, ROM ID A2WC510N
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Exact steps, commands or menu actions. Include the full `romraider-cli` command line if relevant.
+      placeholder: |
+        1. Connect cable, ignition on
+        2. Run `romraider-cli ...`
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: What happened instead. Paste error messages and relevant log output as text.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: attachments
+    attributes:
+      label: Attachments (scrubbed traces / logs)
+      description: |
+        Drag scrubbed files here. Run `romraider-cli trace scrub <file>` on every `.rrtrace` and `romraider-cli log scrub <file>` on every CSV log **before** attaching. Do not attach unscrubbed files or proprietary ROM images.
+    validations:
+      required: false
+  - type: checkboxes
+    id: scrubbed
+    attributes:
+      label: Privacy confirmation
+      description: Traces and logs can contain your VIN and ECU serials.
+      options:
+        - label: I scrubbed attached traces/logs with `romraider-cli trace scrub` / `romraider-cli log scrub` (or I attached none).
+          required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Vehicle (make, model, year, market), screenshots, or anything else useful.
+    validations:
+      required: false

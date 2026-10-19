@@ -1,0 +1,11 @@
+error: usage of an `unsafe` block
+ --> tests/ui/always/transmute_unsafe_forbidden.rs:9:29
+  |
+9 |     let _forged: RomWrite = unsafe { std::mem::transmute::<bool, RomWrite>(true) };
+  |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+note: the lint level is defined here
+ --> tests/ui/always/transmute_unsafe_forbidden.rs:4:11
+  |
+4 | #![forbid(unsafe_code)]
+  |           ^^^^^^^^^^^

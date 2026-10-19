@@ -1,0 +1,29 @@
+[package]
+name = "rr-core"
+description = "Pure concept types and algorithms; depends on no workspace crate and performs no I/O."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+# Opens the capability-minting seal (`capability::authority`). Only rr-app and
+# rr-cli may enable this; the T6 safety suite enforces that. See
+# src/capability.rs.
+confirmation-authority = []
+
+[dependencies]
+
+[dev-dependencies]
+# Property tests for the clock (US-RR-18-2). Taken directly rather than via
+# rr-testkit, which itself depends on rr-core.
+proptest.workspace = true
+# T6 compile-fail suite (tests/t6_token_compile_fail.rs, US-RR-7-1): trybuild
+# runs the tests/ui cases as an external crate; serde only so a case can assert
+# the tokens do not implement `Deserialize`.
+trybuild.workspace = true
+serde.workspace = true
+
+[lints]
+workspace = true

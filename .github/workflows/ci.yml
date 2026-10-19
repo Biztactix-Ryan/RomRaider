@@ -1,0 +1,262 @@
+# CI gates for RomRaider-RS (story US-RR-2, INFRASTRUCTURE.md "Build Pipeline", D-016).
+#
+# Branch protection should require only the aggregate `ci-ok` check.
+# To add a gate: append a job below with a stable `name:` and add its
+# job id to `ci-ok.needs`. Nothing else needs to change.
+
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  RUST_BACKTRACE: "1"
+  # insta never writes .snap.new / .pending-snap in CI: a mismatching snapshot
+  # fails the assertion on every job and target. (GitHub also sets CI=true,
+  # which insta treats the same way; this makes it explicit.)
+  INSTA_UPDATE: "no"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  fmt:
+    name: fmt
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      # Toolchain (1.97.1 + rustfmt/clippy) comes from rust-toolchain.toml.
+      - name: Install toolchain
+        run: rustup toolchain install --no-self-update && rustup show
+      - name: cargo fmt --check
+        run: cargo fmt --all --check
+
+  # Lint job: clippy with warnings denied, plus the architecture dependency-rule check.
+  clippy:
+    name: clippy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install toolchain
+        run: rustup toolchain install --no-self-update && rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rust-rewrite' }}
+      - name: cargo clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - name: cargo xtask check-deps
+        run: cargo xtask check-deps
+      - name: cargo xtask check-globals
+        run: cargo xtask check-globals
+      # Runs clippy on generated planted violations (target/lint-selftest)
+      # with this workspace's lints + clippy.toml; fails unless every safety
+      # lint fires exactly where planted (US-RR-3-1, US-RR-3-2, US-RR-18-4).
+      - name: cargo xtask lint-selftest
+        run: cargo xtask lint-selftest
+      # Runs nextest (own target dir, target/fixtures-selftest) with
+      # RR_CORPUS_DIR / RR_FIXTURES_DIR removed, with default features and with
+      # --features private-fixtures; fails unless every corpus/private-tier
+      # test is reported SKIP (named after the variable to set), never PASS,
+      # and fails when forced with --run-ignored (US-RR-6-1). Here rather than
+      # in `test` because the behaviour is target-independent.
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+      - name: cargo xtask fixtures-selftest
+        run: cargo xtask fixtures-selftest
+
+  test:
+    name: test (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-24.04
+          # Native GitHub-hosted arm64 runner. If it is unavailable for this
+          # repository, switch to ubuntu-24.04 + cross for this entry.
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-24.04-arm
+          - target: x86_64-pc-windows-msvc
+            os: windows-2022
+          # 32-bit build, run natively on the x64 Windows runner (WoW64).
+          # Many vendor J2534 DLLs are 32-bit only. The windows-2022 image's
+          # MSVC install includes the x86 toolset and libs, and nextest runs
+          # the i686 test binaries directly (no target runner needed).
+          - target: i686-pc-windows-msvc
+            os: windows-2022
+    env:
+      # Compiler warnings fail the build on every target, including
+      # cfg(windows)/cfg(target_arch) code that the Linux clippy job never sees.
+      RUSTFLAGS: -D warnings
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install toolchain
+        run: |
+          rustup toolchain install --no-self-update
+          rustup target add ${{ matrix.target }}
+          rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+          save-if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rust-rewrite' }}
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+      - name: cargo nextest
+        run: cargo nextest run --workspace --locked --target ${{ matrix.target }}
+      - name: doctests
+        run: cargo test --doc --workspace --locked --target ${{ matrix.target }}
+
+  # Supply-chain gate: licences (GPL-2.0-or-later compatible, D-016), RustSec
+  # advisories, bans and sources, per deny.toml.
+  deny:
+    name: deny
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install toolchain
+        run: rustup toolchain install --no-self-update && rustup show
+      # Pinned to the version deny.toml's schema was written against.
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny@0.20.2
+      - name: cargo deny check
+        run: cargo deny --locked check
+      # Runs the same command on generated scratch workspaces
+      # (target/deny-selftest) with this deny.toml; fails unless an
+      # SSPL-licensed dependency and one with an open RustSec advisory are
+      # both rejected and a clean control passes (US-RR-2-2).
+      - name: cargo xtask deny-selftest
+        run: cargo xtask deny-selftest
+
+  # T6 safety-invariant suite (PROJECT.md Testing Strategy: must pass,
+  # release-blocking; story US-RR-7). Release-blocking: release.yml (not yet
+  # written) must not build or publish unless this job passed, i.e. it must
+  # `needs:` this job or gate on `ci-ok` for the tagged commit.
+  #
+  # Selection convention (CONTRIBUTING.md, Safety review process): T6 tests
+  # live in test binaries named `t6_*.rs` or in test functions/modules named
+  # `t6_*`; the rr-core capability-token unit tests (`capability::tests`) are
+  # included by path. `--no-tests=fail` makes an empty selection a failure.
+  t6:
+    name: T6 safety invariants
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install toolchain
+        run: rustup toolchain install --no-self-update && rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rust-rewrite' }}
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+      - name: cargo xtask check-writes
+        run: cargo xtask check-writes
+      - name: T6 tests (cargo nextest)
+        run: >-
+          cargo nextest run --workspace --locked --no-tests=fail
+          -E 'binary(/^t6_/) | test(/(^|::)t6_/) | (package(rr-core) & test(/^capability::/))'
+      - name: T6 capability tests with minting authority (cargo nextest)
+        run: >-
+          cargo nextest run -p rr-core --features confirmation-authority --locked
+          -E 'test(/^capability::/)'
+
+  # Pending-snapshot gate (story US-RR-2). Two failure modes, two checks:
+  #  1. Committed pending files. insta deletes a stale *.snap.new when its
+  #     assertion passes, at the start of `cargo insta test` and even under
+  #     plain nextest, so a check run *after* the tests would never see one a
+  #     PR committed. Hence `git ls-files` on the fresh checkout, before any
+  #     test runs.
+  #  2. Snapshot drift. `cargo insta test --check` with INSTA_UPDATE=no fails
+  #     on any mismatching snapshot without writing anything, and
+  #     `--unreferenced=reject` fails on a committed .snap that no test
+  #     asserts any more (a renamed or deleted test leaves a stale golden that
+  #     reviewers would otherwise trust). Caveat: a snapshot test that is
+  #     #[ignore]d here (e.g. corpus-gated) or cfg'd off on Linux would count
+  #     as unreferenced; such snapshots need this job extended, not the flag
+  #     dropped. The final step is a belt-and-braces check that the run left
+  #     no pending files behind.
+  # The test matrix also fails on snapshot mismatches on every target via the
+  # workflow-level INSTA_UPDATE=no; this job adds the two checks it cannot do.
+  snapshots:
+    name: snapshots
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v5
+      - name: No pending snapshots committed
+        run: |
+          pending=$(git ls-files -- '*.snap.new' '*.pending-snap')
+          if [ -n "$pending" ]; then
+            echo "::error::Pending insta snapshots are committed; review them with 'cargo insta review' and commit the .snap files instead:"
+            echo "$pending"
+            exit 1
+          fi
+      - name: Install toolchain
+        run: rustup toolchain install --no-self-update && rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rust-rewrite' }}
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest,cargo-insta
+      # `cargo insta test` cannot pass --locked through to cargo when running
+      # under nextest, so enforce the lockfile here.
+      - name: cargo fetch --locked
+        run: cargo fetch --locked
+      # Doctests are already run per target by the test job.
+      - name: cargo insta test --check
+        run: >-
+          cargo insta test --workspace --check --unreferenced=reject
+          --test-runner nextest --disable-nextest-doctest
+      - name: No pending snapshots left behind
+        if: always()
+        run: |
+          left=$(find . -path ./target -prune -o \( -name '*.snap.new' -o -name '*.pending-snap' \) -print)
+          if [ -n "$left" ]; then
+            echo "::error::The test run left pending insta snapshots:"
+            echo "$left"
+            exit 1
+          fi
+
+  # Aggregate gate: the single required status check for branch protection.
+  # Add every new job id to `needs`.
+  ci-ok:
+    name: ci-ok
+    if: always()
+    needs: [fmt, clippy, test, deny, t6, snapshots]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: All gates passed
+        if: ${{ !(contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')) }}
+        run: echo "All CI gates passed."
+      - name: A gate failed, was cancelled, or was skipped
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}
+        run: |
+          echo "needs results: ${{ join(needs.*.result, ', ') }}"
+          exit 1

@@ -1,0 +1,18 @@
+[package]
+name = "rr-write-marker"
+description = "Inert #[rr_write] / #[rr_not_write] markers that the T6 write-gating check (cargo xtask check-writes) reads."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+proc-macro = true
+
+# No dependencies on purpose: the markers are pass-through attributes, so the
+# crate needs nothing beyond the compiler's own `proc_macro`.
+[dependencies]
+
+[lints]
+workspace = true

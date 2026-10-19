@@ -1,0 +1,77 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/rr-core",
+    "crates/rr-defs",
+    "crates/rr-rom",
+    "crates/rr-link",
+    "crates/rr-comms",
+    "crates/rr-live",
+    "crates/rr-testkit",
+    "crates/rr-cli",
+    "crates/rr-app",
+    "crates/rr-write-marker",
+    "xtask",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.97"
+license = "GPL-2.0-or-later"
+publish = false
+
+[workspace.lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+unused_must_use = "deny"
+rust_2018_idioms = { level = "warn", priority = -1 }
+
+# Safety lints (US-RR-3, ARCHITECTURE.md "Cross-cutting Standards", D-010,
+# D-011, D-019). clippy.toml carries the configuration these read:
+# * unwrap_used / expect_used / panic: denied everywhere outside tests
+#   (clippy.toml allow-{unwrap,expect,panic}-in-tests). `panic` is denied
+#   workspace-wide rather than per library crate because Cargo cannot mix
+#   `[lints] workspace = true` with per-crate entries; the binaries and xtask
+#   have no panics today, and a provably-infallible exception must be a
+#   local `#[expect(clippy::panic, reason = "...")]`, never a crate-wide allow.
+# * disallowed_methods: std time / sleep (list + reasons in clippy.toml).
+#   In shipping code only rr-core::clock::RealClock (its private `std_time`
+#   module) may call them, via
+#   `#[expect(clippy::disallowed_methods, reason = "...")]`. The ban has no
+#   in-tests switch: tests use VirtualClock. The one test-only exception is a
+#   test that must measure real time (to prove VirtualClock never blocks on
+#   it), which may carry its own local, reasoned `#[expect(..)]` in test code
+#   (CONTRIBUTING.md "Exceptions"; enforced by xtask/tests/time_exceptions.rs).
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+disallowed_methods = "deny"
+dbg_macro = "deny"
+todo = "warn"
+unimplemented = "warn"
+
+[workspace.dependencies]
+# Inert #[rr_write] / #[rr_not_write] markers read by `cargo xtask check-writes`
+# (T6 write gating, US-RR-7).
+rr-write-marker = { path = "crates/rr-write-marker" }
+clap = { version = "4.6", features = ["derive"] }
+# xtask-only tool edges.
+anyhow = "1.0"
+cargo_metadata = "0.23"
+# check-globals: parse Rust sources (syn) with line numbers (proc-macro2
+# span-locations) and read the allowlist (toml + serde).
+proc-macro2 = { version = "1.0", default-features = false, features = ["span-locations"] }
+serde = { version = "1.0", features = ["derive"] }
+# deny-selftest: read cargo-deny --format json output.
+serde_json = "1.0"
+syn = { version = "3.0", default-features = false, features = ["full", "parsing", "visit"] }
+toml = "1.1"
+# Test-only edges (taken via rr-testkit, itself dev-dependency only).
+insta = { version = "1.43", features = ["yaml", "redactions", "filters"] }
+proptest = "1.6"
+# T6 compile-fail tests (rr-core tests/t6_token_compile_fail.rs, US-RR-7-1).
+trybuild = "1.0"
+# Per-crate error enums (ARCHITECTURE.md "Errors").
+thiserror = "2.0"

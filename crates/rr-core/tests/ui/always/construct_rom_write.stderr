@@ -1,0 +1,7 @@
+error[E0451]: field `checksum_override` of struct `rr_core::capability::RomWrite` is private
+ --> tests/ui/always/construct_rom_write.rs:7:9
+  |
+6 |     let _forged = RomWrite {
+  |                   -------- in this type
+7 |         checksum_override: true,
+  |         ^^^^^^^^^^^^^^^^^ private field

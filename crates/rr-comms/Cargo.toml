@@ -1,0 +1,15 @@
+[package]
+name = "rr-comms"
+description = "Transaction engine, protocol codecs and ECU write gating."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+# #[rr_write] on every write API; `cargo xtask check-writes` requires a token.
+rr-write-marker.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,53 @@
+error[E0382]: use of moved value: `token`
+ --> tests/ui/always/copy_tokens.rs:9:13
+  |
+7 | fn rom(token: RomWrite) {
+  |        ----- move occurs because `token` has type `rr_core::capability::RomWrite`, which does not implement the `Copy` trait
+8 |     consume(token);
+  |             ----- value moved here
+9 |     consume(token);
+  |             ^^^^^ value used here after move
+  |
+note: consider changing this parameter type in function `consume` to borrow instead if owning the value isn't necessary
+ --> tests/ui/always/copy_tokens.rs:5:18
+  |
+5 | fn consume<T>(_: T) {}
+  |    -------       ^ this parameter takes ownership of the value
+  |    |
+  |    in this function
+
+error[E0382]: use of moved value: `token`
+  --> tests/ui/always/copy_tokens.rs:14:13
+   |
+12 | fn memory(token: EcuMemoryWrite) {
+   |           ----- move occurs because `token` has type `rr_core::capability::EcuMemoryWrite`, which does not implement the `Copy` trait
+13 |     consume(token);
+   |             ----- value moved here
+14 |     consume(token);
+   |             ^^^^^ value used here after move
+   |
+note: consider changing this parameter type in function `consume` to borrow instead if owning the value isn't necessary
+  --> tests/ui/always/copy_tokens.rs:5:18
+   |
+ 5 | fn consume<T>(_: T) {}
+   |    -------       ^ this parameter takes ownership of the value
+   |    |
+   |    in this function
+
+error[E0382]: use of moved value: `token`
+  --> tests/ui/always/copy_tokens.rs:19:13
+   |
+17 | fn reset(token: EcuReset) {
+   |          ----- move occurs because `token` has type `rr_core::capability::EcuReset`, which does not implement the `Copy` trait
+18 |     consume(token);
+   |             ----- value moved here
+19 |     consume(token);
+   |             ^^^^^ value used here after move
+   |
+note: consider changing this parameter type in function `consume` to borrow instead if owning the value isn't necessary
+  --> tests/ui/always/copy_tokens.rs:5:18
+   |
+ 5 | fn consume<T>(_: T) {}
+   |    -------       ^ this parameter takes ownership of the value
+   |    |
+   |    in this function

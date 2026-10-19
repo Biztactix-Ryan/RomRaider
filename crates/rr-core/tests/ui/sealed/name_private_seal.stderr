@@ -1,0 +1,13 @@
+error[E0603]: module `seal` is private
+ --> tests/ui/sealed/name_private_seal.rs:6:27
+  |
+6 | impl rr_core::capability::seal::Sealed for AlwaysYes {}
+  |                           ^^^^  ------ trait `Sealed` is not publicly re-exported
+  |                           |
+  |                           private module
+  |
+note: the module `seal` is defined here
+ --> src/capability.rs
+  |
+  | mod seal {
+  | ^^^^^^^^

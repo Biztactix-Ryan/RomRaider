@@ -1,0 +1,3 @@
+# An unknown (pre-1) schema: must be rejected.
+schema = 0
+source = "hand-calculated"

@@ -1,0 +1,11 @@
+# Known-answer fixture used by rr-testkit's own loader tests.
+schema = 1
+source = "hand-calculated"
+
+[[case]]
+raw = 0x7F
+real = 127.0
+
+[[case]]
+raw = 0x00
+real = 0.0

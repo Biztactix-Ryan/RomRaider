@@ -1,0 +1,3 @@
+# A newer schema than this loader reads: must be rejected.
+schema = 2
+source = "hand-calculated"

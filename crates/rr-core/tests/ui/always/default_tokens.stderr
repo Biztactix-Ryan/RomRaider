@@ -1,0 +1,17 @@
+error[E0277]: the trait bound `rr_core::capability::RomWrite: Default` is not satisfied
+ --> tests/ui/always/default_tokens.rs:5:26
+  |
+5 |     let _rom: RomWrite = Default::default();
+  |                          ^^^^^^^^^^^^^^^^^^ the trait `Default` is not implemented for `rr_core::capability::RomWrite`
+
+error[E0277]: the trait bound `rr_core::capability::EcuMemoryWrite: Default` is not satisfied
+ --> tests/ui/always/default_tokens.rs:6:35
+  |
+6 |     let _memory: EcuMemoryWrite = Default::default();
+  |                                   ^^^^^^^^^^^^^^^^^^ the trait `Default` is not implemented for `rr_core::capability::EcuMemoryWrite`
+
+error[E0277]: the trait bound `rr_core::capability::EcuReset: Default` is not satisfied
+ --> tests/ui/always/default_tokens.rs:7:28
+  |
+7 |     let _reset: EcuReset = Default::default();
+  |                            ^^^^^^^^^^^^^^^^^^ the trait `Default` is not implemented for `rr_core::capability::EcuReset`

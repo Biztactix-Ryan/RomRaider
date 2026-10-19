@@ -1,0 +1,3 @@
+# `schema` must be an integer.
+schema = "1"
+source = "hand-calculated"

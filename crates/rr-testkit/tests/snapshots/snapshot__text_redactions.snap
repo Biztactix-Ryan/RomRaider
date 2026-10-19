@@ -1,0 +1,6 @@
+---
+source: crates/rr-testkit/tests/snapshot.rs
+expression: report
+---
+opened [path]/roms/stock.bin at [wall-time] in [duration] (budget [duration])
+unrelated: /tmp/rr-test-other/x.bin, 2026 laps, 7 cells
