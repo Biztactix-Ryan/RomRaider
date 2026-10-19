@@ -8,7 +8,7 @@ This is a desktop application, so there are no servers. "Infrastructure" here me
 |------------|-----|---------|-------|
 | Development | local | Dev on Linux and Windows | `cargo nextest run` with public fixtures. Private fixtures via `RR_FIXTURES_DIR`. |
 | CI | GitHub Actions on https://github.com/Biztactix-Ryan/RomRaider | Gates every push and PR | Hosted runners. A self-hosted HIL runner comes later. |
-| Hardware bench (HIL) | local / self-hosted runner | Real adapter + bench or car ECU | TBD (ask: Ryan, which ECU/cable/bench). Read-only tests by default. |
+| Hardware bench (HIL) | local / self-hosted runner | Real adapter + car ECU | Initially Ryan's 2004 Subaru Liberty (AU, NA) via a USB KKL cable, SSM over K-line. **Read-only tests only.** No bench ECU yet, so write-path HIL is blocked until one exists. |
 | Nightly channel | GitHub Releases (pre-release) | Builds from `rust-rewrite` / main | Opt-in testers |
 | Stable channel | GitHub Releases | Tagged `vX.Y.Z` releases | From M4 onwards |
 
@@ -76,7 +76,7 @@ Binary names:
 ### Device access without fuss
 
 On Linux the main friction points are permissions and other daemons grabbing the adapter. We ship `packaging/linux/60-romraider.rules`:
-- **`TAG+="uaccess"`** for known adapter VID:PIDs: Tactrix OpenPort 2.0, FTDI-based K-line/VAG-COM cables, CH340/CP210x/PL2303 ELM327 clones. This grants the logged-in desktop user access via systemd-logind. **No `dialout`/`uucp` group membership and no logout/login needed.**
+- **`TAG+="uaccess"`** for known adapter VID:PIDs: FTDI FT232R KKL cables (`0403:6001`) and CH340 KKL cables (`1a86:7523`, also used by ELM327 clones) first, because that's the target setup; then Tactrix OpenPort 2.0, CP210x and PL2303. This grants the logged-in desktop user access via systemd-logind. **No `dialout`/`uucp` group membership and no logout/login needed.**
 - **`ENV{ID_MM_DEVICE_IGNORE}="1"`** on the same devices, so ModemManager doesn't probe `/dev/ttyACM*` / `/dev/ttyUSB*` with AT commands and corrupt the K-line session.
 - The exact VID:PID list is verified against real hardware in M2. The rules file is generated from the same adapter profiles the app uses (C1), so there's one source of truth.
 
