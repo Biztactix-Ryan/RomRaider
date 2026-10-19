@@ -67,7 +67,11 @@ There is no network API. The equivalent is **input handling for untrusted files*
 - **Formulas:** the Expr engine (C4) is pure: no I/O, no variables beyond declared refs, bounded recursion depth and AST size. Formulas from definitions can't do anything except compute numbers.
 - **No runtime code loading of any kind.** This replaces Java's URLClassLoader that loaded checksum classes from the definition folder (MF-11), and the reflection-based plugin loading.
 - **Binary inputs** (ROMs, traces, device streams): bounds-checked decoding, no panics, no unbounded allocation (fuzzed).
-- **Native libraries:** J2534 DLLs are loaded only from paths registered under the PassThruSupport registry key, or from an explicit `RR_J2534_LIB`. They are never taken from the CWD or the definition folders. The path loaded is logged.
+- **Native libraries:** J2534 libraries are never loaded from the CWD or the definition folders. The path loaded is always logged.
+  - Windows: only paths registered under the `PassThruSupport.04.04` registry key, or an explicit `RR_J2534_LIB`.
+  - Linux and macOS (no registry): a fixed, ordered list of system paths (`/usr/lib`, `/usr/local/lib`, `/usr/lib/<triple>`), plus `~/.local/lib/romraider-rs/`, plus an explicit `RR_J2534_LIB`.
+  - The goal is to remove this on Linux entirely with the native OpenPort 2.0 Link (D-023).
+- **Linux device access:** udev rules grant per-seat access via `TAG+="uaccess"` instead of adding the user to `dialout`. That gives access to the logged-in desktop user only, not to every process in a broad group. Installing rules from the AppImage goes through `pkexec`, showing the exact file contents before the user confirms.
 - **Single-instance IPC:** a per-user Unix socket (0600) or named pipe (current-user ACL) carrying JSON-encoded args. This replaces the unauthenticated TCP port 23272 (MF-36).
 
 ## Secrets Management
@@ -93,6 +97,7 @@ Access is limited to repo admins (Biztactix). Rotate on any maintainer change.
 | VIN/serials leaked via attached traces | Low–Medium | Scrub commands, issue template guidance | Designed; M2 |
 | Supply chain (malicious or vulnerable crate) | Medium | `cargo-deny` (advisories, licences, bans, sources), `Cargo.lock` committed, minimal deps | Designed; M0 |
 | Local process abuses single-instance IPC | Low | Per-user socket/pipe with OS ACLs, JSON args | Designed; M4 |
+| Overly broad Linux device permissions | Low | `uaccess` per-seat udev rules for known VID:PIDs only; no `dialout` group advice; `pkexec` install shows the rule contents | Designed; M2 |
 | GPL compliance (derivative work) | Low | GPL-2.0-or-later licence, source published with each release, `cargo-deny` licence allowlist | Designed; M0 |
 
 ## Incident Response

@@ -36,6 +36,7 @@ See ARCHITECTURE.md for the concept catalogue (C1–C16) and the crate map. This
 | `crates/rr-testkit` | Fixture loaders, snapshot helpers, proptest strategies, ECU simulator wiring, VirtualClock |
 | `crates/rr-cli` | Headless tool and integration-test surface |
 | `crates/rr-app` | Desktop app (editor + logger) |
+| `packaging/` | Linux packaging: udev rules (generated from adapter profiles), `.desktop` file, icons, AppImage recipe, AUR PKGBUILD, `install.sh`; Windows MSI config |
 | `tools/fixture-recorder` | Small Java harness compiled against `legacy/`. It dumps decoded tables, resolved definitions and checksum results as JSON fixtures. |
 | `fixtures/public` | Committed synthetic ROMs, definitions, traces and golden outputs (no proprietary firmware) |
 | `fixtures/private` | Git-ignored. Real ROMs and traces, path set by `RR_FIXTURES_DIR` |
@@ -77,7 +78,9 @@ Full log in DECISIONS.md. Headline decisions:
 | Dependency | Purpose | Why |
 |-----------|---------|-----|
 | eframe/egui, egui_plot | UI, charts | Immediate mode suits grid-heavy editing. Single binary, no web runtime. |
-| serialport | Serial and K-line | De facto standard, supports break signalling |
+| serialport (no default features) | Serial and K-line | De facto standard, supports break signalling. Built without libudev, so there's no Linux runtime dependency. |
+| nusb | Native OpenPort 2.0 USB Link (D-023) | Pure-Rust USB, no libusb; Linux, macOS, Windows |
+| cargo-dist, cargo-deb, cargo-generate-rpm, cargo-zigbuild, appimagetool | Release artifacts | One pipeline producing MSI, AppImage, .deb, .rpm, tarball and AUR; glibc 2.28 baseline |
 | libloading (+ winreg) | J2534 PassThru DLLs | Thin FFI. Registry-based discovery replaces JNA platform.jar. |
 | quick-xml, roxmltree | Definition / XDF reading | Fast streaming for large definition files; DOM for XDF |
 | serde, toml, serde_json | Profiles, settings, fixtures, traces | Typed, schema-versioned |
@@ -99,7 +102,7 @@ Dropped Java dependencies:
 
 **Prerequisites:**
 - Rust via rustup (toolchain auto-selected by `rust-toolchain.toml`).
-- Linux: `libudev-dev` and `pkg-config` (needed by serialport).
+- Linux: nothing extra for the core (serialport is built without libudev). The GUI needs the usual X11/Wayland and OpenGL dev headers (`libxkbcommon-dev`, `libwayland-dev`, `libgl1-mesa-dev` on Debian/Ubuntu). Packaging tools (`cargo-deb`, `cargo-generate-rpm`, `cargo-zigbuild`, `appimagetool`) are only needed to build release artifacts.
 - Optional:
   - JDK 8+ and Ant: only to re-record oracle fixtures
   - `cargo-nextest`, `cargo-llvm-cov`, `cargo-mutants`, `cargo-fuzz` (nightly)
@@ -229,6 +232,9 @@ Each needs at least one test (tier in brackets) before its area's milestone clos
 - EC-17 Response split across reads; garbage before the header; two responses in one read [T1, T5]
 - EC-18 USB adapter unplugged mid-transaction → Link error, no hang, no panic [T5, T9]
 - EC-19 J2534 DLL only available as 32-bit on a 64-bit host → clear Diagnostic and the documented 32-bit build path [T0, T9]
+- EC-19a Linux: port access denied (`EACCES`) → `doctor` explains and offers the udev rule install; no generic "failed to open port" [T0]
+- EC-19b Linux: ModemManager probing the adapter, or `brltty` claiming a CH340/FTDI cable → detected and explained with the fix [T0, T9]
+- EC-19c Linux: adapter re-enumerates to a different `/dev/ttyUSBn` after replugging → reconnect by stable ID (`/dev/serial/by-id`), not by index [T5, T9]
 - EC-20 Unknown ECU ID → only the base profile applies, and the user is warned [T4]
 - EC-21 More parameters requested than the ECU's per-request limit → engine splits batches (Rule `max_items`) [T5]
 - EC-22 Baud change mid-session (DS2, NCS) [T5]

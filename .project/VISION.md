@@ -27,6 +27,7 @@ RomRaider is the go-to open-source ROM editor and data logger for (mostly Subaru
 
 **In 12 months:**
 - An egui desktop app with ROM editor and logger in one process, shipped as a single binary per OS with no JVM.
+- **Linux is first-class, equal to Windows:** AppImage, .deb, .rpm and AUR on every release. Plug in the cable and it works, with no group editing or `.so` hunting. A Raspberry Pi works as a headless in-car logger.
 - Feature parity for the protocols and devices we own hardware for.
 - Community definitions and quirk profiles contributed as data, not code.
 
@@ -58,13 +59,13 @@ These settle arguments. In priority order:
 
 | Milestone | Goal | Exit criteria |
 |-----------|------|---------------|
-| **M0 Foundation & oracle** | Cargo workspace, CI, `rr-core` concept types, `rr-testkit`, Java fixture recorder, first fixture corpus | CI green on Linux and Windows. Recorder dumps decoded tables, checksums and resolved definitions from the Java build. Public synthetic fixtures committed. |
+| **M0 Foundation & oracle** | Cargo workspace, CI, `rr-core` concept types, `rr-testkit`, Java fixture recorder, first fixture corpus, release pipeline skeleton | CI green on Linux and Windows. Nightly AppImage + .deb of `romraider-cli` published (packaging works from day one, not bolted on at the end). Recorder dumps decoded tables, checksums and resolved definitions from the Java build. Public synthetic fixtures committed. |
 | **M1 ROM core (headless)** | Definition readers, layered resolver, Encoding, Conversion, Table, patch journal, checksums, `rr-cli decode/verify/diff/edit` | 100% differential match on the fixture corpus (or a ledger entry per difference). All editor Must-Fix bugs closed. Mutation testing clean on encoding and checksum code. |
 | **M2 Comms core** | Link trait (serial/J2534/replay/sim), transaction engine, quirk rules, SSM + KWP2000 codecs, ECU simulator, `rr-cli log` | Simulator and replay suites in CI, including fault injection. Live read-only logging works on the target car and cable. |
 | **M3 Live data** | Signals and sample frames, wideband devices as profiles, CSV writer, CSV playback, MAF/injector/dyno collectors | All 13 Java devices either have a profile or are listed as dropped. Playback reproduces recorded sessions exactly. |
 | **M4 Editor UI** | egui app: ROM tree, N-D table widget, 3D view, compare, undo/redo | Daily-drivable for map editing on the target ROM. |
 | **M5 Logger UI** | Dashboards, gauges, charts, live overlay on tables | Daily-drivable for logging sessions. |
-| **M6 Breadth & release** | OBD, DS2, NCS (K-line and CAN), ELM327; XDF/ECUFlash import; installers and signed releases | v1.0: parity for supported hardware, release pipeline producing per-OS binaries. |
+| **M6 Breadth & release** | OBD, DS2, NCS (K-line and CAN), ELM327; XDF/ECUFlash import; installers and signed releases; native OpenPort 2.0 Link | v1.0: parity for supported hardware, release pipeline producing MSI + AppImage/.deb/.rpm/AUR/tarball, all package smoke tests green. |
 
 ## Out of scope (for now)
 

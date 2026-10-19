@@ -28,10 +28,13 @@ GitHub Actions workflows (`.github/workflows/`):
 | `release.yml` | tag `v*` / nightly schedule | `cargo-dist` builds and uploads artifacts |
 
 **Test matrix:**
-- `x86_64-unknown-linux-gnu`
-- `x86_64-pc-windows-msvc`
+- `x86_64-unknown-linux-gnu`: tier 1.
+- `x86_64-pc-windows-msvc`: tier 1.
 - `i686-pc-windows-msvc`: many vendor J2534 DLLs are 32-bit only.
-- `aarch64-apple-darwin`: best effort, since J2534 doesn't exist on macOS.
+- `aarch64-unknown-linux-gnu`: tier 2. Raspberry Pi / ARM SBC as a headless in-car logger running `romraider-cli`.
+- `aarch64-apple-darwin`: best effort.
+
+Linux builds are linked against glibc 2.28 (via `cargo-zigbuild`), so one binary runs on Ubuntu 20.04+, Debian 10+, RHEL/Alma/Rocky 8+, Fedora, Arch and Mint without rebuilding.
 
 The existing Java workflow (`.github/workflows/build.yaml`) has been retargeted at `legacy/`. It becomes `legacy.yml` in M0.
 
@@ -39,7 +42,10 @@ The existing Java workflow (`.github/workflows/build.yaml`) has been retargeted 
 
 1. Merge to the release branch with all gates green.
 2. Run T9 hardware-in-loop by hand on the bench (read-only suite at minimum) and record the result in the release notes.
-3. Tag `vX.Y.Z`. `cargo-dist` builds per-target archives and installers (MSI on Windows, tar.gz/AppImage on Linux, dmg on macOS) and publishes a GitHub Release with checksums.
+3. Tag `vX.Y.Z`. `release.yml` builds every artifact in the table below and publishes a GitHub Release with SHA-256 checksums.
+   - Windows: MSI.
+   - macOS: dmg (best effort).
+   - Linux: see "Linux Release" below.
 4. Code signing: Windows Authenticode and macOS notarization are TBD (ask: Ryan, whether a certificate is available).
 
 ### Rollback Procedure
@@ -47,6 +53,58 @@ The existing Java workflow (`.github/workflows/build.yaml`) has been retargeted 
 - Previous releases stay downloadable on GitHub Releases. Users reinstall the prior version.
 - The app never auto-updates silently. A future update check only notifies.
 - Settings and profile files carry `schema = N`. A newer version never rewrites a file in a way an older version can't read without first writing a `.bak` of the old-schema file.
+
+## Linux Release
+
+**Linux is a first-class release target, equal to Windows (D-022).** The goal: download, run, plug in the cable and it works, with no Java, no `chmod`, no editing groups, no hunting for `.so` files.
+
+### Artifacts
+
+| Artifact | For | How it's built | Notes |
+|----------|-----|----------------|-------|
+| **AppImage** (x86_64, aarch64) | Any distro, "just download and run" | `appimagetool` in `release.yml` | Primary download. Includes `.desktop` + icon. On first run, the in-app device check offers to install the udev rules (see below). |
+| **.deb** (amd64, arm64) | Debian, Ubuntu, Mint, Pop!_OS, Raspberry Pi OS | `cargo-deb` | Installs the binaries, desktop entry, icon, and the udev rules into `/usr/lib/udev/rules.d/`. Reloads udev in postinst. |
+| **.rpm** (x86_64, aarch64) | Fedora, RHEL/Alma/Rocky, openSUSE | `cargo-generate-rpm` | Same contents as the .deb |
+| **AUR `romraider-rs-bin`** | Arch, Manjaro, EndeavourOS | PKGBUILD in `packaging/aur/`, updated by the release workflow | Wraps the release tarball |
+| **tar.gz** | Everything else, power users | `cargo-dist` | Contains binaries, `install.sh` (user-local into `~/.local`, or system-wide with `--system`), udev rules, desktop file |
+| **Flatpak** | Deferred | — | The sandbox needs `--device=all` for serial and USB access, which defeats the point. Revisit if Flathub's portal story for USB improves. |
+
+Binary names:
+- `romraider-rs` is the desktop app.
+- `romraider-cli` is the headless tool. **Not** `rr`, which collides with the widely-installed Mozilla `rr` debugger on Linux.
+
+### Device access without fuss
+
+On Linux the main friction points are permissions and other daemons grabbing the adapter. We ship `packaging/linux/60-romraider.rules`:
+- **`TAG+="uaccess"`** for known adapter VID:PIDs: Tactrix OpenPort 2.0, FTDI-based K-line/VAG-COM cables, CH340/CP210x/PL2303 ELM327 clones. This grants the logged-in desktop user access via systemd-logind. **No `dialout`/`uucp` group membership and no logout/login needed.**
+- **`ENV{ID_MM_DEVICE_IGNORE}="1"`** on the same devices, so ModemManager doesn't probe `/dev/ttyACM*` / `/dev/ttyUSB*` with AT commands and corrupt the K-line session.
+- The exact VID:PID list is verified against real hardware in M2. The rules file is generated from the same adapter profiles the app uses (C1), so there's one source of truth.
+
+The in-app **device check** (also `romraider-cli doctor`) detects and explains, with the exact fix:
+- `EACCES` on the port → offers to install the udev rules via `pkexec`. AppImage and tarball users get this; packages already have them.
+- `brltty` holding a CH340/FTDI device (a common Ubuntu 22.04+ problem with cheap cables) → explains and offers the one-line fix.
+- ModemManager active on the port, adapter not enumerated, or the J2534 library missing.
+
+### Native libraries
+- No native libraries are bundled.
+- The `serialport` crate is built without libudev (`default-features = false`) and enumerates ports via sysfs, so there's no runtime libudev dependency.
+- The GUI talks to X11 and Wayland directly through eframe/winit (both enabled). It uses the `glow` (OpenGL) renderer for the widest GPU compatibility.
+- **J2534 on Linux:** the Java build ships `lib/linux/*/j2534.so`, an OpenPort 2.0 J2534 implementation over libusb. Plan (D-023): implement the OpenPort 2.0 USB protocol natively as a Rust Link (`nusb`, pure Rust, no libusb), so Linux, macOS and Windows can use an OP2 without any vendor library. Until then we load an external `j2534.so` from the paths listed in SECURITY.md.
+
+### Package smoke tests (CI)
+`release.yml` installs each package in a clean container and runs:
+- `romraider-cli --version`
+- `romraider-cli doctor --no-devices`
+- a fixture decode
+
+Containers:
+- Ubuntu 20.04 / 22.04 / 24.04
+- Debian 12
+- Fedora (latest)
+- Rocky 8
+- Arch
+
+The AppImage is smoke-tested on Ubuntu 20.04 (oldest supported glibc) and Fedora latest. A packaging regression fails the release.
 
 ## Hosting & Services
 

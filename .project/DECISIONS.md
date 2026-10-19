@@ -4,6 +4,37 @@ Newest first. Each entry has a Title, Date, Status, Context, Decision and Conseq
 
 ---
 
+## D-023: Native OpenPort 2.0 Link in Rust (investigate)
+- **Date:** 2026-10-19
+- **Status:** Proposed. Spike in M2 to confirm feasibility and licence compatibility.
+- **Context:**
+  - The Tactrix OpenPort 2.0 is the most common RomRaider cable.
+  - On Windows it needs Tactrix's J2534 DLL, often 32-bit only.
+  - On Linux the Java build ships a third-party `j2534.so` (OpenPort 2.0 over libusb) that must be found at runtime.
+  - Both are friction, and both are native code we can't test or fuzz.
+- **Decision:** Spike a pure-Rust `OpenPort2` Link using `nusb`, implementing the adapter's USB command protocol directly. Use the existing open-source Linux J2534 implementation as the reference; check its licence is GPL-2.0-or-later compatible before reading its code. If the spike succeeds, OP2 users on every OS need no vendor library. Keep the J2534 Link for other adapters.
+- **Consequences:** One fewer native dependency, and the OP2 path becomes fully traceable and testable (T4/T5). Risk: firmware differences between OP2 revisions, so HIL coverage is required before it becomes the default.
+
+## D-022: Linux is a first-class release target
+- **Date:** 2026-10-19
+- **Status:** Accepted
+- **Context:** The Java release treats Linux as an afterthought:
+  - a zip plus a `run.sh` hard-coding `lib/linux/32`
+  - a system Java on PATH
+  - bundled `.so` files
+  - users left to sort out serial permissions themselves
+- **Decision:**
+  - Every release ships AppImage, .deb, .rpm, AUR and tarball (x86_64 + aarch64), built against glibc 2.28.
+  - Packaging exists from M0 (nightly `romraider-cli`).
+  - udev rules use `uaccess` + ModemManager-ignore, generated from adapter profiles.
+  - A `doctor` device check explains and fixes `EACCES`, ModemManager and brltty problems.
+  - No bundled native libs; serialport is built without libudev.
+  - Package smoke tests run across 7 distros in CI.
+  - Binaries are `romraider-rs` / `romraider-cli` (avoiding the `rr` debugger name clash).
+- **Consequences:** More release-pipeline work up front. Linux users get a "plug in and go" experience, and aarch64 enables Raspberry Pi in-car logging.
+
+---
+
 ## D-021: Drop list: Java features not ported
 - **Date:** 2026-10-19
 - **Status:** Accepted
