@@ -9,7 +9,11 @@
 //!   another workspace crate) and for every indirect form (a re-export in
 //!   another rr-testkit module reached via `crate::` / `super::` / a glob /
 //!   transitively, `#[path]`, `include!`, `extern crate self`, an unknown
-//!   crate-level macro).
+//!   crate-level macro, `#[cfg_attr(.., path = ..)]`) and for every
+//!   Cargo-level form (rr-core under a renamed dependency key, directly, as a
+//!   dev / target dependency or through `[workspace.dependencies]`; a local
+//!   path or git crate that could re-export it). Registry dependencies stay
+//!   usable.
 //! * A clean module passes, including one that uses the real `kat` types.
 //! * The rule cannot silently cover nothing: once the module exists `required`
 //!   must be set, and then a missing (renamed) module fails.
@@ -349,6 +353,16 @@ fn planted_unseeable_source_fails() {
             "#[path = \"../shim.rs\"]\nmod x;\n",
             Kind::PathAttr,
         ),
+        (
+            "cfg-attr-path",
+            "#[cfg_attr(all(), path = \"../shim.rs\")]\nmod x;\n",
+            Kind::PathAttr,
+        ),
+        (
+            "nested-cfg-attr-path",
+            "#[cfg_attr(unix, cfg_attr(all(), path = \"../shim.rs\"))]\nmod x;\n",
+            Kind::PathAttr,
+        ),
         ("include", "include!(\"../shim.rs\");\n", Kind::Include),
         (
             "extern-self",
@@ -374,6 +388,103 @@ fn planted_unseeable_source_fails() {
             .collect();
         assert_eq!(got, std::slice::from_ref(kind), "case {name}");
     }
+}
+
+/// Cargo-level evasions: the reference module names rr-core (or a local
+/// crate that could re-export it) under a dependency key that is not a
+/// workspace crate name. `(name, root manifest extra, rr-testkit deps, source,
+/// expected kind)`.
+type CargoCase<'a> = (&'a str, &'a str, &'a str, &'a str, Kind);
+
+#[test]
+fn planted_cargo_level_evasions_fail() {
+    let cases: &[CargoCase<'_>] = &[
+        (
+            "dep-rename",
+            "",
+            "rrc = { package = \"rr-core\", path = \"../rr-core\" }\n",
+            "use rrc::encoding::Storage;\n",
+            Kind::LocalDependency("rrc".into(), "rr-core".into()),
+        ),
+        (
+            "dep-rename-dotted-dev",
+            "",
+            "[dev-dependencies.rr-enc]\npackage = \"rr-core\"\npath = \"../rr-core\"\n",
+            "#[cfg(test)]\nmod t { use rr_enc::conversion::Conv; }\n",
+            Kind::LocalDependency("rr_enc".into(), "rr-core".into()),
+        ),
+        (
+            "local-shim-crate",
+            "",
+            "shim = { path = \"../../shim\" }\n",
+            "pub use shim::encoding as enc;\n",
+            Kind::LocalDependency("shim".into(), "shim".into()),
+        ),
+        (
+            "git-dep",
+            "",
+            "enc = { git = \"https://example.invalid/r.git\", package = \"codec\" }\n",
+            "extern crate enc;\n",
+            Kind::LocalDependency("enc".into(), "codec".into()),
+        ),
+        (
+            "workspace-dep-rename",
+            "[workspace.dependencies]\nenc = { package = \"rr-core\", path = \"crates/rr-core\" }\n",
+            "enc.workspace = true\n",
+            "pub fn f() { enc::encoding::x(); }\n",
+            Kind::LocalDependency("enc".into(), "rr-core".into()),
+        ),
+        (
+            "target-dep-rename",
+            "",
+            "[target.'cfg(unix)'.dependencies]\nc = { package = \"rr-core\", path = \"../rr-core\" }\n",
+            "use c::*;\n",
+            Kind::LocalDependency("c".into(), "rr-core".into()),
+        ),
+    ];
+    for (name, root_extra, deps, src, kind) in cases {
+        let root = planted(name, &[("reference.rs", src)]).unwrap();
+        fs::write(
+            root.join("Cargo.toml"),
+            format!("[workspace]\nmembers = [\"crates/*\"]\n{root_extra}"),
+        )
+        .unwrap();
+        let deps = if deps.starts_with('[') {
+            (*deps).to_owned()
+        } else {
+            format!("[dependencies]\n{deps}")
+        };
+        fs::write(
+            root.join("crates/rr-testkit/Cargo.toml"),
+            format!("[package]\nname = \"rr-testkit\"\nversion = \"0.0.0\"\n\n{deps}"),
+        )
+        .unwrap();
+        let got: Vec<Kind> = violations(&root, &REQUIRED)
+            .into_iter()
+            .map(|f| f.kind)
+            .collect();
+        assert_eq!(got, std::slice::from_ref(kind), "case {name}");
+    }
+}
+
+/// Registry dependencies of the holding crate stay usable: a crates.io crate
+/// cannot depend on the path-only rr-core, so naming one is not an evasion.
+#[test]
+fn registry_dependency_is_allowed() {
+    let root = planted(
+        "registry-dep",
+        &[(
+            "reference.rs",
+            "pub fn f() -> bool { toml::Value::Boolean(true).is_bool() }\n",
+        )],
+    )
+    .unwrap();
+    fs::write(
+        root.join("crates/rr-testkit/Cargo.toml"),
+        "[package]\nname = \"rr-testkit\"\nversion = \"0.0.0\"\n\n[dependencies]\nrr-core = { path = \"../rr-core\" }\ntoml = \"0.8\"\nserde = { version = \"1\", features = [\"derive\"] }\n",
+    )
+    .unwrap();
+    assert_eq!(violations(&root, &REQUIRED), []);
 }
 
 /// A self-contained module passes: comments and strings naming rr_core,

@@ -3,8 +3,16 @@
 //! * Every `[[decode]]` case of every seed fixture in `fixtures/kat/*.toml`
 //!   decodes to its expected raw value (floats bit-exact), and every storage
 //!   type has at least one case.
-//! * `encode(decode(bytes))` gives back the fixture bytes, starting from a
-//!   buffer whose encoded bits are all inverted (so a no-op encode fails).
+//! * Encoding each case's *expected* raw value gives back the fixture bytes,
+//!   starting from a buffer whose encoded bits are all inverted (so a no-op
+//!   encode fails).
+//! * The seed cases cover every (storage, byte order) the reference codec
+//!   accepts plus a bitfield in each byte order (US-RR-10-2), mirroring
+//!   `seed_coverage.rs` but derived from the reference codec, not rr-core;
+//!   bosch-subtract has no seed (the fixture format cannot say where a table
+//!   ends) and is covered by the hand-calculated tables below.
+//! * Nothing on this file's path to the codec (this file, `kat`, `fixtures`)
+//!   names rr-core, so the test binary links no rr-core code.
 //! * Bitfield encode preserves the bits outside the mask.
 //! * Out-of-range values, kind mismatches and short input are errors, never
 //!   panics or silent truncation.
@@ -14,7 +22,7 @@
 //! the reference codec's own types, so the codec module itself never names
 //! `kat` (or rr-core).
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::fs;
 use std::path::PathBuf;
 
@@ -121,6 +129,25 @@ fn seed_fixtures() -> Vec<PathBuf> {
     paths
 }
 
+/// Converts a fixture's expected raw value to the reference codec's [`Raw`]
+/// for `storage`, or `None` if it does not fit that storage's kind exactly
+/// (an `f32` expected value must be exactly representable as `f32`).
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "the narrowing is checked: the f32 must widen back to the same bits"
+)]
+fn raw_of(expected: RawValue, storage: Storage) -> Option<Raw> {
+    match (expected, storage) {
+        (RawValue::Int(v), s) if !s.is_float() => Some(Raw::Int(v)),
+        (RawValue::Float(v), Storage::F64) => Some(Raw::F64(v)),
+        (RawValue::Float(v), Storage::F32) => {
+            let narrow = v as f32;
+            (f64::from(narrow).to_bits() == v.to_bits()).then_some(Raw::F32(narrow))
+        }
+        _ => None,
+    }
+}
+
 /// One runnable decode case from a seed fixture.
 struct SeedCase {
     label: String,
@@ -155,6 +182,7 @@ fn seed_cases() -> Vec<SeedCase> {
             "{name}: the fixture format has no table extent for bosch-subtract yet; \
              define it before adding such a seed fixture"
         );
+        assert!(!cases.is_empty(), "{name}: decode fixture with no cases");
         for (index, case) in cases.into_iter().enumerate() {
             out.push(SeedCase {
                 label: format!("{name} [[decode]] #{} (offset {})", index + 1, case.offset),
@@ -209,9 +237,16 @@ fn decodes_every_seed_fixture_case_for_every_storage_type() {
 }
 
 #[test]
-fn encode_of_decode_round_trips_every_seed_fixture_case() {
+fn encoding_the_expected_value_reproduces_every_seed_fixture_case() {
     for case in seed_cases() {
-        let raw = decode(&case.bytes, case.offset, &case.encoding).unwrap();
+        // The fixture's expected value, not the codec's own decode: encode is
+        // checked against the fixture on its own.
+        let raw = raw_of(case.expected, case.encoding.storage).unwrap_or_else(|| {
+            panic!(
+                "{}: expected {:?} is not a {} value",
+                case.label, case.expected, case.encoding.storage
+            )
+        });
         // Invert every bit the encoding owns, so only a real encode restores it.
         let mut scratch = case.bytes.clone();
         for (k, mask) in owned_bits(&case.encoding).into_iter().enumerate() {
@@ -222,6 +257,89 @@ fn encode_of_decode_round_trips_every_seed_fixture_case() {
             .unwrap_or_else(|e| panic!("{}: encode failed: {e}", case.label));
         assert_eq!(scratch, case.bytes, "{}: round trip differs", case.label);
     }
+}
+
+#[test]
+fn seed_cases_cover_every_storage_endian_and_bitfield_the_reference_accepts() {
+    // (storage, endian, has bitfield) of every seed decode case.
+    let seen: HashSet<(&'static str, Endian, bool)> = seed_cases()
+        .iter()
+        .map(|c| {
+            (
+                c.encoding.storage.name(),
+                c.encoding.endian,
+                c.encoding.bitfield.is_some(),
+            )
+        })
+        .collect();
+    let mut missing = Vec::new();
+    for storage in Storage::ALL {
+        for endian in [Endian::Big, Endian::Little] {
+            // The reference codec's own answer to "is this supported?"
+            // (it refuses only little-endian u20).
+            let probe = decode(&[0; 8], 0, &Encoding::new(storage, endian));
+            if matches!(probe, Err(ReferenceError::Unsupported(_))) {
+                continue;
+            }
+            assert!(probe.is_ok(), "{storage} {endian:?}: {probe:?}");
+            if !seen.contains(&(storage.name(), endian, false)) {
+                missing.push(format!("{storage} {endian:?} (plain)"));
+            }
+        }
+    }
+    for endian in [Endian::Big, Endian::Little] {
+        let covered = seen.iter().any(|&(name, e, bitfield)| {
+            bitfield
+                && e == endian
+                && Storage::ALL
+                    .iter()
+                    .any(|s| s.name() == name && s.cell_bytes() > 1)
+        });
+        if !covered {
+            missing.push(format!("bitfield on a multi-byte storage, {endian:?}"));
+        }
+    }
+    assert!(
+        missing.is_empty(),
+        "accepted by the reference codec but no seed case: {missing:?} (seen {seen:?})"
+    );
+}
+
+#[test]
+fn nothing_on_the_seed_test_path_names_the_core_crate() {
+    // Spelled in two halves so this file does not match itself.
+    let needle = concat!("rr", "_core");
+    let src = repo_root().join("crates").join("rr-testkit").join("src");
+    let mut files = vec![
+        repo_root()
+            .join("crates")
+            .join("rr-testkit")
+            .join("tests")
+            .join("reference.rs"),
+        src.join("fixtures.rs"),
+        src.join("kat.rs"),
+    ];
+    let mut dirs = vec![src.join("kat")];
+    while let Some(dir) = dirs.pop() {
+        for entry in fs::read_dir(&dir).unwrap() {
+            let path = entry.unwrap().path();
+            if path.is_dir() {
+                dirs.push(path);
+            } else if path.extension().is_some_and(|ext| ext == "rs") {
+                files.push(path);
+            }
+        }
+    }
+    let offenders: Vec<String> = files
+        .iter()
+        .filter(|path| fs::read_to_string(path).unwrap().contains(needle))
+        .map(|path| path.display().to_string())
+        .collect();
+    assert!(
+        offenders.is_empty(),
+        "the seed KAT test must not reach rr-core (the reference module itself is \
+         checked by `cargo xtask check-reference-isolation`): {offenders:?}"
+    );
 }
 
 // ---------------------------------------------------------------------------
