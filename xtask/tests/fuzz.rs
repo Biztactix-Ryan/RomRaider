@@ -22,7 +22,7 @@ use std::path::{Path, PathBuf};
 
 use xtask::fuzz::{
     self, Limits, RunOptions, SELFTEST_CASES, SELFTEST_FEATURES, SELFTEST_TARGET, evaluate,
-    limit_problems, regression_problems, replay_command, run_command,
+    limit_problems, parse_host_triple, regression_problems, replay_command, run_command,
 };
 
 fn root() -> PathBuf {
@@ -245,7 +245,7 @@ fn run_command_always_applies_the_limits_before_extra_flags() {
         extra: vec!["-timeout=99".into()],
         ..RunOptions::default()
     };
-    let cmd = run_command(r, LIMITS, "nightly", &opts);
+    let cmd = run_command(r, LIMITS, "nightly", "x86_64-unknown-linux-gnu", &opts);
     assert_eq!(cmd.get_program(), "cargo", "must be the rustup proxy");
     assert_eq!(
         args(&cmd),
@@ -253,6 +253,8 @@ fn run_command_always_applies_the_limits_before_extra_flags() {
             "+nightly",
             "fuzz",
             "run",
+            "--target",
+            "x86_64-unknown-linux-gnu",
             "--fuzz-dir",
             &p(r, "fuzz"),
             "ecu_id",
@@ -278,13 +280,21 @@ fn run_command_reproduces_inputs_with_the_limits() {
         ..RunOptions::default()
     };
     let r = Path::new("/w");
-    let a = args(&run_command(r, LIMITS, "nightly-2026-10-01", &opts));
+    let a = args(&run_command(
+        r,
+        LIMITS,
+        "nightly-2026-10-01",
+        "aarch64-unknown-linux-gnu",
+        &opts,
+    ));
     assert_eq!(
         a,
         [
             "+nightly-2026-10-01",
             "fuzz",
             "run",
+            "--target",
+            "aarch64-unknown-linux-gnu",
             "--fuzz-dir",
             &p(r, "fuzz"),
             "--features",
@@ -298,6 +308,31 @@ fn run_command_reproduces_inputs_with_the_limits() {
             "-artifact_prefix=/tmp/a/",
         ]
     );
+}
+
+/// cargo-fuzz builds for its own build triple unless told otherwise; the
+/// prebuilt one CI installs is musl, where the sanitizer cannot link
+/// (Fuzz run 39316144352). So the target is the toolchain's host, from
+/// `rustc -vV`.
+#[test]
+fn run_builds_for_the_toolchain_host_not_cargo_fuzz_s_own_triple() {
+    let vv = "rustc 1.99.0-nightly (abc 2026-10-01)\n\
+binary: rustc\n\
+commit-hash: abc\n\
+host: x86_64-unknown-linux-gnu\n\
+release: 1.99.0-nightly\n\
+LLVM version: 21.1.0\n";
+    assert_eq!(
+        parse_host_triple(vv).as_deref(),
+        Some("x86_64-unknown-linux-gnu")
+    );
+    assert_eq!(
+        parse_host_triple("host:  aarch64-apple-darwin\r\n").as_deref(),
+        Some("aarch64-apple-darwin")
+    );
+    assert_eq!(parse_host_triple("binary: rustc\nhost:\n"), None);
+    assert_eq!(parse_host_triple(""), None);
+    assert_eq!(parse_host_triple("hostname: x\n"), None);
 }
 
 #[test]

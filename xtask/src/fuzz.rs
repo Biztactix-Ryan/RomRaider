@@ -469,6 +469,46 @@ pub fn toolchain() -> String {
         .unwrap_or_else(|| DEFAULT_TOOLCHAIN.to_owned())
 }
 
+/// The `host:` triple of `rustc -vV` output.
+#[must_use]
+pub fn parse_host_triple(verbose_version: &str) -> Option<String> {
+    verbose_version
+        .lines()
+        .find_map(|l| l.strip_prefix("host:"))
+        .map(str::trim)
+        .filter(|t| !t.is_empty())
+        .map(str::to_owned)
+}
+
+/// The host triple of `toolchain` (`rustc +<toolchain> -vV`), which
+/// [`run_command`] builds the fuzz crate for.
+///
+/// cargo-fuzz otherwise builds for the triple cargo-fuzz itself was compiled
+/// for. The prebuilt cargo-fuzz CI installs is
+/// `x86_64-unknown-linux-musl`, where the sanitizer cannot link
+/// ("sanitizer is incompatible with statically linked libc"), so without an
+/// explicit `--target` the nightly job never got to fuzz.
+///
+/// # Errors
+///
+/// Fails if rustc cannot be run for `toolchain` or prints no host triple.
+pub fn host_triple(toolchain: &str) -> Result<String> {
+    let o = Command::new("rustc")
+        .env_remove("RUSTUP_TOOLCHAIN")
+        .arg(format!("+{toolchain}"))
+        .arg("-vV")
+        .output()
+        .with_context(|| format!("cannot run `rustc +{toolchain} -vV` (is rustup on PATH?)"))?;
+    let text = String::from_utf8_lossy(&o.stdout);
+    match parse_host_triple(&text) {
+        Some(t) if o.status.success() => Ok(t),
+        _ => anyhow::bail!(
+            "`rustc +{toolchain} -vV` gave no host triple (is the toolchain installed?): {}",
+            String::from_utf8_lossy(&o.stderr).trim()
+        ),
+    }
+}
+
 /// The growing (uncommitted, CI-cached) corpus directory of `target`.
 #[must_use]
 pub fn corpus_dir(root: &Path, target: &str) -> PathBuf {
@@ -481,20 +521,27 @@ pub fn seeds_dir(root: &Path, target: &str) -> PathBuf {
     root.join(FUZZ_DIR).join("seeds").join(target)
 }
 
-/// The `cargo +<toolchain> fuzz run` invocation for `opts` with `limits`
-/// always applied. When fuzzing (no `inputs`), the corpus is
+/// The `cargo +<toolchain> fuzz run --target <triple>` invocation for `opts`
+/// with `limits` always applied; `triple` is the toolchain's host
+/// ([`host_triple`]), never cargo-fuzz's own build triple. When fuzzing (no `inputs`), the corpus is
 /// [`corpus_dir`] (written) plus [`seeds_dir`] (read); the caller creates
 /// the corpus directory ([`run`] does).
 ///
 /// `cargo` is the rustup proxy from `PATH`, not `$CARGO` (which, under
 /// `cargo xtask`, is the stable toolchain's own cargo and ignores `+nightly`).
 #[must_use]
-pub fn run_command(root: &Path, limits: Limits, toolchain: &str, opts: &RunOptions) -> Command {
+pub fn run_command(
+    root: &Path,
+    limits: Limits,
+    toolchain: &str,
+    triple: &str,
+    opts: &RunOptions,
+) -> Command {
     let mut cmd = Command::new("cargo");
     cmd.env_remove("RUSTUP_TOOLCHAIN")
         .current_dir(root)
         .arg(format!("+{toolchain}"))
-        .args(["fuzz", "run", "--fuzz-dir"])
+        .args(["fuzz", "run", "--target", triple, "--fuzz-dir"])
         .arg(root.join(FUZZ_DIR));
     if !opts.features.is_empty() {
         cmd.arg("--features").arg(opts.features.join(","));
@@ -525,8 +572,8 @@ pub fn run_command(root: &Path, limits: Limits, toolchain: &str, opts: &RunOptio
 /// # Errors
 ///
 /// Fails if the manifest cannot be read, its limits are missing or out of
-/// range, `opts.target` is not a target, or the corpus directory cannot be
-/// created.
+/// range, `opts.target` is not a target, the toolchain's host triple
+/// cannot be determined, or the corpus directory cannot be created.
 pub fn run(root: &Path, opts: &RunOptions) -> Result<Command> {
     let m = load(root)?;
     let problems = limit_problems(m.limits);
@@ -545,7 +592,9 @@ pub fn run(root: &Path, opts: &RunOptions) -> Result<Command> {
         let dir = corpus_dir(root, &opts.target);
         fs::create_dir_all(&dir).with_context(|| format!("creating {}", dir.display()))?;
     }
-    Ok(run_command(root, limits, &toolchain(), opts))
+    let toolchain = toolchain();
+    let triple = host_triple(&toolchain)?;
+    Ok(run_command(root, limits, &toolchain, &triple, opts))
 }
 
 /// One selftest case: run the `toy` target once on `input` with every

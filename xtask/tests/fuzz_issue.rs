@@ -223,11 +223,17 @@ fn plan_opens_a_new_issue_or_comments_on_the_open_one() {
     };
     let body_dir = Path::new("bodies");
     let title = issue_title("toy", &[]);
+    // `gh` gets the body file as the OS spells the path (`bodies\toy.md` on
+    // Windows), the same path the body is written to; a literal
+    // `bodies/toy.md` here failed both Windows legs of CI.
+    let body_path = body_dir.join("toy.md");
+    let body_arg = body_path.to_str().unwrap();
+    assert!(body_arg.starts_with("bodies") && body_arg.ends_with("toy.md"));
 
     let new = plan(&failures, &ctx, "[]", body_dir).unwrap();
     assert_eq!(new.len(), 1);
     assert_eq!(new[0].existing, None);
-    assert_eq!(new[0].body_file, body_dir.join("toy.md"));
+    assert_eq!(new[0].body_file, body_path);
     assert_eq!(
         new[0].call.args,
         [
@@ -238,7 +244,7 @@ fn plan_opens_a_new_issue_or_comments_on_the_open_one() {
             "--label",
             LABEL,
             "--body-file",
-            "bodies/toy.md"
+            body_arg
         ]
     );
     assert!(new[0].body.contains("### Reproduce and fix"));
@@ -248,7 +254,7 @@ fn plan_opens_a_new_issue_or_comments_on_the_open_one() {
     assert_eq!(again[0].existing, Some(5));
     assert_eq!(
         again[0].call.args,
-        ["issue", "comment", "5", "--body-file", "bodies/toy.md"]
+        ["issue", "comment", "5", "--body-file", body_arg]
     );
     assert!(again[0].body.contains("failing again"));
     assert!(!again[0].body.contains("### Reproduce and fix"));

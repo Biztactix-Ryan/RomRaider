@@ -51,6 +51,13 @@ The workspace itself stays on the stable toolchain from `rust-toolchain.toml`;
 only cargo-fuzz runs on nightly. Set `RR_FUZZ_TOOLCHAIN=nightly-YYYY-MM-DD` to
 pin a dated nightly.
 
+`cargo xtask fuzz run` always passes `--target <host>` (the `host:` of
+`rustc +nightly -vV`). Without it cargo-fuzz builds for the triple it was
+itself compiled for, and the prebuilt cargo-fuzz (what `cargo binstall` and
+CI install) is `x86_64-unknown-linux-musl`, where the sanitizer cannot link
+("sanitizer is incompatible with statically linked libc"). Calling `cargo
+fuzz` directly with a prebuilt cargo-fuzz needs the same `--target`.
+
 ## Running
 
 Always go through the wrapper, which applies the limits (below):
