@@ -4,6 +4,25 @@ Newest first. Each entry has a Title, Date, Status, Context, Decision and Conseq
 
 ---
 
+## D-024: No Java in the project, including tests and tooling
+- **Date:** 2026-10-19
+- **Status:** Accepted. Supersedes the "Java build as oracle" parts of D-001 and D-003.
+- **Context:**
+  - The original plan used a Java fixture recorder in the repo and a Java build in CI to produce golden outputs.
+  - The project's purpose is to leave Java behind.
+  - "Matches Java" is also a weak oracle, because the Java code has known bugs (the Must-Fix ledger).
+- **Decision:**
+  - No Java code is written, built or run by the project: no recorder, no Java CI, no JDK prerequisite.
+  - `legacy/` is read-only reference source.
+  - Correctness comes from Java-free oracles: hand-checked known-answer fixtures with stated sources; an independent naive reference encoder/decoder in `rr-testkit` that generates synthetic ROMs; stock-ROM checksum invariants; published standard vectors; real car traces captured by our own tooling; agreement between independent definition sources.
+  - A developer may run the Java app by hand in a temp directory to compare outputs. That is never committed or gated on.
+- **Consequences:**
+  - The toolchain is Rust only.
+  - Fixtures cost more effort up front (hand-checking, stated sources) but don't inherit Java's bugs.
+  - The private stock-ROM corpus becomes more important, because it is the ground truth for checksums.
+
+---
+
 ## D-023: Native OpenPort 2.0 Link in Rust (investigate)
 - **Date:** 2026-10-19
 - **Status:** Proposed. Spike in M2 to confirm feasibility and licence compatibility.
@@ -164,7 +183,7 @@ Newest first. Each entry has a Title, Date, Status, Context, Decision and Conseq
   - A small Pratt parser in `rr-core::expr` implements the JEP subset used by real definitions (verified against the fixture corpus), plus native bit operators and `[param:unit]` refs.
   - Formulas are parsed once at load into a typed AST.
   - The Conversion enum recognises linear forms for exact inverses.
-- **Consequences:** We own the parser, which gets fuzzed and mutation-tested. Exact compatibility is proven by T2 fixtures.
+- **Consequences:** We own the parser, which gets fuzzed and mutation-tested. Compatibility is proven by known-answer fixtures built from formulas in real definitions.
 
 ## D-007: One N-D Table type
 - **Date:** 2026-10-19
@@ -200,7 +219,7 @@ Newest first. Each entry has a Title, Date, Status, Context, Decision and Conseq
   - Rules may only change timing, framing, batching and retries, never message semantics. The escape hatch is a named hook.
 - **Consequences:** Protocol codecs stay tiny and free of special cases. Supporting a new ECU or cable is a profile file.
 
-## D-003: Fixture-first, multi-tier testing with the Java build as oracle
+## D-003: Fixture-first, multi-tier testing
 - **Date:** 2026-10-19
 - **Status:** Accepted
 - **Context:**
@@ -208,11 +227,11 @@ Newest first. Each entry has a Title, Date, Status, Context, Decision and Conseq
   - There are no sample ROMs, no definitions beyond two tiny ones, and no captured traffic.
 - **Decision:**
   - Testing infrastructure is built in M0, before feature code.
-  - A Java fixture recorder (`tools/fixture-recorder`) runs against `legacy/` to emit golden JSON.
+  - Expected values come from Java-free oracles (D-024): hand-checked known-answer fixtures, an independent reference decoder, stock-ROM invariants, standard test vectors, real traces and cross-source agreement.
   - Tiers T0–T10 (PROJECT.md): unit, property, differential, fuzz, replay, simulator, safety invariants, mutation, coverage, HIL, UI smoke.
   - Coverage ≥ 90% and zero surviving mutants in safety-critical modules.
   - Every Must-Fix and Edge-Case entry names its proving test.
-- **Consequences:** M0 is slower to show visible progress. Every later milestone is checkable. Intentional behaviour differences are explicit, ledger-linked fixture overrides.
+- **Consequences:** M0 is slower to show visible progress. Every later milestone is checkable. Where we deliberately differ from legacy behaviour, the Must-Fix ledger records why.
 
 ## D-002: Unified concept catalogue: minimise distinct structures
 - **Date:** 2026-10-19
@@ -223,7 +242,7 @@ Newest first. Each entry has a Title, Date, Status, Context, Decision and Conseq
 - **Decision:** ARCHITECTURE.md defines concepts C1–C16. Cross-crate types must use an existing concept. A new concept needs a DECISIONS entry explaining why none fits, plus a catalogue row. Reviews check this.
 - **Consequences:** Estimated ~12–15k LOC of Rust logic versus 75k of Java. Learning a dozen concepts unlocks the whole codebase. There is some upfront design cost to get the concepts general enough.
 
-## D-001: Rewrite in Rust inside the fork; Java moved to `legacy/` as oracle
+## D-001: Rewrite in Rust inside the fork; Java moved to `legacy/` as read-only reference
 - **Date:** 2026-10-19
 - **Status:** Accepted
 - **Context:**
@@ -234,10 +253,10 @@ Newest first. Each entry has a Title, Date, Status, Context, Decision and Conseq
   - Ground-up Rust rewrite in the fork `Biztactix-Ryan/RomRaider`, on branch `rust-rewrite`.
   - The Java tree moves unchanged into `legacy/` (via `git mv`, history preserved).
   - Eclipse metadata (`.project`, `.classpath`) is deleted; `.project/` now holds the ProjectMan store.
-  - The Java CI workflow is retargeted at `legacy/`.
+  - The Java CI workflow is removed (D-024).
   - The Cargo workspace lives at the repo root.
   - Upstream Java fixes are merged from the `upstream` remote; rename detection maps them into `legacy/`.
-- **Consequences:** The oracle stays buildable in-tree for fixture recording, and the root is clean for Rust. Upstream merges touching moved files rely on rename detection; occasional manual conflict resolution is expected.
+- **Consequences:** The Java source stays available as reference reading, and the root is clean for Rust. Upstream merges touching moved files rely on rename detection; occasional manual conflict resolution is expected.
 
 ---
 *Last reviewed: 2026-10-19*

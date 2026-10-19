@@ -21,7 +21,7 @@ See ARCHITECTURE.md for the concept catalogue (C1–C16) and the crate map. This
   - Concurrency: `crossbeam-channel`
   - Platform: `directories`, `clap` (cli), `csv`
   - Formula parser: in-house Pratt parser (JEP-compatible), no external crate.
-- **Oracle**: Java RomRaider in `legacy/` (Ant build, JDK 8). It is only needed to *record* fixtures, never to build or test the Rust code.
+- **No Java** anywhere in the build, tests, tooling or CI (D-024). `legacy/` is read-only reference source.
 
 ### Components
 
@@ -37,10 +37,10 @@ See ARCHITECTURE.md for the concept catalogue (C1–C16) and the crate map. This
 | `crates/rr-cli` | Headless tool and integration-test surface |
 | `crates/rr-app` | Desktop app (editor + logger) |
 | `packaging/` | Linux packaging: udev rules (generated from adapter profiles), `.desktop` file, icons, AppImage recipe, AUR PKGBUILD, `install.sh`; Windows MSI config |
-| `tools/fixture-recorder` | Small Java harness compiled against `legacy/`. It dumps decoded tables, resolved definitions and checksum results as JSON fixtures. |
+| `fixtures/kat` | Hand-authored known-answer fixtures (TOML), each expected value with a stated source |
 | `fixtures/public` | Committed synthetic ROMs, definitions, traces and golden outputs (no proprietary firmware) |
 | `fixtures/private` | Git-ignored. Real ROMs and traces, path set by `RR_FIXTURES_DIR` |
-| `legacy/` | Original Java RomRaider, unmodified apart from the move (oracle) |
+| `legacy/` | Original Java RomRaider: read-only reference, never built or run by the project |
 
 ### Data Flow
 
@@ -66,7 +66,7 @@ SampleFrame ──bounded channel──▶ UI | CSV writer | Collectors | table 
 ## Key Decisions
 
 Full log in DECISIONS.md. Headline decisions:
-- Rewrite in Rust, Java kept in `legacy/` as oracle — 2026-10-19
+- Rewrite in Rust; Java kept in `legacy/` as read-only reference; no Java in tooling or tests — 2026-10-19
 - Unified concept catalogue; a new concept requires a decision entry — 2026-10-19
 - Fixture-first, multi-tier testing with mutation and coverage gates — 2026-10-19
 - Quirks and timing as layered data (Rules), not code — 2026-10-19
@@ -104,7 +104,6 @@ Dropped Java dependencies:
 - Rust via rustup (toolchain auto-selected by `rust-toolchain.toml`).
 - Linux: nothing extra for the core (serialport is built without libudev). The GUI needs the usual X11/Wayland and OpenGL dev headers (`libxkbcommon-dev`, `libwayland-dev`, `libgl1-mesa-dev` on Debian/Ubuntu). Packaging tools (`cargo-deb`, `cargo-generate-rpm`, `cargo-zigbuild`, `appimagetool`) are only needed to build release artifacts.
 - Optional:
-  - JDK 8+ and Ant: only to re-record oracle fixtures
   - `cargo-nextest`, `cargo-llvm-cov`, `cargo-mutants`, `cargo-fuzz` (nightly)
 
 **Commands:**
@@ -115,7 +114,7 @@ cargo insta review                    # review snapshot changes
 cargo llvm-cov nextest                # coverage
 cargo mutants -p rr-core -p rr-rom    # mutation testing (safety crates)
 cargo +nightly fuzz run <target>      # fuzz a reader/parser
-cargo xtask record-fixtures           # rebuild legacy/ and re-run the Java recorder
+cargo xtask gen-synthetic             # regenerate synthetic ROMs from the reference encoder
 ```
 
 **Env vars** (names only):
@@ -132,7 +131,7 @@ Ten tests on software that can brick an ECU is unacceptable. Testing is a first-
 |------|------|---------|-----------|------|
 | **T0 Unit** | Behaviour of each function and type | `#[test]`, nextest | All crates | Must pass |
 | **T1 Property** | Invariants over generated inputs: Encoding round-trip for every storage/endian/bitfield combination; Conversion `to_raw(to_real(x)) == x` within tolerance where invertible, error where not; Resolver idempotence, cycle detection, omit semantics; Patch journal undo∘redo = identity; Framing split/join | `proptest` | rr-core, rr-rom, rr-comms | Must pass |
-| **T2 Differential (oracle)** | Rust output equals Java output for: decoded tables (raw + real) per ROM × definition, resolved definition trees, checksum validate/update before/after, XDF conversion, logger param conversions | Java `fixture-recorder` → JSON; `insta` snapshots | rr-defs, rr-rom, rr-live | 100% match, or the difference is listed in the Must-Fix ledger below with the fixture marked `intentional_diff = "MF-xx"` |
+| **T2 Known-answer & invariants** | Expected values from **Java-free oracles** (D-024): (a) hand-checked KAT fixtures, each with a stated source; (b) an independent, deliberately naive reference encoder/decoder in rr-testkit that shares no code with rr-core and generates synthetic ROMs from known values; (c) stock-ROM invariants: every stock ROM verifies, fix-checksums is a no-op, a byte flip fails verify, and re-fixing changes only checksum bytes; (d) published standard vectors (SAE J1979 PIDs, ISO 9141/14230/15765 timing, checksum and CRC reference vectors); (e) cross-source agreement, e.g. RomRaider XML vs XDF for the same ROM; (f) real car traces | `rr-testkit` KAT loader, `insta` snapshots, private corpus | rr-core, rr-defs, rr-rom, rr-comms, rr-live | Must pass. A deliberate departure from legacy behaviour is recorded in the Must-Fix ledger. |
 | **T3 Fuzz** | No panic, hang or unbounded allocation on hostile input | `cargo-fuzz` targets: ECU XML, logger XML, XDF, TOML profiles, expr parser, every Framing, every protocol response parser, `.rrtrace` reader | rr-defs, rr-core, rr-comms, rr-link | Nightly CI job for 10 min per target; crashes become regression tests |
 | **T4 Replay** | Recorded `.rrtrace` sessions replayed through the engine on a VirtualClock. Asserts the same requests, the same decoded SampleFrames and the same quirk applications at the same virtual times. | Replay Link + VirtualClock | rr-comms, rr-live | Must pass. Every bug found on a real car adds a trace. |
 | **T5 Simulator** | Protocol codecs run in reverse as a simulated ECU serving a ROM/RAM image. Fault injection uses the quirk Rule engine: dropped/late/corrupt bytes, missing echo, ECU going silent, baud change, partial frames, adapter unplug. | Sim Link + Rules + VirtualClock | rr-comms, rr-live | Must pass. Every protocol × fault matrix entry is covered. |
@@ -145,7 +144,8 @@ Ten tests on software that can brick an ECU is unacceptable. Testing is a first-
 **Rules:**
 - Every Must-Fix and Edge-Case entry below names the test that proves it. An entry is not closed until that test exists and passes.
 - A bug report gets a failing test (or a trace/fixture) before it gets a fix.
-- Fixtures record the Java commit they came from (`legacy` @ `dafe0c36`). Re-recording is a reviewed PR.
+- Every expected value in a fixture states its source. Changing an expected value is a reviewed PR that explains why the old value was wrong.
+- Comparing against the Java app is allowed only as an ad-hoc, manual check in a temp directory. Nothing from it is committed or gated on.
 - Public CI uses only synthetic ROMs. Real ROMs live in the private corpus (see SECURITY.md).
 
 ## Must-Fix Bugs (from the Java codebase)

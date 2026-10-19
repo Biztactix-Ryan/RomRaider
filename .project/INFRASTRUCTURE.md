@@ -24,7 +24,7 @@ GitHub Actions workflows (`.github/workflows/`):
 | `coverage.yml` | push to main, PR | `cargo-llvm-cov`; fails if rr-core/rr-rom/rr-comms < 90% or a PR regresses coverage |
 | `mutants.yml` | PR touching gated modules (incremental `--in-diff`); weekly full run | `cargo-mutants` on encoding, expr, journal, checksum, write gating; 0 survivors |
 | `fuzz.yml` | nightly | Each `cargo-fuzz` target for 10 min; corpus cached; crashes opened as issues |
-| `legacy.yml` | push touching `legacy/` or `tools/fixture-recorder/` | Ant build of the Java oracle (`working-directory: legacy`); recorder compiles; re-recorded fixtures must match committed ones |
+| `fixtures.yml` | push touching `fixtures/` or `rr-testkit` | KAT schema validation; every expected value has a source; synthetic ROMs regenerate byte-identically; ROM-leak guard |
 | `release.yml` | tag `v*` / nightly schedule | `cargo-dist` builds and uploads artifacts |
 
 **Test matrix:**
@@ -36,7 +36,7 @@ GitHub Actions workflows (`.github/workflows/`):
 
 Linux builds are linked against glibc 2.28 (via `cargo-zigbuild`), so one binary runs on Ubuntu 20.04+, Debian 10+, RHEL/Alma/Rocky 8+, Fedora, Arch and Mint without rebuilding.
 
-The existing Java workflow (`.github/workflows/build.yaml`) has been retargeted at `legacy/`. It becomes `legacy.yml` in M0.
+The upstream Java CI workflow has been removed. No Java runs in CI (D-024).
 
 ### Deployment Process
 
@@ -111,7 +111,7 @@ The AppImage is smoke-tested on Ubuntu 20.04 (oldest supported glibc) and Fedora
 - **Source and CI:** GitHub (fork `Biztactix-Ryan/RomRaider`, branch `rust-rewrite`).
 - **Distribution:** GitHub Releases.
 - **Private fixture corpus:** real ROMs and car traces, stored outside the public repo. Location TBD (ask: Ryan; options are a private repo with Git LFS or a Biztactix file share). Mounted locally via `RR_FIXTURES_DIR`.
-- **Upstream sync:** `git fetch upstream && git merge upstream/master` lands Java changes. Git rename detection maps them into `legacy/`. Re-record fixtures if the oracle's behaviour changed.
+- **Upstream sync:** `git fetch upstream && git merge upstream/master` lands Java changes. Git rename detection maps them into `legacy/`. Treat upstream Java fixes as potential bug reports: if one changes behaviour we rely on, add or update a known-answer fixture.
 
 ## Monitoring & Alerting
 
@@ -130,7 +130,6 @@ The AppImage is smoke-tested on Ubuntu 20.04 (oldest supported glibc) and Fedora
 | `RR_HIL_J2534` | No | J2534 library name/path for HIL tests |
 | `RR_HIL_ALLOW_WRITE` | No | Must be set (and on a bench ECU only) to run write-path HIL tests |
 | `RR_J2534_LIB` | No | Overrides registry-based J2534 DLL discovery at runtime |
-| `JAVA_HOME` | Recorder only | JDK for building `legacy/` and running the fixture recorder |
 
 ## Backup & Recovery
 
