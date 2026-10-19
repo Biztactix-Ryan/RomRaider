@@ -1,0 +1,20 @@
+---
+archived: false
+assignee: null
+claimed_at: null
+claimed_by_run: null
+created: '2026-10-19'
+depends_on: []
+id: US-RR-31-4
+points: null
+status: todo
+story_id: US-RR-31
+tags: []
+title: 'Test: There is no public API that mutates image bytes without producing a
+  patch - enforced by module visibility and a...'
+updated: '2026-10-19'
+---
+
+Verify acceptance criterion for story US-RR-31:
+
+> There is no public API that mutates image bytes without producing a patch - enforced by module visibility and a compile-fail test

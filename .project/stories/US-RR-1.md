@@ -11,7 +11,7 @@ created: '2026-10-19'
 depends_on: []
 epic_id: EPIC-RR-1
 id: US-RR-1
-points: null
+points: 3
 priority: must
 status: backlog
 tags:
