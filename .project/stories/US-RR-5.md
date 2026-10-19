@@ -14,14 +14,14 @@ epic_id: EPIC-RR-1
 id: US-RR-5
 points: 3
 priority: must
-status: active
+status: done
 tags:
 - m0
 - testing
 - fuzz
 - security
 title: Fuzz infrastructure
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 As a maintainer, I want a fuzzing harness that every reader/parser plugs into, so that hostile definition packs, ROMs, traces and device streams can't crash or hang the app.

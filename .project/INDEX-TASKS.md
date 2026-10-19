@@ -368,8 +368,8 @@
 | [US-RR-49-5](tasks/US-RR-49-5.md) | Add PE architecture check and signing-status release notes | ⚪ todo | 1 |  | — | — | [US-RR-49](stories/US-RR-49.md) |
 | [US-RR-5-1](tasks/US-RR-5-1.md) | Test: A template fuzz target runs locally with cargo +nightly fuzz run and in the nightly workflow | ✅ done | 1 |  | — | US-RR-5-5, US-RR-5-6 | [US-RR-5](stories/US-RR-5.md) |
 | [US-RR-5-2](tasks/US-RR-5-2.md) | Test: A planted panic in a toy target is found by the nightly job and auto-filed as an issue | ✅ done | 3 |  | claude | US-RR-5-6 | [US-RR-5](stories/US-RR-5.md) |
-| [US-RR-5-3](tasks/US-RR-5-3.md) | Test: Committed crash inputs run as ordinary regression tests in ci.yml without nightly | ⚪ todo | 1 |  | — | US-RR-5-7 | [US-RR-5](stories/US-RR-5.md) |
-| [US-RR-5-4](tasks/US-RR-5-4.md) | Test: Fuzz targets enforce a per-input time and memory limit so hangs and unbounded allocation count as failures | ⚪ todo | 1 |  | — | US-RR-5-5 | [US-RR-5](stories/US-RR-5.md) |
+| [US-RR-5-3](tasks/US-RR-5-3.md) | Test: Committed crash inputs run as ordinary regression tests in ci.yml without nightly | ✅ done | 1 |  | claude | US-RR-5-7 | [US-RR-5](stories/US-RR-5.md) |
+| [US-RR-5-4](tasks/US-RR-5-4.md) | Test: Fuzz targets enforce a per-input time and memory limit so hangs and unbounded allocation count as failures | ✅ done | 1 |  | claude | US-RR-5-5 | [US-RR-5](stories/US-RR-5.md) |
 | [US-RR-5-5](tasks/US-RR-5-5.md) | Create fuzz crate with template target and docs | ✅ done | 2 |  | claude | — | [US-RR-5](stories/US-RR-5.md) |
 | [US-RR-5-6](tasks/US-RR-5-6.md) | Add nightly fuzz.yml with corpus cache and issue filing | ✅ done | 3 |  | claude | US-RR-5-5 | [US-RR-5](stories/US-RR-5.md) |
 | [US-RR-5-7](tasks/US-RR-5-7.md) | Run committed crash inputs as regression tests | ✅ done | 2 |  | claude | US-RR-5-5 | [US-RR-5](stories/US-RR-5.md) |

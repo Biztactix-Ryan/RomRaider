@@ -389,7 +389,7 @@ entries:
 - id: US-RR-4
   title: Coverage and mutation gates
   type: story
-  status: active
+  status: done
   archived: false
   points: 5
   story_id: null
@@ -488,7 +488,7 @@ entries:
 - id: US-RR-5
   title: Fuzz infrastructure
   type: story
-  status: active
+  status: done
   archived: false
   points: 3
   story_id: null
@@ -4253,7 +4253,7 @@ entries:
   title: 'Test: Committed crash inputs run as ordinary regression tests in ci.yml
     without nightly'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-5
@@ -4263,7 +4263,7 @@ entries:
   title: 'Test: Fuzz targets enforce a per-input time and memory limit so hangs and
     unbounded allocation count as failures'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-5
@@ -6491,7 +6491,7 @@ entries:
   epic_id: null
   tags: []
 total_points: 1286
-completed_points: 205
+completed_points: 215
 story_count: 78
 task_count: 604
 epic_count: 10

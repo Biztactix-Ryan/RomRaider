@@ -14,7 +14,7 @@ epic_id: EPIC-RR-1
 id: US-RR-4
 points: 5
 priority: must
-status: active
+status: done
 tags:
 - m0
 - testing
@@ -22,7 +22,7 @@ tags:
 - coverage
 - safety
 title: Coverage and mutation gates
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 As a maintainer, I want coverage and mutation testing enforced on the safety-critical crates, so that tests prove they actually catch broken logic instead of just running it.
