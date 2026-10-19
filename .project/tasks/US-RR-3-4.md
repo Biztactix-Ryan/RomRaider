@@ -1,14 +1,14 @@
 ---
 archived: false
-assignee: null
-claimed_at: null
-claimed_by_run: null
+assignee: claude
+claimed_at: '2026-10-19T09:29:19.365891+00:00'
+claimed_by_run: orch-2026-10-19-acf8
 created: '2026-10-19'
 depends_on:
 - US-RR-3-7
 id: US-RR-3-4
-points: null
-status: todo
+points: 1
+status: done
 story_id: US-RR-3
 tags: []
 title: 'Test: The lint configuration is documented in CONTRIBUTING with the reason

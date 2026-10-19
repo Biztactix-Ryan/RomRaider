@@ -15,7 +15,7 @@ epic_id: EPIC-RR-1
 id: US-RR-8
 points: 2
 priority: must
-status: backlog
+status: active
 tags:
 - m0
 - process

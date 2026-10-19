@@ -7,7 +7,7 @@ created: '2026-10-19'
 depends_on:
 - US-RR-8-7
 id: US-RR-8-2
-points: null
+points: 2
 status: todo
 story_id: US-RR-8
 tags: []

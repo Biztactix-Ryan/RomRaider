@@ -2,13 +2,13 @@
 
 | ID | Title | Status | Points | Tags | Assignee | Depends On | Story |
 | -- | ----- | ------ | ------ | ---- | -------- | ---------- | ----- |
-| [US-RR-1-1](tasks/US-RR-1-1.md) | Test: cargo build --workspace and cargo nextest run succeed on a clean checkout with the pinned toolchain | ⚪ todo | — |  | — | US-RR-1-5, US-RR-1-6 | [US-RR-1](stories/US-RR-1.md) |
-| [US-RR-1-2](tasks/US-RR-1-2.md) | Test: A test reading cargo metadata fails if rr-core depends on any workspace crate or on an OS/IO crate (serialport,... | ⚪ todo | — |  | — | US-RR-1-7 | [US-RR-1](stories/US-RR-1.md) |
-| [US-RR-1-3](tasks/US-RR-1-3.md) | Test: A test fails if any crate other than rr-link, rr-cli or rr-app depends on serialport, libloading, nusb or winreg | ⚪ todo | — |  | — | US-RR-1-7 | [US-RR-1](stories/US-RR-1.md) |
-| [US-RR-1-4](tasks/US-RR-1-4.md) | Test: Binary names are romraider-rs and romraider-cli (not rr) and both print --version | ⚪ todo | — |  | — | US-RR-1-6 | [US-RR-1](stories/US-RR-1.md) |
-| [US-RR-1-5](tasks/US-RR-1-5.md) | Scaffold Cargo workspace and crates | ⚪ todo | 3 |  | — | — | [US-RR-1](stories/US-RR-1.md) |
-| [US-RR-1-6](tasks/US-RR-1-6.md) | Add romraider-cli and romraider-rs binary stubs with --version | ⚪ todo | 1 |  | — | US-RR-1-5 | [US-RR-1](stories/US-RR-1.md) |
-| [US-RR-1-7](tasks/US-RR-1-7.md) | Implement dependency-rule checker test | ⚪ todo | 3 |  | — | US-RR-1-5 | [US-RR-1](stories/US-RR-1.md) |
+| [US-RR-1-1](tasks/US-RR-1-1.md) | Test: cargo build --workspace and cargo nextest run succeed on a clean checkout with the pinned toolchain | ✅ done | 1 |  | claude | US-RR-1-5, US-RR-1-6 | [US-RR-1](stories/US-RR-1.md) |
+| [US-RR-1-2](tasks/US-RR-1-2.md) | Test: A test reading cargo metadata fails if rr-core depends on any workspace crate or on an OS/IO crate (serialport,... | ✅ done | 1 |  | claude | US-RR-1-7 | [US-RR-1](stories/US-RR-1.md) |
+| [US-RR-1-3](tasks/US-RR-1-3.md) | Test: A test fails if any crate other than rr-link, rr-cli or rr-app depends on serialport, libloading, nusb or winreg | ✅ done | 1 |  | claude | US-RR-1-7 | [US-RR-1](stories/US-RR-1.md) |
+| [US-RR-1-4](tasks/US-RR-1-4.md) | Test: Binary names are romraider-rs and romraider-cli (not rr) and both print --version | ✅ done | 1 |  | claude | US-RR-1-6 | [US-RR-1](stories/US-RR-1.md) |
+| [US-RR-1-5](tasks/US-RR-1-5.md) | Scaffold Cargo workspace and crates | ✅ done | 3 |  | claude | — | [US-RR-1](stories/US-RR-1.md) |
+| [US-RR-1-6](tasks/US-RR-1-6.md) | Add romraider-cli and romraider-rs binary stubs with --version | ✅ done | 1 |  | claude | US-RR-1-5 | [US-RR-1](stories/US-RR-1.md) |
+| [US-RR-1-7](tasks/US-RR-1-7.md) | Implement dependency-rule checker test | ✅ done | 3 |  | claude | US-RR-1-5 | [US-RR-1](stories/US-RR-1.md) |
 | [US-RR-10-1](tasks/US-RR-10-1.md) | Test: The dependency-rule test fails if the reference codec module imports anything from rr-core encoding or conversion | ⚪ todo | — |  | — | US-RR-10-8 | [US-RR-10](stories/US-RR-10.md) |
 | [US-RR-10-2](tasks/US-RR-10-2.md) | Test: The reference codec passes the seed known-answer fixtures for every storage type independently of rr-core | ⚪ todo | — |  | — | US-RR-10-5 | [US-RR-10](stories/US-RR-10.md) |
 | [US-RR-10-3](tasks/US-RR-10-3.md) | Test: gen-synthetic output is byte-identical across runs and platforms (CI compares hashes on Linux and Windows) | ⚪ todo | — |  | — | US-RR-10-7 | [US-RR-10](stories/US-RR-10.md) |
@@ -67,13 +67,13 @@
 | [US-RR-17-4](tasks/US-RR-17-4.md) | Implement Diagnostic, Severity and Provenance types | ⚪ todo | 2 |  | — | — | [US-RR-17](stories/US-RR-17.md) |
 | [US-RR-17-5](tasks/US-RR-17-5.md) | Implement Diagnostics collector and fail-closed Loaded<T> | ⚪ todo | 2 |  | — | US-RR-17-4 | [US-RR-17](stories/US-RR-17.md) |
 | [US-RR-17-6](tasks/US-RR-17-6.md) | Add stable diagnostic code registry and docs | ⚪ todo | 1 |  | — | US-RR-17-4 | [US-RR-17](stories/US-RR-17.md) |
-| [US-RR-18-1](tasks/US-RR-18-1.md) | Test: VirtualClock: sleeping 55 ms then 5000 ms advances virtual time exactly and the test completes in under 10 ms o... | ⚪ todo | — |  | — | US-RR-18-6 | [US-RR-18](stories/US-RR-18.md) |
-| [US-RR-18-2](tasks/US-RR-18-2.md) | Test: Two threads sharing a VirtualClock observe a consistent monotonic timeline (property test) | ⚪ todo | — |  | — | US-RR-18-6 | [US-RR-18](stories/US-RR-18.md) |
-| [US-RR-18-3](tasks/US-RR-18-3.md) | Test: Monotonic time never goes backwards even if wall-clock is changed during a RealClock test (wall time is reporte... | ⚪ todo | — |  | — | US-RR-18-5, US-RR-18-7 | [US-RR-18](stories/US-RR-18.md) |
-| [US-RR-18-4](tasks/US-RR-18-4.md) | Test: RealClock is the only module allowed to call std time APIs (enforced by the safety lints story) | ⚪ todo | — |  | — | US-RR-18-5 | [US-RR-18](stories/US-RR-18.md) |
-| [US-RR-18-5](tasks/US-RR-18-5.md) | Define Clock trait and RealClock | ⚪ todo | 2 |  | — | — | [US-RR-18](stories/US-RR-18.md) |
-| [US-RR-18-6](tasks/US-RR-18-6.md) | Implement VirtualClock | ⚪ todo | 3 |  | — | US-RR-18-5 | [US-RR-18](stories/US-RR-18.md) |
-| [US-RR-18-7](tasks/US-RR-18-7.md) | Separate monotonic and wall-clock time | ⚪ todo | 1 |  | — | US-RR-18-5 | [US-RR-18](stories/US-RR-18.md) |
+| [US-RR-18-1](tasks/US-RR-18-1.md) | Test: VirtualClock: sleeping 55 ms then 5000 ms advances virtual time exactly and the test completes in under 10 ms o... | ✅ done | 1 |  | claude | US-RR-18-6 | [US-RR-18](stories/US-RR-18.md) |
+| [US-RR-18-2](tasks/US-RR-18-2.md) | Test: Two threads sharing a VirtualClock observe a consistent monotonic timeline (property test) | ✅ done | 3 |  | claude | US-RR-18-6 | [US-RR-18](stories/US-RR-18.md) |
+| [US-RR-18-3](tasks/US-RR-18-3.md) | Test: Monotonic time never goes backwards even if wall-clock is changed during a RealClock test (wall time is reporte... | 🔍 review | 2 |  | — | US-RR-18-5, US-RR-18-7 | [US-RR-18](stories/US-RR-18.md) |
+| [US-RR-18-4](tasks/US-RR-18-4.md) | Test: RealClock is the only module allowed to call std time APIs (enforced by the safety lints story) | ✅ done | 1 |  | claude | US-RR-18-5, US-RR-3-5 | [US-RR-18](stories/US-RR-18.md) |
+| [US-RR-18-5](tasks/US-RR-18-5.md) | Define Clock trait and RealClock | ✅ done | 2 |  | claude | US-RR-1-5 | [US-RR-18](stories/US-RR-18.md) |
+| [US-RR-18-6](tasks/US-RR-18-6.md) | Implement VirtualClock | ✅ done | 3 |  | claude | US-RR-18-5 | [US-RR-18](stories/US-RR-18.md) |
+| [US-RR-18-7](tasks/US-RR-18-7.md) | Separate monotonic and wall-clock time | ✅ done | 1 |  | claude | US-RR-18-5 | [US-RR-18](stories/US-RR-18.md) |
 | [US-RR-19-1](tasks/US-RR-19-1.md) | Test: Property test: decode(encode(x)) == x for every storage/endian/bitfield/layout combination over the full value ... | ⚪ todo | — |  | — | US-RR-19-8, US-RR-19-9, US-RR-19-10, US-RR-19-12 | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-10](tasks/US-RR-19-10.md) | Implement bitfields and Bosch-subtract layout | ⚪ todo | 3 |  | — | US-RR-19-8 | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-11](tasks/US-RR-19-11.md) | Derive value ranges from Encoding | ⚪ todo | 2 |  | — | US-RR-19-8, US-RR-19-9 | [US-RR-19](stories/US-RR-19.md) |
@@ -86,14 +86,14 @@
 | [US-RR-19-7](tasks/US-RR-19-7.md) | Define Encoding types and parse from definition strings | ⚪ todo | 3 |  | — | — | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-8](tasks/US-RR-19-8.md) | Implement integer codecs incl U20/U24/I24/I64 | ⚪ todo | 3 |  | — | US-RR-19-7 | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-9](tasks/US-RR-19-9.md) | Implement float codecs with NaN/Inf/denormal flags | ⚪ todo | 2 |  | — | US-RR-19-7 | [US-RR-19](stories/US-RR-19.md) |
-| [US-RR-2-1](tasks/US-RR-2-1.md) | Test: A PR with a rustfmt violation, a clippy warning, or a failing test is blocked on every matrix target | ⚪ todo | — |  | — | US-RR-2-5, US-RR-2-8 | [US-RR-2](stories/US-RR-2.md) |
-| [US-RR-2-2](tasks/US-RR-2-2.md) | Test: cargo-deny fails the build for a dependency with a GPL-incompatible licence or an open RUSTSEC advisory (demons... | ⚪ todo | — |  | — | US-RR-2-6 | [US-RR-2](stories/US-RR-2.md) |
-| [US-RR-2-3](tasks/US-RR-2-3.md) | Test: A PR that leaves pending insta snapshots fails CI | ⚪ todo | — |  | — | US-RR-2-7 | [US-RR-2](stories/US-RR-2.md) |
-| [US-RR-2-4](tasks/US-RR-2-4.md) | Test: The i686-pc-windows-msvc target builds and runs the test suite | ⚪ todo | — |  | — | US-RR-2-7 | [US-RR-2](stories/US-RR-2.md) |
-| [US-RR-2-5](tasks/US-RR-2-5.md) | Write ci.yml: fmt, clippy -D warnings, nextest matrix | ⚪ todo | 3 |  | — | — | [US-RR-2](stories/US-RR-2.md) |
-| [US-RR-2-6](tasks/US-RR-2-6.md) | Add cargo-deny configuration | ⚪ todo | 2 |  | — | — | [US-RR-2](stories/US-RR-2.md) |
-| [US-RR-2-7](tasks/US-RR-2-7.md) | Add insta pending-snapshot check and i686 target setup | ⚪ todo | 2 |  | — | US-RR-2-5 | [US-RR-2](stories/US-RR-2.md) |
-| [US-RR-2-8](tasks/US-RR-2-8.md) | Enable branch protection requiring CI checks | ⚪ todo | 1 |  | — | US-RR-2-5 | [US-RR-2](stories/US-RR-2.md) |
+| [US-RR-2-1](tasks/US-RR-2-1.md) | Test: A PR with a rustfmt violation, a clippy warning, or a failing test is blocked on every matrix target | ⚪ todo | 3 |  | — | US-RR-2-5, US-RR-2-8 | [US-RR-2](stories/US-RR-2.md) |
+| [US-RR-2-2](tasks/US-RR-2-2.md) | Test: cargo-deny fails the build for a dependency with a GPL-incompatible licence or an open RUSTSEC advisory (demons... | ✅ done | 2 |  | claude | US-RR-2-6 | [US-RR-2](stories/US-RR-2.md) |
+| [US-RR-2-3](tasks/US-RR-2-3.md) | Test: A PR that leaves pending insta snapshots fails CI | ✅ done | 2 |  | claude | US-RR-2-7 | [US-RR-2](stories/US-RR-2.md) |
+| [US-RR-2-4](tasks/US-RR-2-4.md) | Test: The i686-pc-windows-msvc target builds and runs the test suite | 🔍 review | 2 |  | — | US-RR-2-7 | [US-RR-2](stories/US-RR-2.md) |
+| [US-RR-2-5](tasks/US-RR-2-5.md) | Write ci.yml: fmt, clippy -D warnings, nextest matrix | ✅ done | 3 |  | claude | US-RR-1-5 | [US-RR-2](stories/US-RR-2.md) |
+| [US-RR-2-6](tasks/US-RR-2-6.md) | Add cargo-deny configuration | ✅ done | 2 |  | claude | US-RR-1-5 | [US-RR-2](stories/US-RR-2.md) |
+| [US-RR-2-7](tasks/US-RR-2-7.md) | Add insta pending-snapshot check and i686 target setup | ✅ done | 2 |  | claude | US-RR-2-5 | [US-RR-2](stories/US-RR-2.md) |
+| [US-RR-2-8](tasks/US-RR-2-8.md) | Enable branch protection requiring CI checks | 🔍 review | 1 |  | — | US-RR-2-5 | [US-RR-2](stories/US-RR-2.md) |
 | [US-RR-20-1](tasks/US-RR-20-1.md) | Test: Every distinct formula in the pinned ECU and logger definition corpora parses, and a sample of at least 50 has ... | ⚪ todo | — |  | — | US-RR-20-10 | [US-RR-20](stories/US-RR-20.md) |
 | [US-RR-20-10](tasks/US-RR-20-10.md) | Harvest corpus formulas into a KAT set | ⚪ todo | 3 |  | — | US-RR-20-7, US-RR-16 | [US-RR-20](stories/US-RR-20.md) |
 | [US-RR-20-2](tasks/US-RR-20-2.md) | Test: JEP operator precedence and ^ semantics match documented JEP behaviour via KAT fixtures citing the JEP document... | ⚪ todo | — |  | — | US-RR-20-7 | [US-RR-20](stories/US-RR-20.md) |
@@ -181,13 +181,13 @@
 | [US-RR-29-7](tasks/US-RR-29-7.md) | Read scaling elements into Encoding and Conversion | ⚪ todo | 3 |  | — | US-RR-29-5 | [US-RR-29](stories/US-RR-29.md) |
 | [US-RR-29-8](tasks/US-RR-29-8.md) | Map base/omit to Layered and warn on unknown elements | ⚪ todo | 2 |  | — | US-RR-29-6, US-RR-29-7 | [US-RR-29](stories/US-RR-29.md) |
 | [US-RR-29-9](tasks/US-RR-29-9.md) | Add ECU definition reader fuzz target | ⚪ todo | 1 |  | — | — | [US-RR-29](stories/US-RR-29.md) |
-| [US-RR-3-1](tasks/US-RR-3-1.md) | Test: A test crate calling std::thread::sleep or Instant::now outside RealClock fails clippy in CI | ⚪ todo | — |  | — | US-RR-3-5 | [US-RR-3](stories/US-RR-3.md) |
-| [US-RR-3-2](tasks/US-RR-3-2.md) | Test: unwrap() or expect() in non-test library code fails clippy | ⚪ todo | — |  | — | US-RR-3-5 | [US-RR-3](stories/US-RR-3.md) |
-| [US-RR-3-3](tasks/US-RR-3-3.md) | Test: A static mut or a mutable global singleton in any workspace crate fails CI (clippy or a grep-based check with a... | ⚪ todo | — |  | — | US-RR-3-6 | [US-RR-3](stories/US-RR-3.md) |
-| [US-RR-3-4](tasks/US-RR-3-4.md) | Test: The lint configuration is documented in CONTRIBUTING with the reason for each ban | ⚪ todo | — |  | — | US-RR-3-7 | [US-RR-3](stories/US-RR-3.md) |
-| [US-RR-3-5](tasks/US-RR-3-5.md) | Configure workspace lints and clippy disallowed_methods | ⚪ todo | 2 |  | — | — | [US-RR-3](stories/US-RR-3.md) |
-| [US-RR-3-6](tasks/US-RR-3-6.md) | Add static-mut and global-singleton check | ⚪ todo | 2 |  | — | — | [US-RR-3](stories/US-RR-3.md) |
-| [US-RR-3-7](tasks/US-RR-3-7.md) | Document lint bans in CONTRIBUTING.md | ⚪ todo | 1 |  | — | — | [US-RR-3](stories/US-RR-3.md) |
+| [US-RR-3-1](tasks/US-RR-3-1.md) | Test: A test crate calling std::thread::sleep or Instant::now outside RealClock fails clippy in CI | ✅ done | 2 |  | claude | US-RR-3-5, US-RR-2-5 | [US-RR-3](stories/US-RR-3.md) |
+| [US-RR-3-2](tasks/US-RR-3-2.md) | Test: unwrap() or expect() in non-test library code fails clippy | ✅ done | 1 |  | claude | US-RR-3-5 | [US-RR-3](stories/US-RR-3.md) |
+| [US-RR-3-3](tasks/US-RR-3-3.md) | Test: A static mut or a mutable global singleton in any workspace crate fails CI (clippy or a grep-based check with a... | ✅ done | 2 |  | claude | US-RR-3-6 | [US-RR-3](stories/US-RR-3.md) |
+| [US-RR-3-4](tasks/US-RR-3-4.md) | Test: The lint configuration is documented in CONTRIBUTING with the reason for each ban | ✅ done | 1 |  | claude | US-RR-3-7 | [US-RR-3](stories/US-RR-3.md) |
+| [US-RR-3-5](tasks/US-RR-3-5.md) | Configure workspace lints and clippy disallowed_methods | ✅ done | 2 |  | claude | US-RR-1-5 | [US-RR-3](stories/US-RR-3.md) |
+| [US-RR-3-6](tasks/US-RR-3-6.md) | Add static-mut and global-singleton check | ✅ done | 2 |  | claude | US-RR-1-5 | [US-RR-3](stories/US-RR-3.md) |
+| [US-RR-3-7](tasks/US-RR-3-7.md) | Document lint bans in CONTRIBUTING.md | ✅ done | 1 |  | claude | US-RR-3-5, US-RR-3-6, US-RR-8-5 | [US-RR-3](stories/US-RR-3.md) |
 | [US-RR-30-1](tasks/US-RR-30-1.md) | Test: Given SSM init bytes captured from a real ECU (fixture), resolve() yields exactly the parameters whose capabili... | ⚪ todo | — |  | — | US-RR-30-6 | [US-RR-30](stories/US-RR-30.md) |
 | [US-RR-30-2](tasks/US-RR-30-2.md) | Test: A derived parameter with a missing dependency produces a diagnostic naming the dependency and stays visible as ... | ⚪ todo | — |  | — | US-RR-30-7 | [US-RR-30](stories/US-RR-30.md) |
 | [US-RR-30-3](tasks/US-RR-30-3.md) | Test: Every parameter used by MAF/injector/dyno collectors has a role assigned for SSM (MF-31) | ⚪ todo | — |  | — | US-RR-30-8 | [US-RR-30](stories/US-RR-30.md) |
@@ -450,16 +450,16 @@
 | [US-RR-59-7](tasks/US-RR-59-7.md) | Implement Java settings.xml importer | ⚪ todo | 2 |  | — | US-RR-59-6 | [US-RR-59](stories/US-RR-59.md) |
 | [US-RR-59-8](tasks/US-RR-59-8.md) | Implement single-instance IPC | ⚪ todo | 3 |  | — | — | [US-RR-59](stories/US-RR-59.md) |
 | [US-RR-59-9](tasks/US-RR-59-9.md) | Implement diagnostics panel | ⚪ todo | 2 |  | — | US-RR-59-5 | [US-RR-59](stories/US-RR-59.md) |
-| [US-RR-6-1](tasks/US-RR-6-1.md) | Test: Tests requiring the external or private corpus are reported as skipped (with the env var to set) when it is abs... | ⚪ todo | — |  | — | US-RR-6-6, US-RR-6-10 | [US-RR-6](stories/US-RR-6.md) |
-| [US-RR-6-10](tasks/US-RR-6-10.md) | Add private-fixtures feature and env wiring | ⚪ todo | 1 |  | — | US-RR-6-6 | [US-RR-6](stories/US-RR-6.md) |
-| [US-RR-6-2](tasks/US-RR-6-2.md) | Test: The fixture loader rejects a fixture file with an unknown schema version | ⚪ todo | — |  | — | US-RR-6-6 | [US-RR-6](stories/US-RR-6.md) |
-| [US-RR-6-3](tasks/US-RR-6-3.md) | Test: rr-testkit cannot be a normal (non-dev) dependency of any crate - enforced by the dependency-rule test | ⚪ todo | — |  | — | US-RR-6-5 | [US-RR-6](stories/US-RR-6.md) |
-| [US-RR-6-4](tasks/US-RR-6-4.md) | Test: VirtualClock helpers let a test advance time deterministically with no real sleeping (test runs in under 10 ms ... | ⚪ todo | — |  | — | US-RR-6-9 | [US-RR-6](stories/US-RR-6.md) |
-| [US-RR-6-5](tasks/US-RR-6-5.md) | Create rr-testkit with insta helpers and proptest module | ⚪ todo | 2 |  | — | — | [US-RR-6](stories/US-RR-6.md) |
-| [US-RR-6-6](tasks/US-RR-6-6.md) | Implement three-tier fixture loader with skip reporting | ⚪ todo | 3 |  | — | US-RR-6-5 | [US-RR-6](stories/US-RR-6.md) |
+| [US-RR-6-1](tasks/US-RR-6-1.md) | Test: Tests requiring the external or private corpus are reported as skipped (with the env var to set) when it is abs... | ✅ done | 2 |  | claude | US-RR-6-6, US-RR-6-10 | [US-RR-6](stories/US-RR-6.md) |
+| [US-RR-6-10](tasks/US-RR-6-10.md) | Add private-fixtures feature and env wiring | ✅ done | 1 |  | claude | US-RR-6-6 | [US-RR-6](stories/US-RR-6.md) |
+| [US-RR-6-2](tasks/US-RR-6-2.md) | Test: The fixture loader rejects a fixture file with an unknown schema version | ✅ done | 1 |  | claude | US-RR-6-6 | [US-RR-6](stories/US-RR-6.md) |
+| [US-RR-6-3](tasks/US-RR-6-3.md) | Test: rr-testkit cannot be a normal (non-dev) dependency of any crate - enforced by the dependency-rule test | ✅ done | 1 |  | claude | US-RR-6-5, US-RR-1-7 | [US-RR-6](stories/US-RR-6.md) |
+| [US-RR-6-4](tasks/US-RR-6-4.md) | Test: VirtualClock helpers let a test advance time deterministically with no real sleeping (test runs in under 10 ms ... | ✅ done | 1 |  | claude | US-RR-6-9 | [US-RR-6](stories/US-RR-6.md) |
+| [US-RR-6-5](tasks/US-RR-6-5.md) | Create rr-testkit with insta helpers and proptest module | ✅ done | 2 |  | claude | US-RR-1-5 | [US-RR-6](stories/US-RR-6.md) |
+| [US-RR-6-6](tasks/US-RR-6-6.md) | Implement three-tier fixture loader with skip reporting | ✅ done | 3 |  | claude | US-RR-6-5 | [US-RR-6](stories/US-RR-6.md) |
 | [US-RR-6-7](tasks/US-RR-6-7.md) | Create rr-testkit with insta helpers and proptest module | 📦 archived (⚪ todo) | 2 |  | — | — | [US-RR-6](stories/US-RR-6.md) |
 | [US-RR-6-8](tasks/US-RR-6-8.md) | Implement three-tier fixture loader with skip reporting | 📦 archived (⚪ todo) | 3 |  | — | US-RR-6-5 | [US-RR-6](stories/US-RR-6.md) |
-| [US-RR-6-9](tasks/US-RR-6-9.md) | Implement VirtualClock test harness helpers | ⚪ todo | 2 |  | — | US-RR-6-5, US-RR-18 | [US-RR-6](stories/US-RR-6.md) |
+| [US-RR-6-9](tasks/US-RR-6-9.md) | Implement VirtualClock test harness helpers | ✅ done | 2 |  | claude | US-RR-6-5, US-RR-18-6 | [US-RR-6](stories/US-RR-6.md) |
 | [US-RR-60-1](tasks/US-RR-60-1.md) | Test: log and identify against the simulator produce CSV and ID output matching the simulator's configured ECU (integ... | ⚪ todo | — |  | — | US-RR-60-5 | [US-RR-60](stories/US-RR-60.md) |
 | [US-RR-60-2](tasks/US-RR-60-2.md) | Test: replay of a captured simulator trace reproduces the same CSV byte-for-byte | ⚪ todo | — |  | — | US-RR-60-6 | [US-RR-60](stories/US-RR-60.md) |
 | [US-RR-60-3](tasks/US-RR-60-3.md) | Test: scrub removes every VIN and serial field from a trace and log (planted-value test) and the result still replays | ⚪ todo | — |  | — | US-RR-60-7 | [US-RR-60](stories/US-RR-60.md) |
@@ -529,14 +529,14 @@
 | [US-RR-69-6](tasks/US-RR-69-6.md) | Implement J2534 library discovery | ⚪ todo | 2 |  | — | — | [US-RR-69](stories/US-RR-69.md) |
 | [US-RR-69-7](tasks/US-RR-69-7.md) | Build mock PassThru shared library for tests | ⚪ todo | 3 |  | — | — | [US-RR-69](stories/US-RR-69.md) |
 | [US-RR-69-8](tasks/US-RR-69-8.md) | Implement J2534 Link with SET_CONFIG timing | ⚪ todo | 3 |  | — | US-RR-69-5 | [US-RR-69](stories/US-RR-69.md) |
-| [US-RR-7-1](tasks/US-RR-7-1.md) | Test: trybuild compile-fail tests prove a token cannot be constructed, cloned into existence, defaulted, deserialized... | ⚪ todo | — |  | — | US-RR-7-5 | [US-RR-7](stories/US-RR-7.md) |
-| [US-RR-7-2](tasks/US-RR-7-2.md) | Test: A test enumerates all public functions in rr-rom and rr-comms that perform writes (via a marker trait or attrib... | ⚪ todo | — |  | — | US-RR-7-6 | [US-RR-7](stories/US-RR-7.md) |
-| [US-RR-7-3](tasks/US-RR-7-3.md) | Test: Tokens are scoped: an EcuMemoryWrite token carries the ECU ID and address range it was granted for, and use out... | ⚪ todo | — |  | — | US-RR-7-7 | [US-RR-7](stories/US-RR-7.md) |
-| [US-RR-7-4](tasks/US-RR-7-4.md) | Test: The T6 suite runs in ci.yml as a release-blocking job | ⚪ todo | — |  | — | US-RR-7-8 | [US-RR-7](stories/US-RR-7.md) |
-| [US-RR-7-5](tasks/US-RR-7-5.md) | Define capability token types with sealed minting | ⚪ todo | 3 |  | — | — | [US-RR-7](stories/US-RR-7.md) |
-| [US-RR-7-6](tasks/US-RR-7-6.md) | Add write-marker trait and enumeration harness | ⚪ todo | 3 |  | — | — | [US-RR-7](stories/US-RR-7.md) |
-| [US-RR-7-7](tasks/US-RR-7-7.md) | Implement scoped token enforcement | ⚪ todo | 2 |  | — | US-RR-7-5 | [US-RR-7](stories/US-RR-7.md) |
-| [US-RR-7-8](tasks/US-RR-7-8.md) | Add T6 safety-invariant suite job to CI | ⚪ todo | 1 |  | — | — | [US-RR-7](stories/US-RR-7.md) |
+| [US-RR-7-1](tasks/US-RR-7-1.md) | Test: trybuild compile-fail tests prove a token cannot be constructed, cloned into existence, defaulted, deserialized... | ✅ done | 3 |  | claude | US-RR-7-5 | [US-RR-7](stories/US-RR-7.md) |
+| [US-RR-7-2](tasks/US-RR-7-2.md) | Test: A test enumerates all public functions in rr-rom and rr-comms that perform writes (via a marker trait or attrib... | ✅ done | 3 |  | claude | US-RR-7-6 | [US-RR-7](stories/US-RR-7.md) |
+| [US-RR-7-3](tasks/US-RR-7-3.md) | Test: Tokens are scoped: an EcuMemoryWrite token carries the ECU ID and address range it was granted for, and use out... | ✅ done | 2 |  | claude | US-RR-7-7 | [US-RR-7](stories/US-RR-7.md) |
+| [US-RR-7-4](tasks/US-RR-7-4.md) | Test: The T6 suite runs in ci.yml as a release-blocking job | ✅ done | 1 |  | claude | US-RR-7-8 | [US-RR-7](stories/US-RR-7.md) |
+| [US-RR-7-5](tasks/US-RR-7-5.md) | Define capability token types with sealed minting | ✅ done | 3 |  | claude | US-RR-1-5 | [US-RR-7](stories/US-RR-7.md) |
+| [US-RR-7-6](tasks/US-RR-7-6.md) | Add write-marker trait and enumeration harness | ✅ done | 3 |  | claude | US-RR-1-5 | [US-RR-7](stories/US-RR-7.md) |
+| [US-RR-7-7](tasks/US-RR-7-7.md) | Implement scoped token enforcement | ✅ done | 2 |  | claude | US-RR-7-5 | [US-RR-7](stories/US-RR-7.md) |
+| [US-RR-7-8](tasks/US-RR-7-8.md) | Add T6 safety-invariant suite job to CI | ✅ done | 1 |  | claude | US-RR-2-5, US-RR-7-6 | [US-RR-7](stories/US-RR-7.md) |
 | [US-RR-70-1](tasks/US-RR-70-1.md) | Test: Byte-exact request KATs for each service, and response parsing fuzzed | ⚪ todo | — |  | — | US-RR-70-4 | [US-RR-70](stories/US-RR-70.md) |
 | [US-RR-70-2](tasks/US-RR-70-2.md) | Test: The simulator responder passes the full fault matrix | ⚪ todo | — |  | — | US-RR-70-6 | [US-RR-70](stories/US-RR-70.md) |
 | [US-RR-70-3](tasks/US-RR-70-3.md) | Test: Default timings come from the standard-vector fixtures with no literals in codec code | ⚪ todo | — |  | — | US-RR-70-4, US-RR-70-5 | [US-RR-70](stories/US-RR-70.md) |
@@ -589,13 +589,13 @@
 | [US-RR-78-4](tasks/US-RR-78-4.md) | Implement NCS K-line codec | ⚪ todo | 3 |  | — | — | [US-RR-78](stories/US-RR-78.md) |
 | [US-RR-78-5](tasks/US-RR-78-5.md) | Implement NCS CAN (0x2C) and supported-PID discovery | ⚪ todo | 3 |  | — | US-RR-78-4 | [US-RR-78](stories/US-RR-78.md) |
 | [US-RR-78-6](tasks/US-RR-78-6.md) | Implement NCS simulator responder | ⚪ todo | 2 |  | — | US-RR-78-4 | [US-RR-78](stories/US-RR-78.md) |
-| [US-RR-8-1](tasks/US-RR-8-1.md) | Test: PR template contains a checklist covering test tiers touched, ledger entries closed with test names, concept ca... | ⚪ todo | — |  | — | US-RR-8-6 | [US-RR-8](stories/US-RR-8.md) |
-| [US-RR-8-2](tasks/US-RR-8-2.md) | Test: CODEOWNERS requires a second approval for changes under the gated safety modules and branch protection enforces it | ⚪ todo | — |  | — | US-RR-8-7 | [US-RR-8](stories/US-RR-8.md) |
-| [US-RR-8-3](tasks/US-RR-8-3.md) | Test: Issue template instructs users to run romraider-cli trace scrub before attaching traces | ⚪ todo | — |  | — | US-RR-8-6 | [US-RR-8](stories/US-RR-8.md) |
-| [US-RR-8-4](tasks/US-RR-8-4.md) | Test: CONTRIBUTING.md states the Definition of Done and links PROJECT.md Testing Strategy and the ledgers | ⚪ todo | — |  | — | US-RR-8-5 | [US-RR-8](stories/US-RR-8.md) |
-| [US-RR-8-5](tasks/US-RR-8-5.md) | Write CONTRIBUTING.md with Definition of Done | ⚪ todo | 2 |  | — | — | [US-RR-8](stories/US-RR-8.md) |
-| [US-RR-8-6](tasks/US-RR-8-6.md) | Add PR and issue templates | ⚪ todo | 1 |  | — | — | [US-RR-8](stories/US-RR-8.md) |
-| [US-RR-8-7](tasks/US-RR-8-7.md) | Add CODEOWNERS for safety modules | ⚪ todo | 1 |  | — | — | [US-RR-8](stories/US-RR-8.md) |
+| [US-RR-8-1](tasks/US-RR-8-1.md) | Test: PR template contains a checklist covering test tiers touched, ledger entries closed with test names, concept ca... | ✅ done | 1 |  | claude | US-RR-8-6 | [US-RR-8](stories/US-RR-8.md) |
+| [US-RR-8-2](tasks/US-RR-8-2.md) | Test: CODEOWNERS requires a second approval for changes under the gated safety modules and branch protection enforces it | ⚪ todo | 2 |  | — | US-RR-8-7 | [US-RR-8](stories/US-RR-8.md) |
+| [US-RR-8-3](tasks/US-RR-8-3.md) | Test: Issue template instructs users to run romraider-cli trace scrub before attaching traces | ✅ done | 1 |  | claude | US-RR-8-6 | [US-RR-8](stories/US-RR-8.md) |
+| [US-RR-8-4](tasks/US-RR-8-4.md) | Test: CONTRIBUTING.md states the Definition of Done and links PROJECT.md Testing Strategy and the ledgers | ✅ done | 1 |  | claude | US-RR-8-5 | [US-RR-8](stories/US-RR-8.md) |
+| [US-RR-8-5](tasks/US-RR-8-5.md) | Write CONTRIBUTING.md with Definition of Done | ✅ done | 2 |  | claude | US-RR-2-5 | [US-RR-8](stories/US-RR-8.md) |
+| [US-RR-8-6](tasks/US-RR-8-6.md) | Add PR and issue templates | ✅ done | 1 |  | claude | US-RR-2-5 | [US-RR-8](stories/US-RR-8.md) |
+| [US-RR-8-7](tasks/US-RR-8-7.md) | Add CODEOWNERS for safety modules | 🔍 review | 1 |  | — | US-RR-2-5 | [US-RR-8](stories/US-RR-8.md) |
 | [US-RR-9-1](tasks/US-RR-9-1.md) | Test: The validator rejects any expected value without a source field, and CI runs it on every fixture | ⚪ todo | — |  | — | US-RR-9-6, US-RR-9-7 | [US-RR-9](stories/US-RR-9.md) |
 | [US-RR-9-2](tasks/US-RR-9-2.md) | Test: A fixture with hand-calc source must include the working (formula and intermediate values) or it is rejected | ⚪ todo | — |  | — | US-RR-9-6 | [US-RR-9](stories/US-RR-9.md) |
 | [US-RR-9-3](tasks/US-RR-9-3.md) | Test: At least 10 seed fixtures exist covering every storage type the format supports, each reviewed and sourced | ⚪ todo | — |  | — | US-RR-9-8 | [US-RR-9](stories/US-RR-9.md) |

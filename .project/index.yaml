@@ -92,7 +92,7 @@ entries:
 - id: US-RR-1
   title: Cargo workspace and crate boundaries
   type: story
-  status: backlog
+  status: done
   archived: false
   points: 3
   story_id: null
@@ -173,7 +173,7 @@ entries:
 - id: US-RR-18
   title: 'Clock: RealClock and VirtualClock (C9)'
   type: story
-  status: backlog
+  status: active
   archived: false
   points: 3
   story_id: null
@@ -191,7 +191,7 @@ entries:
 - id: US-RR-2
   title: 'CI gates: fmt, clippy, nextest matrix, cargo-deny'
   type: story
-  status: backlog
+  status: active
   archived: false
   points: 5
   story_id: null
@@ -290,7 +290,7 @@ entries:
 - id: US-RR-3
   title: 'Safety lints: banned time, panics, globals'
   type: story
-  status: backlog
+  status: done
   archived: false
   points: 3
   story_id: null
@@ -587,7 +587,7 @@ entries:
 - id: US-RR-6
   title: rr-testkit foundation
   type: story
-  status: backlog
+  status: done
   archived: false
   points: 5
   story_id: null
@@ -686,7 +686,7 @@ entries:
 - id: US-RR-7
   title: Capability tokens and safety-invariant suite
   type: story
-  status: backlog
+  status: done
   archived: false
   points: 5
   story_id: null
@@ -776,7 +776,7 @@ entries:
 - id: US-RR-8
   title: Contribution rules and Definition of Done
   type: story
-  status: backlog
+  status: active
   archived: false
   points: 2
   story_id: null
@@ -795,9 +795,9 @@ entries:
   title: 'Test: cargo build --workspace and cargo nextest run succeed on a clean checkout
     with the pinned toolchain'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-1
   epic_id: null
   tags: []
@@ -805,9 +805,9 @@ entries:
   title: 'Test: A test reading cargo metadata fails if rr-core depends on any workspace
     crate or on an OS/IO crate (serialport,...'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-1
   epic_id: null
   tags: []
@@ -815,9 +815,9 @@ entries:
   title: 'Test: A test fails if any crate other than rr-link, rr-cli or rr-app depends
     on serialport, libloading, nusb or winreg'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-1
   epic_id: null
   tags: []
@@ -825,16 +825,16 @@ entries:
   title: 'Test: Binary names are romraider-rs and romraider-cli (not rr) and both
     print --version'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-1
   epic_id: null
   tags: []
 - id: US-RR-1-5
   title: Scaffold Cargo workspace and crates
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-1
@@ -843,7 +843,7 @@ entries:
 - id: US-RR-1-6
   title: Add romraider-cli and romraider-rs binary stubs with --version
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-1
@@ -852,7 +852,7 @@ entries:
 - id: US-RR-1-7
   title: Implement dependency-rule checker test
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-1
@@ -1411,9 +1411,9 @@ entries:
   title: 'Test: VirtualClock: sleeping 55 ms then 5000 ms advances virtual time exactly
     and the test completes in under 10 ms o...'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-18
   epic_id: null
   tags: []
@@ -1421,9 +1421,9 @@ entries:
   title: 'Test: Two threads sharing a VirtualClock observe a consistent monotonic
     timeline (property test)'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 3
   story_id: US-RR-18
   epic_id: null
   tags: []
@@ -1431,9 +1431,9 @@ entries:
   title: 'Test: Monotonic time never goes backwards even if wall-clock is changed
     during a RealClock test (wall time is reporte...'
   type: task
-  status: todo
+  status: review
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-18
   epic_id: null
   tags: []
@@ -1441,16 +1441,16 @@ entries:
   title: 'Test: RealClock is the only module allowed to call std time APIs (enforced
     by the safety lints story)'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-18
   epic_id: null
   tags: []
 - id: US-RR-18-5
   title: Define Clock trait and RealClock
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-18
@@ -1459,7 +1459,7 @@ entries:
 - id: US-RR-18-6
   title: Implement VirtualClock
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-18
@@ -1468,7 +1468,7 @@ entries:
 - id: US-RR-18-7
   title: Separate monotonic and wall-clock time
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-18
@@ -1593,7 +1593,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 3
   story_id: US-RR-2
   epic_id: null
   tags: []
@@ -1601,34 +1601,34 @@ entries:
   title: 'Test: cargo-deny fails the build for a dependency with a GPL-incompatible
     licence or an open RUSTSEC advisory (demons...'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-2
   epic_id: null
   tags: []
 - id: US-RR-2-3
   title: 'Test: A PR that leaves pending insta snapshots fails CI'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-2
   epic_id: null
   tags: []
 - id: US-RR-2-4
   title: 'Test: The i686-pc-windows-msvc target builds and runs the test suite'
   type: task
-  status: todo
+  status: review
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-2
   epic_id: null
   tags: []
 - id: US-RR-2-5
   title: 'Write ci.yml: fmt, clippy -D warnings, nextest matrix'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-2
@@ -1637,7 +1637,7 @@ entries:
 - id: US-RR-2-6
   title: Add cargo-deny configuration
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-2
@@ -1646,7 +1646,7 @@ entries:
 - id: US-RR-2-7
   title: Add insta pending-snapshot check and i686 target setup
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-2
@@ -1655,7 +1655,7 @@ entries:
 - id: US-RR-2-8
   title: Enable branch protection requiring CI checks
   type: task
-  status: todo
+  status: review
   archived: false
   points: 1
   story_id: US-RR-2
@@ -2481,18 +2481,18 @@ entries:
   title: 'Test: A test crate calling std::thread::sleep or Instant::now outside RealClock
     fails clippy in CI'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-3
   epic_id: null
   tags: []
 - id: US-RR-3-2
   title: 'Test: unwrap() or expect() in non-test library code fails clippy'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-3
   epic_id: null
   tags: []
@@ -2500,9 +2500,9 @@ entries:
   title: 'Test: A static mut or a mutable global singleton in any workspace crate
     fails CI (clippy or a grep-based check with a...'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-3
   epic_id: null
   tags: []
@@ -2510,16 +2510,16 @@ entries:
   title: 'Test: The lint configuration is documented in CONTRIBUTING with the reason
     for each ban'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-3
   epic_id: null
   tags: []
 - id: US-RR-3-5
   title: Configure workspace lints and clippy disallowed_methods
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-3
@@ -2528,7 +2528,7 @@ entries:
 - id: US-RR-3-6
   title: Add static-mut and global-singleton check
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-3
@@ -2537,7 +2537,7 @@ entries:
 - id: US-RR-3-7
   title: Document lint bans in CONTRIBUTING.md
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-3
@@ -5029,16 +5029,16 @@ entries:
   title: 'Test: Tests requiring the external or private corpus are reported as skipped
     (with the env var to set) when it is abs...'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-6
   epic_id: null
   tags: []
 - id: US-RR-6-10
   title: Add private-fixtures feature and env wiring
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-6
@@ -5047,9 +5047,9 @@ entries:
 - id: US-RR-6-2
   title: 'Test: The fixture loader rejects a fixture file with an unknown schema version'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-6
   epic_id: null
   tags: []
@@ -5057,9 +5057,9 @@ entries:
   title: 'Test: rr-testkit cannot be a normal (non-dev) dependency of any crate -
     enforced by the dependency-rule test'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-6
   epic_id: null
   tags: []
@@ -5067,16 +5067,16 @@ entries:
   title: 'Test: VirtualClock helpers let a test advance time deterministically with
     no real sleeping (test runs in under 10 ms ...'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-6
   epic_id: null
   tags: []
 - id: US-RR-6-5
   title: Create rr-testkit with insta helpers and proptest module
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-6
@@ -5085,7 +5085,7 @@ entries:
 - id: US-RR-6-6
   title: Implement three-tier fixture loader with skip reporting
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-6
@@ -5112,7 +5112,7 @@ entries:
 - id: US-RR-6-9
   title: Implement VirtualClock test harness helpers
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-6
@@ -5771,9 +5771,9 @@ entries:
   title: 'Test: trybuild compile-fail tests prove a token cannot be constructed, cloned
     into existence, defaulted, deserialized...'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 3
   story_id: US-RR-7
   epic_id: null
   tags: []
@@ -5781,9 +5781,9 @@ entries:
   title: 'Test: A test enumerates all public functions in rr-rom and rr-comms that
     perform writes (via a marker trait or attrib...'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 3
   story_id: US-RR-7
   epic_id: null
   tags: []
@@ -5791,25 +5791,25 @@ entries:
   title: 'Test: Tokens are scoped: an EcuMemoryWrite token carries the ECU ID and
     address range it was granted for, and use out...'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-7
   epic_id: null
   tags: []
 - id: US-RR-7-4
   title: 'Test: The T6 suite runs in ci.yml as a release-blocking job'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-7
   epic_id: null
   tags: []
 - id: US-RR-7-5
   title: Define capability token types with sealed minting
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-7
@@ -5818,7 +5818,7 @@ entries:
 - id: US-RR-7-6
   title: Add write-marker trait and enumeration harness
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-7
@@ -5827,7 +5827,7 @@ entries:
 - id: US-RR-7-7
   title: Implement scoped token enforcement
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-7
@@ -5836,7 +5836,7 @@ entries:
 - id: US-RR-7-8
   title: Add T6 safety-invariant suite job to CI
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-7
@@ -6333,9 +6333,9 @@ entries:
   title: 'Test: PR template contains a checklist covering test tiers touched, ledger
     entries closed with test names, concept ca...'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-8
   epic_id: null
   tags: []
@@ -6345,7 +6345,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-8
   epic_id: null
   tags: []
@@ -6353,9 +6353,9 @@ entries:
   title: 'Test: Issue template instructs users to run romraider-cli trace scrub before
     attaching traces'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-8
   epic_id: null
   tags: []
@@ -6363,16 +6363,16 @@ entries:
   title: 'Test: CONTRIBUTING.md states the Definition of Done and links PROJECT.md
     Testing Strategy and the ledgers'
   type: task
-  status: todo
+  status: done
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-8
   epic_id: null
   tags: []
 - id: US-RR-8-5
   title: Write CONTRIBUTING.md with Definition of Done
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-8
@@ -6381,7 +6381,7 @@ entries:
 - id: US-RR-8-6
   title: Add PR and issue templates
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-8
@@ -6390,7 +6390,7 @@ entries:
 - id: US-RR-8-7
   title: Add CODEOWNERS for safety modules
   type: task
-  status: todo
+  status: review
   archived: false
   points: 1
   story_id: US-RR-8
@@ -6481,8 +6481,8 @@ entries:
   story_id: US-RR-9
   epic_id: null
   tags: []
-total_points: 1205
-completed_points: 0
+total_points: 1250
+completed_points: 97
 story_count: 78
 task_count: 603
 epic_count: 10

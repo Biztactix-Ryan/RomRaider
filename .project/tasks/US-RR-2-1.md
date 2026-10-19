@@ -8,7 +8,7 @@ depends_on:
 - US-RR-2-5
 - US-RR-2-8
 id: US-RR-2-1
-points: null
+points: 3
 status: todo
 story_id: US-RR-2
 tags: []

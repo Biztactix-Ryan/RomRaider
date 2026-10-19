@@ -8,8 +8,8 @@ depends_on:
 - US-RR-18-5
 - US-RR-18-7
 id: US-RR-18-3
-points: null
-status: todo
+points: 2
+status: review
 story_id: US-RR-18
 tags: []
 title: 'Test: Monotonic time never goes backwards even if wall-clock is changed during

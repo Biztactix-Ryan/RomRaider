@@ -1,13 +1,13 @@
 ---
 archived: false
-assignee: null
-claimed_at: null
-claimed_by_run: null
+assignee: claude
+claimed_at: '2026-10-19T08:39:15.574690+00:00'
+claimed_by_run: orch-2026-10-19-acf8
 created: '2026-10-19'
 depends_on: []
 id: US-RR-1-5
 points: 3
-status: todo
+status: done
 story_id: US-RR-1
 tags: []
 title: Scaffold Cargo workspace and crates

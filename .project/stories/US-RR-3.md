@@ -13,7 +13,7 @@ epic_id: EPIC-RR-1
 id: US-RR-3
 points: 3
 priority: must
-status: backlog
+status: done
 tags:
 - m0
 - lint

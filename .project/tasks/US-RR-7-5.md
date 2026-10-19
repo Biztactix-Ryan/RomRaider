@@ -1,13 +1,14 @@
 ---
 archived: false
-assignee: null
-claimed_at: null
-claimed_by_run: null
+assignee: claude
+claimed_at: '2026-10-19T08:43:40.927645+00:00'
+claimed_by_run: orch-2026-10-19-acf8
 created: '2026-10-19'
-depends_on: []
+depends_on:
+- US-RR-1-5
 id: US-RR-7-5
 points: 3
-status: todo
+status: done
 story_id: US-RR-7
 tags: []
 title: Define capability token types with sealed minting
