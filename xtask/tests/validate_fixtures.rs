@@ -45,6 +45,7 @@ fn command_runs_the_rr_testkit_validator() {
     let cmd = validate_fixtures::command(
         &root,
         Some("origin/master"),
+        None,
         &[PathBuf::from("fixtures/kat")],
     );
     let args: Vec<String> = cmd
@@ -69,8 +70,12 @@ fn command_runs_the_rr_testkit_validator() {
             "fixtures/kat"
         ]
     );
-    let bare = validate_fixtures::command(&root, None, &[]);
+    let bare = validate_fixtures::command(&root, None, None, &[]);
     assert_eq!(bare.get_args().last().unwrap(), "--");
+    // An empty `before` (a new branch) still reaches the validator as one
+    // argument.
+    let push = validate_fixtures::command(&root, None, Some(""), &[]);
+    assert_eq!(push.get_args().last().unwrap(), "--push-before=");
 }
 
 const HEAD: &str = r#"schema = 1

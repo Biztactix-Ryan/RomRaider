@@ -15,7 +15,7 @@ hex = "00 7F 80 FF C8 01"
 [[decode]]
 offset = 0
 raw = 0
-source = { kind = "hand-calc", working = "byte 0x00 = 0; 0 < 128 (top bit clear), raw = 0" }
+source = { kind = "hand-calc", working = "byte 0x00 = 0*16 + 0 = 0; 0 < 128 (top bit clear), raw = 0" }
 
 [[decode]]
 offset = 1

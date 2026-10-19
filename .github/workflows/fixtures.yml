@@ -85,27 +85,29 @@ jobs:
         run: cargo xtask validate-fixtures
       # Base mode: a fixture whose expected values differ from the base
       # version must add a [[changelog]] entry saying why
-      # (`changed-without-changelog`). The base is the PR's base commit; on a
-      # push, the commit before the push, or the default branch when there is
-      # none (new branch) or it is gone (force push). A bad base exits 2 and
-      # fails the job.
+      # (`changed-without-changelog`). On a pull request the base is the PR's
+      # base commit. On a push (and workflow_dispatch) `--push-before` picks
+      # it (GitBase::for_push in crates/rr-testkit/src/kat/validate.rs): the
+      # commit before the push when it exists; otherwise (a new branch, whose
+      # `before` is all zeros, or a force push whose old head is gone) the
+      # point where HEAD leaves every other remote branch, so the pushed
+      # commits are still checked. (The default branch, master, has no
+      # fixtures, so comparing with it would check nothing.) A bad base
+      # exits 2 and fails the job.
       - name: cargo xtask validate-fixtures --base (changed expected values need a changelog line)
         env:
           EVENT: ${{ github.event_name }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           BEFORE: ${{ github.event.before }}
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           if [ "$EVENT" = pull_request ]; then
             base="$PR_BASE_SHA"
-          elif [ -n "$BEFORE" ] && [ "$BEFORE" != 0000000000000000000000000000000000000000 ] \
-              && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
-            base="$BEFORE"
+            echo "Comparing fixtures with the pull request's base $base"
+            cargo xtask validate-fixtures --base "$base"
           else
-            base="origin/$DEFAULT_BRANCH"
+            echo "Comparing fixtures with the push's base (before: ${BEFORE:-none})"
+            cargo xtask validate-fixtures --push-before="$BEFORE"
           fi
-          echo "Comparing fixtures with base $base"
-          cargo xtask validate-fixtures --base "$base"
 
   # Synthetic ROMs regenerate byte-identically on every platform (US-RR-10,
   # task US-RR-10-7). `cargo xtask gen-synthetic --check` regenerates every

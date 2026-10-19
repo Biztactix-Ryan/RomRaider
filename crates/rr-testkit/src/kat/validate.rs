@@ -1,6 +1,7 @@
 //! KAT fixture validator (US-RR-9-6): the semantic rules on top of the
 //! schema-1 types in [`crate::kat`]. CI runs it as
-//! `cargo xtask validate-fixtures [--base <git-rev>] [PATH...]`, which runs
+//! `cargo xtask validate-fixtures [--base <git-rev> | --push-before <git-rev>]
+//! [PATH...]`, which runs
 //! this crate's `validate-fixtures` example (a thin `main` around [`cli`]; an
 //! example rather than a binary, because the workspace's only binaries are
 //! `romraider-rs`, `romraider-cli` and `xtask`).
@@ -36,39 +37,66 @@
 //!    intermediate value (decimal such as `244`, `-1`, `6533.6`, `1e-3`, or
 //!    `0x` / `0b` prefixed such as `0x01F4`; digits glued to a letter, as in
 //!    `u16`, are not numbers);
-//! 3. arrive at the value it justifies: for a `[[decode]]` case it must
+//! 3. show a formula: at least one binary arithmetic or bitwise operator
+//!    (`+ - * / % & | ^ << >> **`) between two operands, at least one of them
+//!    a number or a parenthesised expression. A sign (`= -1`, `= +0.0`), a
+//!    hyphen between words (`big-endian`), an exponent (`1e-3`) and a
+//!    comparison (`0 < 128`) are not operators;
+//! 4. arrive at the value it justifies: for a `[[decode]]` case it must
 //!    contain the expected `raw` value and, when the case has one, the
 //!    expected `real` value (within the case's `tolerance`, else exactly up to
 //!    rounding of 1e-9 relative); for a checksum `before` / `after` it must
 //!    contain the stored checksum, either as an integer (bytes read big- or
-//!    little-endian) or as its bytes in hex (`00 0A`, `0x000A`).
+//!    little-endian) or as its bytes in hex (`00 0A`, `0x000A`);
+//! 5. show an intermediate value: at least one number that is not the
+//!    result (not the expected `raw` / `real`, or not the stored checksum read
+//!    big- or little-endian; `0x01F4` *is* 500).
 //!
-//! So `"500"` (no equation), `"x = 500"` (one number) and
-//! `"0x01F4 = 1*256 + 244 = 499"` (wrong result) are rejected;
-//! `"0x01F4 = 1*256 + 244 = 500; 500 * 0.1 = 50.0"` passes for
+//! So `"500"` (no equation), `"x = 500"` (one number),
+//! `"raw = 500, real = 50.0"` and `"0x01F4 = 500 = 50.0"` (no formula),
+//! `"0x01F4 = 1*256 + 244 = 499"` (wrong result) and
+//! `"500 - 500 + 500 = 500; 50.0 = 50.0"` (no intermediate value) are
+//! rejected; `"0x01F4 = 1*256 + 244 = 500; 500 * 0.1 = 50.0"` passes for
 //! `raw = 500, real = 50.0`.
 //!
 //! # Base mode: expected values need a changelog line to change
 //!
-//! With a base (`--base <git-rev>`, [`GitBase`]: the merge-base of that
-//! revision and `HEAD`), every fixture that also exists in the base is
-//! compared with its base version. The fixture's *expected values* changed
-//! when any of these differ:
+//! With a base (`--base <git-rev>`, [`GitBase::resolve`]: the merge-base of
+//! that revision and `HEAD`; or `--push-before <git-rev>`,
+//! [`GitBase::for_push`]: what CI uses on a push, including a new branch or
+//! a force push), every fixture that also exists in the base is compared
+//! with its base version. A fixture that git sees as renamed or moved since
+//! the base is compared with its version under the old path. The fixture's
+//! *expected values* changed when any of these differ:
 //!
 //! * the `[input]` or the `[definition]` (the same answer to a different
-//!   question is a different expected value);
+//!   question is a different expected value: new input bytes, a different
+//!   ROM reference or encoding);
 //! * a base `[[decode]]` case (its `offset`, `raw`, `real`, `tolerance`) or
 //!   `[[checksum]]` case (`algorithm`, `params`, `offset`, `before` / `after`
 //!   `hex` and `valid`) has no identical case in the new version, i.e. it was
-//!   changed or removed. Cases are matched as a multiset, so adding or
-//!   reordering cases is not a change;
+//!   changed or removed (a moved `offset` is a change, so swapping two
+//!   cases' offsets is caught). Cases are matched as a multiset, so adding
+//!   or reordering cases is not a change;
 //! * the fixture switched between decode and checksum cases.
 //!
 //! Sources, notes and titles may change freely. When expected values changed,
-//! the new version must have at least one `[[changelog]]` entry that is not in
-//! the base version, else `changed-without-changelog`. A fixture that is new
-//! (absent from the base), or whose base version does not load, is not
-//! compared.
+//! the new version must **add** a `[[changelog]]` entry, else
+//! `changed-without-changelog`. An added entry is one not in the base
+//! version whose `reason` is not blank and is not the reason of a base
+//! entry; and it must be net new: the number of added entries must exceed
+//! the number of base entries that were edited or removed. So an entry that
+//! was already in the base, a blank reason, a copy of an old entry, and an
+//! old entry reworded or re-dated do not count (the changelog is
+//! append-only).
+//!
+//! Not compared, so not caught by this rule (they are visible in review):
+//! a fixture that is new (absent from the base, including a rename git does
+//! not detect because the file was also heavily edited: it is then checked
+//! as a new fixture); a fixture whose base version does not load; a deleted
+//! fixture (there is no file to carry the changelog line); and a change to
+//! an external file a fixture refers to (`[input] rom` is compared by its
+//! reference and hash, a `[definition] ref` by its reference only).
 
 use std::ffi::OsString;
 use std::fmt;
@@ -723,6 +751,13 @@ fn check_working(working: &str, expected: &Expected<'_>) -> Result<(), String> {
              inputs or intermediate values, not just the result"
         ));
     }
+    if !has_binary_operator(working) {
+        return Err(format!(
+            "`hand-calc` working {working:?} shows no formula: write the calculation with \
+             its operators (`+ - * / % & | ^ << >>`), e.g. \"0x01F4 = 1*256 + 244 = 500\", \
+             not just the answer"
+        ));
+    }
     match expected {
         Expected::Decode(case) => {
             let raw_found = match case.raw {
@@ -752,7 +787,95 @@ fn check_working(working: &str, expected: &Expected<'_>) -> Result<(), String> {
             }
         }
     }
+    if numbers.iter().all(|&n| is_result(n, expected)) {
+        return Err(format!(
+            "`hand-calc` working {working:?} shows no intermediate value: every number in \
+             it is the expected result; show the input bytes or an intermediate step"
+        ));
+    }
     Ok(())
+}
+
+/// Whether `n` is (a spelling of) the value the working justifies: the
+/// expected `raw` or `real` of a decode case, or the stored checksum of a
+/// checksum state read big- or little-endian.
+fn is_result(n: Num, expected: &Expected<'_>) -> bool {
+    let one = [n];
+    match expected {
+        Expected::Decode(case) => {
+            let raw = match case.raw {
+                RawValue::Int(m) => mentions_int(&one, m),
+                RawValue::Float(x) => mentions_float(&one, x, 0.0),
+            };
+            raw || case
+                .real
+                .is_some_and(|real| mentions_float(&one, real, case.tolerance.unwrap_or(0.0)))
+        }
+        Expected::Checksum(state) => {
+            let bytes = state.hex.as_bytes();
+            bytes.len() <= 16 && {
+                let big = bytes
+                    .iter()
+                    .fold(0_u128, |acc, &b| (acc << 8) | u128::from(b));
+                let little = bytes
+                    .iter()
+                    .rev()
+                    .fold(0_u128, |acc, &b| (acc << 8) | u128::from(b));
+                [big, little]
+                    .into_iter()
+                    .any(|v| i128::try_from(v).is_ok_and(|v| mentions_int(&one, v)))
+            }
+        }
+    }
+}
+
+/// Whether `text` writes a formula: a binary arithmetic or bitwise operator
+/// (`+ - * / % & | ^ << >> **`) with an operand on each side, at least one of
+/// them a number or a parenthesised expression. A sign (`= -1`, `= +0.0`), a
+/// hyphen between words (`big-endian`), an exponent (`1e-3`) and a comparison
+/// (`0 < 128`) are not operators.
+fn has_binary_operator(text: &str) -> bool {
+    let b = text.as_bytes();
+    let prev_non_space = |i: usize| {
+        b[..i]
+            .iter()
+            .rev()
+            .copied()
+            .find(|c| !c.is_ascii_whitespace())
+    };
+    let next_non_space = |i: usize| b[i..].iter().copied().find(|c| !c.is_ascii_whitespace());
+    let mut i = 0;
+    while i < b.len() {
+        let len = match (b[i], b.get(i + 1).copied()) {
+            (b'<', Some(b'<')) | (b'>', Some(b'>')) | (b'*', Some(b'*')) => 2,
+            (b'+' | b'-' | b'*' | b'/' | b'%' | b'&' | b'|' | b'^', _) => 1,
+            _ => {
+                i += 1;
+                continue;
+            }
+        };
+        let exponent = matches!(b[i], b'+' | b'-')
+            && i >= 2
+            && matches!(b[i - 1], b'e' | b'E')
+            && b[i - 2].is_ascii_digit()
+            && b.get(i + 1).is_some_and(u8::is_ascii_digit);
+        let before = prev_non_space(i);
+        let after = next_non_space(i + len);
+        let ends_operand = |c: u8| c.is_ascii_alphanumeric() || matches!(c, b'_' | b')' | b']');
+        let starts_operand =
+            |c: u8| c.is_ascii_alphanumeric() || matches!(c, b'_' | b'(' | b'-' | b'+');
+        let numeric = before.is_some_and(|c| c.is_ascii_digit() || c == b')')
+            || after.is_some_and(|c| c.is_ascii_digit() || c == b'(');
+        if !exponent
+            && before.is_some_and(ends_operand)
+            && after.is_some_and(starts_operand)
+            && numeric
+        {
+            return true;
+        }
+        i += len;
+    }
+    false
 }
 
 fn show_raw(raw: RawValue) -> String {
@@ -1026,30 +1149,69 @@ pub fn check_change(path: &Path, base_label: &str, base: &Kat, head: &Kat) -> Op
         _ => changes
             .push("the fixture switched between [[decode]] and [[checksum]] cases".to_owned()),
     }
-    if changes.is_empty()
-        || !unmatched::<ChangelogEntry>(&head.changelog, &base.changelog).is_empty()
-    {
+    if changes.is_empty() {
         return None;
+    }
+    let (added, dropped) = changelog_delta(&base.changelog, &head.changelog);
+    if added > dropped {
+        return None;
+    }
+    let mut why = String::from("no new [[changelog]] entry says why");
+    if dropped > 0 {
+        why.push_str(&format!(
+            " ({dropped} entr{} of the base changelog {} edited or removed, so as many \
+             entries in the new changelog only replace old ones: the changelog is \
+             append-only)",
+            if dropped == 1 { "y" } else { "ies" },
+            if dropped == 1 { "was" } else { "were" },
+        ));
     }
     Some(Violation::new(
         path,
         None,
         Rule::ChangedWithoutChangelog,
         format!(
-            "expected values changed since {base_label} ({}) but no new [[changelog]] entry \
-             says why; add one: [[changelog]] date = YYYY-MM-DD, reason = \"why the old \
-             value was wrong\"",
+            "expected values changed since {base_label} ({}) but {why}; add one: \
+             [[changelog]] date = YYYY-MM-DD, reason = \"why the old value was wrong\"",
             changes.join("; ")
         ),
     ))
 }
 
+/// How the changelog moved from `base` to `head`: `(added, dropped)`, where
+/// `added` counts the `head` entries that are not in `base` (multiset) and
+/// give a reason, i.e. one that is not blank, not the reason of a `base`
+/// entry and not the reason of an earlier added entry; `dropped` counts the
+/// `base` entries no longer in `head` (edited or removed). A change is
+/// explained when `added > dropped`: rewording, re-dating, copying or
+/// replacing an old entry adds nothing.
+fn changelog_delta(base: &[ChangelogEntry], head: &[ChangelogEntry]) -> (usize, usize) {
+    let mut reasons: Vec<&str> = base.iter().map(|e| e.reason.trim()).collect();
+    let mut added = 0;
+    for index in unmatched(head, base) {
+        let reason = head[index].reason.trim();
+        if !reason.is_empty() && !reasons.contains(&reason) {
+            reasons.push(reason);
+            added += 1;
+        }
+    }
+    (added, unmatched(base, head).len())
+}
+
 /// Base versions from git: the merge-base of a revision and `HEAD`.
+///
+/// A fixture renamed or moved since the base (git rename detection between
+/// the base commit and the working tree, `git diff --find-renames`) is
+/// compared with its base version under the old path, so a rename cannot
+/// hide a changed value.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GitBase {
     toplevel: PathBuf,
     commit: String,
     label: String,
+    /// `(new path, old path)` of every file renamed since the base, relative
+    /// to `toplevel` with `/` separators.
+    renames: Vec<(String, String)>,
 }
 
 impl GitBase {
@@ -1085,11 +1247,91 @@ impl GitBase {
         let commit = git(&toplevel, &["merge-base", &verified, "HEAD"])
             .map_or(verified, |out| out.trim().to_owned());
         let short: String = commit.chars().take(12).collect();
+        let renames = renames_since(&toplevel, &commit)?;
         Ok(Self {
             toplevel,
             label: format!("{rev} ({short})"),
             commit,
+            renames,
         })
+    }
+
+    /// The base for a CI push whose previous head was `before` (GitHub's
+    /// `github.event.before`):
+    ///
+    /// * `before` itself ([`Self::resolve`]) when it names a commit in the
+    ///   repository: an ordinary push is compared with what the branch held
+    ///   before it;
+    /// * otherwise (empty or all zeros on a new branch, or a force push whose
+    ///   old head is no longer fetched) the point where `HEAD` left the rest
+    ///   of the repository: the parent of the oldest commit of `HEAD` that is
+    ///   on no remote-tracking branch other than ones that already contain
+    ///   `HEAD` (the pushed branch itself). So every commit the push brings
+    ///   is checked. When that oldest commit is a root commit (no other
+    ///   branches), the root itself.
+    ///
+    /// # Errors
+    ///
+    /// [`ValidateError::Git`] when `dir` is not in a git repository or git
+    /// fails.
+    pub fn for_push(dir: &Path, before: &str) -> Result<Self, ValidateError> {
+        let before = before.trim();
+        let toplevel = PathBuf::from(git(dir, &["rev-parse", "--show-toplevel"])?.trim());
+        let known = !before.is_empty()
+            && !before.bytes().all(|b| b == b'0')
+            && git(
+                &toplevel,
+                &["cat-file", "-e", &format!("{before}^{{commit}}")],
+            )
+            .is_ok();
+        if known {
+            let mut base = Self::resolve(&toplevel, before)?;
+            base.label = format!("the commit before the push, {}", base.label);
+            return Ok(base);
+        }
+        let refs = git(
+            &toplevel,
+            &["for-each-ref", "--format=%(refname)", "refs/remotes"],
+        )?;
+        let others: Vec<&str> = refs
+            .lines()
+            .map(str::trim)
+            .filter(|r| {
+                !r.is_empty()
+                    && git(&toplevel, &["merge-base", "--is-ancestor", "HEAD", r]).is_err()
+            })
+            .collect();
+        let mut args = vec!["rev-list", "--topo-order", "--reverse", "HEAD"];
+        if !others.is_empty() {
+            args.push("--not");
+            args.extend(others.iter().copied());
+        }
+        let unique = git(&toplevel, &args)?;
+        // Not empty in practice: no ref in `others` contains HEAD, so HEAD
+        // itself is listed. Should it be, nothing is new: compare with HEAD.
+        let Some(oldest) = unique.lines().next().map(str::trim) else {
+            return Self::resolve(&toplevel, "HEAD");
+        };
+        let parent = format!("{oldest}^");
+        let has_parent = git(
+            &toplevel,
+            &[
+                "rev-parse",
+                "--verify",
+                "--quiet",
+                &format!("{parent}^{{commit}}"),
+            ],
+        )
+        .is_ok();
+        let (rev, why) = if has_parent {
+            (parent, "where the pushed commits leave the other branches")
+        } else {
+            (oldest.to_owned(), "the root of the pushed commits")
+        };
+        let mut base = Self::resolve(&toplevel, &rev)?;
+        let short: String = base.commit.chars().take(12).collect();
+        base.label = format!("{why} ({short})");
+        Ok(base)
     }
 
     /// The full id of the base commit.
@@ -1131,12 +1373,49 @@ impl BaseSource for GitBase {
             .components()
             .map(|c| c.as_os_str().to_string_lossy().into_owned())
             .collect();
-        let spec = format!("{}:{}", self.commit, relative.join("/"));
+        let relative = relative.join("/");
+        let relative = self
+            .renames
+            .iter()
+            .find(|(new, _)| *new == relative)
+            .map_or(relative.as_str(), |(_, old)| old.as_str());
+        let spec = format!("{}:{relative}", self.commit);
         if git(&top, &["cat-file", "-e", &spec]).is_err() {
             return Ok(None);
         }
         git(&top, &["show", &spec]).map(Some)
     }
+}
+
+/// `(new path, old path)` of every file git sees as renamed between `commit`
+/// and the working tree (committed, staged or unstaged changes to tracked
+/// files; an untracked copy is not seen until it is added).
+fn renames_since(toplevel: &Path, commit: &str) -> Result<Vec<(String, String)>, ValidateError> {
+    let out = git(
+        toplevel,
+        &[
+            "-c",
+            "core.quotePath=false",
+            "diff",
+            "--find-renames",
+            "--name-status",
+            "--diff-filter=R",
+            "-z",
+            commit,
+            "--",
+        ],
+    )?;
+    let mut fields = out.split('\0');
+    let mut renames = Vec::new();
+    while let Some(status) = fields.next() {
+        if !status.starts_with('R') {
+            continue;
+        }
+        if let (Some(old), Some(new)) = (fields.next(), fields.next()) {
+            renames.push((new.to_owned(), old.to_owned()));
+        }
+    }
+    Ok(renames)
 }
 
 fn git(dir: &Path, args: &[&str]) -> Result<String, ValidateError> {
@@ -1166,14 +1445,19 @@ fn git(dir: &Path, args: &[&str]) -> Result<String, ValidateError> {
 // ---------------------------------------------------------------------------
 
 /// Usage line of [`cli`].
-pub const USAGE: &str = "usage: validate-fixtures [--base <git-rev>] [PATH...]";
+pub const USAGE: &str =
+    "usage: validate-fixtures [--base <git-rev> | --push-before <git-rev>] [PATH...]";
 
-/// The `validate-fixtures [--base <git-rev>] [PATH...]` command line.
+/// The `validate-fixtures [--base <git-rev> | --push-before <git-rev>]
+/// [PATH...]` command line.
 ///
 /// * `PATH...`: fixture files or directories (every `*.toml` below them),
 ///   relative to `cwd`; defaults to [`default_paths`].
 /// * `--base <git-rev>` (or `--base=<git-rev>`): base mode, against
 ///   [`GitBase::resolve`] in the repository containing `cwd`.
+/// * `--push-before <git-rev>` (or `--push-before=<git-rev>`): base mode for
+///   a CI push whose previous head was `<git-rev>` (may be empty or all
+///   zeros), against [`GitBase::for_push`].
 ///
 /// Violations go to `stderr` (one line each, file relative to `cwd`, case,
 /// rule), the summary to `stdout`. Returns the exit status: 0 when every
@@ -1202,6 +1486,7 @@ fn run_cli(
     stderr: &mut dyn Write,
 ) -> Result<bool, String> {
     let mut base = None;
+    let mut push_before = None;
     let mut paths = Vec::new();
     let mut args = args.into_iter();
     while let Some(arg) = args.next() {
@@ -1218,6 +1503,15 @@ fn run_cli(
             }
             Some(other) if other.starts_with("--base=") => {
                 base = Some(other["--base=".len()..].to_owned());
+            }
+            Some("--push-before") => {
+                let rev = args
+                    .next()
+                    .ok_or_else(|| format!("--push-before needs a git revision\n{USAGE}"))?;
+                push_before = Some(rev.to_string_lossy().into_owned());
+            }
+            Some(other) if other.starts_with("--push-before=") => {
+                push_before = Some(other["--push-before=".len()..].to_owned());
             }
             Some(other) if other.starts_with('-') => {
                 return Err(format!("unknown option {other}\n{USAGE}"));
@@ -1236,9 +1530,15 @@ fn run_cli(
             shown.join(", ")
         ));
     }
-    let base = match base {
-        Some(rev) => Some(GitBase::resolve(cwd, &rev).map_err(|e| e.to_string())?),
-        None => None,
+    let base = match (base, push_before) {
+        (Some(_), Some(_)) => {
+            return Err(format!(
+                "--base and --push-before cannot be used together\n{USAGE}"
+            ));
+        }
+        (Some(rev), None) => Some(GitBase::resolve(cwd, &rev).map_err(|e| e.to_string())?),
+        (None, Some(before)) => Some(GitBase::for_push(cwd, &before).map_err(|e| e.to_string())?),
+        (None, None) => None,
     };
     let report = validate_files(&files, base.as_ref().map(|b| b as &dyn BaseSource))
         .map_err(|e| e.to_string())?;
@@ -1319,6 +1619,39 @@ mod tests {
             vec![Num::Int(0), Num::Int(0), Num::Int(1000)]
         );
         assert_eq!(numbers("no digits"), vec![]);
+    }
+
+    #[test]
+    fn binary_operators_are_told_from_signs_and_hyphens() {
+        for formula in [
+            "1*256 + 244",
+            "0xFF*0x100",
+            "65336 - 65536",
+            "0x1F & 0xE0",
+            "96 >> 5",
+            "2^-149",
+            "-(1 + 0) * 2",
+            "14.7/1.5",
+            "(3)-1",
+            "x * 0.1",
+        ] {
+            assert!(has_binary_operator(formula), "{formula:?}");
+        }
+        for not_formula in [
+            "500",
+            "x = -1",
+            "value = +0.0",
+            "value = -0.0",
+            "bytes 00 00 little-endian = 0",
+            "sign-extend = 1e-3",
+            "0 < 128, 1 > 0",
+            "imm20[19:16] = 0x10",
+            "- 1",
+            "1 +",
+            "a + b",
+        ] {
+            assert!(!has_binary_operator(not_formula), "{not_formula:?}");
+        }
     }
 
     #[test]

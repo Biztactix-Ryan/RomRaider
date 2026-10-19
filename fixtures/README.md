@@ -36,6 +36,15 @@ and marked as synthetic ([Synthetic ROMs](#synthetic-roms)).
 | [`public/synthetic/`](public/synthetic/) | Generated synthetic ROM images (`<plan>.bin`), their manifests (`<plan>.manifest.toml`) and `SHA256SUMS`. Never edit by hand: see [Synthetic ROMs](#synthetic-roms). |
 | [`.github/workflows/fixtures.yml`](../.github/workflows/fixtures.yml) | The CI jobs that run the validator and check the synthetic ROMs on Linux and Windows. |
 
+The seed set must cover every storage type in every byte order the codec
+accepts (all but little-endian `u20`), a bitfield in each byte order, and
+every non-default layout not listed as uncovered (today only
+`bosch-subtract`, see [Open questions](#open-questions)), with at least 10
+files. `crates/rr-testkit/tests/seed_coverage.rs` derives that set from the
+code (`rr_core::encoding` and `rr_testkit::kat`) and fails when a supported
+combination has no seed, so a new storage type or layout needs a seed fixture
+in the same change.
+
 The validator checks every `*.toml` file below the paths it is given. A
 `.toml` file under `fixtures/kat/` is taken to be a KAT fixture, so keep
 other TOML out of that directory.
@@ -228,29 +237,40 @@ must:
    intermediate value. Numbers are decimals such as `244`, `-1`, `6533.6` or
    `1e-3`, or `0x`/`0b` prefixed such as `0x01F4`. Digits glued to a letter,
    as in `u16` or `x2`, are not numbers;
-3. **arrive at the value it justifies**. For a `[[decode]]` case, the working
+3. **show a formula**: at least one binary arithmetic or bitwise operator
+   (`+ - * / % & | ^ << >> **`) between two operands, at least one of them a
+   number or a parenthesised expression. A sign (`= -1`, `= +0.0`), a hyphen
+   between words (`big-endian`), an exponent (`1e-3`) and a comparison
+   (`0 < 128`) are not operators. Even a zero needs its formula:
+   `"byte 0x00 = 0*16 + 0 = 0"`, or for a float zero
+   `"value = (-1)^0 * 0/8388608 * 2^(1 - 127) = 1 * 0 = +0.0"`;
+4. **arrive at the value it justifies**. For a `[[decode]]` case, the working
    must contain the expected `raw` value and, when the case has one, the
    expected `real` value. `real` matches within the case's `tolerance`, or else
    within a relative 1e-9. For a checksum `before` or `after`, the working must
    contain the stored checksum, either as an integer (the bytes read big- or
-   little-endian) or as its bytes in hex (`00 0A`, `0x000A`).
+   little-endian) or as its bytes in hex (`00 0A`, `0x000A`);
+5. **show an intermediate value**: at least one number that is not the
+   result. Every spelling of the result counts as the result: for
+   `raw = 500`, `0x01F4` is 500, so `"0x01F4 = 500"` restates the answer.
 
 A `hand-calc` source with no `working` key at all is also `hand-calc-working`.
 
 | `working` (for `raw = 500, real = 50.0`) | Result |
 |------------------------------------------|--------|
-| `"500"` | rejected: no `=` |
+| `"500"`, `"trust me"` | rejected: no `=` |
 | `"x = 500"` | rejected: only one number |
+| `"500 = 500"`, `"raw = 500, real = 50.0"`, `"0x01F4 = 500 = 50.0"` | rejected: no formula (no operator) |
 | `"0x01F4 = 1*256 + 244 = 499"` | rejected: never arrives at `real` 50.0 |
+| `"500 - 500 + 500 = 500; 50.0 = 50.0"` | rejected: no intermediate value (every number is the result) |
 | `"0x01F4 = 1*256 + 244 = 500; 500 * 0.1 = 50.0"` | passes |
 
-The rule is a floor, not proof. Any number in the text counts, wherever it
-appears. `"raw = 500, real = 50.0"` passes rules 1 to 3, but it shows no
-working. The input bytes count too: `0x01F4` is 500, so for a case without
-`real`, the wrong `"0x01F4 = 1*256 + 244 = 499"` would pass. Reviewers reject
-working that only restates the answer, or that does not add up. Show the
-bytes, the formula with the bytes substituted, and each intermediate step, as
-the seed fixtures do.
+The rule is a floor, not proof. Any number and any operator in the text
+count, wherever they appear. The input bytes count too: `0x01F4` is 500, so
+for a case without `real`, the wrong `"0x01F4 = 1*256 + 244 = 499"` would
+pass. Reviewers reject working that only restates the answer, or that does not
+add up. Show the bytes, the formula with the bytes substituted, and each
+intermediate step, as the seed fixtures do.
 
 ### Other rules the validator enforces
 
@@ -290,22 +310,43 @@ author = "your name"       # optional
 ```
 
 In base mode (`--base <git-rev>`), the validator compares each fixture with
-its version at the **merge-base** of `<git-rev>` and `HEAD`. These count as
-an expected-value change:
+its version at the **merge-base** of `<git-rev>` and `HEAD`. A fixture that
+git sees as renamed or moved since then (`git mv`, or any rename git detects
+in the committed or staged change) is compared with its version under the old
+path, so renaming a file does not hide a changed value. These count as an
+expected-value change:
 
-- the `[input]` or the `[definition]` changed;
+- the `[input]` or the `[definition]` changed (the same value now claimed for
+  different bytes, a different ROM, or a different encoding);
 - a base `[[decode]]` case (`offset`, `raw`, `real`, `tolerance`) or
   `[[checksum]]` case (`algorithm`, `params`, `offset`, and the `hex` and
   `valid` of `before` and `after`) no longer has an identical case. That is, it
-  was changed or removed;
+  was changed or removed. A moved `offset` is a change, so swapping two
+  cases' offsets is caught;
 - the fixture switched between `[[decode]]` and `[[checksum]]`.
 
-When one of these happens, the new version needs at least one `[[changelog]]`
-entry that the base version does not have. Without it, the validator reports
-`changed-without-changelog` and lists what changed. Cases are compared as a
-multiset, so **adding or reordering cases is not a change**. Editing a source,
-note, title or the file's comments needs no changelog entry either. A new
-fixture, or one whose base version does not load, is not compared.
+When one of these happens, the new version must **add** a `[[changelog]]`
+entry. Without one, the validator reports `changed-without-changelog` and
+lists what changed. These do not count as adding an entry:
+
+- an entry that was already in the base version;
+- an entry with a blank `reason` (also reported as `changelog-reason`);
+- a copy of an old entry, or a new entry with an old entry's reason;
+- an old entry reworded, re-dated or replaced: the changelog is append-only,
+  so the new version needs more added entries than base entries it edited or
+  removed.
+
+Cases are compared as a multiset, so **adding or reordering cases is not a
+change**. Editing a source, note, title or the file's comments needs no
+changelog entry either.
+
+Not caught by this check, so left to review: a new fixture (including a
+rename so heavily edited that git no longer sees it as a rename; it is then
+checked as a new fixture, so every value needs a source); a fixture whose
+base version does not load; a deleted fixture (there is no file left to carry
+the changelog line); and a change inside an external file a fixture refers to
+(an `[input] rom` is compared by its reference and SHA-256, a definition
+`ref` by its reference only).
 
 The changelog check is not a substitute for review. A changed value also
 needs a reviewer to recompute it ([Review](#review)).
@@ -320,11 +361,17 @@ every push and pull request that touches `fixtures/`, `crates/rr-testkit/`,
 job is described in [Synthetic ROMs](#synthetic-roms)):
 
 1. `cargo xtask validate-fixtures`, on every fixture;
-2. `cargo xtask validate-fixtures --base "$base"`, where `$base` is:
-   - the PR's base commit, on a pull request;
-   - the commit before the push, on a push;
-   - `origin/<default branch>`, when the push has no usable "before" commit
-     (a new branch or a force push).
+2. base mode:
+   - on a pull request, `cargo xtask validate-fixtures --base "$base"` with
+     the PR's base commit;
+   - on a push (or a manual run), `cargo xtask validate-fixtures
+     --push-before="$BEFORE"` with the push's `github.event.before`. The base
+     is that commit when the checkout has it. When it has not (a new
+     branch's first push, where it is all zeros, or a force push whose old
+     head is gone) the base is where `HEAD` leaves every other remote branch:
+     the parent of the oldest pushed commit that is on no other branch. So
+     the pushed commits are always checked. (The default branch, `master`,
+     has no fixtures, so comparing with it would check nothing.)
 
    A base that cannot be resolved exits 2 and fails the job.
 
@@ -338,7 +385,8 @@ export PATH=$HOME/.cargo/bin:$PATH        # if cargo is not already on PATH
 
 cargo xtask validate-fixtures                                  # every fixture: fixtures/kat and crates/rr-testkit/tests/data/kat
 cargo xtask validate-fixtures fixtures/kat/u16-be.toml         # one file (or a directory: every *.toml below it)
-cargo xtask validate-fixtures --base origin/master             # also enforce the changelog rule against the branch you will merge into
+cargo xtask validate-fixtures --base origin/rust-rewrite       # also enforce the changelog rule against the branch you will merge into
+cargo xtask validate-fixtures --push-before=                   # what CI does on a new branch: compare with where HEAD leaves the other remote branches
 ```
 
 Paths are relative to the directory you run the command from. With
@@ -356,7 +404,7 @@ validate-fixtures: 1 violation(s) in 1 fixture(s)
 ```
 
 On success it prints, for example,
-`validate-fixtures: ok (32 fixture(s), 2 compared with origin/master (1a2b3c4d5e6f))`.
+`validate-fixtures: ok (33 fixture(s), 2 compared with origin/master (1a2b3c4d5e6f))`.
 
 `cargo xtask validate-fixtures` builds and runs rr-testkit's
 `validate-fixtures` example. rr-testkit is a dev-dependency only, so xtask

@@ -128,8 +128,14 @@ enum Cmd {
     ValidateFixtures {
         /// Compare each fixture with its version at the merge-base of this
         /// git revision and HEAD (CI: the PR's base branch).
-        #[arg(long)]
+        #[arg(long, conflicts_with = "push_before")]
         base: Option<String>,
+        /// CI on a push: the branch's head before the push
+        /// (`github.event.before`). The base is that commit when it exists,
+        /// else (a new branch, or a force push whose old head is gone) the
+        /// point where HEAD leaves the other remote branches.
+        #[arg(long, allow_hyphen_values = true)]
+        push_before: Option<String>,
         /// Fixture files or directories (defaults to fixtures/kat and
         /// crates/rr-testkit/tests/data/kat).
         paths: Vec<PathBuf>,
@@ -174,7 +180,8 @@ enum Cmd {
     },
     /// Fail unless every `exclude_globs` / `exclude_re` / `skip_calls` entry
     /// in .cargo/mutants.toml has a non-trivial justification comment on the
-    /// line(s) directly above it (US-RR-4-7; rules in
+    /// line(s) directly above it, and no Rust source under crates/ uses
+    /// `mutants::skip` (US-RR-4-7, US-RR-4-3; rules in
     /// xtask/src/mutants_exclusions.rs).
     CheckMutantsExclusions {
         /// Workspace root (defaults to this workspace).
@@ -799,11 +806,20 @@ fn main() -> Result<ExitCode> {
             eprintln!("diagnostics-doc: {} problem(s)", problems.len());
             Ok(ExitCode::FAILURE)
         }
-        Cmd::ValidateFixtures { base, paths } => {
+        Cmd::ValidateFixtures {
+            base,
+            push_before,
+            paths,
+        } => {
             let workspace = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/.."));
-            let status = validate_fixtures::command(&workspace, base.as_deref(), &paths)
-                .status()
-                .context("validate-fixtures: cannot run cargo")?;
+            let status = validate_fixtures::command(
+                &workspace,
+                base.as_deref(),
+                push_before.as_deref(),
+                &paths,
+            )
+            .status()
+            .context("validate-fixtures: cannot run cargo")?;
             Ok(match status.code().and_then(|c| u8::try_from(c).ok()) {
                 Some(0) => ExitCode::SUCCESS,
                 Some(code) => ExitCode::from(code),

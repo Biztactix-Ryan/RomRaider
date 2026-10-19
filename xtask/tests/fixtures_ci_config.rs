@@ -15,7 +15,11 @@
 //!   merge-base that `--base` compares with is present), runs `cargo xtask
 //!   validate-fixtures` with no paths (the validator's defaults: every
 //!   fixture), and runs `cargo xtask validate-fixtures --base "$base"` where
-//!   `$base` is the pull request's base commit on `pull_request`;
+//!   `$base` is the pull request's base commit on `pull_request`, and
+//!   `cargo xtask validate-fixtures --push-before="$BEFORE"` (the push's
+//!   `github.event.before`) otherwise, so a push, including a new branch's
+//!   first push or a force push, is checked too (US-RR-9-4; how the push
+//!   base is picked is tested in rr-testkit's `kat_validate.rs`);
 //! * no step of the job can be skipped or softened (`if:`,
 //!   `continue-on-error`, `|| true`) and the job has no job-level `if:`.
 //!
@@ -50,6 +54,7 @@ const REQUIRED_PATHS: &[&str] = &[
 
 const VALIDATE_CMD: &str = "cargo xtask validate-fixtures";
 const BASE_CMD: &str = "cargo xtask validate-fixtures --base \"$base\"";
+const PUSH_CMD: &str = "cargo xtask validate-fixtures --push-before=\"$BEFORE\"";
 
 /// The `paths:` items under trigger `trigger` in the `on:` block.
 fn trigger_paths(wf: &Workflow<'_>, trigger: &str) -> Vec<String> {
@@ -134,6 +139,23 @@ fn fixtures_problems(src: &str) -> Vec<String> {
             if !pr_base || !script.contains("base=\"$PR_BASE_SHA\"") {
                 problems.push(format!(
                     "`{JOB}` does not use the pull request's base commit as `--base` on `pull_request`"
+                ));
+            }
+            let before = step
+                .content_lines()
+                .any(|l| workflow::normalize(l) == "BEFORE: ${{ github.event.before }}");
+            // The push command must be the `else` of the pull-request test, so
+            // every event that is not a pull request runs it (`script` is
+            // whitespace-normalized: one line).
+            let push_in_else = script
+                .split_once("if [ \"$EVENT\" = pull_request ]; then ")
+                .and_then(|(_, rest)| rest.split_once(" else "))
+                .and_then(|(_, rest)| rest.rsplit_once(" fi"))
+                .is_some_and(|(otherwise, _)| otherwise.contains(PUSH_CMD));
+            if !before || !push_in_else {
+                problems.push(format!(
+                    "`{JOB}` does not run `{PUSH_CMD}` (with `BEFORE: ${{{{ github.event.before }}}}`) \
+                     on events other than `pull_request`"
                 ));
             }
         }
@@ -385,6 +407,32 @@ fn fixtures_workflow_check_rejects_weakened_workflow() {
     assert_flags(
         &m(&|s| s.replace("base=\"$PR_BASE_SHA\"", "base=\"$BEFORE\"")),
         "base commit as `--base`",
+    );
+    assert_flags(
+        &m(&|s| s.replace(PUSH_CMD, "cargo xtask validate-fixtures")),
+        "--push-before",
+    );
+    assert_flags(
+        &m(&|s| s.replace(PUSH_CMD, "echo skipped")),
+        "--push-before",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replace(
+                "          else\n            echo \"Comparing fixtures with the push's base",
+                "          fi\n          if false; then\n            echo \"Comparing fixtures with the push's base",
+            )
+        }),
+        "--push-before",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replace(
+                "BEFORE: ${{ github.event.before }}",
+                "BEFORE: ${{ github.sha }}",
+            )
+        }),
+        "--push-before",
     );
     assert_flags(
         &m(&|s| {

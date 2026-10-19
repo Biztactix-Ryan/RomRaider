@@ -1,4 +1,5 @@
-//! `cargo xtask validate-fixtures [--base <git-rev>] [PATH...]` (US-RR-9-6).
+//! `cargo xtask validate-fixtures [--base <git-rev> | --push-before <git-rev>]
+//! [PATH...]` (US-RR-9-6).
 //!
 //! The validator itself is `rr_testkit::kat::validate`, built on rr-testkit's
 //! KAT fixture types. rr-testkit is dev-dependency only (`cargo xtask
@@ -20,12 +21,18 @@ pub const PACKAGE: &str = "rr-testkit";
 pub const EXAMPLE: &str = "validate-fixtures";
 
 /// The `cargo run` invocation of the validator for the workspace at
-/// `workspace_root`, with `--base <rev>` when `base` is given and the fixture
-/// `paths` (none means the validator's defaults). The current directory is
-/// inherited, so relative paths and the git base resolve where the caller
-/// stands.
+/// `workspace_root`, with `--base <rev>` when `base` is given,
+/// `--push-before <rev>` when `push_before` is given (CI on a push; the
+/// validator rejects both together) and the fixture `paths` (none means the
+/// validator's defaults). The current directory is inherited, so relative
+/// paths and the git base resolve where the caller stands.
 #[must_use]
-pub fn command(workspace_root: &Path, base: Option<&str>, paths: &[PathBuf]) -> Command {
+pub fn command(
+    workspace_root: &Path,
+    base: Option<&str>,
+    push_before: Option<&str>,
+    paths: &[PathBuf],
+) -> Command {
     let cargo = std::env::var_os("CARGO").unwrap_or_else(|| OsString::from("cargo"));
     let mut cmd = Command::new(cargo);
     cmd.arg("run")
@@ -35,6 +42,9 @@ pub fn command(workspace_root: &Path, base: Option<&str>, paths: &[PathBuf]) -> 
         .args(["--package", PACKAGE, "--example", EXAMPLE, "--"]);
     if let Some(rev) = base {
         cmd.arg("--base").arg(rev);
+    }
+    if let Some(rev) = push_before {
+        cmd.arg(format!("--push-before={rev}"));
     }
     cmd.args(paths);
     cmd

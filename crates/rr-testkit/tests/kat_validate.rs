@@ -7,6 +7,9 @@
 //! result); a changed expected value needs a new changelog entry in base mode
 //! (injected base text and a real temporary git repository); the clean sample
 //! fixtures pass; and the command line exits non-zero on any violation.
+//! For US-RR-9-1 it also proves the default run (what CI's `cargo xtask
+//! validate-fixtures` does) discovers every KAT fixture in the repository,
+//! and that stripping any one `source` from any real fixture is rejected.
 
 use std::fs;
 use std::io;
@@ -160,6 +163,164 @@ fn every_missing_source_is_reported() {
     );
 }
 
+/// The repository root, canonicalized.
+fn repo_root() -> io::Result<PathBuf> {
+    rr_testkit::fixtures::repo_root().canonicalize()
+}
+
+/// Every fixture the validator finds with no paths (what CI runs), canonicalized.
+fn default_fixtures() -> io::Result<Vec<PathBuf>> {
+    validate::discover(&validate::default_paths())
+        .map_err(io::Error::other)?
+        .into_iter()
+        .map(|p| p.canonicalize())
+        .collect()
+}
+
+/// Every `*.toml` below `dir` that holds expected values (a `[[decode]]` or
+/// `[[checksum]]` array), skipping build output, git data and `legacy/`.
+fn kat_files_below(dir: &Path, out: &mut Vec<PathBuf>) -> io::Result<()> {
+    for entry in fs::read_dir(dir)? {
+        let path = entry?.path();
+        if path.is_dir() {
+            let skip = path.file_name().is_some_and(|name| {
+                [".git", "target", "legacy"]
+                    .map(std::ffi::OsStr::new)
+                    .contains(&name)
+            });
+            if !skip {
+                kat_files_below(&path, out)?;
+            }
+        } else if path.extension().is_some_and(|ext| ext == "toml")
+            && let Ok(table) = fs::read_to_string(&path)?.parse::<toml::Table>()
+            && ["decode", "checksum"]
+                .iter()
+                .any(|key| table.get(*key).is_some_and(toml::Value::is_array))
+        {
+            out.push(path.canonicalize()?);
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn default_discovery_covers_every_kat_fixture_in_the_repository() {
+    // CI runs `cargo xtask validate-fixtures` with no paths, i.e. these.
+    let found = default_fixtures().unwrap();
+    let seed = repo_root().unwrap().join("fixtures").join("kat");
+    let defaults: Vec<PathBuf> = validate::default_paths()
+        .iter()
+        .map(|p| p.canonicalize().unwrap())
+        .collect();
+    assert!(defaults.contains(&seed), "{defaults:?}");
+
+    // Every *.toml in the seed directory is discovered, not a subset.
+    let seed_files = fs::read_dir(&seed)
+        .unwrap()
+        .map(|e| e.unwrap().path())
+        .filter(|p| p.extension().is_some_and(|ext| ext == "toml"))
+        .count();
+    assert!(seed_files >= 10, "{seed_files} seed fixtures");
+    assert_eq!(
+        found.iter().filter(|p| p.starts_with(&seed)).count(),
+        seed_files
+    );
+
+    // No file anywhere in the repository holds expected values without
+    // being one the default run validates.
+    let mut kat = Vec::new();
+    kat_files_below(&repo_root().unwrap(), &mut kat).unwrap();
+    let missed: Vec<&PathBuf> = kat.iter().filter(|p| !found.contains(p)).collect();
+    assert!(
+        missed.is_empty(),
+        "KAT fixtures outside the validator's default paths: {missed:?}"
+    );
+    assert!(kat.len() >= seed_files, "{kat:?}");
+}
+
+#[test]
+fn directories_are_searched_recursively() {
+    let dir = scratch("recursive").unwrap();
+    fs::create_dir_all(dir.join("a").join("b")).unwrap();
+    fs::write(dir.join("top.toml"), CHECKSUM).unwrap();
+    fs::write(
+        dir.join("a").join("b").join("deep.toml"),
+        format!("{DECODE_HEAD}\n[[decode]]\nraw = 500\n"),
+    )
+    .unwrap();
+    fs::write(dir.join("a").join("ignored.txt"), "not a fixture").unwrap();
+    let files = validate::discover(std::slice::from_ref(&dir)).unwrap();
+    assert_eq!(files.len(), 2, "{files:?}");
+    let (code, _, stderr) = bin(&dir, &["."]);
+    assert_eq!(code, 1, "{stderr}");
+    assert!(stderr.contains("deep.toml: [[decode]] #1"), "{stderr}");
+    assert!(stderr.contains("[missing-source]"), "{stderr}");
+}
+
+#[test]
+fn stripping_any_source_from_any_real_fixture_is_rejected() {
+    let mut mutants = 0;
+    for path in default_fixtures().unwrap() {
+        let text = fs::read_to_string(&path).unwrap();
+        assert_eq!(
+            validate_text(&path, &text, None),
+            vec![],
+            "{}",
+            path.display()
+        );
+        let table: toml::Table = text.parse().unwrap();
+
+        // (array key, case index, checksum state or None, expected location prefix)
+        let mut targets = Vec::new();
+        for (key, states) in [("decode", &[][..]), ("checksum", &["before", "after"][..])] {
+            let Some(cases) = table.get(key).and_then(toml::Value::as_array) else {
+                continue;
+            };
+            for index in 0..cases.len() {
+                if states.is_empty() {
+                    targets.push((key, index, None, format!("[[decode]] #{} ", index + 1)));
+                }
+                for state in states {
+                    targets.push((
+                        key,
+                        index,
+                        Some(*state),
+                        format!("[[checksum]] #{} `{state}`", index + 1),
+                    ));
+                }
+            }
+        }
+
+        for (key, index, state, location) in targets {
+            let mut stripped = table.clone();
+            let case = stripped[key].as_array_mut().unwrap()[index]
+                .as_table_mut()
+                .unwrap();
+            let holder = match state {
+                Some(state) => case[state].as_table_mut().unwrap(),
+                None => case,
+            };
+            assert!(
+                holder.remove("source").is_some(),
+                "{}: {location}",
+                path.display()
+            );
+            let violations = validate_text(&path, &toml::to_string(&stripped).unwrap(), None);
+            let message = one(&violations, Rule::MissingSource);
+            assert!(
+                violations[0]
+                    .location
+                    .as_deref()
+                    .is_some_and(|l| l.starts_with(&location)),
+                "{}: expected {location}, got {message}",
+                path.display()
+            );
+            mutants += 1;
+        }
+    }
+    assert!(mutants >= 100, "only {mutants} expected values stripped");
+}
+
 // ---------------------------------------------------------------------------
 // hand-calc working rule (US-RR-9-2)
 // ---------------------------------------------------------------------------
@@ -192,6 +353,17 @@ fn hand_calc_trivial_working_is_rejected() {
             "does not arrive at the expected real value 6533.6",
         ),
         ("u16 = u8 + u8", "fewer than two numbers"),
+        // Restating the answer is not working: no formula ...
+        ("65336 = 65336; 6533.6 = 6533.6", "shows no formula"),
+        ("raw = 65336, real = 6533.6", "shows no formula"),
+        ("0xFF38 = 65336 = 6533.6", "shows no formula"),
+        // ... and a formula over nothing but the result shows no
+        // intermediate value either.
+        (
+            "65336 - 65336 + 65336 = 0xFF38; 6533.6 = 6533.6",
+            "no intermediate value",
+        ),
+        ("6533.6 * 0xFF38 = 6533.6 * 65336", "no intermediate value"),
     ] {
         let violations = check(&decode(working));
         assert_eq!(violations.len(), 1, "{working:?}: {violations:#?}");
@@ -422,9 +594,84 @@ fn an_existing_changelog_entry_does_not_cover_a_new_change() {
     let base = format!("{DECODE_HEAD}{GOOD_CASE}{CHANGELOG}");
     let head = base.replace("real = 50.0", "real = 50.0\ntolerance = 1e-9");
     one(&against(&base, &head), Rule::ChangedWithoutChangelog);
+
+    // Rewording or re-dating the old entry replaces it; it adds nothing.
     let reworded = head.replace("500 was misread", "500 was misread earlier");
-    // Editing the old entry's text makes it a new entry; that counts.
-    assert_eq!(against(&base, &reworded), vec![]);
+    let message = one(&against(&base, &reworded), Rule::ChangedWithoutChangelog);
+    assert!(
+        message.contains("1 entry of the base changelog was edited or removed"),
+        "{message}"
+    );
+    let redated = head.replace("date = 2026-10-20", "date = 2026-10-21");
+    one(&against(&base, &redated), Rule::ChangedWithoutChangelog);
+    // Replacing the old entry with a new one is no net addition either.
+    let replaced = head.replace("500 was misread; the cell is 0x01F5", NEW_REASON);
+    one(&against(&base, &replaced), Rule::ChangedWithoutChangelog);
+    // A copy of the old entry (same or new date) explains nothing new.
+    let copied = format!("{head}{CHANGELOG}");
+    one(&against(&base, &copied), Rule::ChangedWithoutChangelog);
+    let copied = format!("{head}{}", CHANGELOG.replace("2026-10-20", "2026-10-22"));
+    one(&against(&base, &copied), Rule::ChangedWithoutChangelog);
+
+    // A genuinely new entry passes, also next to a reworded old one.
+    let added = format!("{head}{}", new_entry(NEW_REASON));
+    assert_eq!(against(&base, &added), vec![]);
+    let both = format!("{reworded}{}", new_entry(NEW_REASON));
+    assert_eq!(against(&base, &both), vec![]);
+}
+
+const NEW_REASON: &str = "a tolerance is needed: the conversion is computed in f32";
+
+fn new_entry(reason: &str) -> String {
+    format!("\n[[changelog]]\ndate = 2026-10-21\nreason = {reason:?}\nauthor = \"kat-test\"\n")
+}
+
+#[test]
+fn a_blank_changelog_reason_does_not_explain_a_change() {
+    let base = format!("{DECODE_HEAD}{GOOD_CASE}");
+    let head = base.replace("raw = 500", "raw = 0x1F4\ntolerance = 0.0");
+    for reason in ["", "   ", "\t\n"] {
+        let violations = against(&base, &format!("{head}{}", new_entry(reason)));
+        let rules: Vec<Rule> = violations.iter().map(|v| v.rule).collect();
+        assert_eq!(
+            rules,
+            [Rule::ChangelogReason, Rule::ChangedWithoutChangelog],
+            "{reason:?}: {violations:#?}"
+        );
+    }
+    // Two blank entries are not one good one either.
+    let two = format!("{head}{}{}", new_entry(""), new_entry(" "));
+    assert!(
+        against(&base, &two)
+            .iter()
+            .any(|v| v.rule == Rule::ChangedWithoutChangelog)
+    );
+}
+
+#[test]
+fn moving_offsets_or_input_under_unchanged_values_is_a_change() {
+    let second = "\n[[decode]]\noffset = 2\nraw = 65336\nreal = 6533.6\nsource = { kind = \"stock-rom\", rom = \"R\" }\n";
+    let first = GOOD_CASE.replace(
+        "source = { kind = \"hand-calc\", working = \"0x01F4 = 1*256 + 244 = 500; 500 * 0.1 = 50.0\" }",
+        "source = { kind = \"stock-rom\", rom = \"R\" }",
+    );
+    let base = format!("{DECODE_HEAD}{first}{second}");
+    // The same two values, each now claimed for the other cell.
+    let swapped = base
+        .replace("offset = 0\n", "offset = X\n")
+        .replace("offset = 2\n", "offset = 0\n")
+        .replace("offset = X\n", "offset = 2\n");
+    let message = one(&against(&base, &swapped), Rule::ChangedWithoutChangelog);
+    assert!(message.contains("[[decode]] #1 (offset 0)"), "{message}");
+    assert!(message.contains("[[decode]] #2 (offset 2)"), "{message}");
+    // The same values for different input bytes.
+    let input = base.replace("01 F4 FF 38", "01 F4 FF 39");
+    let message = one(&against(&base, &input), Rule::ChangedWithoutChangelog);
+    assert!(message.contains("the [input] changed"), "{message}");
+    // The same values read with a different encoding.
+    let endian = base.replace("endian = \"big\"", "endian = \"little\"");
+    let message = one(&against(&base, &endian), Rule::ChangedWithoutChangelog);
+    assert!(message.contains("the [definition] changed"), "{message}");
 }
 
 #[test]
@@ -533,6 +780,216 @@ fn git_base_detects_a_changed_value_and_accepts_a_changelog_entry() {
     assert!(report.violations.is_empty(), "{:#?}", report.violations);
 }
 
+/// `git rev-parse <rev>` in `dir`.
+fn rev(dir: &Path, rev: &str) -> io::Result<String> {
+    let out = Command::new("git")
+        .arg("-C")
+        .arg(dir)
+        .args(["rev-parse", "--verify", rev])
+        .env_remove("GIT_DIR")
+        .env_remove("GIT_WORK_TREE")
+        .output()?;
+    assert!(out.status.success(), "rev-parse {rev}");
+    Ok(String::from_utf8_lossy(&out.stdout).trim().to_owned())
+}
+
+/// Validates every fixture under `dir/fixtures` against `base`.
+fn report(dir: &Path, base: &GitBase) -> Result<validate::Report, ValidateError> {
+    let files = validate::discover(&[dir.join("fixtures")])?;
+    validate::validate_files(&files, Some(base))
+}
+
+#[test]
+fn renaming_or_moving_a_fixture_does_not_hide_a_changed_value() {
+    let (dir, fixture, text) = repo("git-rename").unwrap();
+    let moved_dir = dir.join("fixtures").join("kat").join("moved");
+    fs::create_dir_all(&moved_dir).unwrap();
+    git(
+        &dir,
+        &[
+            "mv",
+            "fixtures/kat/u16.toml",
+            "fixtures/kat/moved/u16-be.toml",
+        ],
+    )
+    .unwrap();
+    let moved = moved_dir.join("u16-be.toml");
+    assert!(!fixture.exists());
+
+    // A pure rename (committed) is compared, and is not a change.
+    git(&dir, &["commit", "--quiet", "-m", "rename"]).unwrap();
+    let base = GitBase::resolve(&dir, "base").unwrap();
+    assert_eq!(base.read(&moved).unwrap().as_deref(), Some(text.as_str()));
+    let r = report(&dir, &base).unwrap();
+    assert_eq!((r.files, r.compared), (1, 1));
+    assert!(r.violations.is_empty(), "{:#?}", r.violations);
+
+    // Rename plus a changed value, committed: rejected.
+    fs::write(&moved, changed(&text)).unwrap();
+    git(&dir, &["commit", "--quiet", "-am", "change"]).unwrap();
+    let base = GitBase::resolve(&dir, "base").unwrap();
+    let r = report(&dir, &base).unwrap();
+    assert_eq!((r.files, r.compared), (1, 1));
+    let message = one(&r.violations, Rule::ChangedWithoutChangelog);
+    assert!(message.contains("u16-be.toml"), "{message}");
+
+    // With a new changelog entry it passes.
+    fs::write(&moved, format!("{}{CHANGELOG}", changed(&text))).unwrap();
+    assert!(report(&dir, &base).unwrap().violations.is_empty());
+}
+
+/// A repository shaped like CI's checkout after a push: `origin/master`
+/// (no fixtures), `origin/rust-rewrite` (adds the fixture, tagged `base`)
+/// and the pushed branch `feature`: a commit that changes an expected value
+/// without a changelog entry, then an unrelated commit. Returns the directory, the
+/// fixture, the base text, and the master and pushed commits.
+fn pushed(name: &str) -> io::Result<(PathBuf, PathBuf, String, String, String)> {
+    let dir = scratch(name)?;
+    git(&dir, &["init", "--quiet"])?;
+    fs::write(dir.join("README"), "master\n")?;
+    git(&dir, &["add", "."])?;
+    git(&dir, &["commit", "--quiet", "-m", "master"])?;
+    let master = rev(&dir, "HEAD")?;
+    let kat = dir.join("fixtures").join("kat");
+    fs::create_dir_all(&kat)?;
+    let fixture = kat.join("u16.toml");
+    let text = format!("{DECODE_HEAD}{GOOD_CASE}");
+    fs::write(&fixture, &text)?;
+    git(&dir, &["add", "."])?;
+    git(&dir, &["commit", "--quiet", "-m", "seed"])?;
+    git(&dir, &["tag", "base"])?;
+    let seed = rev(&dir, "HEAD")?;
+    fs::write(&fixture, changed(&text))?;
+    git(&dir, &["commit", "--quiet", "-am", "change"])?;
+    // A later commit that leaves the fixture alone: the base must reach back
+    // past it to the fork point.
+    fs::write(dir.join("README"), "feature\n")?;
+    git(&dir, &["commit", "--quiet", "-am", "unrelated"])?;
+    let head = rev(&dir, "HEAD")?;
+    for (name, at) in [
+        ("master", &master),
+        ("HEAD", &master),
+        ("rust-rewrite", &seed),
+        ("feature", &head),
+    ] {
+        git(
+            &dir,
+            &["update-ref", &format!("refs/remotes/origin/{name}"), at],
+        )?;
+    }
+    Ok((dir, fixture, text, master, head))
+}
+
+const ZEROS: &str = "0000000000000000000000000000000000000000";
+
+#[test]
+fn push_base_checks_a_new_branch_against_where_it_forked() {
+    let (dir, _, _, master, _) = pushed("push-new-branch").unwrap();
+    let seed = rev(&dir, "base").unwrap();
+    // The default branch has no fixtures: comparing with it checks nothing,
+    // which is why a new branch is not compared with it.
+    let r = report(&dir, &GitBase::resolve(&dir, "origin/master").unwrap()).unwrap();
+    assert_eq!((r.compared, r.violations.len()), (0, 0));
+    assert_eq!(
+        GitBase::resolve(&dir, "origin/master").unwrap().commit(),
+        master
+    );
+
+    for before in ["", "  ", ZEROS] {
+        let base = GitBase::for_push(&dir, before).unwrap();
+        assert_eq!(base.commit(), seed, "{before:?}");
+        let r = report(&dir, &base).unwrap();
+        assert_eq!(r.compared, 1, "{before:?}");
+        let message = one(&r.violations, Rule::ChangedWithoutChangelog);
+        assert!(
+            message.contains("where the pushed commits leave"),
+            "{message}"
+        );
+    }
+}
+
+#[test]
+fn push_base_is_the_previous_head_on_an_ordinary_push() {
+    let (dir, fixture, text, _, head) = pushed("push-ordinary").unwrap();
+    // The push that brought the change: before = the seed commit.
+    let seed = rev(&dir, "base").unwrap();
+    let base = GitBase::for_push(&dir, &seed).unwrap();
+    assert_eq!(base.commit(), seed);
+    assert!(
+        base.label().starts_with("the commit before the push"),
+        "{}",
+        base.label()
+    );
+    one(
+        &report(&dir, &base).unwrap().violations,
+        Rule::ChangedWithoutChangelog,
+    );
+
+    // A later push that only adds the changelog entry: before = the change.
+    fs::write(&fixture, format!("{}{CHANGELOG}", changed(&text))).unwrap();
+    git(&dir, &["commit", "--quiet", "-am", "explain"]).unwrap();
+    let base = GitBase::for_push(&dir, &head).unwrap();
+    assert_eq!(base.commit(), head);
+    assert!(report(&dir, &base).unwrap().violations.is_empty());
+}
+
+#[test]
+fn push_base_after_a_force_push_still_checks_the_rewritten_commits() {
+    let (dir, fixture, text, _, head) = pushed("push-force").unwrap();
+    let seed = rev(&dir, "base").unwrap();
+    // Rewrite the branch: the new head is another commit on the seed with
+    // the same unexplained change.
+    git(&dir, &["reset", "--quiet", "--hard", &seed]).unwrap();
+    fs::write(&fixture, changed(&text).replace("Big", "big")).unwrap();
+    fs::write(dir.join("other"), "rewritten\n").unwrap();
+    git(&dir, &["add", "."]).unwrap();
+    git(&dir, &["commit", "--quiet", "-m", "rewritten"]).unwrap();
+    let new_head = rev(&dir, "HEAD").unwrap();
+    git(
+        &dir,
+        &["update-ref", "refs/remotes/origin/feature", &new_head],
+    )
+    .unwrap();
+
+    // Old head still present: compared with the fork point of old and new.
+    let base = GitBase::for_push(&dir, &head).unwrap();
+    assert_eq!(base.commit(), seed);
+    one(
+        &report(&dir, &base).unwrap().violations,
+        Rule::ChangedWithoutChangelog,
+    );
+    // Old head gone (not fetched): compared with where HEAD leaves the
+    // other branches.
+    let gone = "1234567890abcdef1234567890abcdef12345678";
+    let base = GitBase::for_push(&dir, gone).unwrap();
+    assert_eq!(base.commit(), seed);
+    one(
+        &report(&dir, &base).unwrap().violations,
+        Rule::ChangedWithoutChangelog,
+    );
+}
+
+#[test]
+fn push_base_without_other_branches_is_the_root_commit() {
+    // No remote-tracking branches at all (a fresh repository): every commit
+    // is new, so the base is the root and later changes are still checked.
+    let (dir, fixture, text) = repo("push-root").unwrap();
+    let root = rev(&dir, "HEAD").unwrap();
+    fs::write(&fixture, changed(&text)).unwrap();
+    git(&dir, &["commit", "--quiet", "-am", "change"]).unwrap();
+    let base = GitBase::for_push(&dir, ZEROS).unwrap();
+    assert_eq!(base.commit(), root);
+    assert!(
+        base.label().starts_with("the root of the pushed commits"),
+        "{}",
+        base.label()
+    );
+    one(
+        &report(&dir, &base).unwrap().violations,
+        Rule::ChangedWithoutChangelog,
+    );
+}
+
 #[test]
 fn git_base_rejects_unknown_revisions() {
     let (dir, _, _) = repo("git-bad-rev").unwrap();
@@ -580,6 +1037,21 @@ fn command_line_exit_status_follows_the_violations() {
     );
     assert!(stderr.contains("[changed-without-changelog]"), "{stderr}");
 
+    // CI on a new branch's first push (before = all zeros, or empty).
+    git(&dir, &["commit", "--quiet", "-am", "change"]).unwrap();
+    for args in [
+        &["--push-before", ZEROS, "fixtures"][..],
+        &["--push-before=", "fixtures"],
+    ] {
+        let (code, _, stderr) = bin(&dir, args);
+        assert_eq!(code, 1, "{args:?}: {stderr}");
+        assert!(stderr.contains("[changed-without-changelog]"), "{stderr}");
+        assert!(
+            stderr.contains("compared with the root of the pushed commits"),
+            "{stderr}"
+        );
+    }
+
     // Without --base only the static rules apply.
     let (code, _, stderr) = bin(&dir, &["fixtures"]);
     assert_eq!(code, 0, "{stderr}");
@@ -600,6 +1072,8 @@ fn command_line_exit_status_follows_the_violations() {
         &["--base"],
         &["missing.toml"],
         &["--base", "nope"],
+        &["--push-before"],
+        &["--base", "base", "--push-before", ZEROS],
     ] {
         let (code, _, stderr) = bin(&dir, args);
         assert_eq!(code, 2, "{args:?}: {stderr}");
