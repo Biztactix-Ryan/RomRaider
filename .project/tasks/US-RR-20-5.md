@@ -7,12 +7,12 @@ created: '2026-10-19'
 depends_on:
 - US-RR-20-7
 id: US-RR-20-5
-points: null
+points: 2
 status: todo
 story_id: US-RR-20
 tags: []
 title: 'Test: cargo-mutants reports zero surviving mutants in the evaluator'
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 Verify acceptance criterion for story US-RR-20:

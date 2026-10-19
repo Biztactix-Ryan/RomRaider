@@ -7,12 +7,12 @@ created: '2026-10-19'
 depends_on:
 - US-RR-22-10
 id: US-RR-22-4
-points: null
+points: 1
 status: todo
 story_id: US-RR-22
 tags: []
 title: 'Test: A name defined in a local scope is not visible as a global base (MF-16)'
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 Verify acceptance criterion for story US-RR-22:

@@ -4,19 +4,19 @@
 | -- | ----- | ------ | -------- | ------ | ---- | ---- | --- | ----- |
 | [US-RR-1](stories/US-RR-1.md) | Cargo workspace and crate boundaries | ✅ done | must | 3 | m0, foundation | [EPIC-RR-1](epics/EPIC-RR-1.md) | 4 | 7 |
 | [US-RR-10](stories/US-RR-10.md) | Independent reference encoder/decoder and synthetic ROM generator | ✅ done | must | 8 | m0, testing, fixtures, safety | [EPIC-RR-2](epics/EPIC-RR-2.md) | 4 | 8 |
-| [US-RR-11](stories/US-RR-11.md) | External stock-ROM corpus: fetch, manifest, suspect classification | 📋 backlog | must | 5 | m0, testing, corpus | [EPIC-RR-2](epics/EPIC-RR-2.md) | 4 | 9 |
+| [US-RR-11](stories/US-RR-11.md) | External stock-ROM corpus: fetch, manifest, suspect classification | 🏃 active | must | 5 | m0, testing, corpus | [EPIC-RR-2](epics/EPIC-RR-2.md) | 4 | 9 |
 | [US-RR-12](stories/US-RR-12.md) | Legacy behaviour catalogue (read-only) | 📋 backlog | must | 8 | m0, docs, fixtures | [EPIC-RR-2](epics/EPIC-RR-2.md) | 4 | 9 |
 | [US-RR-13](stories/US-RR-13.md) | Private corpus wiring and ROM-leak guard | 📋 backlog | must | 3 | m0, security, fixtures | [EPIC-RR-2](epics/EPIC-RR-2.md) | 4 | 7 |
 | [US-RR-14](stories/US-RR-14.md) | Standard test-vector library | 📋 backlog | must | 5 | m0, testing, fixtures, standards | [EPIC-RR-2](epics/EPIC-RR-2.md) | 4 | 8 |
 | [US-RR-15](stories/US-RR-15.md) | Cross-source agreement harness | 📋 backlog | should | 3 | m0, testing, fixtures | [EPIC-RR-2](epics/EPIC-RR-2.md) | 3 | 5 |
-| [US-RR-16](stories/US-RR-16.md) | ECU-definition corpus: source, pin, manifest | 📋 backlog | must | 3 | m0, corpus, definitions | [EPIC-RR-2](epics/EPIC-RR-2.md) | 3 | 6 |
+| [US-RR-16](stories/US-RR-16.md) | ECU-definition corpus: source, pin, manifest | 🏃 active | must | 3 | m0, corpus, definitions | [EPIC-RR-2](epics/EPIC-RR-2.md) | 3 | 6 |
 | [US-RR-17](stories/US-RR-17.md) | Diagnostic and Provenance (C15) | ✅ done | must | 3 | m0, core, concepts | [EPIC-RR-3](epics/EPIC-RR-3.md) | 3 | 6 |
 | [US-RR-18](stories/US-RR-18.md) | Clock: RealClock and VirtualClock (C9) | ✅ done | must | 3 | m0, core, concepts, timing | [EPIC-RR-3](epics/EPIC-RR-3.md) | 4 | 7 |
 | [US-RR-19](stories/US-RR-19.md) | Encoding (C3): one codec for every storage type | ✅ done | must | 8 | m0, core, concepts, safety | [EPIC-RR-3](epics/EPIC-RR-3.md) | 6 | 12 |
 | [US-RR-2](stories/US-RR-2.md) | CI gates: fmt, clippy, nextest matrix, cargo-deny | ✅ done | must | 5 | m0, ci, testing | [EPIC-RR-1](epics/EPIC-RR-1.md) | 4 | 8 |
-| [US-RR-20](stories/US-RR-20.md) | Expr parser (C4a): JEP-compatible, parsed once | 📋 backlog | must | 8 | m0, core, concepts, safety, security | [EPIC-RR-3](epics/EPIC-RR-3.md) | 5 | 10 |
+| [US-RR-20](stories/US-RR-20.md) | Expr parser (C4a): JEP-compatible, parsed once | 🏃 active | must | 8 | m0, core, concepts, safety, security | [EPIC-RR-3](epics/EPIC-RR-3.md) | 5 | 10 |
 | [US-RR-21](stories/US-RR-21.md) | Units registry (C5) | 📋 backlog | must | 3 | m1, core, concepts | [EPIC-RR-3](epics/EPIC-RR-3.md) | 3 | 5 |
-| [US-RR-22](stories/US-RR-22.md) | Layered + Resolver (C1): one inheritance engine | 📋 backlog | must | 8 | m0, core, concepts, safety | [EPIC-RR-3](epics/EPIC-RR-3.md) | 6 | 12 |
+| [US-RR-22](stories/US-RR-22.md) | Layered + Resolver (C1): one inheritance engine | 🏃 active | must | 8 | m0, core, concepts, safety | [EPIC-RR-3](epics/EPIC-RR-3.md) | 6 | 12 |
 | [US-RR-23](stories/US-RR-23.md) | Pattern (C2): one matcher | 📋 backlog | must | 3 | m0, core, concepts | [EPIC-RR-3](epics/EPIC-RR-3.md) | 3 | 5 |
 | [US-RR-24](stories/US-RR-24.md) | Conversion (C4b): exact inverses, safe ranges | 📋 backlog | must | 8 | m1, core, concepts, safety | [EPIC-RR-3](epics/EPIC-RR-3.md) | 6 | 11 |
 | [US-RR-25](stories/US-RR-25.md) | Framing (C6): one framer for ECUs and devices | 📋 backlog | must | 5 | m0, core, concepts, comms | [EPIC-RR-3](epics/EPIC-RR-3.md) | 4 | 8 |
@@ -33,7 +33,7 @@
 | [US-RR-35](stories/US-RR-35.md) | Checksum engine: specs + named registry | 📋 backlog | must | 13 | m1, rom, checksum, safety | [EPIC-RR-5](epics/EPIC-RR-5.md) | 7 | 14 |
 | [US-RR-36](stories/US-RR-36.md) | ECU simulator with rule-based fault injection | 📋 backlog | must | 8 | m2, comms, testing, simulator | [EPIC-RR-6](epics/EPIC-RR-6.md) | 4 | 9 |
 | [US-RR-37](stories/US-RR-37.md) | Serial Link and KKL cable profile | 📋 backlog | must | 8 | m2, comms, kkl, linux | [EPIC-RR-6](epics/EPIC-RR-6.md) | 5 | 11 |
-| [US-RR-38](stories/US-RR-38.md) | Release skeleton: nightly CLI tarball, AppImage and .deb | 📋 backlog | must | 5 | m0, release, linux | [EPIC-RR-9](epics/EPIC-RR-9.md) | 4 | 8 |
+| [US-RR-38](stories/US-RR-38.md) | Release skeleton: nightly CLI tarball, AppImage and .deb | 🏃 active | must | 5 | m0, release, linux | [EPIC-RR-9](epics/EPIC-RR-9.md) | 4 | 8 |
 | [US-RR-39](stories/US-RR-39.md) | Resolved-definition known-answer suite | 📋 backlog | must | 5 | m1, definitions, testing | [EPIC-RR-4](epics/EPIC-RR-4.md) | 3 | 6 |
 | [US-RR-4](stories/US-RR-4.md) | Coverage and mutation gates | ✅ done | must | 5 | m0, testing, mutation, coverage, safety | [EPIC-RR-1](epics/EPIC-RR-1.md) | 4 | 8 |
 | [US-RR-40](stories/US-RR-40.md) | N-D Table as views over the image (C11) | 📋 backlog | must | 8 | m1, rom, safety | [EPIC-RR-5](epics/EPIC-RR-5.md) | 5 | 10 |

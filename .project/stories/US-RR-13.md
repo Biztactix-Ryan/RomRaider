@@ -18,13 +18,17 @@ tags:
 - security
 - fixtures
 title: Private corpus wiring and ROM-leak guard
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 As a maintainer, I want our own ROMs and car traces usable in tests but impossible to commit publicly, so that we never leak proprietary firmware or VINs.
 
+
 - RR_FIXTURES_DIR wiring and the `private-fixtures` feature.
+
 - A pre-commit hook plus a CI check rejecting binaries over 64 KB, files whose bytes match any manifest SHA-256 or known ROM-ID pattern, and unscrubbed VIN patterns in traces under fixtures/public.
-- Location of the private corpus and its backup: TBD (ask: Ryan).
+
+- Location of the private corpus: `~/RomRaider-private` (outside the repo), backed up with Ryan's normal home-directory backup. Decision (Ryan, 2026-10-20). Tests skip (and report skipped) when RR_FIXTURES_DIR is unset.
+
 
 Test tiers: T0. Refs: SECURITY.md Proprietary firmware + PII Handling, D-017.

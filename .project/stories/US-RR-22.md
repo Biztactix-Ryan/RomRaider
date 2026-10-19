@@ -16,14 +16,14 @@ epic_id: EPIC-RR-3
 id: US-RR-22
 points: 8
 priority: must
-status: backlog
+status: active
 tags:
 - m0
 - core
 - concepts
 - safety
 title: 'Layered + Resolver (C1): one inheritance engine'
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 As a definition author, I want one well-defined layering and inheritance engine behind every configurable thing, so that base/extends/override/omit behave identically for ROM definitions, quirks, checksums, devices, logger parameters and settings.

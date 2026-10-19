@@ -15,21 +15,26 @@ epic_id: EPIC-RR-2
 id: US-RR-11
 points: 5
 priority: must
-status: backlog
+status: active
 tags:
 - m0
 - testing
 - corpus
 title: 'External stock-ROM corpus: fetch, manifest, suspect classification'
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 As a developer, I want the ~500 stock Subaru ROMs available to every test run, pinned and verified, so that checksum and decode logic is tested against real-world images without committing proprietary firmware.
 
-- `cargo xtask fetch-corpus`: fetch from the private Biztactix mirror (TBD), else upstream samuelw9999/RomRaider @639f3c73, into RR_CORPUS_DIR.
+- `cargo xtask fetch-corpus`: fetch from upstream samuelw9999/RomRaider @639f3c73 (public, so CI can fetch) into RR_CORPUS_DIR, outside the repo. Decision (Ryan, 2026-10-20): no private Biztactix mirror for now; the local mirror is the verification reference.
+
 - Generate and verify `fixtures/corpus-manifest.toml`: path, size, SHA-256, region, model, ROM ID as read by our own code later.
+
 - Classify suspect images: non-standard sizes such as the 1,048,731- and 1,048,784-byte files.
+
 - Cache the corpus in CI.
-- Local mirror already at /home/ryan/Repo/romraider-stock-roms (SHA256SUMS for 501 files).
+
+- Local mirror already at /home/ryan/Repo/romraider-stock-roms (SHA256SUMS for 501 files); the generated manifest must agree with it.
+
 
 Test tiers: T0, T2. Refs: D-025, INFRASTRUCTURE.md Hosting & Services.

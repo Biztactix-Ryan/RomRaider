@@ -7,13 +7,13 @@ created: '2026-10-19'
 depends_on:
 - US-RR-20-7
 id: US-RR-20-4
-points: null
+points: 2
 status: todo
 story_id: US-RR-20
 tags: []
 title: 'Test: Evaluation of a parsed AST performs no allocation and no locking (benchmark
   + test), fixing the global synchron...'
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 Verify acceptance criterion for story US-RR-20:

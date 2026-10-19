@@ -7,13 +7,13 @@ created: '2026-10-19'
 depends_on:
 - US-RR-11-7
 id: US-RR-11-2
-points: null
+points: 1
 status: todo
 story_id: US-RR-11
 tags: []
 title: 'Test: Images with non-power-of-two or non-standard sizes are marked suspect
   in the manifest with a reason, and tests ...'
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 Verify acceptance criterion for story US-RR-11:

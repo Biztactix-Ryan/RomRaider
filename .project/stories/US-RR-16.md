@@ -13,13 +13,13 @@ epic_id: EPIC-RR-2
 id: US-RR-16
 points: 3
 priority: must
-status: backlog
+status: active
 tags:
 - m0
 - corpus
 - definitions
 title: 'ECU-definition corpus: source, pin, manifest'
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 As a developer, I want the RomRaider ECU definitions that match the stock-ROM corpus sourced, pinned and verified like the ROMs, so that the corpus suite can decode every table of every stock ROM.

@@ -7,13 +7,13 @@ created: '2026-10-19'
 depends_on:
 - US-RR-22-11
 id: US-RR-22-5
-points: null
+points: 1
 status: todo
 story_id: US-RR-22
 tags: []
 title: 'Test: explain(field) reports the winning layer and the overridden values with
   provenance'
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 Verify acceptance criterion for story US-RR-22:

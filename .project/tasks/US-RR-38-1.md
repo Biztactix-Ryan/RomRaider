@@ -9,13 +9,13 @@ depends_on:
 - US-RR-38-6
 - US-RR-38-7
 id: US-RR-38-1
-points: null
+points: 2
 status: todo
 story_id: US-RR-38
 tags: []
 title: 'Test: The nightly workflow publishes a pre-release with tarball, AppImage,
   .deb and SHA256SUMS'
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 Verify acceptance criterion for story US-RR-38:

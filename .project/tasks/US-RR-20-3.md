@@ -8,13 +8,13 @@ depends_on:
 - US-RR-20-8
 - US-RR-20-9
 id: US-RR-20-3
-points: null
+points: 2
 status: todo
 story_id: US-RR-20
 tags: []
 title: 'Test: The expr fuzz target runs nightly with no panics, hangs or unbounded
   allocation; depth and size limits produce ...'
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 Verify acceptance criterion for story US-RR-20:

@@ -17,7 +17,7 @@ epic_id: EPIC-RR-3
 id: US-RR-20
 points: 8
 priority: must
-status: backlog
+status: active
 tags:
 - m0
 - core
@@ -25,7 +25,7 @@ tags:
 - safety
 - security
 title: 'Expr parser (C4a): JEP-compatible, parsed once'
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 As a definition author, I want existing RomRaider formulas to work unchanged and be parsed once into a typed AST, so that scalings and logger conversions evaluate fast, identically everywhere, and safely.

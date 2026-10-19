@@ -12,13 +12,13 @@ epic_id: EPIC-RR-9
 id: US-RR-38
 points: 5
 priority: must
-status: backlog
+status: active
 tags:
 - m0
 - release
 - linux
 title: 'Release skeleton: nightly CLI tarball, AppImage and .deb'
-updated: '2026-10-19'
+updated: '2026-10-20'
 ---
 
 As a Linux user, I want installable nightly builds from day one, so that packaging is proven continuously rather than bolted on at the end.
