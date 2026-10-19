@@ -4,43 +4,28 @@
 # Runs `cargo xtask validate-fixtures` (rules in
 # crates/rr-testkit/src/kat/validate.rs) on every KAT fixture, and
 # `cargo xtask gen-synthetic --check` on Linux and Windows (US-RR-10-7),
-# whenever a push or pull request touches the fixtures, rr-testkit, or the
-# xtask wiring.
+# when a push or pull request touches the fixtures, rr-testkit, or the xtask
+# wiring.
 #
-# This workflow is path-filtered, so it does not report a status on changes
-# outside those paths. Do not make its check a required status check in branch
-# protection (a skipped path-filtered workflow leaves a required check pending
-# forever); the required check stays `ci-ok` in ci.yml.
+# There is no trigger-level `paths:` filter: the workflow starts on every
+# push and pull request, and job `scope` decides whether the event is in
+# scope (it changes a path in the step's `paths` list; checked by
+# xtask/tests/fixtures_ci_config.rs). Out of scope, `validate` and
+# `synthetic` are skipped. Job `fixtures-ok` always runs and is the required
+# status check on `rust-rewrite` (CONTRIBUTING.md "Branch protection"): it
+# fails if `scope` did not succeed, if a fixture job failed or was cancelled,
+# or if one was skipped although the event is in scope, and passes when the
+# event is out of scope.
 
 name: Fixtures
 
 on:
+  # No `paths:` filter: job `scope` decides, so `fixtures-ok` reports on
+  # every push and pull request.
   push:
     branches: ["**"]
-    paths:
-      - "fixtures/**"
-      - "crates/rr-testkit/**"
-      # The validator is started by `cargo xtask validate-fixtures`
-      # (xtask/src/validate_fixtures.rs, dispatched from xtask/src/main.rs).
-      - "xtask/**"
-      - ".cargo/config.toml"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "rust-toolchain.toml"
-      - ".gitattributes"
-      - ".github/workflows/fixtures.yml"
   pull_request:
     branches: ["**"]
-    paths:
-      - "fixtures/**"
-      - "crates/rr-testkit/**"
-      - "xtask/**"
-      - ".cargo/config.toml"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "rust-toolchain.toml"
-      - ".gitattributes"
-      - ".github/workflows/fixtures.yml"
   workflow_dispatch:
 
 concurrency:
@@ -60,11 +45,82 @@ defaults:
     shell: bash
 
 jobs:
+  # Is this event in scope? A pull request is when it changes a path below
+  # (against its base); a push is when it changes one since the commit
+  # before the push, and always when that commit is not an ancestor of the
+  # pushed head (a new branch, a force push); workflow_dispatch always is.
+  # The fixture jobs run only in scope; `fixtures-ok` reports either way.
+  scope:
+    name: fixtures-scope
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      in_scope: ${{ steps.scope.outputs.in_scope }}
+    steps:
+      # Full history (commits and trees; file contents are not needed for
+      # a list of changed paths), so the base is present.
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          filter: blob:none
+      # A failing git command (a missing pull request base) fails this job,
+      # and `fixtures-ok` with it: never a silent "out of scope".
+      - name: Changed paths in scope
+        id: scope
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          # Git glob pathspecs, checked by xtask/tests/fixtures_ci_config.rs.
+          # The validator is started by `cargo xtask validate-fixtures`
+          # (xtask/src/validate_fixtures.rs, dispatched from
+          # xtask/src/main.rs), hence all of xtask/.
+          paths=(
+            "fixtures/**"
+            "crates/rr-testkit/**"
+            "xtask/**"
+            ".cargo/config.toml"
+            "Cargo.toml"
+            "Cargo.lock"
+            "rust-toolchain.toml"
+            ".gitattributes"
+            ".github/workflows/fixtures.yml"
+          )
+          range=
+          if [ "$EVENT" = pull_request ]; then
+            if [ -z "$BASE" ]; then
+              echo "::error::no pull request base commit"
+              exit 1
+            fi
+            range="$BASE...HEAD"
+          elif [ "$EVENT" = push ] && [ -n "$BEFORE" ] \
+              && git merge-base --is-ancestor "$BEFORE" HEAD 2>/dev/null; then
+            range="$BEFORE..HEAD"
+          fi
+          if [ -z "$range" ]; then
+            echo "$EVENT (before: ${BEFORE:-none}): no base to compare with, in scope"
+            in_scope=true
+          else
+            changed=$(git --glob-pathspecs diff --name-only --no-renames "$range" -- "${paths[@]}")
+            if [ -n "$changed" ]; then
+              echo "Changed paths in scope ($range):"
+              echo "$changed"
+              in_scope=true
+            else
+              echo "No change under the fixture paths ($range): the fixture jobs are skipped"
+              in_scope=false
+            fi
+          fi
+          echo "in_scope=$in_scope" >> "$GITHUB_OUTPUT"
+
   # KAT schema validation; every expected value has a source; a hand-calc
   # source shows its working; a changed expected value needs a new
   # [[changelog]] line in the fixture (US-RR-9 acceptance criteria).
   validate:
     name: KAT fixtures (validate-fixtures)
+    needs: scope
+    if: needs.scope.outputs.in_scope == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -120,6 +176,8 @@ jobs:
   # directory's .gitattributes keeps git from rewriting the bytes.
   synthetic:
     name: Synthetic ROMs (gen-synthetic --check, ${{ matrix.os }})
+    needs: scope
+    if: needs.scope.outputs.in_scope == 'true'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     strategy:
@@ -143,4 +201,63 @@ jobs:
         run: sha256sum -c SHA256SUMS
 
   # PLACEHOLDER (story US-RR-13, not implemented yet): ROM-leak guard. Add a
-  # job here that fails when a real (non-synthetic) ROM image is committed.
+  # job here that fails when a real (non-synthetic) ROM image is committed,
+  # add it to `fixtures-ok`'s `needs` and check its result there.
+
+  # The required status check (CONTRIBUTING.md "Branch protection"). Runs
+  # even when a needed job failed (`if: always()`; a skipped required check
+  # counts as passed). Fails when `scope` did not succeed or gave no answer,
+  # when a fixture job failed or was cancelled, or when one was skipped
+  # although the event is in scope. Out of scope, both fixture jobs are
+  # skipped and this passes. Same idiom as `ci-ok` in ci.yml, except that a
+  # skip is allowed when the event is out of scope.
+  fixtures-ok:
+    name: fixtures-ok
+    if: always()
+    needs: [scope, validate, synthetic]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Fixture job results
+        env:
+          EVENT: ${{ github.event_name }}
+          SCOPE: ${{ needs.scope.result }}
+          IN_SCOPE: ${{ needs.scope.outputs.in_scope }}
+          VALIDATE: ${{ needs.validate.result }}
+          SYNTHETIC: ${{ needs.synthetic.result }}
+        run: |
+          echo "event: $EVENT; scope: $SCOPE (in_scope: ${IN_SCOPE:-none})"
+          echo "validate: $VALIDATE; synthetic: $SYNTHETIC"
+          if [ "$SCOPE" != success ]; then
+            echo "::error::job scope did not succeed ($SCOPE)"
+            exit 1
+          fi
+          case "$IN_SCOPE" in
+            true | false) ;;
+            *)
+              echo "::error::job scope gave no in_scope answer ('$IN_SCOPE')"
+              exit 1
+              ;;
+          esac
+          failed=false
+          check() {
+            case "$2" in
+              success) ;;
+              skipped)
+                if [ "$3" = true ]; then
+                  echo "::error::job $1 was skipped, but this event is in scope"
+                  failed=true
+                fi
+                ;;
+              *)
+                echo "::error::job $1: $2"
+                failed=true
+                ;;
+            esac
+          }
+          check validate "$VALIDATE" "$IN_SCOPE"
+          check synthetic "$SYNTHETIC" "$IN_SCOPE"
+          if [ "$failed" != false ]; then
+            exit 1
+          fi
+          echo "Fixture checks passed (in scope: $IN_SCOPE)."

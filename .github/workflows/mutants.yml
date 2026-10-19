@@ -25,13 +25,20 @@
 #   weakened test and an untested change in a gated module each leave a
 #   survivor and exit 2 (xtask/src/mutants_selftest.rs).
 #
-# This workflow is path-filtered on pull requests, so it reports no status on
-# changes outside those paths. Do not make its checks required status checks
-# in branch protection (a skipped path-filtered workflow leaves a required
-# check pending forever); the required check stays `ci-ok` in ci.yml.
-# The pull_request paths cover every crate holding a gated module (the
-# globs in .cargo/mutants.toml; xtask/tests/mutants_ci_config.rs keeps them
-# in step), each such crate's tests, shared test support, and the gate.
+# * Job `scope` (first): whether the event is in scope. A pull request is in
+#   scope when it changes a path in the step's `paths` list (every crate
+#   holding a gated module, the globs in .cargo/mutants.toml; each such
+#   crate's tests; shared test support; the gate itself:
+#   xtask/tests/mutants_ci_config.rs keeps the list in step); the schedule
+#   and workflow_dispatch are always in scope (the full run). Out of scope,
+#   `pr`, `full` and `selftest` are skipped.
+# * Job `mutants-ok` (always runs): the required status check on
+#   `rust-rewrite` (CONTRIBUTING.md "Branch protection"). It fails if
+#   `scope` did not succeed, if any gate job failed or was cancelled, or if
+#   a gate job that should have run for an in-scope event was skipped; it
+#   passes when the change is out of scope. The workflow has no trigger-level
+#   `paths:` filter, so it starts on every pull request and the check never
+#   sits at "Expected".
 #
 # GitHub fires `schedule` only for the workflow file on the repository's
 # default branch, and runs it on that branch's latest commit; it accepts
@@ -47,19 +54,10 @@
 name: Mutants
 
 on:
+  # No `paths:` filter: job `scope` decides, so `mutants-ok` reports on
+  # every pull request.
   pull_request:
     branches: ["**"]
-    paths:
-      - "crates/rr-core/**"
-      - "crates/rr-rom/**"
-      - "crates/rr-comms/**"
-      - "crates/rr-testkit/**"
-      - "fixtures/**"
-      - ".cargo/mutants.toml"
-      - ".github/workflows/mutants.yml"
-      - "xtask/src/mutants_scope.rs"
-      - "xtask/src/mutants_selftest.rs"
-      - "rust-toolchain.toml"
   schedule:
     # Weekly full run: Mondays 03:17 UTC. Fires only from the default branch
     # (see the header).
@@ -84,11 +82,72 @@ defaults:
     shell: bash
 
 jobs:
+  # Is this event in scope? A pull request is when it changes a path below;
+  # the schedule and workflow_dispatch (the full run) always are. The other
+  # jobs run only in scope; `mutants-ok` reports either way.
+  scope:
+    name: mutants-scope
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      in_scope: ${{ steps.scope.outputs.in_scope }}
+    steps:
+      # Full history (commits and trees; file contents are not needed for
+      # a list of changed paths), so the PR's base is present.
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          filter: blob:none
+      # A failing git command (a missing base) fails this job, and
+      # `mutants-ok` with it: never a silent "out of scope".
+      - name: Changed paths in scope
+        id: scope
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          # Git glob pathspecs. Every crate holding a gated module (the
+          # globs in .cargo/mutants.toml), shared test support and fixtures,
+          # and the gate: xtask/tests/mutants_ci_config.rs checks this list
+          # against .cargo/mutants.toml and xtask/src/mutants_scope.rs.
+          paths=(
+            "crates/rr-core/**"
+            "crates/rr-rom/**"
+            "crates/rr-comms/**"
+            "crates/rr-testkit/**"
+            "fixtures/**"
+            ".cargo/mutants.toml"
+            ".github/workflows/mutants.yml"
+            "xtask/src/mutants_scope.rs"
+            "xtask/src/mutants_selftest.rs"
+            "rust-toolchain.toml"
+          )
+          if [ "$EVENT" != pull_request ]; then
+            echo "$EVENT: the full run is always in scope"
+            in_scope=true
+          else
+            if [ -z "$BASE" ]; then
+              echo "::error::no pull request base commit"
+              exit 1
+            fi
+            changed=$(git --glob-pathspecs diff --name-only --no-renames "$BASE"...HEAD -- "${paths[@]}")
+            if [ -n "$changed" ]; then
+              echo "Changed paths in scope:"
+              echo "$changed"
+              in_scope=true
+            else
+              echo "No change under the gate's paths: the gate jobs are skipped"
+              in_scope=false
+            fi
+          fi
+          echo "in_scope=$in_scope" >> "$GITHUB_OUTPUT"
+
   # Mutants in the gated code a pull request changes (or every gated module
   # when it changes their tests).
   pr:
     name: mutants (pull request)
-    if: github.event_name == 'pull_request'
+    needs: scope
+    if: needs.scope.outputs.in_scope == 'true' && github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     steps:
@@ -137,7 +196,8 @@ jobs:
   # Every gated module, weekly; the report is the artifact.
   full:
     name: mutants (full)
-    if: github.event_name != 'pull_request'
+    needs: scope
+    if: needs.scope.outputs.in_scope == 'true' && github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     steps:
@@ -167,6 +227,8 @@ jobs:
   # repository's .cargo/mutants.toml.
   selftest:
     name: mutants-selftest
+    needs: scope
+    if: needs.scope.outputs.in_scope == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -181,3 +243,68 @@ jobs:
           tool: cargo-nextest,cargo-mutants
       - name: cargo xtask mutants-selftest
         run: cargo xtask mutants-selftest
+
+  # The required status check (CONTRIBUTING.md "Branch protection"). Runs
+  # even when a needed job failed (`if: always()`; a skipped required check
+  # counts as passed). Fails when `scope` did not succeed or gave no answer,
+  # when a gate job failed or was cancelled, or when a gate job that should
+  # have run for this in-scope event was skipped. Out of scope, every gate
+  # job is skipped and this passes. Same idiom as `ci-ok` in ci.yml, except
+  # that a skip is allowed when the event is out of scope.
+  mutants-ok:
+    name: mutants-ok
+    if: always()
+    needs: [scope, pr, full, selftest]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Gate results
+        env:
+          EVENT: ${{ github.event_name }}
+          SCOPE: ${{ needs.scope.result }}
+          IN_SCOPE: ${{ needs.scope.outputs.in_scope }}
+          PR: ${{ needs.pr.result }}
+          FULL: ${{ needs.full.result }}
+          SELFTEST: ${{ needs.selftest.result }}
+        run: |
+          echo "event: $EVENT; scope: $SCOPE (in_scope: ${IN_SCOPE:-none})"
+          echo "pr: $PR; full: $FULL; selftest: $SELFTEST"
+          if [ "$SCOPE" != success ]; then
+            echo "::error::job scope did not succeed ($SCOPE)"
+            exit 1
+          fi
+          case "$IN_SCOPE" in
+            true | false) ;;
+            *)
+              echo "::error::job scope gave no in_scope answer ('$IN_SCOPE')"
+              exit 1
+              ;;
+          esac
+          # Which jobs must have run: `pr` on a pull request, `full` on any
+          # other event, `selftest` on both; none out of scope.
+          pr_runs=false
+          full_runs=false
+          if [ "$EVENT" = pull_request ]; then pr_runs=$IN_SCOPE; else full_runs=$IN_SCOPE; fi
+          failed=false
+          check() {
+            case "$2" in
+              success) ;;
+              skipped)
+                if [ "$3" = true ]; then
+                  echo "::error::job $1 was skipped, but this event is in scope"
+                  failed=true
+                fi
+                ;;
+              *)
+                echo "::error::job $1: $2"
+                failed=true
+                ;;
+            esac
+          }
+          check pr "$PR" "$pr_runs"
+          check full "$FULL" "$full_runs"
+          check selftest "$SELFTEST" "$IN_SCOPE"
+          if [ "$failed" != false ]; then
+            exit 1
+          fi
+          echo "Mutation gate passed (in scope: $IN_SCOPE)."

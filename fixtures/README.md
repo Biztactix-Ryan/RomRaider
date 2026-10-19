@@ -375,8 +375,10 @@ job is described in [Synthetic ROMs](#synthetic-roms)):
 
    A base that cannot be resolved exits 2 and fails the job.
 
-The workflow is path-filtered, so it is not a required status check. The
-required check stays `ci-ok` in `ci.yml`.
+The workflow starts on every push and pull request. Its `scope` job skips
+the fixture jobs when the change touches none of the fixture paths, and its
+`fixtures-ok` job always reports. `fixtures-ok` is a required status check on
+`rust-rewrite`, next to `ci-ok` (CONTRIBUTING.md "Branch protection").
 
 ## Running the validator locally
 

@@ -27,11 +27,15 @@
 //!   crate manifest, every T6 test and compile-fail fixture, every workflow
 //!   and every file that defines a capability token. The branch-protection
 //!   payload in CONTRIBUTING.md is parsed ([`contributing_payload`]) and
-//!   checked against the policy above ([`policy_problems`]).
+//!   checked against the policy above ([`policy_problems`]). A branch may
+//!   require more status checks than the shared payload: CONTRIBUTING.md
+//!   adds them with a `POST …/branches/<branch>/protection/
+//!   required_status_checks/contexts` command after the loop
+//!   ([`Payload::extra_contexts`], [`Payload::expected`]).
 //! * Live (`cargo xtask check-branch-protection`, opt-in, never in tests:
 //!   it needs the network and repo-admin read access): for each protected
 //!   branch, the protection GitHub reports must equal the CONTRIBUTING.md
-//!   payload and satisfy the policy, `.github/CODEOWNERS` must exist on that
+//!   payload (plus that branch's extra contexts) and satisfy the policy, `.github/CODEOWNERS` must exist on that
 //!   branch with the same content as the local file, and GitHub's
 //!   `codeowners/errors` must be empty ([`check_live`]).
 //!
@@ -42,7 +46,7 @@
 //! `docs/a/b.md`). A trailing `/` matches a directory and everything under
 //! it, and a pattern with no `/` except a trailing one matches at any depth.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 use std::fs;
 use std::path::Path;
@@ -795,6 +799,78 @@ pub struct Payload {
     pub branches: Vec<String>,
     /// The JSON payload.
     pub protection: Protection,
+    /// Status-check contexts a branch requires on top of the payload's,
+    /// from the `POST …/protection/required_status_checks/contexts`
+    /// commands after the loop.
+    pub extra_contexts: BTreeMap<String, BTreeSet<String>>,
+}
+
+impl Payload {
+    /// The protection `branch` must have: the shared payload plus the
+    /// branch's extra contexts.
+    #[must_use]
+    pub fn expected(&self, branch: &str) -> Protection {
+        let mut p = self.protection.clone();
+        if let Some(extra) = self.extra_contexts.get(branch) {
+            p.contexts.extend(extra.iter().cloned());
+        }
+        p
+    }
+}
+
+/// The `<<'JSON'` heredoc of the command on `section[at]`: opened on that
+/// line or on its continuation line, as text.
+fn heredoc_after(section: &[&str], at: usize) -> Result<String> {
+    let start = section[at..]
+        .iter()
+        .take(2)
+        .position(|l| l.trim_end().ends_with("<<'JSON'"))
+        .map(|i| at + i)
+        .ok_or_else(|| {
+            anyhow!("{CONTRIBUTING}: no `<<'JSON'` heredoc in `{PROTECTION_SECTION}`")
+        })?;
+    let len = section[start + 1..]
+        .iter()
+        .position(|l| l.trim() == "JSON")
+        .ok_or_else(|| anyhow!("{CONTRIBUTING}: the `<<'JSON'` heredoc is not closed"))?;
+    Ok(section[start + 1..start + 1 + len].join("\n"))
+}
+
+/// The `{"contexts": [...]}` commands that add required checks to one
+/// branch, by branch.
+fn extra_contexts(section: &[&str], repo: &str) -> Result<BTreeMap<String, BTreeSet<String>>> {
+    let mut out: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let prefix = format!("repos/{repo}/branches/");
+    for (i, l) in section.iter().enumerate() {
+        let Some((_, rest)) = l.split_once(&prefix) else {
+            continue;
+        };
+        let Some((branch, _)) = rest.split_once("/protection/required_status_checks/contexts")
+        else {
+            continue;
+        };
+        if !l.contains("--method POST") {
+            bail!("{CONTRIBUTING}: the `{branch}` contexts command is not `gh api --method POST`");
+        }
+        let json = heredoc_after(section, i)?;
+        let value: Value = serde_json::from_str(&json).with_context(|| {
+            format!("{CONTRIBUTING}: the `{branch}` contexts payload is not valid JSON")
+        })?;
+        let contexts = value
+            .get("contexts")
+            .and_then(Value::as_array)
+            .ok_or_else(|| {
+                anyhow!("{CONTRIBUTING}: the `{branch}` contexts payload has no `contexts` array")
+            })?;
+        let set = out.entry(branch.to_owned()).or_default();
+        for c in contexts {
+            let c = c
+                .as_str()
+                .ok_or_else(|| anyhow!("{CONTRIBUTING}: a `{branch}` context is not a string"))?;
+            set.insert(c.to_owned());
+        }
+    }
+    Ok(out)
 }
 
 /// Parses the `gh api --method PUT …/protection` loop in CONTRIBUTING.md's
@@ -835,23 +911,24 @@ pub fn contributing_payload(contributing: &str) -> Result<Payload> {
         .ok_or_else(|| {
             anyhow!("{CONTRIBUTING}: no `gh api --method PUT repos/…/branches/…` line")
         })?;
-    let start = section
+    let put = section
         .iter()
-        .position(|l| l.trim_end().ends_with("<<'JSON'"))
-        .ok_or_else(|| {
-            anyhow!("{CONTRIBUTING}: no `<<'JSON'` heredoc in `{PROTECTION_SECTION}`")
-        })?;
-    let len = section[start + 1..]
-        .iter()
-        .position(|l| l.trim() == "JSON")
-        .ok_or_else(|| anyhow!("{CONTRIBUTING}: the `<<'JSON'` heredoc is not closed"))?;
-    let json = section[start + 1..start + 1 + len].join("\n");
+        .position(|l| l.contains("--method PUT"))
+        .unwrap_or(0);
+    let json = heredoc_after(&section, put)?;
     let value: Value = serde_json::from_str(&json)
         .with_context(|| format!("{CONTRIBUTING}: branch-protection payload is not valid JSON"))?;
+    let extra_contexts = extra_contexts(&section, &repo)?;
+    for b in extra_contexts.keys() {
+        if !branches.contains(b) {
+            bail!("{CONTRIBUTING}: extra contexts for `{b}`, which the loop does not protect");
+        }
+    }
     Ok(Payload {
         repo,
         branches,
         protection: Protection::from_json(&value)?,
+        extra_contexts,
     })
 }
 

@@ -4,7 +4,8 @@
 #
 # `cargo llvm-cov nextest` runs the whole workspace's tests twice, once on the
 # change (job `coverage`) and once on its base (job `base-coverage`), in
-# parallel. Each uploads its lcov report as an artifact. Job `gate` then runs
+# parallel. Each uploads its lcov report as an artifact. Job `gate` (check
+# `coverage-gate`, `if: always()`) fails unless both succeeded, then runs
 # `cargo xtask coverage-gate` (rules in xtask/src/coverage_gate.rs), which
 # fails if rr-core, rr-rom or rr-comms is below 90% line coverage or below its
 # own coverage on the base (by more than 0.25 points of measurement noise).
@@ -17,8 +18,8 @@
 # it is gone (force push), as in fixtures.yml.
 #
 # Not path-filtered, so it reports on every push to master / rust-rewrite and
-# every pull request. To make it blocking, add the `coverage-gate` check to
-# branch protection next to `ci-ok` (CONTRIBUTING.md "Branch protection").
+# every pull request. `coverage-gate` is a required status check on
+# `rust-rewrite`, next to `ci-ok` (CONTRIBUTING.md "Branch protection").
 
 name: Coverage
 
@@ -127,12 +128,28 @@ jobs:
           if-no-files-found: error
 
   # >= 90% line coverage per gated crate, and no regression against the base.
+  # `coverage-gate` is a required status check, and a skipped required check
+  # counts as passed, so this job must never be skipped: `if: always()` runs
+  # it even when a measuring job failed or was cancelled, and its first step
+  # then fails the job unless both measuring jobs succeeded. The gate itself
+  # runs only after that step passes.
   gate:
     name: coverage-gate
+    if: always()
     needs: [coverage, base-coverage]
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
+      - name: Both coverage runs succeeded
+        env:
+          HEAD_RESULT: ${{ needs.coverage.result }}
+          BASE_RESULT: ${{ needs.base-coverage.result }}
+        run: |
+          echo "coverage (head): $HEAD_RESULT; coverage (base): $BASE_RESULT"
+          if [ "$HEAD_RESULT" != success ] || [ "$BASE_RESULT" != success ]; then
+            echo "::error::coverage-gate needs both coverage runs to succeed (head: $HEAD_RESULT, base: $BASE_RESULT)"
+            exit 1
+          fi
       - uses: actions/checkout@v5
       - name: Install toolchain
         run: rustup toolchain install --no-self-update && rustup show

@@ -12,10 +12,20 @@
 //! * `.cargo/mutants.toml` gates every module named by PROJECT.md T7 and the
 //!   story ([`REQUIRED_GLOBS`]), only under `crates/<gated crate>/src/`,
 //!   gates the self-test's module path, and runs tests with nextest;
-//! * the workflow runs on `pull_request` (every base branch), on a weekly
-//!   `schedule` (one cron, once a week) and on `workflow_dispatch`, and the pull request `paths:`
-//!   cover every crate holding a gated glob, the shared test support, the
-//!   config files the scope rules treat as the gate, and the self-test;
+//! * the workflow runs on `pull_request` (every base branch, with no
+//!   trigger-level `paths:` filter, so the required check `mutants-ok`
+//!   reports on every pull request: task US-RR-4-8), on a weekly `schedule`
+//!   (one cron, once a week) and on `workflow_dispatch`;
+//! * job `scope` decides whether the event is in scope (`common/
+//!   scoped_gate.rs`): its `paths` list covers every crate holding a gated
+//!   glob, the shared test support, the config files the scope rules treat
+//!   as the gate, and the self-test; `pr`, `full` and `selftest` need it and
+//!   run only `if: needs.scope.outputs.in_scope == 'true'` (and their event);
+//! * job `mutants-ok` (the required check) runs `if: always()`, needs every
+//!   other job, and fails when `scope` did not succeed, a gate job failed or
+//!   was cancelled, or a gate job expected for the event was skipped; it
+//!   passes out of scope. On Unix the test runs its script for every result
+//!   combination, and the scope script on scratch repositories;
 //! * job `pr` (pull requests only) checks out the full history, writes
 //!   `git diff --no-color --no-ext-diff "$PR_BASE_SHA"...HEAD > pr.diff`
 //!   from the pull request's base commit, asks `cargo xtask mutants-scope`
@@ -31,8 +41,8 @@
 //!   (`--file`, `--exclude`, `--re`, `--shard`, `--config`, ...), every job
 //!   installs cargo-mutants and cargo-nextest, and no step can be skipped or
 //!   softened (`if:` other than the uploads' `always()`,
-//!   `continue-on-error`, `|| true`); the only job-level `if:`s are the two
-//!   event selectors.
+//!   `continue-on-error`, `|| true`); the only job-level `if:`s are the
+//!   scope-and-event selectors and the aggregate's `always()`.
 //! * every `run:` uses the workflow default `shell: bash` (GitHub runs it as
 //!   `bash --noprofile --norc -eo pipefail`) and no job or step overrides
 //!   it: the `pr` step must stop when `cargo xtask mutants-scope` fails (an
@@ -47,9 +57,13 @@
 #[path = "common/workflow.rs"]
 mod workflow;
 
+#[path = "common/scoped_gate.rs"]
+mod scoped_gate;
+
 use std::fs;
 use std::path::Path;
 
+use scoped_gate::Gated;
 use workflow::{
     Job, Workflow, assert_flags, indent, is_blank_or_comment, key_at_any, normalize,
     skippable_problems, workflow_yml,
@@ -61,8 +75,39 @@ const FILE: &str = "mutants.yml";
 const PR_JOB: &str = "pr";
 const FULL_JOB: &str = "full";
 const SELFTEST_JOB: &str = "selftest";
-const PR_IF: &str = "if: github.event_name == 'pull_request'";
-const FULL_IF: &str = "if: github.event_name != 'pull_request'";
+const PR_IF: &str =
+    "if: needs.scope.outputs.in_scope == 'true' && github.event_name == 'pull_request'";
+const FULL_IF: &str =
+    "if: needs.scope.outputs.in_scope == 'true' && github.event_name != 'pull_request'";
+const SELFTEST_IF: &str = "if: needs.scope.outputs.in_scope == 'true'";
+/// The aggregate job: the required status check (CONTRIBUTING.md "Branch
+/// protection").
+const AGGREGATE: &str = "mutants-ok";
+
+/// The gate jobs `mutants-ok` checks, and the events each runs on in scope.
+const GATED: &[Gated] = &[
+    Gated {
+        job: PR_JOB,
+        var: "PR",
+        runs_on: |e| e == "pull_request",
+    },
+    Gated {
+        job: FULL_JOB,
+        var: "FULL",
+        runs_on: |e| e != "pull_request",
+    },
+    Gated {
+        job: SELFTEST_JOB,
+        var: "SELFTEST",
+        runs_on: |_| true,
+    },
+];
+
+/// The scope step's env: the event and the pull request's base.
+const SCOPE_ENV: &[(&str, &str)] = &[
+    ("EVENT", "${{ github.event_name }}"),
+    ("BASE", "${{ github.event.pull_request.base.sha }}"),
+];
 const UPLOAD: &str = "Upload mutants report";
 const REPORT_DIR: &str = "mutants.out";
 const FULL_ARTIFACT: &str = "mutants-report-full";
@@ -183,24 +228,6 @@ fn trigger_body<'a>(wf: &Workflow<'a>, trigger: &str) -> Vec<&'a str> {
         .iter()
         .copied()
         .take_while(|l| is_blank_or_comment(l) || indent(l) > 2)
-        .collect()
-}
-
-/// The block list under `key:` (at indent 4) of trigger `trigger`.
-fn trigger_list(wf: &Workflow<'_>, trigger: &str, key: &str) -> Vec<String> {
-    let body = trigger_body(wf, trigger);
-    let Some(pos) = body
-        .iter()
-        .position(|l| indent(l) == 4 && l.trim() == format!("{key}:"))
-    else {
-        return Vec::new();
-    };
-    body[pos + 1..]
-        .iter()
-        .take_while(|l| is_blank_or_comment(l) || indent(l) > 4)
-        .filter(|l| !is_blank_or_comment(l))
-        .filter_map(|l| l.trim().strip_prefix("- "))
-        .map(|s| s.trim().trim_matches(|c| c == '"' || c == '\'').to_owned())
         .collect()
 }
 
@@ -371,7 +398,21 @@ fn workflow_problems(src: &str, toml_src: &str) -> Vec<String> {
             }
         }
     }
-    let paths = trigger_list(&wf, "pull_request", "paths");
+    problems.extend(scoped_gate::trigger_filter_problems(&wf, "pull_request"));
+    problems.extend(scoped_gate::scope_job_problems(&wf, SCOPE_ENV));
+    problems.extend(scoped_gate::aggregate_problems(&wf, AGGREGATE, GATED));
+    for (id, want_if) in [
+        (PR_JOB, PR_IF),
+        (FULL_JOB, FULL_IF),
+        (SELFTEST_JOB, SELFTEST_IF),
+    ] {
+        problems.extend(scoped_gate::gated_job_problems(
+            &wf,
+            id,
+            want_if.trim_start_matches("if: "),
+        ));
+    }
+    let paths = scoped_gate::scope_paths(&wf);
     let mut want: Vec<String> = Vec::new();
     // Every crate holding a gated glob (from the config, so a new glob in a
     // new place needs its path here too).
@@ -393,7 +434,7 @@ fn workflow_problems(src: &str, toml_src: &str) -> Vec<String> {
     for w in &want {
         if !paths.contains(w) {
             problems.push(format!(
-                "`pull_request` paths do not include `{w}` (paths: {paths:?})"
+                "scope paths do not include `{w}` (paths: {paths:?})"
             ));
         }
     }
@@ -478,7 +519,7 @@ fn workflow_problems(src: &str, toml_src: &str) -> Vec<String> {
         );
     }
 
-    if let Some(job) = job_or_problem(&wf, SELFTEST_JOB, None, &mut problems)
+    if let Some(job) = job_or_problem(&wf, SELFTEST_JOB, Some(SELFTEST_IF), &mut problems)
         && !job.run_scripts().iter().any(|s| s == SELFTEST_CMD)
     {
         problems.push(format!("`{SELFTEST_JOB}` does not run `{SELFTEST_CMD}`"));
@@ -596,15 +637,15 @@ fn mutants_workflow_check_rejects_weakened_workflow() {
         "not on every base branch",
     );
     assert_flags(
-        &m(&|s| s.replacen("      - \"crates/rr-comms/**\"\n", "", 1)),
+        &m(&|s| s.replacen("            \"crates/rr-comms/**\"\n", "", 1)),
         "paths do not include `crates/rr-comms/**`",
     );
     assert_flags(
-        &m(&|s| s.replacen("      - \"fixtures/**\"\n", "", 1)),
+        &m(&|s| s.replacen("            \"fixtures/**\"\n", "", 1)),
         "paths do not include `fixtures/**`",
     );
     assert_flags(
-        &m(&|s| s.replacen("      - \".cargo/mutants.toml\"\n", "", 1)),
+        &m(&|s| s.replacen("            \".cargo/mutants.toml\"\n", "", 1)),
         "paths do not include `.cargo/mutants.toml`",
     );
     // A glob gated outside the listed crates needs its crate in the paths.
@@ -849,8 +890,8 @@ fn mutants_workflow_check_rejects_weakened_workflow() {
     assert_flags(
         &m(&|s| {
             s.replacen(
-                "    name: mutants-selftest\n",
-                "    name: mutants-selftest\n    if: github.event_name == 'schedule'\n",
+                "    name: mutants-selftest\n    needs: scope\n    if: needs.scope.outputs.in_scope == 'true'\n",
+                "    name: mutants-selftest\n    needs: scope\n    if: github.event_name == 'schedule'\n",
                 1,
             )
         }),
@@ -870,5 +911,391 @@ fn mutants_workflow_check_rejects_weakened_workflow() {
             )
         }),
         "`selftest` does not install cargo-mutants",
+    );
+}
+
+/// The pull request trigger, the scope job and the required `mutants-ok`
+/// check (task US-RR-4-8): each assertion bites on a weakened copy.
+#[test]
+fn mutants_workflow_check_rejects_weakened_scope_and_aggregate() {
+    let src = workflow_yml(FILE);
+    let toml_src = mutants_toml();
+    let m = |edit: &dyn Fn(&str) -> String| {
+        let changed = edit(&src);
+        assert_ne!(changed, src, "mutation did not apply");
+        workflow_problems(&changed, &toml_src)
+    };
+    // A trigger-level path filter: the check never reports elsewhere.
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "    branches: [\"**\"]\n",
+                "    branches: [\"**\"]\n    paths:\n      - \"crates/**\"\n",
+                1,
+            )
+        }),
+        "trigger-level `paths:` filter",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "    branches: [\"**\"]\n",
+                "    branches: [\"**\"]\n    paths-ignore:\n      - \"docs/**\"\n",
+                1,
+            )
+        }),
+        "trigger-level `paths-ignore:",
+    );
+    // Aggregate: not `always()`, so a failed gate job skips it.
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "    name: mutants-ok\n    if: always()\n",
+                "    name: mutants-ok\n",
+                1,
+            )
+        }),
+        "`mutants-ok` is not `if: always()`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "    name: mutants-ok\n    if: always()\n",
+                "    name: mutants-ok\n    if: success()\n",
+                1,
+            )
+        }),
+        "`mutants-ok` is not `if: always()`",
+    );
+    assert_flags(
+        &m(&|s| s.replacen("    name: mutants-ok\n", "    name: mutants gate\n", 1)),
+        "`mutants-ok` is not named `mutants-ok`",
+    );
+    // Scope job (or a gate job) dropped from the aggregate's needs.
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "needs: [scope, pr, full, selftest]",
+                "needs: [pr, full, selftest]",
+                1,
+            )
+        }),
+        "`mutants-ok.needs` does not include `scope`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "needs: [scope, pr, full, selftest]",
+                "needs: [scope, pr, full]",
+                1,
+            )
+        }),
+        "`mutants-ok.needs` does not include `selftest`",
+    );
+    // A result not passed to the deciding step, or the wrong one.
+    assert_flags(
+        &m(&|s| s.replacen("          SCOPE: ${{ needs.scope.result }}\n", "", 1)),
+        "does not set `SCOPE: ${{ needs.scope.result }}`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "          PR: ${{ needs.pr.result }}\n",
+                "          PR: ${{ needs.full.result }}\n",
+                1,
+            )
+        }),
+        "does not set `PR: ${{ needs.pr.result }}`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "          IN_SCOPE: ${{ needs.scope.outputs.in_scope }}\n",
+                "          IN_SCOPE: true\n",
+                1,
+            )
+        }),
+        "does not set `IN_SCOPE:",
+    );
+    // The aggregate softened.
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "      - name: Gate results\n",
+                "      - name: Gate results\n        continue-on-error: true\n",
+                1,
+            )
+        }),
+        "`mutants-ok` uses `continue-on-error",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "      - name: Gate results\n",
+                "      - name: Gate results\n        if: failure()\n",
+                1,
+            )
+        }),
+        "`mutants-ok` step `Gate results` has a conditional",
+    );
+    // A new job the aggregate does not check.
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "  mutants-ok:\n",
+                "  extra:\n    name: extra\n    runs-on: ubuntu-24.04\n    steps:\n      - run: echo\n\n  mutants-ok:\n",
+                1,
+            )
+        }),
+        "`mutants-ok.needs` does not include `extra`",
+    );
+    // Gate jobs not tied to the scope.
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "    name: mutants (pull request)\n    needs: scope\n",
+                "    name: mutants (pull request)\n",
+                1,
+            )
+        }),
+        "`pr.needs` does not include `scope`",
+    );
+    assert_flags(
+        &m(&|s| s.replacen(FULL_IF, "if: github.event_name != 'pull_request'", 1)),
+        "`full` job-level `if:`",
+    );
+    // Scope job.
+    assert_flags(
+        &m(&|s| s.replacen("  scope:\n", "  changes:\n", 1)),
+        "no `scope` job",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "    name: mutants-scope\n",
+                "    name: mutants-scope\n    if: github.event_name == 'pull_request'\n",
+                1,
+            )
+        }),
+        "`scope` has a job-level `if:",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "      in_scope: ${{ steps.scope.outputs.in_scope }}\n",
+                "      in_scope: \"true\"\n",
+                1,
+            )
+        }),
+        "`scope` does not output `in_scope",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "          BASE: ${{ github.event.pull_request.base.sha }}\n",
+                "          BASE: ${{ github.event.before }}\n",
+                1,
+            )
+        }),
+        "does not set `BASE: ${{ github.event.pull_request.base.sha }}`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "          echo \"in_scope=$in_scope\" >> \"$GITHUB_OUTPUT\"\n",
+                "          echo \"in_scope=true\" >> \"$GITHUB_OUTPUT\"\n",
+                1,
+            )
+        }),
+        "does not write `in_scope` to $GITHUB_OUTPUT",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "            changed=$(git --glob-pathspecs",
+                "            changed=$(git --glob-pathspecs diff HEAD || true) # ",
+                1,
+            )
+        }),
+        "swallows failures",
+    );
+}
+
+/// The `mutants-ok` script decides right for every result combination, and
+/// the scope script answers right on scratch repositories (Unix: bash).
+#[cfg(unix)]
+#[test]
+fn mutants_ok_and_scope_behave_as_documented() {
+    let src = workflow_yml(FILE);
+    let wf = Workflow::parse(&src);
+    let script = scoped_gate::aggregate_script(&wf, AGGREGATE).unwrap_or_default();
+    let mut problems = scoped_gate::aggregate_behaviour_problems(&script, AGGREGATE, GATED);
+    problems.extend(scoped_gate::scope_behaviour_problems(
+        &wf,
+        "mutants",
+        &["schedule", "workflow_dispatch"],
+        false,
+    ));
+    assert!(problems.is_empty(), "{}", problems.join("\n"));
+}
+
+/// The behaviour checks bite: an aggregate that ignores a failure, a skip
+/// or a failed scope, and a scope script that answers wrong, are caught.
+#[cfg(unix)]
+#[test]
+fn mutants_behaviour_check_rejects_weakened_scripts() {
+    let src = workflow_yml(FILE);
+    let agg = |edit: &dyn Fn(&str) -> String| {
+        let changed = edit(&src);
+        assert_ne!(changed, src, "mutation did not apply");
+        let wf = Workflow::parse(&changed);
+        let script = scoped_gate::aggregate_script(&wf, AGGREGATE).unwrap_or_default();
+        scoped_gate::aggregate_behaviour_problems(&script, AGGREGATE, GATED)
+    };
+    // Ignores a failed or cancelled gate job.
+    assert_flags(
+        &agg(&|s| {
+            s.replacen(
+                "              success) ;;\n",
+                "              success | failure) ;;\n",
+                1,
+            )
+        }),
+        "`mutants-ok` passes when",
+    );
+    assert_flags(
+        &agg(&|s| {
+            s.replacen(
+                "              success) ;;\n",
+                "              success | cancelled) ;;\n",
+                1,
+            )
+        }),
+        "\"cancelled\"",
+    );
+    // Accepts a skip of a job that should have run.
+    assert_flags(
+        &agg(&|s| {
+            s.replacen(
+                "                if [ \"$3\" = true ]; then\n",
+                "                if false; then\n",
+                1,
+            )
+        }),
+        "`mutants-ok` passes when",
+    );
+    // Ignores the scope job's own result: fail open.
+    assert_flags(
+        &agg(&|s| {
+            s.replacen(
+                "          if [ \"$SCOPE\" != success ]; then\n",
+                "          if false; then\n",
+                1,
+            )
+        }),
+        "(\"SCOPE\", \"failure\")",
+    );
+    // Treats a missing answer as out of scope.
+    assert_flags(
+        &agg(&|s| {
+            s.replacen(
+                "            true | false) ;;\n",
+                "            true | false | \"\") ;;\n",
+                1,
+            )
+        }),
+        "(\"IN_SCOPE\", \"\")",
+    );
+    // Drops a job's check, or checks the wrong event.
+    assert_flags(
+        &agg(&|s| {
+            s.replacen(
+                "          check selftest \"$SELFTEST\" \"$IN_SCOPE\"\n",
+                "",
+                1,
+            )
+        }),
+        "(\"SELFTEST\", \"failure\")",
+    );
+    assert_flags(
+        &agg(&|s| {
+            s.replacen(
+                "if [ \"$EVENT\" = pull_request ]; then pr_runs",
+                "if [ \"$EVENT\" = push ]; then pr_runs",
+                1,
+            )
+        }),
+        "`mutants-ok` fails when",
+    );
+    // Never fails.
+    assert_flags(
+        &agg(&|s| {
+            s.replacen(
+                "          if [ \"$failed\" != false ]; then\n            exit 1\n",
+                "          if [ \"$failed\" != false ]; then\n            echo ignored\n",
+                1,
+            )
+        }),
+        "`mutants-ok` passes when",
+    );
+
+    let scope = |edit: &dyn Fn(&str) -> String| {
+        let changed = edit(&src);
+        assert_ne!(changed, src, "mutation did not apply");
+        scoped_gate::scope_behaviour_problems(
+            &Workflow::parse(&changed),
+            "mutants-sabotage",
+            &["schedule", "workflow_dispatch"],
+            false,
+        )
+    };
+    // A two-dot diff from the base sees the base's own later changes.
+    assert_flags(
+        &scope(&|s| s.replacen("\"$BASE\"...HEAD", "\"$BASE\" HEAD", 1)),
+        "base moved on in scope",
+    );
+    // Out of scope whatever changed.
+    assert_flags(
+        &scope(&|s| {
+            s.replacen(
+                "            if [ -n \"$changed\" ]; then\n",
+                "            if false; then\n",
+                1,
+            )
+        }),
+        "of a pull request changing `crates/rr-core/sample/changed.txt`",
+    );
+    // A missing base read as "nothing changed".
+    assert_flags(
+        &scope(&|s| {
+            s.replacen(
+                "            changed=$(git --glob-pathspecs diff --name-only --no-renames \"$BASE\"...HEAD -- \"${paths[@]}\")\n",
+                "            changed=$(git --glob-pathspecs diff --name-only --no-renames \"$BASE\"...HEAD -- \"${paths[@]}\" 2>/dev/null) || changed=\n",
+                1,
+            )
+        }),
+        "with an unknown pull request base",
+    );
+    // Not every listed path is matched (literal instead of glob pathspecs).
+    assert_flags(
+        &scope(&|s| {
+            s.replacen(
+                "git --glob-pathspecs diff",
+                "git --literal-pathspecs diff",
+                1,
+            )
+        }),
+        "of a pull request changing `crates/rr-core/sample/changed.txt`",
+    );
+    // The schedule no longer always in scope.
+    assert_flags(
+        &scope(&|s| {
+            s.replacen(
+                "          if [ \"$EVENT\" != pull_request ]; then\n",
+                "          if [ \"$EVENT\" = workflow_dispatch ]; then\n",
+                1,
+            )
+        }),
+        "on `schedule`",
     );
 }

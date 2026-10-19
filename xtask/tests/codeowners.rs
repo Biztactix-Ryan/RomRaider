@@ -21,7 +21,7 @@
 mod workflow;
 
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -137,6 +137,42 @@ fn contributing_payload_targets_the_protected_branches() {
     assert_eq!(p.protection.require_code_owner_reviews, Some(true));
     assert!(p.protection.required_approving_review_count >= Some(1));
     assert_eq!(p.protection.require_last_push_approval, Some(true));
+}
+
+/// `rust-rewrite` also requires the always-running gate jobs of
+/// coverage.yml, mutants.yml and fixtures.yml (task US-RR-4-8), under the
+/// `name:` GitHub reports each as; `master`, which has no Rust gates,
+/// requires only `ci-ok`.
+#[test]
+fn rust_rewrite_requires_the_gate_aggregate_checks() {
+    let p = contributing_payload(&read(CONTRIBUTING)).unwrap();
+    let names: BTreeSet<String> = [
+        ("coverage.yml", "gate"),
+        ("mutants.yml", "mutants-ok"),
+        ("fixtures.yml", "fixtures-ok"),
+    ]
+    .iter()
+    .map(|(file, job)| {
+        let src = workflow::workflow_yml(file);
+        let wf = workflow::Workflow::parse(&src);
+        wf.job(job)
+            .and_then(|j| j.value_at("name", 4))
+            .unwrap_or_else(|| panic!("{file}: no job `{job}` with a `name:`"))
+    })
+    .collect();
+    let want: BTreeSet<String> = ["coverage-gate", "mutants-ok", "fixtures-ok"]
+        .map(str::to_owned)
+        .into();
+    assert_eq!(names, want);
+    assert_eq!(p.extra_contexts.get("rust-rewrite"), Some(&want));
+    assert_eq!(p.extra_contexts.get("master"), None);
+    let mut rr = want.clone();
+    rr.insert(workflow::GATE_JOB.to_owned());
+    assert_eq!(p.expected("rust-rewrite").contexts, rr);
+    assert_eq!(
+        p.expected("master").contexts,
+        BTreeSet::from([workflow::GATE_JOB.to_owned()])
+    );
 }
 
 // --- Mutations: CODEOWNERS ---------------------------------------------------
@@ -460,9 +496,24 @@ fn payload_parser_fails_closed() {
             "no `for branch in",
         ),
         (
-            "--input - <<'JSON'",
-            "--input payload.json",
+            "    -H \"Accept: application/vnd.github+json\" --input - <<'JSON'",
+            "    -H \"Accept: application/vnd.github+json\" --input payload.json",
             "no `<<'JSON'` heredoc",
+        ),
+        (
+            "gh api --method POST",
+            "gh api --method DELETE",
+            "is not `gh api --method POST`",
+        ),
+        (
+            "{ \"contexts\": [\"coverage-gate\", \"mutants-ok\", \"fixtures-ok\"] }",
+            "[\"coverage-gate\", \"mutants-ok\", \"fixtures-ok\"]",
+            "has no `contexts` array",
+        ),
+        (
+            "branches/rust-rewrite/protection/required_status_checks/contexts",
+            "branches/main/protection/required_status_checks/contexts",
+            "which the loop does not protect",
         ),
         (
             "  \"enforce_admins\": false,",
@@ -586,6 +637,28 @@ fn live_response_matching_the_payload_passes() {
     assert_eq!(
         policy_problems(&live(LIVE_PROTECTION)),
         Vec::<String>::new()
+    );
+}
+
+/// The live `rust-rewrite` protection must have the added contexts too, and
+/// passes with them.
+#[test]
+fn live_rust_rewrite_needs_its_extra_contexts() {
+    let p = contributing_payload(&read(CONTRIBUTING)).unwrap();
+    let rr = p.expected("rust-rewrite");
+    assert_caught(
+        &compare(&rr, &live(LIVE_PROTECTION)),
+        "required_status_checks.contexts",
+    );
+    let all = mutate(
+        LIVE_PROTECTION,
+        "\"contexts\": [\"ci-ok\"]",
+        "\"contexts\": [\"ci-ok\", \"coverage-gate\", \"mutants-ok\", \"fixtures-ok\"]",
+    );
+    assert_eq!(compare(&rr, &live(&all)), Vec::<String>::new());
+    assert_caught(
+        &compare(&p.expected("master"), &live(&all)),
+        "required_status_checks.contexts",
     );
 }
 

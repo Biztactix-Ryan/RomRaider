@@ -19,7 +19,7 @@ A change is done when **all** of the following hold. A PR that misses one is not
 4. **Every expected value has a source.** Fixtures and snapshots follow the [Fixture source rule](#fixture-source-rule).
 5. **No Java.** Nothing in the change writes, builds or runs Java ([No-Java rule](#no-java-rule-d-024)).
 6. **Safety-gated code gets the extra review.** Changes to write paths and gated modules follow the [Safety review process](#safety-review-process).
-7. **All CI gates are green.** The required check is `ci-ok`; run the [local checks](#local-checks-before-a-pr) before pushing.
+7. **All CI gates are green.** The required checks are `ci-ok` and, on `rust-rewrite`, also `coverage-gate`, `mutants-ok` and `fixtures-ok` (see [Branch protection](#branch-protection-maintainers)); run the [local checks](#local-checks-before-a-pr) before pushing.
 8. **Standards respected.** Errors, logging, threading and time follow [Cross-cutting Standards](.project/ARCHITECTURE.md#cross-cutting-standards); the [lint bans](#lint-configuration) are not silenced with crate-wide allows.
 
 ## Test tiers per crate
@@ -40,7 +40,7 @@ The tiers are defined in [PROJECT.md, Testing Strategy](.project/PROJECT.md#test
 
 ARCHITECTURE.md [Testing](.project/ARCHITECTURE.md#testing) adds that every crate has unit and property tests, and every reader and parser is fuzzed.
 
-**What CI runs today:** `ci.yml` runs T0 (nextest plus doctests) on all four targets, and the T6 safety-invariant suite (the `t6` job). `coverage.yml` runs T8 on every pull request and every push to `master` / `rust-rewrite`: `cargo llvm-cov nextest` on the change and on its base, then `cargo xtask coverage-gate`, which fails if rr-core, rr-rom or rr-comms is below 90% line coverage or more than 0.25 points below its own coverage on the base, the measured run-to-run noise (rules in `xtask/src/coverage_gate.rs`; both lcov reports are uploaded as artifacts `lcov` and `lcov-base`). `mutants.yml` runs T7: on a pull request touching a gated crate, `cargo mutants --in-diff` on the changed gated code, or on every gated module when the change touches their tests (`cargo xtask mutants-scope`; a weakened test changes no gated code); weekly, every gated module, with the report uploaded as artifact `mutants-report-full`; and `cargo xtask mutants-selftest`, which proves a weakened test leaves a survivor that fails the job. A surviving mutant fails the job. The fuzz and remaining fixture jobs described in [INFRASTRUCTURE.md, Build Pipeline](.project/INFRASTRUCTURE.md#build-pipeline) are not wired yet. Until they are, run the relevant tools locally (see [Development Setup](.project/PROJECT.md#development-setup)) when your change touches a tier they cover.
+**What CI runs today:** `ci.yml` runs T0 (nextest plus doctests) on all four targets, and the T6 safety-invariant suite (the `t6` job). `coverage.yml` runs T8 on every pull request and every push to `master` / `rust-rewrite`: `cargo llvm-cov nextest` on the change and on its base, then `cargo xtask coverage-gate`, which fails if rr-core, rr-rom or rr-comms is below 90% line coverage or more than 0.25 points below its own coverage on the base, the measured run-to-run noise (rules in `xtask/src/coverage_gate.rs`; both lcov reports are uploaded as artifacts `lcov` and `lcov-base`). `mutants.yml` runs T7: on a pull request touching a gated crate, `cargo mutants --in-diff` on the changed gated code, or on every gated module when the change touches their tests (`cargo xtask mutants-scope`; a weakened test changes no gated code); weekly, every gated module, with the report uploaded as artifact `mutants-report-full`; and `cargo xtask mutants-selftest`, which proves a weakened test leaves a survivor that fails the job. A surviving mutant fails the job. `mutants.yml` and `fixtures.yml` start on every push / pull request; their first job, `scope`, checks whether the change touches the gate's paths, and the gate jobs are skipped when it doesn't. Their last jobs, `mutants-ok` and `fixtures-ok`, always run: they fail if `scope` failed, if a gate job failed or was cancelled, or if one was skipped although the change is in scope, and pass when it is out of scope. The fuzz and remaining fixture jobs described in [INFRASTRUCTURE.md, Build Pipeline](.project/INFRASTRUCTURE.md#build-pipeline) are not wired yet. Until they are, run the relevant tools locally (see [Development Setup](.project/PROJECT.md#development-setup)) when your change touches a tier they cover.
 
 **Shared test tooling lives in `rr-testkit`:** `snapshot` (preconfigured `insta` settings and redactions for paths, wall times and durations), `strategies` (proptest strategies per concept: capability, clock, encoding, expr, layered), plus `fixtures` and `clock` (placeholders, being filled by US-RR-6). Use these rather than writing new helpers. Timing tests use `VirtualClock`, never real time ([D-010](.project/DECISIONS.md#d-010-injected-clock-ban-direct-sleep-and-instantnow)).
 
@@ -152,7 +152,7 @@ The project is read-only by default; writes are capability-gated ([VISION.md Pri
 
 ### Branch protection (maintainers)
 
-CODEOWNERS only takes effect with branch protection. GitHub can't set a different approval count per path, so the setup is: 1 required approval, **Require review from Code Owners**, and approval of the most recent push. A PR touching an owned path therefore needs a code owner who is not the author to approve. Other PRs need one approval from anyone. Required check: `ci-ok`. While there is only one code owner, PRs that owner authors on owned paths need an admin bypass (`enforce_admins` is `false`). For a strict two-approval rule on every PR, set `required_approving_review_count` to `2`. CODEOWNERS is read from the PR's base branch, so commit it to each protected branch first.
+CODEOWNERS only takes effect with branch protection. GitHub can't set a different approval count per path, so the setup is: 1 required approval, **Require review from Code Owners**, and approval of the most recent push. A PR touching an owned path therefore needs a code owner who is not the author to approve. Other PRs need one approval from anyone. Required checks: `ci-ok` on both branches; on `rust-rewrite` also `coverage-gate` (`coverage.yml`), `mutants-ok` (`mutants.yml`) and `fixtures-ok` (`fixtures.yml`). `master` has none of the Rust gates. Each is a job that runs on every pull request: a path-filtered workflow that never starts would leave its check at "Expected" forever, so `mutants.yml` and `fixtures.yml` decide scope in a job and report through an aggregate job that always runs. While there is only one code owner, PRs that owner authors on owned paths need an admin bypass (`enforce_admins` is `false`). For a strict two-approval rule on every PR, set `required_approving_review_count` to `2`. CODEOWNERS is read from the PR's base branch, so commit it to each protected branch first.
 
 Apply to `master` and `rust-rewrite` (needs repo admin; re-running replaces the existing protection):
 
@@ -178,7 +178,16 @@ JSON
 done
 ```
 
-Check it with `cargo xtask check-branch-protection`. It makes read-only `gh api` calls (network and repo-admin read access needed, so CI doesn't run it). For each branch in the loop above, it fails unless the live protection equals this payload, `.github/CODEOWNERS` on that branch matches the local file, and GitHub reports no CODEOWNERS errors. Offline, `xtask/tests/codeowners.rs` checks in CI that CODEOWNERS owns every gated path and that this payload requires code-owner review.
+Then add the checks `rust-rewrite` requires on top of `ci-ok` (the loop above replaces the whole protection, so run this after it every time):
+
+```sh
+gh api --method POST "repos/Biztactix-Ryan/RomRaider/branches/rust-rewrite/protection/required_status_checks/contexts" \
+  -H "Accept: application/vnd.github+json" --input - <<'JSON'
+{ "contexts": ["coverage-gate", "mutants-ok", "fixtures-ok"] }
+JSON
+```
+
+Check it with `cargo xtask check-branch-protection`. It makes read-only `gh api` calls (network and repo-admin read access needed, so CI doesn't run it). For each branch in the loop above, it fails unless the live protection equals this payload (plus, for `rust-rewrite`, the added contexts), `.github/CODEOWNERS` on that branch matches the local file, and GitHub reports no CODEOWNERS errors. Offline, `xtask/tests/codeowners.rs` checks in CI that CODEOWNERS owns every gated path and that this payload requires code-owner review.
 
 ## Local checks before a PR
 

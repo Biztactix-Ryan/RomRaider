@@ -8,9 +8,19 @@
 //! and the `*_rejects_*` test proves each assertion bites on a mutated copy.
 //! It asserts that:
 //!
-//! * the workflow runs on `push` and `pull_request`, and both triggers'
-//!   `paths:` include `fixtures/**`, `crates/rr-testkit/**`, `xtask/**` and
-//!   the workflow file itself;
+//! * the workflow runs on `push` and `pull_request` with no trigger-level
+//!   `paths:` filter, so the required check `fixtures-ok` reports on every
+//!   change (task US-RR-4-8); job `scope` (`common/scoped_gate.rs`) decides
+//!   whether the event is in scope, and its `paths` list includes
+//!   `fixtures/**`, `crates/rr-testkit/**`, `xtask/**` and the workflow file
+//!   itself; `validate` and `synthetic` need it and run only `if:
+//!   needs.scope.outputs.in_scope == 'true'`;
+//! * job `fixtures-ok` (the required check) runs `if: always()`, needs every
+//!   other job, and fails when `scope` did not succeed, a fixture job failed
+//!   or was cancelled, or one was skipped although the event is in scope; it
+//!   passes out of scope. On Unix the test runs its script for every result
+//!   combination, and the scope script on scratch repositories (pull
+//!   request, fast-forward / new-branch / force push, workflow_dispatch);
 //! * job `validate` checks out the full history (`fetch-depth: 0`, so the
 //!   merge-base that `--base` compares with is present), runs `cargo xtask
 //!   validate-fixtures` with no paths (the validator's defaults: every
@@ -21,14 +31,16 @@
 //!   first push or a force push, is checked too (US-RR-9-4; how the push
 //!   base is picked is tested in rr-testkit's `kat_validate.rs`);
 //! * no step of the job can be skipped or softened (`if:`,
-//!   `continue-on-error`, `|| true`) and the job has no job-level `if:`.
+//!   `continue-on-error`, `|| true`) and the job's only job-level `if:` is
+//!   the scope's.
 //!
 //! [`synthetic_problems`] checks the US-RR-10-7 job `synthetic`: it runs on
 //! a matrix of both an `ubuntu-*` and a `windows-*` runner (`runs-on: ${{
 //! matrix.os }}`, no `exclude:`, `fail-fast: false`), runs `cargo xtask
 //! gen-synthetic --check` (regenerate, fail on any byte difference from
 //! `fixtures/public/synthetic`) and `sha256sum -c SHA256SUMS` in that
-//! directory, and can be neither skipped nor softened.
+//! directory, and can be neither skipped (except out of scope) nor
+//! softened.
 //!
 //! Whether the jobs are green, and so whether the output really is identical
 //! on Windows, can only be seen on GitHub.
@@ -36,15 +48,42 @@
 #[path = "common/workflow.rs"]
 mod workflow;
 
-use workflow::{
-    Workflow, assert_flags, indent, is_blank_or_comment, skippable_problems, trigger_problems,
-    workflow_yml,
-};
+#[path = "common/scoped_gate.rs"]
+mod scoped_gate;
+
+use scoped_gate::{Gated, IN_SCOPE_IF};
+use workflow::{Workflow, assert_flags, skippable_problems, trigger_problems, workflow_yml};
 
 const FILE: &str = "fixtures.yml";
 const JOB: &str = "validate";
 
-/// Paths each trigger must be filtered to (at least).
+/// The aggregate job: the required status check (CONTRIBUTING.md "Branch
+/// protection").
+const AGGREGATE: &str = "fixtures-ok";
+
+/// The fixture jobs `fixtures-ok` checks; both run on every in-scope event.
+const GATED: &[Gated] = &[
+    Gated {
+        job: JOB,
+        var: "VALIDATE",
+        runs_on: |_| true,
+    },
+    Gated {
+        job: SYNTHETIC_JOB,
+        var: "SYNTHETIC",
+        runs_on: |_| true,
+    },
+];
+
+/// The scope step's env: the event, the pull request's base and the commit
+/// before a push.
+const SCOPE_ENV: &[(&str, &str)] = &[
+    ("EVENT", "${{ github.event_name }}"),
+    ("BASE", "${{ github.event.pull_request.base.sha }}"),
+    ("BEFORE", "${{ github.event.before }}"),
+];
+
+/// Paths the scope's `paths` list must include (at least).
 const REQUIRED_PATHS: &[&str] = &[
     "fixtures/**",
     "crates/rr-testkit/**",
@@ -56,59 +95,28 @@ const VALIDATE_CMD: &str = "cargo xtask validate-fixtures";
 const BASE_CMD: &str = "cargo xtask validate-fixtures --base \"$base\"";
 const PUSH_CMD: &str = "cargo xtask validate-fixtures --push-before=\"$BEFORE\"";
 
-/// The `paths:` items under trigger `trigger` in the `on:` block.
-fn trigger_paths(wf: &Workflow<'_>, trigger: &str) -> Vec<String> {
-    let on = wf.on_block();
-    let Some(start) = on
-        .iter()
-        .position(|l| indent(l) == 2 && l.trim() == format!("{trigger}:"))
-    else {
-        return Vec::new();
-    };
-    let body: Vec<&str> = on[start + 1..]
-        .iter()
-        .copied()
-        .take_while(|l| is_blank_or_comment(l) || indent(l) > 2)
-        .collect();
-    let Some(paths) = body
-        .iter()
-        .position(|l| indent(l) == 4 && l.trim() == "paths:")
-    else {
-        return Vec::new();
-    };
-    body[paths + 1..]
-        .iter()
-        .take_while(|l| is_blank_or_comment(l) || indent(l) > 4)
-        .filter_map(|l| l.trim().strip_prefix("- "))
-        .map(|s| s.trim().trim_matches(|c| c == '"' || c == '\'').to_owned())
-        .collect()
-}
-
 /// Every way `src` fails the US-RR-9-7 wiring; empty when it holds.
 fn fixtures_problems(src: &str) -> Vec<String> {
     let wf = Workflow::parse(src);
     let mut problems = trigger_problems(&wf);
     for trigger in ["push", "pull_request"] {
-        let paths = trigger_paths(&wf, trigger);
-        for required in REQUIRED_PATHS {
-            if !paths.iter().any(|p| p == required) {
-                problems.push(format!(
-                    "`{trigger}` is not path-filtered to include `{required}` (paths: {paths:?})"
-                ));
-            }
+        problems.extend(scoped_gate::trigger_filter_problems(&wf, trigger));
+    }
+    problems.extend(scoped_gate::scope_job_problems(&wf, SCOPE_ENV));
+    problems.extend(scoped_gate::aggregate_problems(&wf, AGGREGATE, GATED));
+    let paths = scoped_gate::scope_paths(&wf);
+    for required in REQUIRED_PATHS {
+        if !paths.iter().any(|p| p == required) {
+            problems.push(format!(
+                "scope paths do not include `{required}` (paths: {paths:?})"
+            ));
         }
     }
     let Some(job) = wf.job(JOB) else {
         problems.push(format!("no `{JOB}` job"));
         return problems;
     };
-    if job
-        .lines
-        .iter()
-        .any(|l| indent(l) == 4 && l.trim_start().starts_with("if:"))
-    {
-        problems.push(format!("`{JOB}` has a job-level `if:`"));
-    }
+    problems.extend(scoped_gate::gated_job_problems(&wf, JOB, IN_SCOPE_IF));
     let steps = job.steps();
     let checkout_full = steps.iter().any(|s| {
         s.id.starts_with("actions/checkout@")
@@ -194,13 +202,7 @@ fn synthetic_problems(src: &str) -> Vec<String> {
         return problems;
     };
     let id = SYNTHETIC_JOB;
-    if job
-        .lines
-        .iter()
-        .any(|l| indent(l) == 4 && l.trim_start().starts_with("if:"))
-    {
-        problems.push(format!("`{id}` has a job-level `if:`"));
-    }
+    problems.extend(scoped_gate::gated_job_problems(&wf, id, IN_SCOPE_IF));
     if job.value_at("runs-on", 4).as_deref() != Some("${{ matrix.os }}") {
         problems.push(format!("`{id}` does not run on `${{{{ matrix.os }}}}`"));
     }
@@ -342,11 +344,20 @@ fn synthetic_check_rejects_weakened_workflow() {
     assert_flags(
         &m(&|s| {
             s.replace(
-                "    runs-on: ${{ matrix.os }}\n",
+                "    if: needs.scope.outputs.in_scope == 'true'\n    runs-on: ${{ matrix.os }}\n",
                 "    if: github.event_name == 'push'\n    runs-on: ${{ matrix.os }}\n",
             )
         }),
-        "job-level `if:`",
+        "`synthetic` job-level `if:`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replace(
+                "    needs: scope\n    if: needs.scope.outputs.in_scope == 'true'\n    runs-on: ${{ matrix.os }}\n",
+                "    runs-on: ${{ matrix.os }}\n",
+            )
+        }),
+        "`synthetic.needs` does not include `scope`",
     );
 }
 
@@ -373,23 +384,45 @@ fn fixtures_workflow_check_rejects_weakened_workflow() {
         "does not run on `pull_request`",
     );
     assert_flags(
-        &m(&|s| s.replacen("      - \"fixtures/**\"\n", "", 1)),
-        "`push` is not path-filtered to include `fixtures/**`",
+        &m(&|s| s.replacen("            \"fixtures/**\"\n", "", 1)),
+        "scope paths do not include `fixtures/**`",
+    );
+    assert_flags(
+        &m(&|s| s.replacen("            \"crates/rr-testkit/**\"\n", "", 1)),
+        "scope paths do not include `crates/rr-testkit/**`",
+    );
+    assert_flags(
+        &m(&|s| s.replacen("            \"xtask/**\"\n", "", 1)),
+        "scope paths do not include `xtask/**`",
+    );
+    // A trigger-level path filter: the check never reports elsewhere.
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "  push:\n    branches: [\"**\"]\n",
+                "  push:\n    branches: [\"**\"]\n    paths:\n      - \"fixtures/**\"\n",
+                1,
+            )
+        }),
+        "`push` has a trigger-level `paths:` filter",
     );
     assert_flags(
         &m(&|s| {
-            let at = s.find("  pull_request:\n").unwrap_or(0);
-            let (head, tail) = s.split_at(at);
-            format!(
-                "{head}{}",
-                tail.replacen("      - \"crates/rr-testkit/**\"\n", "", 1)
+            s.replacen(
+                "  pull_request:\n    branches: [\"**\"]\n",
+                "  pull_request:\n    branches: [\"**\"]\n    paths:\n      - \"fixtures/**\"\n",
+                1,
             )
         }),
-        "`pull_request` is not path-filtered to include `crates/rr-testkit/**`",
+        "`pull_request` has a trigger-level `paths:` filter",
     );
     assert_flags(
         &m(&|s| s.replace("          fetch-depth: 0\n", "          fetch-depth: 1\n")),
-        "full history",
+        "`validate` does not check out the full history",
+    );
+    assert_flags(
+        &m(&|s| s.replace("          fetch-depth: 0\n", "          fetch-depth: 1\n")),
+        "`scope` does not check out the full history",
     );
     assert_flags(
         &m(&|s| {
@@ -454,11 +487,219 @@ fn fixtures_workflow_check_rejects_weakened_workflow() {
     );
     assert_flags(
         &m(&|s| {
-            s.replace(
-                "    runs-on: ubuntu-24.04\n",
-                "    if: github.event_name == 'push'\n    runs-on: ubuntu-24.04\n",
+            s.replacen(
+                "    name: KAT fixtures (validate-fixtures)\n    needs: scope\n    if: needs.scope.outputs.in_scope == 'true'\n",
+                "    name: KAT fixtures (validate-fixtures)\n    needs: scope\n    if: github.event_name == 'push'\n",
+                1,
             )
         }),
-        "job-level `if:`",
+        "`validate` job-level `if:`",
+    );
+}
+
+/// The scope job and the required `fixtures-ok` check (task US-RR-4-8):
+/// each assertion bites on a weakened copy.
+#[test]
+fn fixtures_workflow_check_rejects_weakened_scope_and_aggregate() {
+    let src = workflow_yml(FILE);
+    let m = |edit: &dyn Fn(&str) -> String| {
+        let changed = edit(&src);
+        assert_ne!(changed, src, "mutation did not apply");
+        fixtures_problems(&changed)
+    };
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "    name: fixtures-ok\n    if: always()\n",
+                "    name: fixtures-ok\n",
+                1,
+            )
+        }),
+        "`fixtures-ok` is not `if: always()`",
+    );
+    assert_flags(
+        &m(&|s| s.replacen("    name: fixtures-ok\n", "    name: fixtures\n", 1)),
+        "`fixtures-ok` is not named `fixtures-ok`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "needs: [scope, validate, synthetic]",
+                "needs: [validate, synthetic]",
+                1,
+            )
+        }),
+        "`fixtures-ok.needs` does not include `scope`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "needs: [scope, validate, synthetic]",
+                "needs: [scope, validate]",
+                1,
+            )
+        }),
+        "`fixtures-ok.needs` does not include `synthetic`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "          SYNTHETIC: ${{ needs.synthetic.result }}\n",
+                "          SYNTHETIC: success\n",
+                1,
+            )
+        }),
+        "does not set `SYNTHETIC: ${{ needs.synthetic.result }}`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "      - name: Fixture job results\n",
+                "      - name: Fixture job results\n        continue-on-error: true\n",
+                1,
+            )
+        }),
+        "`fixtures-ok` uses `continue-on-error",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "          BEFORE: ${{ github.event.before }}\n        run: |\n          # Git glob",
+                "          BEFORE: ${{ github.sha }}\n        run: |\n          # Git glob",
+                1,
+            )
+        }),
+        "does not set `BEFORE: ${{ github.event.before }}`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "    name: fixtures-scope\n",
+                "    name: fixtures-scope\n    continue-on-error: true\n",
+                1,
+            )
+        }),
+        "`scope` uses `continue-on-error",
+    );
+}
+
+/// The `fixtures-ok` script decides right for every result combination, and
+/// the scope script answers right on scratch repositories (Unix: bash).
+#[cfg(unix)]
+#[test]
+fn fixtures_ok_and_scope_behave_as_documented() {
+    let src = workflow_yml(FILE);
+    let wf = Workflow::parse(&src);
+    let script = scoped_gate::aggregate_script(&wf, AGGREGATE).unwrap_or_default();
+    let mut problems = scoped_gate::aggregate_behaviour_problems(&script, AGGREGATE, GATED);
+    problems.extend(scoped_gate::scope_behaviour_problems(
+        &wf,
+        "fixtures",
+        &["workflow_dispatch"],
+        true,
+    ));
+    assert!(problems.is_empty(), "{}", problems.join("\n"));
+}
+
+/// The behaviour checks bite on weakened `fixtures-ok` and scope scripts.
+#[cfg(unix)]
+#[test]
+fn fixtures_behaviour_check_rejects_weakened_scripts() {
+    let src = workflow_yml(FILE);
+    let agg = |edit: &dyn Fn(&str) -> String| {
+        let changed = edit(&src);
+        assert_ne!(changed, src, "mutation did not apply");
+        let wf = Workflow::parse(&changed);
+        let script = scoped_gate::aggregate_script(&wf, AGGREGATE).unwrap_or_default();
+        scoped_gate::aggregate_behaviour_problems(&script, AGGREGATE, GATED)
+    };
+    assert_flags(
+        &agg(&|s| {
+            s.replacen(
+                "              success) ;;\n",
+                "              success | failure) ;;\n",
+                1,
+            )
+        }),
+        "`fixtures-ok` passes when",
+    );
+    assert_flags(
+        &agg(&|s| {
+            s.replacen(
+                "          check synthetic \"$SYNTHETIC\" \"$IN_SCOPE\"\n",
+                "",
+                1,
+            )
+        }),
+        "(\"SYNTHETIC\", \"cancelled\")",
+    );
+    assert_flags(
+        &agg(&|s| {
+            s.replacen(
+                "          if [ \"$SCOPE\" != success ]; then\n",
+                "          if false; then\n",
+                1,
+            )
+        }),
+        "(\"SCOPE\", \"cancelled\")",
+    );
+    assert_flags(
+        &agg(&|s| {
+            s.replacen(
+                "                if [ \"$3\" = true ]; then\n",
+                "                if false; then\n",
+                1,
+            )
+        }),
+        "(\"VALIDATE\", \"skipped\")",
+    );
+
+    let scope = |edit: &dyn Fn(&str) -> String| {
+        let changed = edit(&src);
+        assert_ne!(changed, src, "mutation did not apply");
+        scoped_gate::scope_behaviour_problems(
+            &Workflow::parse(&changed),
+            "fixtures-sabotage",
+            &["workflow_dispatch"],
+            true,
+        )
+    };
+    // A new branch or force push compared with nothing: out of scope.
+    assert_flags(
+        &scope(&|s| {
+            s.replacen(
+                "            echo \"$EVENT (before: ${BEFORE:-none}): no base to compare with, in scope\"\n            in_scope=true\n",
+                "            echo \"$EVENT (before: ${BEFORE:-none}): no base to compare with\"\n            in_scope=false\n",
+                1,
+            )
+        }),
+        "of a new branch's first push",
+    );
+    // `before` used even when it is not an ancestor (a force push).
+    assert_flags(
+        &scope(&|s| {
+            s.replacen(
+                "              && git merge-base --is-ancestor \"$BEFORE\" HEAD 2>/dev/null; then\n",
+                "              && git cat-file -e \"$BEFORE^{commit}\" 2>/dev/null; then\n",
+                1,
+            )
+        }),
+        "of a force push",
+    );
+    // A missing pull request base read as "nothing changed".
+    assert_flags(
+        &scope(&|s| {
+            s.replacen(
+                "            if [ -z \"$BASE\" ]; then\n              echo \"::error::no pull request base commit\"\n              exit 1\n            fi\n",
+                "",
+                1,
+            )
+        }),
+        "with no pull request base",
+    );
+    // Only the first listed path compared.
+    assert_flags(
+        &scope(&|s| s.replacen("-- \"${paths[@]}\")", "-- \"${paths[0]}\")", 1)),
+        "of a pull request changing `crates/rr-testkit/sample/changed.txt`",
     );
 }

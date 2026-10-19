@@ -1,7 +1,7 @@
 //! A std-only reader for the subset of GitHub Actions YAML that
 //! `.github/workflows/ci.yml` and `fixtures.yml` use, shared by the
 //! ci-config guard tests (`t6_ci_config.rs`, `ci_config_gates.rs`,
-//! `fixtures_ci_config.rs`).
+//! `fixtures_ci_config.rs`, ...; `scoped_gate.rs` builds on it).
 //!
 //! The workspace has no YAML parser (and `cargo deny` keeps the dependency
 //! set small), so [`Workflow`] reads: top-level keys at column 0, jobs at
@@ -251,6 +251,56 @@ impl<'a> Job<'a> {
                 .map_or("", str::trim);
         }
         steps
+    }
+
+    /// The `key: value` entries of the block map `key:` at exactly `at`
+    /// spaces of indent (entries at `at + 2`), values trimmed and unquoted:
+    /// a step's `env:` (`at` 8) or a job's `outputs:` (`at` 4). Empty when
+    /// there is no such map.
+    pub fn map_at(&self, key: &str, at: usize) -> Vec<(String, String)> {
+        let Some(pos) = self.lines.iter().position(|l| key_at(l, at) == Some(key)) else {
+            return Vec::new();
+        };
+        self.lines[pos + 1..]
+            .iter()
+            .take_while(|l| is_blank_or_comment(l) || indent(l) > at)
+            .filter(|l| indent(l) == at + 2 && !is_blank_or_comment(l))
+            .filter_map(|l| l.trim().split_once(':'))
+            .map(|(k, v)| {
+                (
+                    k.trim().to_owned(),
+                    v.trim().trim_matches(|c| c == '"' || c == '\'').to_owned(),
+                )
+            })
+            .collect()
+    }
+
+    /// The step's block-scalar `run: |` script exactly as bash receives it:
+    /// dedented, line breaks and shell comments kept. `None` when the step
+    /// has no block `run:` (unlike [`Job::run_scripts`], which normalizes).
+    pub fn run_block(&self) -> Option<String> {
+        let pos = self.lines.iter().position(|l| {
+            let t = l.trim_start();
+            let t = t.strip_prefix("- ").unwrap_or(t);
+            t.strip_prefix("run:").is_some_and(|v| v.trim() == "|")
+        })?;
+        let key_indent = indent(self.lines[pos]);
+        let body: Vec<&str> = self.lines[pos + 1..]
+            .iter()
+            .copied()
+            .take_while(|l| l.trim().is_empty() || indent(l) > key_indent)
+            .collect();
+        let dedent = body
+            .iter()
+            .filter(|l| !l.trim().is_empty())
+            .map(|l| indent(l))
+            .min()?;
+        let mut out = String::new();
+        for l in body {
+            out.push_str(l.get(dedent..).unwrap_or("").trim_end());
+            out.push('\n');
+        }
+        Some(out)
     }
 
     /// The value of `key:` at exactly `at` spaces of indent (or as the first

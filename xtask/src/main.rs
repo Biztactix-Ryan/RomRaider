@@ -707,19 +707,22 @@ fn main() -> Result<ExitCode> {
                 &root.join(codeowners::CONTRIBUTING),
             )?)?;
             let local = codeowners::read_text(&root.join(codeowners::CODEOWNERS))?;
-            let repo = repo.unwrap_or(payload.repo);
+            let repo = repo.unwrap_or_else(|| payload.repo.clone());
             let branches = if branch.is_empty() {
-                payload.branches
+                payload.branches.clone()
             } else {
                 branch
             };
-            let reports = codeowners::check_live(
-                &codeowners::Gh,
-                &repo,
-                &branches,
-                &payload.protection,
-                &local,
-            )?;
+            let mut reports = Vec::new();
+            for b in &branches {
+                reports.extend(codeowners::check_live(
+                    &codeowners::Gh,
+                    &repo,
+                    std::slice::from_ref(b),
+                    &payload.expected(b),
+                    &local,
+                )?);
+            }
             let mut failed = 0;
             for r in &reports {
                 if r.problems.is_empty() {

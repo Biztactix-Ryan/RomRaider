@@ -21,14 +21,23 @@
 //!   artifacts and runs `cargo xtask coverage-gate` on them with `--min 90
 //!   --max-drop 0.25 --crates rr-core,rr-rom,rr-comms` (0.25 points of
 //!   measurement noise, pinned so it cannot quietly grow);
+//! * `gate` is the required check `coverage-gate`, and a skipped required
+//!   check counts as passed, so it runs `if: always()` (its only job-level
+//!   `if:`; the measuring jobs have none) and its first step, given
+//!   `needs.<job>.result` of every job it needs, fails unless all are
+//!   `success`; the gate command runs after it (task US-RR-4-8). On Unix
+//!   the test runs that step's script for every pair of results;
 //! * no step of the three jobs can be skipped or softened (`if:`,
-//!   `continue-on-error`, `|| true`) and none has a job-level `if:`.
+//!   `continue-on-error`, `|| true`).
 //!
 //! The gate's rules themselves are tested in `coverage_gate.rs`. Whether the
 //! jobs are green can only be seen on GitHub.
 
 #[path = "common/workflow.rs"]
 mod workflow;
+
+#[path = "common/scoped_gate.rs"]
+mod scoped_gate;
 
 use workflow::{
     Job, Workflow, assert_flags, indent, is_blank_or_comment, normalize, skippable_problems,
@@ -52,6 +61,13 @@ const MIN: &str = "90";
 const MAX_DROP: &str = "0.25";
 const CRATES: &str = "rr-core,rr-rom,rr-comms";
 const PUSH_BRANCHES: &[&str] = &["master", "rust-rewrite"];
+/// The gate's first step: fails unless every measuring job succeeded.
+const RESULTS_STEP: &str = "Both coverage runs succeeded";
+/// The env vars of [`RESULTS_STEP`], by the job whose result each carries.
+const RESULT_VARS: &[(&str, &str)] = &[(HEAD_JOB, "HEAD_RESULT"), (BASE_JOB, "BASE_RESULT")];
+/// GitHub's job results.
+#[cfg(unix)]
+const RESULTS: [&str; 4] = ["success", "failure", "cancelled", "skipped"];
 
 /// The lines under trigger `trigger` in the `on:` block.
 fn trigger_body<'a>(wf: &Workflow<'a>, trigger: &str) -> Vec<&'a str> {
@@ -117,25 +133,74 @@ fn step_running(steps: &[Job<'_>], needle: &str) -> Option<usize> {
         .position(|s| s.run_scripts().iter().any(|r| r.contains(needle)))
 }
 
-/// Problems if `job` is missing, has a job-level `if:` or a skippable step.
+/// Problems if `job` is missing, has a job-level `if:` other than
+/// `want_if`, or a skippable step.
 fn job_or_problem<'w, 'a>(
     wf: &'w Workflow<'a>,
     id: &str,
+    want_if: Option<&str>,
     problems: &mut Vec<String>,
 ) -> Option<&'w Job<'a>> {
     let Some(job) = wf.job(id) else {
         problems.push(format!("no `{id}` job"));
         return None;
     };
-    if job
-        .lines
-        .iter()
-        .any(|l| indent(l) == 4 && l.trim_start().starts_with("if:"))
-    {
-        problems.push(format!("`{id}` has a job-level `if:`"));
+    let got = scoped_gate::job_if(job);
+    if got.as_deref() != want_if {
+        match want_if {
+            None => problems.push(format!("`{id}` has a job-level `if:`")),
+            Some(w) => problems.push(format!(
+                "`{id}` is not `if: {w}` (job-level `if:` is {got:?}), so a failed or cancelled measuring job skips it (a skipped required check counts as passed)"
+            )),
+        }
     }
     problems.extend(skippable_problems(job, &[]));
     Some(job)
+}
+
+/// The script of the gate's [`RESULTS_STEP`].
+#[cfg(unix)]
+fn results_script(wf: &Workflow<'_>) -> Option<String> {
+    wf.job(GATE_JOB)?
+        .steps()
+        .into_iter()
+        .find(|s| s.id == RESULTS_STEP)?
+        .run_block()
+}
+
+/// Problems with the gate's first step: it is [`RESULTS_STEP`], passes
+/// `needs.<job>.result` of every needed job and has a script that fails
+/// (the script's behaviour is run by
+/// `coverage_gate_results_step_fails_unless_both_runs_succeeded`).
+fn results_step_problems(job: &Job<'_>) -> Vec<String> {
+    let mut problems = Vec::new();
+    let steps = job.steps();
+    let Some(first) = steps.first() else {
+        return vec![format!("`{GATE_JOB}` has no steps")];
+    };
+    if first.id != RESULTS_STEP {
+        problems.push(format!(
+            "`{GATE_JOB}`'s first step is `{}`, not `{RESULTS_STEP}` (the gate must check the measuring jobs' results before anything else)",
+            first.id
+        ));
+        return problems;
+    }
+    let env = first.map_at("env", 8);
+    for n in job.needs() {
+        let var = RESULT_VARS.iter().find(|(j, _)| *j == n).map(|(_, v)| *v);
+        let want = format!("${{{{ needs.{n}.result }}}}");
+        let ok = var.is_some_and(|v| env.iter().any(|(k, val)| k == v && normalize(val) == want));
+        if !ok {
+            problems.push(format!(
+                "`{RESULTS_STEP}` does not check `{want}` (env: {env:?})"
+            ));
+        }
+    }
+    match first.run_block() {
+        Some(script) if script.contains("exit 1") => {}
+        _ => problems.push(format!("`{RESULTS_STEP}` has no failing (`exit 1`) script")),
+    }
+    problems
 }
 
 /// Problems with a measuring job: tools installed, the llvm-cov command run,
@@ -213,11 +278,11 @@ fn coverage_problems(src: &str) -> Vec<String> {
         ));
     }
 
-    if let Some(job) = job_or_problem(&wf, HEAD_JOB, &mut problems) {
+    if let Some(job) = job_or_problem(&wf, HEAD_JOB, None, &mut problems) {
         measure_problems(job, HEAD_ARTIFACT, &mut problems);
     }
 
-    if let Some(job) = job_or_problem(&wf, BASE_JOB, &mut problems) {
+    if let Some(job) = job_or_problem(&wf, BASE_JOB, None, &mut problems) {
         let run = measure_problems(job, BASE_ARTIFACT, &mut problems);
         let steps = job.steps();
         let full = steps.iter().any(|s| {
@@ -251,7 +316,8 @@ fn coverage_problems(src: &str) -> Vec<String> {
         }
     }
 
-    if let Some(job) = job_or_problem(&wf, GATE_JOB, &mut problems) {
+    if let Some(job) = job_or_problem(&wf, GATE_JOB, Some("always()"), &mut problems) {
+        problems.extend(results_step_problems(job));
         if job.value_at("name", 4).as_deref() != Some(GATE_NAME) {
             problems.push(format!("`{GATE_JOB}` is not named `{GATE_NAME}`"));
         }
@@ -514,12 +580,22 @@ fn coverage_workflow_check_rejects_weakened_workflow() {
     assert_flags(
         &m(&|s| {
             s.replacen(
-                "    needs: [coverage, base-coverage]\n",
-                "    needs: [coverage, base-coverage]\n    if: github.event_name == 'push'\n",
+                "    name: coverage-gate\n    if: always()\n",
+                "    name: coverage-gate\n    if: github.event_name == 'push'\n",
                 1,
             )
         }),
-        "`gate` has a job-level `if:`",
+        "`gate` is not `if: always()`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "    name: coverage (head)\n",
+                "    name: coverage (head)\n    if: github.event_name == 'push'\n",
+                1,
+            )
+        }),
+        "`coverage` has a job-level `if:`",
     );
     assert_flags(
         &m(&|s| {
@@ -530,5 +606,184 @@ fn coverage_workflow_check_rejects_weakened_workflow() {
             )
         }),
         "`base-coverage` uses `continue-on-error",
+    );
+}
+
+/// The required check `coverage-gate` is never skipped after a measuring job
+/// failed or was cancelled (task US-RR-4-8): each assertion bites on a
+/// weakened copy.
+#[test]
+fn coverage_gate_check_rejects_a_skippable_or_unchecked_gate() {
+    let src = workflow_yml(FILE);
+    let m = |edit: &dyn Fn(&str) -> String| {
+        let changed = edit(&src);
+        assert_ne!(changed, src, "mutation did not apply");
+        coverage_problems(&changed)
+    };
+    // `always()` removed: a failed measuring job skips the gate.
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "    name: coverage-gate\n    if: always()\n",
+                "    name: coverage-gate\n",
+                1,
+            )
+        }),
+        "`gate` is not `if: always()`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "    name: coverage-gate\n    if: always()\n",
+                "    name: coverage-gate\n    if: success()\n",
+                1,
+            )
+        }),
+        "`gate` is not `if: always()`",
+    );
+    // The result check dropped.
+    let step = "      - name: Both coverage runs succeeded\n        env:\n          HEAD_RESULT: ${{ needs.coverage.result }}\n          BASE_RESULT: ${{ needs.base-coverage.result }}\n        run: |\n          echo \"coverage (head): $HEAD_RESULT; coverage (base): $BASE_RESULT\"\n          if [ \"$HEAD_RESULT\" != success ] || [ \"$BASE_RESULT\" != success ]; then\n            echo \"::error::coverage-gate needs both coverage runs to succeed (head: $HEAD_RESULT, base: $BASE_RESULT)\"\n            exit 1\n          fi\n";
+    assert_flags(
+        &m(&|s| s.replacen(step, "", 1)),
+        "not `Both coverage runs succeeded`",
+    );
+    // Moved after the gate command.
+    assert_flags(
+        &m(&|s| {
+            let gate = "      - name: cargo xtask coverage-gate\n";
+            s.replacen(step, "", 1)
+                .replacen(gate, &format!("{step}{gate}"), 1)
+        }),
+        "not `Both coverage runs succeeded`",
+    );
+    // One result not checked, or the wrong one.
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "          BASE_RESULT: ${{ needs.base-coverage.result }}\n",
+                "",
+                1,
+            )
+        }),
+        "does not check `${{ needs.base-coverage.result }}`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "          BASE_RESULT: ${{ needs.base-coverage.result }}\n",
+                "          BASE_RESULT: ${{ needs.coverage.result }}\n",
+                1,
+            )
+        }),
+        "does not check `${{ needs.base-coverage.result }}`",
+    );
+    // A script that never fails.
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "            exit 1\n          fi\n",
+                "            echo ignored\n          fi\n",
+                1,
+            )
+        }),
+        "no failing (`exit 1`) script",
+    );
+    // Softened.
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "      - name: Both coverage runs succeeded\n",
+                "      - name: Both coverage runs succeeded\n        continue-on-error: true\n",
+                1,
+            )
+        }),
+        "`gate` uses `continue-on-error",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "      - name: Both coverage runs succeeded\n",
+                "      - name: Both coverage runs succeeded\n        if: failure()\n",
+                1,
+            )
+        }),
+        "`gate` step `Both coverage runs succeeded` has a conditional",
+    );
+}
+
+/// Every pair of results where the results step decides wrongly: it must
+/// pass only when both measuring jobs are `success`.
+#[cfg(unix)]
+#[cfg(test)]
+fn results_behaviour_problems(script: &str) -> Vec<String> {
+    let dir = std::path::Path::new(env!("CARGO_TARGET_TMPDIR"));
+    let mut problems = Vec::new();
+    for head in RESULTS {
+        for base in RESULTS {
+            let env = [("HEAD_RESULT", head), ("BASE_RESULT", base)];
+            let passed = scoped_gate::run_bash(script, dir, &env).status.success();
+            let want = head == "success" && base == "success";
+            if passed != want {
+                problems.push(format!(
+                    "`{RESULTS_STEP}` {} with {env:?}",
+                    if passed { "passes" } else { "fails" }
+                ));
+            }
+        }
+    }
+    problems
+}
+
+/// The committed results step decides right for every pair (Unix: bash).
+#[cfg(unix)]
+#[test]
+fn coverage_gate_results_step_fails_unless_both_runs_succeeded() {
+    let src = workflow_yml(FILE);
+    let script = results_script(&Workflow::parse(&src)).unwrap_or_default();
+    let problems = results_behaviour_problems(&script);
+    assert!(problems.is_empty(), "{}", problems.join("\n"));
+}
+
+/// The behaviour check bites on weakened results scripts.
+#[cfg(unix)]
+#[test]
+fn coverage_gate_results_behaviour_check_rejects_weakened_scripts() {
+    let src = workflow_yml(FILE);
+    let b = |edit: &dyn Fn(&str) -> String| {
+        let changed = edit(&src);
+        assert_ne!(changed, src, "mutation did not apply");
+        results_behaviour_problems(&results_script(&Workflow::parse(&changed)).unwrap_or_default())
+    };
+    // Ignores the base run.
+    assert_flags(
+        &b(&|s| s.replacen(" || [ \"$BASE_RESULT\" != success ]", "", 1)),
+        "(\"BASE_RESULT\", \"failure\")",
+    );
+    // Lets a skip through.
+    assert_flags(
+        &b(&|s| {
+            s.replacen(
+                "if [ \"$HEAD_RESULT\" != success ] ||",
+                "if [ \"$HEAD_RESULT\" != success ] && [ \"$HEAD_RESULT\" != skipped ] ||",
+                1,
+            )
+        }),
+        "(\"HEAD_RESULT\", \"skipped\")",
+    );
+    // Never fails.
+    assert_flags(
+        &b(&|s| {
+            s.replacen(
+                "            exit 1\n          fi\n",
+                "            echo ignored\n          fi\n",
+                1,
+            )
+        }),
+        "passes with",
+    );
+    // Fails even when both succeeded.
+    assert_flags(
+        &b(&|s| s.replacen("!= success ] ||", "= success ] ||", 1)),
+        "fails with [(\"HEAD_RESULT\", \"success\"), (\"BASE_RESULT\", \"success\")]",
     );
 }

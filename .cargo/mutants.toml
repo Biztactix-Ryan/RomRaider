@@ -11,8 +11,8 @@
 # creates it. A glob that matches no file yet (most of them, at the time of
 # writing) matches nothing and is harmless; it never breaks the run. When one
 # of these modules is created somewhere else, move its glob here in the same
-# change; the PR path filter in mutants.yml is checked against this list by
-# xtask/tests/mutants_ci_config.rs.
+# change; the `paths` list of mutants.yml's `scope` job is checked against
+# this list by xtask/tests/mutants_ci_config.rs.
 #
 # Exclusions: every `exclude_globs` / `exclude_re` (and `skip_calls`) entry
 # needs a comment on the line(s) directly above it saying why the surviving
