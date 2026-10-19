@@ -2,5 +2,6 @@
 
 pub mod capability;
 pub mod clock;
+pub mod demo_untested;
 pub mod diag;
 pub mod encoding;
