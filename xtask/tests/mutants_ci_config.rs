@@ -13,7 +13,7 @@
 //!   story ([`REQUIRED_GLOBS`]), only under `crates/<gated crate>/src/`,
 //!   gates the self-test's module path, and runs tests with nextest;
 //! * the workflow runs on `pull_request` (every base branch), on a weekly
-//!   `schedule` and on `workflow_dispatch`, and the pull request `paths:`
+//!   `schedule` (one cron, once a week) and on `workflow_dispatch`, and the pull request `paths:`
 //!   cover every crate holding a gated glob, the shared test support, the
 //!   config files the scope rules treat as the gate, and the self-test;
 //! * job `pr` (pull requests only) checks out the full history, writes
@@ -23,8 +23,9 @@
 //!   then uploads `mutants.out` with `if: always()`;
 //! * job `full` (every other event: the schedule and manual runs) runs
 //!   `cargo mutants` over every gated module and uploads `mutants.out` as
-//!   artifact `mutants-report-full` with `if: always()` and
-//!   `if-no-files-found: error`;
+//!   artifact `mutants-report-full` with `if: always()`,
+//!   `if-no-files-found: error` and `retention-days: 90` (the pull request
+//!   report: 14 days);
 //! * job `selftest` runs `cargo xtask mutants-selftest` on every event;
 //! * no `cargo mutants` command narrows or replaces the configuration
 //!   (`--file`, `--exclude`, `--re`, `--shard`, `--config`, ...), every job
@@ -32,6 +33,12 @@
 //!   softened (`if:` other than the uploads' `always()`,
 //!   `continue-on-error`, `|| true`); the only job-level `if:`s are the two
 //!   event selectors.
+//! * every `run:` uses the workflow default `shell: bash` (GitHub runs it as
+//!   `bash --noprofile --norc -eo pipefail`) and no job or step overrides
+//!   it: the `pr` step must stop when `cargo xtask mutants-scope` fails (an
+//!   empty scope would fall through to `--in-diff`, which a weakened test
+//!   passes) and end with cargo-mutants' own exit code (2 on a MISSED
+//!   mutant, task US-RR-4-2).
 //!
 //! What the commands do with a weakened test is proved by
 //! `cargo xtask mutants-selftest`; whether the jobs are green can only be
@@ -60,6 +67,10 @@ const UPLOAD: &str = "Upload mutants report";
 const REPORT_DIR: &str = "mutants.out";
 const FULL_ARTIFACT: &str = "mutants-report-full";
 const PR_ARTIFACT: &str = "mutants-report-pr";
+/// Days the full run's report is kept: long enough to compare a few weekly
+/// runs, at GitHub's default maximum.
+const FULL_RETENTION: &str = "90";
+const PR_RETENTION: &str = "14";
 const MUTANTS: &str = "cargo mutants --jobs 2 --output .";
 const SCOPE_CMD: &str = "cargo xtask mutants-scope --diff pr.diff";
 const SELFTEST_CMD: &str = "cargo xtask mutants-selftest";
@@ -265,11 +276,22 @@ fn job_or_problem<'w, 'a>(
     Some(job)
 }
 
+/// Whether `cron` fires once a week: a fixed minute and hour on one day of
+/// the week, every month.
+fn is_weekly_cron(cron: &str) -> bool {
+    let num = |f: &str, max: u32| f.parse::<u32>().is_ok_and(|n| n <= max);
+    match cron.split_whitespace().collect::<Vec<_>>().as_slice() {
+        [min, hour, "*", "*", dow] => num(min, 59) && num(hour, 23) && num(dow, 6),
+        _ => false,
+    }
+}
+
 /// Problems with the report upload of `job`, which must follow `run_step`.
 fn upload_problems(
     job: &Job<'_>,
     artifact: &str,
     if_no_files: &str,
+    retention_days: &str,
     run_step: Option<usize>,
     problems: &mut Vec<String>,
 ) {
@@ -280,12 +302,13 @@ fn upload_problems(
             && with(s, "name").as_deref() == Some(artifact)
             && with(s, "path").as_deref() == Some(REPORT_DIR)
             && with(s, "if-no-files-found").as_deref() == Some(if_no_files)
+            && with(s, "retention-days").as_deref() == Some(retention_days)
             && s.id == UPLOAD
             && s.content_lines().any(|l| normalize(l) == "if: always()")
     });
     match (run_step, upload) {
         (_, None) => problems.push(format!(
-            "`{id}` does not upload `{REPORT_DIR}` as artifact `{artifact}` in step `{UPLOAD}` with `if: always()` and `if-no-files-found: {if_no_files}`"
+            "`{id}` does not upload `{REPORT_DIR}` as artifact `{artifact}` in step `{UPLOAD}` with `if: always()`, `if-no-files-found: {if_no_files}` and `retention-days: {retention_days}`"
         )),
         (Some(r), Some(u)) if u < r => {
             problems.push(format!("`{id}` uploads the report before running cargo mutants"));
@@ -303,11 +326,20 @@ fn workflow_problems(src: &str, toml_src: &str) -> Vec<String> {
             problems.push(format!("workflow does not run on `{t}`"));
         }
     }
-    if !trigger_body(&wf, "schedule")
+    let crons: Vec<String> = trigger_body(&wf, "schedule")
         .iter()
-        .any(|l| l.trim_start().starts_with("- cron:"))
-    {
-        problems.push("`schedule` has no `cron` (weekly full run)".to_owned());
+        .filter_map(|l| l.trim_start().strip_prefix("- cron:"))
+        .map(|c| c.trim().trim_matches('"').to_owned())
+        .collect();
+    match crons.as_slice() {
+        [] => problems.push("`schedule` has no `cron` (weekly full run)".to_owned()),
+        [c] if !is_weekly_cron(c) => problems.push(format!(
+            "`schedule` cron `{c}` is not once a week (`M H * * D`)"
+        )),
+        [_] => {}
+        _ => problems.push(format!(
+            "`schedule` has more than one cron, not one weekly run: {crons:?}"
+        )),
     }
     let branches = trigger_body(&wf, "pull_request")
         .iter()
@@ -317,6 +349,27 @@ fn workflow_problems(src: &str, toml_src: &str) -> Vec<String> {
         problems.push(format!(
             "`pull_request` is not on every base branch: {branches:?}"
         ));
+    }
+    if !wf
+        .section("defaults")
+        .iter()
+        .any(|l| normalize(l) == "shell: bash")
+    {
+        problems.push(
+            "`defaults.run.shell` is not `bash` (`-eo pipefail`): a failing `cargo xtask mutants-scope` or `cargo mutants` may not fail its step"
+                .to_owned(),
+        );
+    }
+    for job in &wf.jobs {
+        for l in job.content_lines() {
+            let l = l.strip_prefix("- ").unwrap_or(l);
+            if l.starts_with("shell:") {
+                problems.push(format!(
+                    "`{}` overrides the default shell (`{l}`): its scripts may not stop on a failure or keep cargo-mutants' exit code",
+                    job.id
+                ));
+            }
+        }
     }
     let paths = trigger_list(&wf, "pull_request", "paths");
     let mut want: Vec<String> = Vec::new();
@@ -396,7 +449,7 @@ fn workflow_problems(src: &str, toml_src: &str) -> Vec<String> {
                 }
             }
         }
-        upload_problems(job, PR_ARTIFACT, "warn", run, &mut problems);
+        upload_problems(job, PR_ARTIFACT, "warn", PR_RETENTION, run, &mut problems);
     }
 
     if let Some(job) = job_or_problem(&wf, FULL_JOB, Some(FULL_IF), &mut problems) {
@@ -415,7 +468,14 @@ fn workflow_problems(src: &str, toml_src: &str) -> Vec<String> {
                 "`{FULL_JOB}` runs `--in-diff`, not every gated module"
             ));
         }
-        upload_problems(job, FULL_ARTIFACT, "error", run, &mut problems);
+        upload_problems(
+            job,
+            FULL_ARTIFACT,
+            "error",
+            FULL_RETENTION,
+            run,
+            &mut problems,
+        );
     }
 
     if let Some(job) = job_or_problem(&wf, SELFTEST_JOB, None, &mut problems)
@@ -506,6 +566,28 @@ fn mutants_workflow_check_rejects_weakened_workflow() {
         "no `cron`",
     );
     assert_flags(
+        &m(&|s| s.replacen("\"17 3 * * 1\"", "\"17 3 * * *\"", 1)),
+        "is not once a week",
+    );
+    assert_flags(
+        &m(&|s| s.replacen("\"17 3 * * 1\"", "\"17 3 1 * *\"", 1)),
+        "is not once a week",
+    );
+    assert_flags(
+        &m(&|s| s.replacen("\"17 3 * * 1\"", "\"17 3 * * 1-5\"", 1)),
+        "is not once a week",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "    - cron: \"17 3 * * 1\"\n",
+                "    - cron: \"17 3 * * 1\"\n    - cron: \"17 3 * * 4\"\n",
+                1,
+            )
+        }),
+        "more than one cron",
+    );
+    assert_flags(
         &m(&|s| s.replacen("  workflow_dispatch:\n", "", 1)),
         "does not run on `workflow_dispatch`",
     );
@@ -537,6 +619,31 @@ fn mutants_workflow_check_rejects_weakened_workflow() {
             "paths do not include `crates/rr-live/**`",
         );
     }
+    // Shell: errexit and pipefail keep a failure (and exit 2) fatal.
+    assert_flags(
+        &m(&|s| s.replacen("    shell: bash\n", "    shell: sh\n", 1)),
+        "`defaults.run.shell` is not `bash`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "      - name: cargo mutants\n        run: |\n",
+                "      - name: cargo mutants\n        shell: bash {0}\n        run: |\n",
+                1,
+            )
+        }),
+        "`pr` overrides the default shell (`shell: bash {0}`)",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "    name: mutants (full)\n",
+                "    name: mutants (full)\n    defaults:\n      run:\n        shell: bash {0}\n",
+                1,
+            )
+        }),
+        "`full` overrides the default shell",
+    );
     // PR job.
     assert_flags(
         &m(&|s| s.replacen(PR_IF, "if: github.event_name == 'push'", 1)),
@@ -624,6 +731,55 @@ fn mutants_workflow_check_rejects_weakened_workflow() {
             )
         }),
         "with `--shard`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "        run: cargo mutants --jobs 2 --output .\n",
+                "        run: cargo mutants --jobs 2 --output . --in-diff pr.diff\n",
+                1,
+            )
+        }),
+        "`full` runs `--in-diff`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "          name: mutants-report-full\n          path: mutants.out\n",
+                "          name: mutants-report-full\n          path: mutants.out/missed.txt\n",
+                1,
+            )
+        }),
+        "artifact `mutants-report-full`",
+    );
+    assert_flags(
+        &m(&|s| s.replacen("          retention-days: 90\n", "", 1)),
+        "artifact `mutants-report-full`",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "          retention-days: 90\n",
+                "          retention-days: 1\n",
+                1,
+            )
+        }),
+        "`retention-days: 90`",
+    );
+    assert_flags(
+        &m(&|s| s.replacen("          retention-days: 14\n", "", 1)),
+        "artifact `mutants-report-pr`",
+    );
+    assert_flags(
+        &m(&|s| {
+            // The full job's upload moved before the run.
+            let up = "      # Uploaded on failure too: the report is how a survivor is found.\n      - name: Upload mutants report\n        if: always()\n        uses: actions/upload-artifact@v4\n        with:\n          name: mutants-report-full\n          path: mutants.out\n          if-no-files-found: error\n          retention-days: 90\n";
+            let run =
+                "      - name: cargo mutants\n        run: cargo mutants --jobs 2 --output .\n";
+            s.replacen(up, "", 1)
+                .replacen(run, &format!("{up}{run}"), 1)
+        }),
+        "`full` uploads the report before running cargo mutants",
     );
     assert_flags(
         &m(&|s| {

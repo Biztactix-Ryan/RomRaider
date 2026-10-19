@@ -18,7 +18,8 @@
 #   xtask/src/mutants_scope.rs).
 # * Job `full` (weekly, and on demand): every gated module. Its report
 #   (mutants.out: outcomes.json, missed.txt, caught.txt, logs) is uploaded as
-#   artifact `mutants-report-full` whether or not the run passes.
+#   artifact `mutants-report-full` (kept 90 days) whether or not the run
+#   passes, so a survivor can be found from the run page.
 # * Job `selftest` (both): `cargo xtask mutants-selftest` runs cargo-mutants
 #   with .cargo/mutants.toml on scratch repositories and fails unless a
 #   weakened test and an untested change in a gated module each leave a
@@ -31,6 +32,17 @@
 # The pull_request paths cover every crate holding a gated module (the
 # globs in .cargo/mutants.toml; xtask/tests/mutants_ci_config.rs keeps them
 # in step), each such crate's tests, shared test support, and the gate.
+#
+# GitHub fires `schedule` only for the workflow file on the repository's
+# default branch, and runs it on that branch's latest commit; it accepts
+# `workflow_dispatch` only for a workflow that exists on the default branch.
+# While the default branch is `master` and this file lives only on
+# `rust-rewrite`, the weekly run never fires and cannot be started by hand.
+# To get the weekly report, a maintainer either makes `rust-rewrite` the
+# default branch, or merges `rust-rewrite` (with this file) into `master`.
+# Copying only this file to `master` registers it, so `gh workflow run
+# mutants.yml --ref rust-rewrite` works, but the schedule would then mutate
+# `master`'s tree.
 
 name: Mutants
 
@@ -49,7 +61,8 @@ on:
       - "xtask/src/mutants_selftest.rs"
       - "rust-toolchain.toml"
   schedule:
-    # Weekly full run: Mondays 03:17 UTC.
+    # Weekly full run: Mondays 03:17 UTC. Fires only from the default branch
+    # (see the header).
     - cron: "17 3 * * 1"
   workflow_dispatch:
 
@@ -119,6 +132,7 @@ jobs:
           name: mutants-report-pr
           path: mutants.out
           if-no-files-found: warn
+          retention-days: 14
 
   # Every gated module, weekly; the report is the artifact.
   full:
@@ -147,6 +161,7 @@ jobs:
           name: mutants-report-full
           path: mutants.out
           if-no-files-found: error
+          retention-days: 90
 
   # The gate fails on a weakened test and on untested changed code, with this
   # repository's .cargo/mutants.toml.

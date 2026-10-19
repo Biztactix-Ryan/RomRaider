@@ -30,12 +30,19 @@
 //! crate parses from the same file, so a quoted, dotted or tabled spelling of
 //! the key cannot slip entries past it. A file that does not parse fails.
 //!
+//! **Source attributes.** cargo-mutants also skips any function marked
+//! `#[mutants::skip]` (or `#[cfg_attr(<any cfg>, mutants::skip)]`, which
+//! compiles without the `mutants` crate). That hides mutants with no comment
+//! this check could read, so any [`SKIP_ATTR`] in a Rust file under
+//! `<root>/crates` (whitespace in the path ignored; `target/` skipped) is a
+//! problem: such an exclusion belongs in `.cargo/mutants.toml`.
+//!
 //! CI runs it in the `clippy` job of `ci.yml`; `xtask/tests/mutants_exclusions.rs`
 //! runs it on the committed file and on planted samples.
 
 use std::fmt;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context as _, Result};
 
@@ -50,6 +57,15 @@ pub const MIN_WORDS: usize = 6;
 
 /// Words that mark a justification as a placeholder (case-insensitive).
 pub const PLACEHOLDERS: &[&str] = &["todo", "fixme", "xxx", "tbd"];
+
+/// The source attribute cargo-mutants honours to skip a function
+/// (`#[mutants::skip]`, also inside `#[cfg_attr(..., mutants::skip)]`).
+/// It carries no justification the check can see, so it is not allowed in
+/// workspace sources at all: exclusions live in `.cargo/mutants.toml`.
+pub const SKIP_ATTR: &str = "mutants::skip";
+
+/// Directory (under the root) whose Rust sources are scanned for [`SKIP_ATTR`].
+pub const SOURCE_DIR: &str = "crates";
 
 /// One exclusion entry found in the file.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -373,14 +389,65 @@ pub fn check_source(path: &str, src: &str) -> Report {
     Report { entries, problems }
 }
 
-/// Check `config` (default `<root>/.cargo/mutants.toml`).
+/// The problems of one Rust source file: every `mutants::skip` in it
+/// (whitespace inside the path ignored, so `mutants :: skip` counts too).
+/// `path` is only used in messages.
+#[must_use]
+pub fn source_skip_problems(path: &str, src: &str) -> Vec<String> {
+    src.lines()
+        .enumerate()
+        .filter(|(_, l)| {
+            let squeezed: String = l.chars().filter(|c| !c.is_whitespace()).collect();
+            squeezed.contains(SKIP_ATTR)
+        })
+        .map(|(n, _)| {
+            format!(
+                "{path}:{}: `{SKIP_ATTR}` hides mutants from the gate outside {CONFIG}; move the exclusion to {CONFIG} under a justification comment",
+                n + 1
+            )
+        })
+        .collect()
+}
+
+/// Every `.rs` file under `dir`, skipping `target` directories.
+fn rust_files(dir: &Path, out: &mut Vec<PathBuf>) -> Result<()> {
+    for entry in fs::read_dir(dir).with_context(|| format!("reading {}", dir.display()))? {
+        let path = entry?.path();
+        if path.is_dir() {
+            if path.file_name().is_some_and(|n| n != "target") {
+                rust_files(&path, out)?;
+            }
+        } else if path.extension().is_some_and(|e| e == "rs") {
+            out.push(path);
+        }
+    }
+    Ok(())
+}
+
+/// Check `config` (default `<root>/.cargo/mutants.toml`), then every Rust
+/// source under `<root>/crates` for a `mutants::skip` attribute.
 pub fn run(root: &Path, config: Option<&Path>) -> Result<Report> {
     let (path, shown) = match config {
         Some(p) => (p.to_path_buf(), p.display().to_string()),
         None => (root.join(CONFIG), CONFIG.to_owned()),
     };
     let src = fs::read_to_string(&path).with_context(|| format!("reading {}", path.display()))?;
-    Ok(check_source(&shown, &src))
+    let mut report = check_source(&shown, &src);
+    let crates = root.join(SOURCE_DIR);
+    let mut files = Vec::new();
+    rust_files(&crates, &mut files)?;
+    files.sort();
+    for file in files {
+        let text =
+            fs::read_to_string(&file).with_context(|| format!("reading {}", file.display()))?;
+        let rel = file
+            .strip_prefix(root)
+            .unwrap_or(&file)
+            .display()
+            .to_string();
+        report.problems.extend(source_skip_problems(&rel, &text));
+    }
+    Ok(report)
 }
 
 #[cfg(test)]
@@ -494,6 +561,30 @@ mod tests {
         ] {
             assert!(!problems(&src).is_empty(), "{src}");
         }
+    }
+
+    #[test]
+    fn source_skip_attributes_are_rejected() {
+        for src in [
+            "#[mutants::skip]\nfn f() {}\n",
+            "#[cfg_attr(test, mutants::skip)]\nfn f() {}\n",
+            "#[cfg_attr(any(), mutants :: skip)]\nfn f() {}\n",
+            "fn f() {}\n#[ mutants::\tskip ]\nfn g() {}\n",
+        ] {
+            let p = source_skip_problems("a.rs", src);
+            assert_eq!(p.len(), 1, "{src}: {p:?}");
+            assert!(
+                p[0].starts_with("a.rs:") && p[0].contains("mutants::skip"),
+                "{p:?}"
+            );
+        }
+        assert_eq!(
+            source_skip_problems("a.rs", "fn f() {}\n#[mutants::skip]\nfn g() {}\n")[0]
+                .split(": ")
+                .next(),
+            Some("a.rs:2")
+        );
+        assert!(source_skip_problems("a.rs", "#[test]\nfn mutants_skip() {}\n").is_empty());
     }
 
     #[test]

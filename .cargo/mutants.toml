@@ -24,6 +24,9 @@
 # comment above `exclude_re = [` or trailing the entry does not count.
 # `cargo xtask check-mutants-exclusions` (ci.yml `clippy` job; rules in
 # xtask/src/mutants_exclusions.rs) rejects anything else (task US-RR-4-7).
+# It also rejects any `mutants::skip` attribute in a Rust source under
+# crates/ (including `#[cfg_attr(..., mutants::skip)]`): that hides mutants
+# with no justification, so such an exclusion belongs here (task US-RR-4-3).
 
 examine_globs = [
     # --- rr-core (PROJECT.md T7; ARCHITECTURE.md C1, C3, C4) ---

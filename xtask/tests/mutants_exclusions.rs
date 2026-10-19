@@ -6,7 +6,10 @@
 //!   finds the file's real exclusions.
 //! * The binary, as CI runs it, exits non-zero naming the entry on planted
 //!   samples: an uncommented entry, a comment separated from its entry by a
-//!   blank line, and a trivial comment (`# TODO`); a justified sample passes.
+//!   blank line, a trivial comment (`#`, whitespace, `# TODO ...`, too
+//!   short), a comment above the key or trailing the entry, an inline array,
+//!   two entries on a line, a quoted key, for each key; a justified sample
+//!   passes. A `mutants::skip` attribute in a source under `crates/` fails.
 //! * [`wiring_problems`]: `ci.yml`'s `clippy` job runs the check on every push
 //!   and pull request, the step cannot be skipped or softened, and `clippy` is
 //!   in `ci-ok.needs`. The `*_rejects_*` test proves each assertion bites on a
@@ -125,6 +128,47 @@ fn check_cli_rejects_planted_unjustified_exclusions() -> io::Result<()> {
             format!("{WHY}exclude_re = [\"replace a\"]\n"),
             ":3: exclude_re entry \"replace a\": on the same line as `exclude_re = [`",
         ),
+        (
+            "uncommented-skip-calls",
+            "skip_calls = [\n    \"with_capacity\",\n]\n".to_owned(),
+            ":2: skip_calls entry \"with_capacity\": no justification comment",
+        ),
+        (
+            "empty-comment",
+            "exclude_globs = [\n    #\n    \"src/gen/**\",\n]\n".to_owned(),
+            ":3: exclude_globs entry \"src/gen/**\": justification is too short",
+        ),
+        (
+            "whitespace-comment",
+            "exclude_re = [\n    #   \t\n    #\n    \"replace a\",\n]\n".to_owned(),
+            ":4: exclude_re entry \"replace a\": justification is too short",
+        ),
+        (
+            "todo-sentence",
+            "exclude_re = [\n    # TODO: write down why this mutant cannot be killed\n    \"replace a\",\n]\n".to_owned(),
+            ":3: exclude_re entry \"replace a\": justification is a placeholder",
+        ),
+        (
+            "trailing-only",
+            "exclude_re = [\n    \"replace a\", # Compiled only with a feature no test enables\n]\n"
+                .to_owned(),
+            ":2: exclude_re entry \"replace a\": no justification comment",
+        ),
+        (
+            "two-on-a-line",
+            format!("exclude_globs = [\n{WHY}    \"a/**\", \"b/**\",\n]\n"),
+            ":4: exclude_globs entry \"b/**\": more than one entry on this line",
+        ),
+        (
+            "inline-skip-calls",
+            format!("{WHY}skip_calls = [\"with_capacity\"]\n"),
+            ":3: skip_calls entry \"with_capacity\": on the same line as `skip_calls = [`",
+        ),
+        (
+            "quoted-key",
+            format!("'exclude_re' = [\n{WHY}    \"replace a\",\n]\n"),
+            "the TOML parser sees entries [\"replace a\"] but the line reader found []",
+        ),
     ] {
         let (ok, out) = check(name, &text)?;
         assert!(!ok, "{name}: passed:\n{out}");
@@ -140,6 +184,58 @@ fn check_cli_rejects_planted_unjustified_exclusions() -> io::Result<()> {
         .arg(Path::new(env!("CARGO_TARGET_TMPDIR")).join("no-such-root"))
         .output()?;
     assert!(!out.status.success());
+    Ok(())
+}
+
+/// A `#[mutants::skip]` (or `cfg_attr` form) in a workspace source hides
+/// mutants with no justification the check can see: the CLI rejects it,
+/// naming the file and line, and accepts the same tree without it.
+#[test]
+fn check_cli_rejects_source_skip_attributes() -> io::Result<()> {
+    let root = Path::new(env!("CARGO_TARGET_TMPDIR")).join("check-mutants-exclusions-root");
+    let src = root.join("crates/rr-x/src");
+    fs::create_dir_all(&src)?;
+    fs::create_dir_all(root.join(".cargo"))?;
+    fs::write(
+        root.join(".cargo/mutants.toml"),
+        "examine_globs = [\"crates/rr-x/src/lib.rs\"]\n",
+    )?;
+    let run = || -> io::Result<(bool, String)> {
+        let out = Command::new(env!("CARGO_BIN_EXE_xtask"))
+            .args(["check-mutants-exclusions", "--root"])
+            .arg(&root)
+            .output()?;
+        Ok((
+            out.status.success(),
+            String::from_utf8_lossy(&out.stderr).into_owned(),
+        ))
+    };
+    for attr in [
+        "#[mutants::skip]",
+        "#[cfg_attr(test, mutants::skip)]",
+        "#[cfg_attr(any(), mutants :: skip)]",
+    ] {
+        fs::write(
+            src.join("lib.rs"),
+            format!("pub fn f() {{}}\n{attr}\npub fn g() {{}}\n"),
+        )?;
+        let (ok, err) = run()?;
+        assert!(!ok, "{attr}: passed");
+        let needle = "lib.rs:2: `mutants::skip` hides mutants";
+        assert!(
+            err.contains(needle),
+            "{attr}: expected {needle:?} in:\n{err}"
+        );
+    }
+    // A `target/` directory is build output, not source.
+    fs::write(src.join("lib.rs"), "pub fn f() {}\n")?;
+    fs::create_dir_all(root.join("crates/rr-x/target"))?;
+    fs::write(
+        root.join("crates/rr-x/target/gen.rs"),
+        "#[mutants::skip]\nfn g() {}\n",
+    )?;
+    let (ok, err) = run()?;
+    assert!(ok, "{err}");
     Ok(())
 }
 

@@ -71,7 +71,8 @@ jobs:
         run: cargo xtask check-reference-isolation
       # Every exclusion in .cargo/mutants.toml (exclude_globs / exclude_re /
       # skip_calls) needs a non-trivial justification comment directly above
-      # it (US-RR-4-7; rules in xtask/src/mutants_exclusions.rs). Here, not in
+      # it, and no source under crates/ may use `mutants::skip` (US-RR-4-7,
+      # US-RR-4-3; rules in xtask/src/mutants_exclusions.rs). Here, not in
       # mutants.yml, so it runs on every push and pull request.
       - name: cargo xtask check-mutants-exclusions
         run: cargo xtask check-mutants-exclusions

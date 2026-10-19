@@ -3,15 +3,21 @@
 //! the minimum with no regression passes; one below the minimum, or below the
 //! base, fails; a crate with code but no coverage data fails; one with no
 //! functions at all passes. The last tests run the real binary and check its
-//! exit status, which is what fails the CI `coverage-gate` job.
+//! exit status, which is what fails the CI `coverage-gate` job; the final one
+//! (task US-RR-4-1) runs it with the exact arguments of the `gate` job in
+//! `.github/workflows/coverage.yml`.
+
+#[path = "common/workflow.rs"]
+mod workflow;
 
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 
+use workflow::{Workflow, workflow_yml};
 use xtask::coverage_gate::{
     self, GATED_CRATES, LineCount, Points, Report, check, crate_of, parse_lcov, parse_points,
     src_has_functions,
@@ -409,12 +415,32 @@ fn gated_crates_exist_and_rr_core_has_code() {
     }
 }
 
-fn xtask(dir: &Path, args: &[&str]) -> io::Result<(i32, String)> {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+/// A workspace root under `dir` holding `crates/<name>/src/lib.rs` for each
+/// gated crate, with a function in it for the crates in `with_code` and none
+/// in the others. The binary tests use it instead of the real workspace, so
+/// their verdicts do not change the day rr-rom or rr-comms gains code.
+fn fake_root(dir: &Path, with_code: &[&str]) -> io::Result<PathBuf> {
+    let root = dir.join("root");
+    for name in GATED_CRATES {
+        let src = root.join("crates").join(name).join("src");
+        fs::create_dir_all(&src)?;
+        let text = if with_code.contains(name) {
+            "pub fn f() {}\n"
+        } else {
+            "//! No code yet.\n"
+        };
+        fs::write(src.join("lib.rs"), text)?;
+    }
+    Ok(root)
+}
+
+/// Runs `xtask coverage-gate --root <root> <args>` in `dir`: exit code and
+/// output.
+fn xtask_in(root: &Path, dir: &Path, args: &[&str]) -> io::Result<(i32, String)> {
     let out = Command::new(env!("CARGO_BIN_EXE_xtask"))
         .arg("coverage-gate")
         .arg("--root")
-        .arg(&root)
+        .arg(root)
         .args(args)
         .current_dir(dir)
         .output()?;
@@ -445,6 +471,10 @@ fn ci_args<'a>(head: &'a str, base: &'a str) -> Vec<&'a str> {
 #[test]
 fn binary_exit_status_follows_the_verdict() -> io::Result<()> {
     let dir = scratch("binary")?;
+    // rr-core has code, rr-rom and rr-comms none (the reports below only
+    // cover rr-core).
+    let root = fake_root(&dir, &["rr-core"])?;
+    let xtask = |dir: &Path, args: &[&str]| xtask_in(&root, dir, args);
     let write = |name: &str, text: &str| fs::write(dir.join(name), text);
     write("ok.info", &report((1000, 950)))?;
     write("better.info", &report((1000, 960)))?;
@@ -495,5 +525,172 @@ fn binary_exit_status_follows_the_verdict() -> io::Result<()> {
     let (code, out) = xtask(&dir, &["--lcov", "low.info"])?;
     assert_eq!(code, 1, "{out}");
     assert!(out.contains("rr-comms"), "{out}");
+    Ok(())
+}
+
+/// The arguments the CI `gate` job passes to `cargo xtask coverage-gate`,
+/// read from `.github/workflows/coverage.yml`, with the `--lcov` and
+/// `--base-lcov` paths replaced by `head` and `base`. An error if the job,
+/// the command or either report flag is missing, so a reworded workflow
+/// cannot make the test below pass without running the gate.
+fn ci_gate_args_from_workflow(head: &str, base: &str) -> Result<Vec<String>> {
+    let src = workflow_yml("coverage.yml");
+    let wf = Workflow::parse(&src);
+    let job = wf
+        .job("gate")
+        .ok_or_else(|| anyhow!("coverage.yml has no `gate` job"))?;
+    let scripts = job.run_scripts();
+    let cmd = scripts
+        .iter()
+        .find_map(|s| s.strip_prefix("cargo xtask coverage-gate "))
+        .ok_or_else(|| anyhow!("`gate` does not run cargo xtask coverage-gate: {scripts:?}"))?;
+    let mut args: Vec<String> = cmd.split(' ').map(str::to_owned).collect();
+    for (flag, path) in [("--lcov", head), ("--base-lcov", base)] {
+        let value = args
+            .iter()
+            .position(|a| a == flag)
+            .and_then(|i| args.get_mut(i + 1))
+            .ok_or_else(|| anyhow!("CI gate command has no `{flag} <path>`: {cmd}"))?;
+        path.clone_into(value);
+    }
+    Ok(args)
+}
+
+/// An lcov report with one file per gated crate: `counts[i]` is
+/// `GATED_CRATES[i]`'s (found, hit), `None` for no record at all.
+fn gated_report(counts: [Option<(u32, u32)>; 3]) -> String {
+    GATED_CRATES
+        .iter()
+        .zip(counts)
+        .filter_map(|(name, c)| {
+            c.map(|(found, hit)| record(&format!("/w/R/crates/{name}/src/lib.rs"), found, hit))
+        })
+        .chain([record("/w/R/crates/rr-testkit/src/lib.rs", 100, 0)])
+        .collect()
+}
+
+/// Story US-RR-4, criterion 1 (task US-RR-4-1): "A PR that drops coverage of
+/// rr-core/rr-rom/rr-comms below 90% or below the base branch fails". Runs
+/// the real binary with the CI job's own arguments (`--min 90 --max-drop
+/// 0.25 --crates rr-core,rr-rom,rr-comms`, D-027) on a workspace where all
+/// three crates have code, and checks, for each crate in turn while the
+/// other two are healthy:
+///
+/// * 89.99% fails and exactly 90.00% passes (the minimum, no rounding);
+/// * a drop of 0.26 points below the base fails, even at 94.74%, and 0.25
+///   points passes (the D-027 noise tolerance, and nothing more);
+/// * a crate missing from the head report fails (no data is not a pass);
+/// * a crate missing from the base report (new on this PR) is still held to
+///   90%, with only the regression check skipped;
+///
+/// and that a missing base report file fails rather than skipping the
+/// regression check.
+#[test]
+fn ci_gate_fails_a_pr_below_ninety_or_below_the_base_for_each_gated_crate() -> Result<()> {
+    let dir = scratch("us-rr-4-1")?;
+    let root = fake_root(&dir, GATED_CRATES)?;
+    const OK: Option<(u32, u32)> = Some((10_000, 9_500));
+    let run = |case: &str, head: [Option<(u32, u32)>; 3], base: [Option<(u32, u32)>; 3]| {
+        let (h, b) = (format!("{case}-head.info"), format!("{case}-base.info"));
+        fs::write(dir.join(&h), gated_report(head))?;
+        fs::write(dir.join(&b), gated_report(base))?;
+        let args = ci_gate_args_from_workflow(&h, &b)?;
+        let args: Vec<&str> = args.iter().map(String::as_str).collect();
+        Ok::<_, anyhow::Error>(xtask_in(&root, &dir, &args)?)
+    };
+    let expect = |(code, out): (i32, String), want: i32, needle: &str, case: &str| {
+        assert_eq!(code, want, "{case}: exit status\n{out}");
+        assert!(
+            out.contains(needle),
+            "{case}: expected {needle:?} in\n{out}"
+        );
+    };
+
+    // Control: all three healthy and unchanged.
+    expect(
+        run("control", [OK; 3], [OK; 3])?,
+        0,
+        "coverage-gate: ok (3 crate(s), minimum 90%, no regression against the base beyond 0.25 points)",
+        "control",
+    );
+
+    for (i, name) in GATED_CRATES.iter().enumerate() {
+        let with = |c: Option<(u32, u32)>| {
+            let mut all = [OK; 3];
+            all[i] = c;
+            all
+        };
+        let case = |what: &str| format!("{name}-{what}");
+
+        // Below the minimum fails, even with no regression (base just as low).
+        let low = with(Some((10_000, 8_999)));
+        expect(
+            run(&case("below-90"), low, low)?,
+            1,
+            &format!(
+                "coverage-gate: {name}: line coverage 89.99% (8999/10000) is below the 90% minimum"
+            ),
+            &case("below-90"),
+        );
+        // Exactly 90.00% passes.
+        let exact = with(Some((10_000, 9_000)));
+        expect(
+            run(&case("exactly-90"), exact, exact)?,
+            0,
+            "coverage-gate: ok",
+            &case("exactly-90"),
+        );
+
+        // Below the base by more than 0.25 points fails, above the minimum.
+        let base = with(Some((10_000, 9_500)));
+        expect(
+            run(&case("below-base"), with(Some((10_000, 9_474))), base)?,
+            1,
+            &format!(
+                "coverage-gate: {name}: line coverage regressed from 95.00% (9500/10000) on the base \
+                 to 94.74% (9474/10000) (allowed drop: 0.25 points)"
+            ),
+            &case("below-base"),
+        );
+        // A drop of exactly the tolerance passes.
+        expect(
+            run(&case("at-tolerance"), with(Some((10_000, 9_475))), base)?,
+            0,
+            "coverage-gate: ok",
+            &case("at-tolerance"),
+        );
+
+        // Missing from the head report, though the crate has code: fails.
+        expect(
+            run(&case("missing-head"), with(None), base)?,
+            1,
+            &format!(
+                "coverage-gate: {name}: crates/{name}/src has functions but the coverage report has no instrumented lines"
+            ),
+            &case("missing-head"),
+        );
+
+        // Missing from the base report: still held to the minimum.
+        expect(
+            run(&case("new-ok"), exact, with(None))?,
+            0,
+            "no instrumented lines on the base; regression check skipped",
+            &case("new-ok"),
+        );
+        expect(
+            run(&case("new-low"), low, with(None))?,
+            1,
+            "is below the 90% minimum",
+            &case("new-low"),
+        );
+    }
+
+    // A missing base report is an error, never "no regression".
+    fs::write(dir.join("head.info"), gated_report([OK; 3]))?;
+    let args = ci_gate_args_from_workflow("head.info", "no-such-base.info")?;
+    let args: Vec<&str> = args.iter().map(String::as_str).collect();
+    let (code, out) = xtask_in(&root, &dir, &args)?;
+    assert_ne!(code, 0, "missing base report passed:\n{out}");
+    assert!(out.contains("no-such-base.info"), "{out}");
     Ok(())
 }

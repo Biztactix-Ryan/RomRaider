@@ -875,3 +875,51 @@ fn fuzz_list_json_is_the_manifest_targets() {
     assert!(!o.status.success());
     assert!(String::from_utf8_lossy(&o.stderr).contains("no fuzz target"));
 }
+
+/// The template target (US-RR-5-1): docs/fuzzing.md names `ecu_id` as the
+/// template every new target copies, it is a `[[bin]]` of the fuzz crate, and
+/// so it is a leg of the nightly matrix (`fuzz list`). A target added the way
+/// the docs describe (a new `[[bin]]` block) joins the matrix with no
+/// workflow edit, and dropping the template's `[[bin]]` drops it from the
+/// matrix, so the list really is derived from the manifest.
+#[test]
+fn nightly_matrix_runs_the_template_and_picks_up_new_targets() {
+    const TEMPLATE: &str = "ecu_id";
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+    let docs = std::fs::read_to_string(root.join("docs/fuzzing.md")).unwrap();
+    assert!(
+        docs.contains(&format!("Use `{TEMPLATE}` (the template) as the model")),
+        "docs/fuzzing.md no longer names `{TEMPLATE}` as the template"
+    );
+    let text = std::fs::read_to_string(root.join("fuzz/Cargo.toml"))
+        .unwrap()
+        .replace("\r\n", "\n");
+    let listed =
+        |text: &str| fuzz::select_targets(&fuzz::parse_manifest(text).unwrap(), None).unwrap();
+    let committed = listed(&text);
+    assert!(
+        committed.iter().any(|t| t == TEMPLATE),
+        "template `{TEMPLATE}` is not in the nightly matrix {committed:?}"
+    );
+
+    let bin = |name: &str| {
+        format!(
+            "[[bin]]\nname = \"{name}\"\npath = \"fuzz_targets/{name}.rs\"\ntest = false\ndoc = false\nbench = false\n"
+        )
+    };
+    let added = listed(&format!("{text}\n{}", bin("defs_xml")));
+    let mut want = committed.clone();
+    want.push("defs_xml".to_owned());
+    assert_eq!(added, want, "a new [[bin]] is not picked up by `fuzz list`");
+
+    let template_bin = bin(TEMPLATE);
+    assert!(
+        text.contains(&template_bin),
+        "template [[bin]] block changed"
+    );
+    let without = listed(&text.replacen(&template_bin, "", 1));
+    assert!(
+        !without.iter().any(|t| t == TEMPLATE),
+        "`fuzz list` still lists `{TEMPLATE}` without its [[bin]]: {without:?}"
+    );
+}
