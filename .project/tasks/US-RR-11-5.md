@@ -14,4 +14,4 @@ title: Implement xtask fetch-corpus
 updated: '2026-10-19'
 ---
 
-Fetch from private Biztactix mirror if configured, else upstream samuelw9999/RomRaider @639f3c73, into RR_CORPUS_DIR (default ~/.cache/romraider-rs/corpus); verify against manifest; idempotent.
+Fetch from the private backup https://github.com/Biztactix-Ryan/romraider-stock-roms first (needs auth in CI: FIXTURE_CORPUS_TOKEN or GITHUB_TOKEN with repo access), falling back to upstream samuelw9999/RomRaider @639f3c73. Fetch into RR_CORPUS_DIR (default ~/.cache/romraider-rs/corpus), verify against the manifest, and stay idempotent.

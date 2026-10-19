@@ -113,7 +113,7 @@ The AppImage is smoke-tested on Ubuntu 20.04 (oldest supported glibc) and Fedora
 - **External stock-ROM corpus (D-025):** https://github.com/samuelw9999/RomRaider, pinned at commit `639f3c73`.
   - About 500 stock Subaru ROMs: ADM 87, EDM 76, JDM 114, USDM 221.
   - Raw binary despite the `.hex` extension; 512 KB / 1 MB images.
-  - **Local mirror:** `/home/ryan/Repo/romraider-stock-roms/` (bare `mirror.git`, `roms/` checkout, `SHA256SUMS`), taken 2026-10-19. Private Biztactix GitHub mirror TBD; CI fetches from it once created.
+  - **Local mirror:** `/home/ryan/Repo/romraider-stock-roms/` (bare `mirror.git`, `roms/` checkout, `SHA256SUMS`), taken 2026-10-19. **Private backup:** https://github.com/Biztactix-Ryan/romraider-stock-roms (private, full `git push --mirror`, created and verified 2026-10-19: fresh clone matches all 501 SHA-256s). CI fetches from this, with upstream as fallback.
   - Fetched by `cargo xtask fetch-corpus` into `RR_CORPUS_DIR` (default `~/.cache/romraider-rs/corpus`) and verified against `fixtures/corpus-manifest.toml` (path, size, SHA-256, ROM ID). Cached in CI.
 - **ECU definition corpus:** RomRaider ECU definitions matching the stock ROMs. Source TBD: find and pin it (story in E2). Fetched and manifested the same way.
 - **Private fixture corpus:** Ryan's own ROM(s) and car traces, stored outside the public repo. Location TBD (ask: Ryan; options are a private repo with Git LFS or a Biztactix file share). Mounted locally via `RR_FIXTURES_DIR`.
