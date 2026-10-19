@@ -1,5 +1,5 @@
 ---
-completed_points: 0
+completed_points: 32
 created: '2026-10-19'
 end_date: '2026-10-30'
 goal: Encoding (C3) ships proven against an independent reference codec and sourced
@@ -16,8 +16,8 @@ planned_stories:
 - US-RR-10
 - US-RR-19
 start_date: '2026-10-19'
-status: active
-updated: '2026-10-19'
+status: completed
+updated: '2026-10-20'
 ---
 
 Encoding (C3) ships proven against an independent reference codec and sourced known-answer fixtures, behind enforced coverage, mutation and fuzz gates, with Diagnostic in place so bad storage types fail closed.

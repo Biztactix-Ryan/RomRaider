@@ -1,8 +1,8 @@
 ---
 archived: false
-assignee: null
-claimed_at: null
-claimed_by_run: null
+assignee: claude
+claimed_at: '2026-10-19T21:40:33.251296+00:00'
+claimed_by_run: orch-2026-10-20-fe2d
 created: '2026-10-19'
 depends_on:
 - US-RR-19-8
@@ -11,7 +11,7 @@ depends_on:
 - US-RR-19-11
 id: US-RR-19-6
 points: 2
-status: todo
+status: done
 story_id: US-RR-19
 tags: []
 title: 'Test: cargo-mutants reports zero surviving mutants in the encoding module'

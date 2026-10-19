@@ -182,7 +182,7 @@ entries:
 - id: US-RR-19
   title: 'Encoding (C3): one codec for every storage type'
   type: story
-  status: active
+  status: done
   archived: false
   points: 8
   story_id: null
@@ -1554,7 +1554,7 @@ entries:
 - id: US-RR-19-6
   title: 'Test: cargo-mutants reports zero surviving mutants in the encoding module'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-19
@@ -6491,7 +6491,7 @@ entries:
   epic_id: null
   tags: []
 total_points: 1286
-completed_points: 234
+completed_points: 244
 story_count: 78
 task_count: 604
 epic_count: 10
