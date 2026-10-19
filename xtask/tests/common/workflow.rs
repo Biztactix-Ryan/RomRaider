@@ -19,10 +19,14 @@ use std::path::Path;
 pub const GATE_JOB: &str = "ci-ok";
 
 /// The committed `.github/workflows/ci.yml` (an `<unreadable ...>` marker if
-/// missing, which then fails every check).
+/// missing, which then fails every check), with line endings normalised to
+/// `\n` so the `\n`-based mutations in these tests also apply on a Windows
+/// checkout, where git's autocrlf turns them into `\r\n`.
 pub fn ci_yml() -> String {
     let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../.github/workflows/ci.yml");
-    fs::read_to_string(&path).unwrap_or_else(|e| format!("<unreadable {}: {e}>", path.display()))
+    fs::read_to_string(&path)
+        .map(|s| s.replace("\r\n", "\n"))
+        .unwrap_or_else(|e| format!("<unreadable {}: {e}>", path.display()))
 }
 
 /// One job (or one step): its id and its raw lines (header excluded for a
