@@ -14,8 +14,8 @@
 ./*.xml           eol=lf
 ./*.html          eol=lf
 ./*.properties    eol=lf
-lib/*             binary
-plugins/*         eol=lf
-src/main/resources/graphics/* binary
-src/main/java/*   eol=lf
-templates/*       eol=lf
+legacy/lib/*             binary
+legacy/plugins/*         eol=lf
+legacy/src/main/resources/graphics/* binary
+legacy/src/main/java/*   eol=lf
+legacy/templates/*       eol=lf

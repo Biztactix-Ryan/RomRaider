@@ -1,16 +1,10 @@
-# RomRaider
+# RomRaider-RS
 
-RomRaider is a free, open source tuning suite created for viewing, logging and
-tuning of modern Subaru Engine Control Units. The intuitive tuning interface
-and powerful datalogger are modelled to be familiar to experienced professional
-tuners while providing all the power of expensive commercial products, without
-license fees. 
+A ground-up Rust rewrite of [RomRaider](https://github.com/RomRaider/RomRaider), the open-source ECU ROM editor and data logger.
 
-See Building_RomRaider.txt for information on generating usable binaries.
+**Status:** planning / M0. Nothing usable yet.
 
-See the following links for further information:
+- `legacy/` contains the original Java RomRaider, kept unchanged as the behavioural oracle. Golden test fixtures are recorded from it.
+- `.project/` holds the project docs (vision, architecture, decisions, test strategy, must-fix bug ledger).
 
- - http://www.romraider.com/
- - http://www.romraider.com/forum/
- - https://github.com/RomRaider/RomRaider
-
+Licensed under GPL-2.0-or-later (see `license.txt`). This is a derivative work of RomRaider.

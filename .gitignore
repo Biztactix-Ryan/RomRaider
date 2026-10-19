@@ -1,6 +1,6 @@
-src/main/java/com/romraider/Version.java
-3rdparty/IzPack/
-3rdparty/launch4j/
-build/
+legacy/src/main/java/com/romraider/Version.java
+legacy/3rdparty/IzPack/
+legacy/3rdparty/launch4j/
+legacy/build/
 target/
 tmp/
