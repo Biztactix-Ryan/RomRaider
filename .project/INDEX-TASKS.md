@@ -69,7 +69,7 @@
 | [US-RR-17-6](tasks/US-RR-17-6.md) | Add stable diagnostic code registry and docs | ⚪ todo | 1 |  | — | US-RR-17-4 | [US-RR-17](stories/US-RR-17.md) |
 | [US-RR-18-1](tasks/US-RR-18-1.md) | Test: VirtualClock: sleeping 55 ms then 5000 ms advances virtual time exactly and the test completes in under 10 ms o... | ✅ done | 1 |  | claude | US-RR-18-6 | [US-RR-18](stories/US-RR-18.md) |
 | [US-RR-18-2](tasks/US-RR-18-2.md) | Test: Two threads sharing a VirtualClock observe a consistent monotonic timeline (property test) | ✅ done | 3 |  | claude | US-RR-18-6 | [US-RR-18](stories/US-RR-18.md) |
-| [US-RR-18-3](tasks/US-RR-18-3.md) | Test: Monotonic time never goes backwards even if wall-clock is changed during a RealClock test (wall time is reporte... | 🔍 review | 2 |  | — | US-RR-18-5, US-RR-18-7 | [US-RR-18](stories/US-RR-18.md) |
+| [US-RR-18-3](tasks/US-RR-18-3.md) | Test: Monotonic time never goes backwards even if wall-clock is changed during a RealClock test (wall time is reporte... | ✅ done | 2 |  | — | US-RR-18-5, US-RR-18-7 | [US-RR-18](stories/US-RR-18.md) |
 | [US-RR-18-4](tasks/US-RR-18-4.md) | Test: RealClock is the only module allowed to call std time APIs (enforced by the safety lints story) | ✅ done | 1 |  | claude | US-RR-18-5, US-RR-3-5 | [US-RR-18](stories/US-RR-18.md) |
 | [US-RR-18-5](tasks/US-RR-18-5.md) | Define Clock trait and RealClock | ✅ done | 2 |  | claude | US-RR-1-5 | [US-RR-18](stories/US-RR-18.md) |
 | [US-RR-18-6](tasks/US-RR-18-6.md) | Implement VirtualClock | ✅ done | 3 |  | claude | US-RR-18-5 | [US-RR-18](stories/US-RR-18.md) |
@@ -590,7 +590,7 @@
 | [US-RR-78-5](tasks/US-RR-78-5.md) | Implement NCS CAN (0x2C) and supported-PID discovery | ⚪ todo | 3 |  | — | US-RR-78-4 | [US-RR-78](stories/US-RR-78.md) |
 | [US-RR-78-6](tasks/US-RR-78-6.md) | Implement NCS simulator responder | ⚪ todo | 2 |  | — | US-RR-78-4 | [US-RR-78](stories/US-RR-78.md) |
 | [US-RR-8-1](tasks/US-RR-8-1.md) | Test: PR template contains a checklist covering test tiers touched, ledger entries closed with test names, concept ca... | ✅ done | 1 |  | claude | US-RR-8-6 | [US-RR-8](stories/US-RR-8.md) |
-| [US-RR-8-2](tasks/US-RR-8-2.md) | Test: CODEOWNERS requires a second approval for changes under the gated safety modules and branch protection enforces it | 🔍 review | 2 |  | — | US-RR-8-7 | [US-RR-8](stories/US-RR-8.md) |
+| [US-RR-8-2](tasks/US-RR-8-2.md) | Test: CODEOWNERS requires a second approval for changes under the gated safety modules and branch protection enforces it | ✅ done | 2 |  | — | US-RR-8-7 | [US-RR-8](stories/US-RR-8.md) |
 | [US-RR-8-3](tasks/US-RR-8-3.md) | Test: Issue template instructs users to run romraider-cli trace scrub before attaching traces | ✅ done | 1 |  | claude | US-RR-8-6 | [US-RR-8](stories/US-RR-8.md) |
 | [US-RR-8-4](tasks/US-RR-8-4.md) | Test: CONTRIBUTING.md states the Definition of Done and links PROJECT.md Testing Strategy and the ledgers | ✅ done | 1 |  | claude | US-RR-8-5 | [US-RR-8](stories/US-RR-8.md) |
 | [US-RR-8-5](tasks/US-RR-8-5.md) | Write CONTRIBUTING.md with Definition of Done | ✅ done | 2 |  | claude | US-RR-2-5 | [US-RR-8](stories/US-RR-8.md) |

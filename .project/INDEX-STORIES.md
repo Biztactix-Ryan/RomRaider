@@ -11,7 +11,7 @@
 | [US-RR-15](stories/US-RR-15.md) | Cross-source agreement harness | 📋 backlog | should | 3 | m0, testing, fixtures | [EPIC-RR-2](epics/EPIC-RR-2.md) | 3 | 5 |
 | [US-RR-16](stories/US-RR-16.md) | ECU-definition corpus: source, pin, manifest | 📋 backlog | must | 3 | m0, corpus, definitions | [EPIC-RR-2](epics/EPIC-RR-2.md) | 3 | 6 |
 | [US-RR-17](stories/US-RR-17.md) | Diagnostic and Provenance (C15) | 📋 backlog | must | 3 | m0, core, concepts | [EPIC-RR-3](epics/EPIC-RR-3.md) | 3 | 6 |
-| [US-RR-18](stories/US-RR-18.md) | Clock: RealClock and VirtualClock (C9) | 🏃 active | must | 3 | m0, core, concepts, timing | [EPIC-RR-3](epics/EPIC-RR-3.md) | 4 | 7 |
+| [US-RR-18](stories/US-RR-18.md) | Clock: RealClock and VirtualClock (C9) | ✅ done | must | 3 | m0, core, concepts, timing | [EPIC-RR-3](epics/EPIC-RR-3.md) | 4 | 7 |
 | [US-RR-19](stories/US-RR-19.md) | Encoding (C3): one codec for every storage type | 📋 backlog | must | 8 | m0, core, concepts, safety | [EPIC-RR-3](epics/EPIC-RR-3.md) | 6 | 12 |
 | [US-RR-2](stories/US-RR-2.md) | CI gates: fmt, clippy, nextest matrix, cargo-deny | ✅ done | must | 5 | m0, ci, testing | [EPIC-RR-1](epics/EPIC-RR-1.md) | 4 | 8 |
 | [US-RR-20](stories/US-RR-20.md) | Expr parser (C4a): JEP-compatible, parsed once | 📋 backlog | must | 8 | m0, core, concepts, safety, security | [EPIC-RR-3](epics/EPIC-RR-3.md) | 5 | 10 |
@@ -78,5 +78,5 @@
 | [US-RR-76](stories/US-RR-76.md) | SSM over CAN (ISO 15765) | 📋 backlog | could | 8 | m6, comms, ssm, can | [EPIC-RR-10](epics/EPIC-RR-10.md) | 3 | 5 |
 | [US-RR-77](stories/US-RR-77.md) | OBD-II codec (SAE J1979) | 📋 backlog | could | 5 | m6, comms, obd | [EPIC-RR-10](epics/EPIC-RR-10.md) | 3 | 6 |
 | [US-RR-78](stories/US-RR-78.md) | NCS codec (Nissan, K-line and CAN) | 📋 backlog | could | 8 | m6, comms, ncs | [EPIC-RR-10](epics/EPIC-RR-10.md) | 3 | 6 |
-| [US-RR-8](stories/US-RR-8.md) | Contribution rules and Definition of Done | 🏃 active | must | 2 | m0, process | [EPIC-RR-1](epics/EPIC-RR-1.md) | 4 | 7 |
+| [US-RR-8](stories/US-RR-8.md) | Contribution rules and Definition of Done | ✅ done | must | 2 | m0, process | [EPIC-RR-1](epics/EPIC-RR-1.md) | 4 | 7 |
 | [US-RR-9](stories/US-RR-9.md) | Known-answer fixture format | 📋 backlog | must | 5 | m0, testing, fixtures | [EPIC-RR-2](epics/EPIC-RR-2.md) | 4 | 9 |

@@ -16,6 +16,8 @@ created: '2026-10-19'
 depends_on:
 - US-RR-17
 - US-RR-6
+- US-RR-10
+- US-RR-4
 epic_id: EPIC-RR-3
 id: US-RR-19
 points: 8

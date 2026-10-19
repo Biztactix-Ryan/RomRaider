@@ -1,5 +1,5 @@
 ---
-completed_points: 0
+completed_points: 26
 created: '2026-10-19'
 end_date: '2026-10-30'
 goal: The workspace builds behind enforced CI, safety lints and capability tokens,
@@ -16,7 +16,7 @@ planned_stories:
 - US-RR-6
 - US-RR-8
 start_date: '2026-10-19'
-status: active
+status: completed
 updated: '2026-10-19'
 ---
 

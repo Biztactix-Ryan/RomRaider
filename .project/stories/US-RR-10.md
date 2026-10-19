@@ -11,6 +11,7 @@ acceptance_criteria:
 created: '2026-10-19'
 depends_on:
 - US-RR-6
+- US-RR-9
 epic_id: EPIC-RR-2
 id: US-RR-10
 points: 8
