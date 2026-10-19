@@ -110,7 +110,12 @@ The AppImage is smoke-tested on Ubuntu 20.04 (oldest supported glibc) and Fedora
 
 - **Source and CI:** GitHub (fork `Biztactix-Ryan/RomRaider`, branch `rust-rewrite`).
 - **Distribution:** GitHub Releases.
-- **Private fixture corpus:** real ROMs and car traces, stored outside the public repo. Location TBD (ask: Ryan; options are a private repo with Git LFS or a Biztactix file share). Mounted locally via `RR_FIXTURES_DIR`.
+- **External stock-ROM corpus (D-025):** https://github.com/samuelw9999/RomRaider, pinned at commit `639f3c73`.
+  - About 500 stock Subaru ROMs: ADM 87, EDM 76, JDM 114, USDM 221.
+  - Raw binary despite the `.hex` extension; 512 KB / 1 MB images.
+  - Fetched by `cargo xtask fetch-corpus` into `RR_CORPUS_DIR` (default `~/.cache/romraider-rs/corpus`) and verified against `fixtures/corpus-manifest.toml` (path, size, SHA-256, ROM ID). Cached in CI.
+- **ECU definition corpus:** RomRaider ECU definitions matching the stock ROMs. Source TBD: find and pin it (story in E2). Fetched and manifested the same way.
+- **Private fixture corpus:** Ryan's own ROM(s) and car traces, stored outside the public repo. Location TBD (ask: Ryan; options are a private repo with Git LFS or a Biztactix file share). Mounted locally via `RR_FIXTURES_DIR`.
 - **Upstream sync:** `git fetch upstream && git merge upstream/master` lands Java changes. Git rename detection maps them into `legacy/`. Treat upstream Java fixes as potential bug reports: if one changes behaviour we rely on, add or update a known-answer fixture.
 
 ## Monitoring & Alerting
@@ -125,6 +130,7 @@ The AppImage is smoke-tested on Ubuntu 20.04 (oldest supported glibc) and Fedora
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `RR_LOG` | No | `tracing` filter, e.g. `rr_comms=trace` |
+| `RR_CORPUS_DIR` | No | Cache directory for the external stock-ROM and definition corpora (default `~/.cache/romraider-rs/corpus`) |
 | `RR_FIXTURES_DIR` | No | Path to the private fixture corpus. Enables `--features private-fixtures` tests. |
 | `RR_HIL_PORT` | No | Serial port for hardware-in-loop tests. HIL is skipped if unset. |
 | `RR_HIL_J2534` | No | J2534 library name/path for HIL tests |

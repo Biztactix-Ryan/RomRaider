@@ -4,6 +4,26 @@ Newest first. Each entry has a Title, Date, Status, Context, Decision and Conseq
 
 ---
 
+## D-025: External stock-ROM corpus, fetched and pinned, never vendored
+- **Date:** 2026-10-19
+- **Status:** Accepted
+- **Context:**
+  - Stock ROMs are the strongest Java-free oracle for checksums and decoding: a stock image's checksums are valid by definition.
+  - https://github.com/samuelw9999/RomRaider publicly hosts about 498 stock Subaru ROMs collected from the RomRaider forum (ADM/EDM/JDM/USDM; raw binary, 512 KB and 1 MB images).
+  - That repo has no licence, and the images are manufacturer firmware.
+- **Decision:**
+  - Use it as an external corpus pinned at commit `639f3c73`.
+  - `cargo xtask fetch-corpus` downloads it into a cache (`RR_CORPUS_DIR`) and verifies every file against `fixtures/corpus-manifest.toml` (path, size, SHA-256, ROM ID read by our own code).
+  - CI caches the corpus and runs the stock-ROM invariant suite on all of it.
+  - We never commit or redistribute the images.
+  - Matching ECU definitions are sourced and pinned the same way (E2 story).
+- **Consequences:**
+  - Public CI gets real-world coverage of hundreds of Subaru ROMs on day one, with no private corpus needed.
+  - If the upstream repo disappears, CI degrades to synthetic + KAT fixtures until a mirror is arranged.
+  - The manifest also catches corrupted files: that repo uses `* text=auto`, so we verify sizes and hashes.
+
+---
+
 ## D-024: No Java in the project, including tests and tooling
 - **Date:** 2026-10-19
 - **Status:** Accepted. Supersedes the "Java build as oracle" parts of D-001 and D-003.
@@ -96,8 +116,8 @@ Newest first. Each entry has a Title, Date, Status, Context, Decision and Conseq
 
 ## D-017: No proprietary ROMs in the public repo
 - **Date:** 2026-10-19
-- **Status:** Accepted
-- **Context:** ECU firmware is manufacturer-copyrighted, but differential testing needs real ROMs.
+- **Status:** Accepted; amended by D-025 (external public corpus, fetched rather than committed)
+- **Context:** ECU firmware is manufacturer-copyrighted, but testing needs real ROMs.
 - **Decision:** Public CI uses synthetic ROMs generated from definitions. Real ROMs and car traces live in a private corpus (`RR_FIXTURES_DIR`, location TBD). Pre-commit and CI checks block binaries over 64 KB or known ROM IDs in `fixtures/public`.
 - **Consequences:** Two fixture tiers. Full differential coverage only runs where the private corpus is mounted, so a self-hosted runner is needed for it in CI.
 

@@ -56,7 +56,8 @@ The editor "user levels" (Beginner → Debug) only control which tables are visi
 
 ### Proprietary firmware
 - Real ECU ROM images are manufacturer-copyrighted.
-- **They are never committed to the public repo.** Public CI uses synthetic ROMs generated from definitions.
+- **They are never committed to our repo or shipped in our artifacts.**
+- Public CI uses synthetic ROMs plus the external stock-ROM corpus (D-025). The corpus is fetched at test time from its own public repo and verified against our committed SHA-256 manifest.
 - Real ROMs live in the private fixture corpus (`RR_FIXTURES_DIR`).
 - A pre-commit hook and a CI check reject binaries over 64 KB, or files matching known ROM IDs, under `fixtures/public`.
 
