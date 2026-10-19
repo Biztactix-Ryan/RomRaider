@@ -5,13 +5,18 @@
 //!   memory limits, and every target is fully wired. Each rule bites on a
 //!   mutated copy of the real files.
 //! * `fuzz run` always passes the limits to libFuzzer, before any extra
-//!   flags, through the rustup proxy with `+nightly`.
+//!   flags, through the rustup proxy with `+nightly`, for every target in
+//!   the manifest; an extra flag may tighten a limit but `fuzz run` refuses
+//!   one that loosens or disables it, or lets a failure pass (US-RR-5-4).
 //! * The regression replay (US-RR-5-7) is declared and `fuzz check` rejects
 //!   a `fuzz/regressions/` entry that would never be replayed (an unknown
 //!   target's directory, a stray file, a nested directory); `fuzz replay`
 //!   is a stable `cargo test` of the fuzz crate. (The replay itself, and its
 //!   self-test that a planted panic, hang and memory blow-up fail it, run in
 //!   the `fuzz-regressions` CI job: `fuzz/tests/regressions.rs`.)
+//! * Every target has its `fuzz/regressions/<target>/` directory (an empty
+//!   one held by a `.gitkeep`), so a new target cannot be added without the
+//!   place its crash inputs go (US-RR-5-3).
 //! * The selftest cases cover a panic, a hang and both memory limits, and are
 //!   judged correctly. (Running them needs nightly + cargo-fuzz, so the run
 //!   itself is `cargo xtask fuzz selftest`, not part of this suite.)
@@ -21,8 +26,9 @@ use std::io;
 use std::path::{Path, PathBuf};
 
 use xtask::fuzz::{
-    self, Limits, RunOptions, SELFTEST_CASES, SELFTEST_FEATURES, SELFTEST_TARGET, evaluate,
-    limit_problems, parse_host_triple, regression_problems, replay_command, run_command,
+    self, FORBIDDEN_FLAGS, Limits, RunOptions, SELFTEST_CASES, SELFTEST_FEATURES, SELFTEST_TARGET,
+    evaluate, extra_flag_problems, limit_problems, parse_host_triple, regression_problems,
+    replay_command, run_command,
 };
 
 fn root() -> PathBuf {
@@ -50,7 +56,13 @@ fn scratch_tree(name: &str) -> io::Result<PathBuf> {
         let text = fs::read_to_string(real.join(file))?.replace("\r\n", "\n");
         fs::write(dir.join(file), text)?;
     }
-    for sub in ["fuzz/fuzz_targets", "fuzz/seeds/ecu_id", "fuzz/seeds/toy"] {
+    for sub in [
+        "fuzz/fuzz_targets",
+        "fuzz/seeds/ecu_id",
+        "fuzz/seeds/toy",
+        "fuzz/regressions/ecu_id",
+        "fuzz/regressions/toy",
+    ] {
         fs::create_dir_all(dir.join(sub))?;
         for e in fs::read_dir(real.join(sub))? {
             let p = e?.path();
@@ -345,6 +357,114 @@ fn run_refuses_unknown_targets() {
     assert!(err.contains("no fuzz target \"nope\""), "{err}");
 }
 
+/// Every target of the committed manifest, fuzzing or reproducing, gets
+/// the committed limits as the first libFuzzer flags: the limits are one
+/// table, applied per run, not per target.
+#[test]
+fn every_committed_target_runs_under_the_committed_limits() {
+    let m = fuzz::load(&root()).unwrap();
+    let limits = m.limits.expect("committed limits");
+    let want = [
+        format!("-timeout={}", limits.timeout_secs),
+        format!("-rss_limit_mb={}", limits.rss_limit_mb),
+        format!("-malloc_limit_mb={}", limits.malloc_limit_mb),
+    ];
+    assert!(m.targets.len() >= 2, "{:?}", m.targets);
+    for t in &m.targets {
+        for inputs in [vec![], vec![PathBuf::from("/tmp/crash-1")]] {
+            let opts = RunOptions {
+                target: t.name.clone(),
+                inputs,
+                ..RunOptions::default()
+            };
+            let a = args(&run_command(
+                Path::new("/w"),
+                limits,
+                "nightly",
+                "x86_64-unknown-linux-gnu",
+                &opts,
+            ));
+            let dash = a.iter().position(|x| x == "--").expect("--");
+            assert_eq!(a[dash + 1..dash + 4], want, "{}: {a:?}", t.name);
+        }
+    }
+}
+
+#[test]
+fn extra_flags_may_tighten_but_never_loosen_the_limits() {
+    let ok = |extra: &[&str]| {
+        let extra: Vec<String> = extra.iter().map(|&s| s.to_owned()).collect();
+        extra_flag_problems(LIMITS, &extra)
+    };
+    // Tightening, equal values and unrelated flags are fine.
+    assert!(
+        ok(&[
+            "-timeout=3",
+            "-timeout=7",
+            "-rss_limit_mb=1000",
+            "-malloc_limit_mb=300",
+            "-jobs=4",
+            "-max_len=4096",
+            "-runs=10",
+        ])
+        .is_empty()
+    );
+    for bad in [
+        "-timeout=0",
+        "-timeout=8",
+        "-timeout=1200",
+        "-timeout=",
+        "-timeout=ten",
+        "--timeout=0",
+        "-rss_limit_mb=0",
+        "-rss_limit_mb=1501",
+        "-malloc_limit_mb=0",
+        "-malloc_limit_mb=301",
+        "-malloc_limit_mb=-1",
+    ] {
+        let p = ok(&[bad]);
+        assert_eq!(p.len(), 1, "{bad}: {p:?}");
+        assert!(p[0].contains("may only tighten"), "{bad}: {p:?}");
+    }
+    for name in FORBIDDEN_FLAGS {
+        let bad = format!("-{name}=1");
+        let p = ok(&[bad.as_str()]);
+        assert_eq!(p.len(), 1, "{bad}: {p:?}");
+        assert!(
+            p[0].contains("would let a failing input pass"),
+            "{bad}: {p:?}"
+        );
+    }
+    for name in [
+        "ignore_timeouts",
+        "ignore_ooms",
+        "ignore_crashes",
+        "timeout_exitcode",
+        "error_exitcode",
+    ] {
+        assert!(FORBIDDEN_FLAGS.contains(&name), "{name}");
+    }
+}
+
+#[test]
+fn run_refuses_extra_flags_that_loosen_the_limits() {
+    for bad in [
+        "-timeout=0",
+        "-rss_limit_mb=0",
+        "-malloc_limit_mb=999999",
+        "-ignore_timeouts=1",
+    ] {
+        let opts = RunOptions {
+            target: "toy".into(),
+            inputs: vec![PathBuf::from("/tmp/crash-1")],
+            extra: vec![bad.into()],
+            ..RunOptions::default()
+        };
+        let err = fuzz::run(&root(), &opts).unwrap_err().to_string();
+        assert!(err.contains(bad), "{bad}: {err}");
+    }
+}
+
 #[test]
 fn limit_problems_bounds() {
     assert!(limit_problems(Some(LIMITS)).is_empty());
@@ -471,6 +591,60 @@ fn check_rejects_regressions_that_would_never_replay() {
     fs::create_dir_all(dir.join("fuzz/regressions/renamed")).unwrap();
     fs::write(dir.join("fuzz/regressions/renamed/crash-1"), b"x").unwrap();
     assert!(has(&problems(&dir), "unknown fuzz target \"renamed\""));
+}
+
+/// US-RR-5-3: every target, the template included, has a regression
+/// directory, and a target added without one fails `fuzz check`.
+#[test]
+fn check_requires_a_regressions_directory_per_target() {
+    let fuzz_dir = root().join("fuzz");
+    for t in fuzz::load(&root()).unwrap().targets {
+        assert!(
+            fuzz_dir.join("regressions").join(&t.name).is_dir(),
+            "fuzz/regressions/{}/ missing",
+            t.name
+        );
+    }
+
+    let dir = scratch_tree("no-regressions-dir").unwrap();
+    fs::remove_dir_all(dir.join("fuzz/regressions/ecu_id")).unwrap();
+    let p = problems(&dir);
+    assert_eq!(p.len(), 1, "{p:?}");
+    assert!(
+        has(
+            &p,
+            "fuzz/regressions/ecu_id/: missing; every target needs one"
+        ),
+        "{p:?}"
+    );
+    assert!(has(&p, "fuzz/regressions/ecu_id/.gitkeep"), "{p:?}");
+
+    // A new target wired everywhere else (bin, wrapper, TARGETS, seeds) but
+    // with no regressions directory is caught, and only for that.
+    let dir = scratch_tree("new-target").unwrap();
+    let manifest = dir.join("fuzz/Cargo.toml");
+    let mut text = fs::read_to_string(&manifest).unwrap();
+    text.push_str(
+        "\n[[bin]]\nname = \"extra\"\npath = \"fuzz_targets/extra.rs\"\n\
+         test = false\ndoc = false\nbench = false\n",
+    );
+    fs::write(&manifest, text).unwrap();
+    fs::write(dir.join("fuzz/fuzz_targets/extra.rs"), "").unwrap();
+    edit(
+        &dir.join("fuzz/src/lib.rs"),
+        "(\"toy\", toy)]",
+        "(\"toy\", toy), (\"extra\", extra)]",
+    )
+    .unwrap();
+    fs::create_dir_all(dir.join("fuzz/seeds/extra")).unwrap();
+    fs::write(dir.join("fuzz/seeds/extra/one"), b"x").unwrap();
+    let p = problems(&dir);
+    assert_eq!(p.len(), 1, "{p:?}");
+    assert!(has(&p, "fuzz/regressions/extra/: missing"), "{p:?}");
+    fs::create_dir_all(dir.join("fuzz/regressions/extra")).unwrap();
+    fs::write(dir.join("fuzz/regressions/extra/.gitkeep"), b"").unwrap();
+    let p = problems(&dir);
+    assert!(p.is_empty(), "{p:?}");
 }
 
 #[test]

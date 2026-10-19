@@ -28,7 +28,10 @@
 //! * a directory whose name is not a target: a failure (a renamed or removed
 //!   target would otherwise silently stop replaying its crashes);
 //! * a plain file directly under `regressions/`, or a directory inside a
-//!   target's directory: a failure (it would never be replayed).
+//!   target's directory: a failure (it would never be replayed);
+//! * a [`PLACEHOLDER`] file in a target's directory: skipped. It keeps the
+//!   directory in git until the target has a crash input (`cargo xtask fuzz
+//!   check` requires every target to have its directory).
 
 use std::fmt;
 use std::fs;
@@ -39,6 +42,9 @@ use std::thread;
 use std::time::Duration;
 
 use rr_core::clock::{Clock, RealClock};
+
+/// Empty file that keeps `regressions/<target>/` in git; never replayed.
+pub const PLACEHOLDER: &str = ".gitkeep";
 
 /// Set in the child: the target to run.
 pub const ENV_TARGET: &str = "RR_FUZZ_REPLAY_TARGET";
@@ -177,6 +183,9 @@ pub fn discover(dir: &Path, targets: &[&str]) -> Result<Vec<Input>, Vec<String>>
                      inputs go directly in regressions/{name}/",
                     file.file_name().unwrap_or_default().to_string_lossy()
                 ));
+                continue;
+            }
+            if file.file_name().is_some_and(|f| f == PLACEHOLDER) {
                 continue;
             }
             inputs.push(Input {

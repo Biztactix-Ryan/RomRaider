@@ -17,10 +17,13 @@
 //!   `xtask/tests/fuzz.rs` in CI): the crate is excluded from the root
 //!   workspace, is its own workspace, declares sane limits, and every target
 //!   has its `[[bin]]`, `fuzz_targets/<name>.rs`, `src/lib.rs` `TARGETS` entry
-//!   and a non-empty `seeds/<name>/`; the replay harness is declared; and
-//!   every directory under `regressions/` names a target (see
+//!   and a non-empty `seeds/<name>/`, and its `regressions/<name>/`
+//!   directory exists (held by a [`REGRESSIONS_PLACEHOLDER`] until the
+//!   target has a crash input, US-RR-5-3); the replay harness is declared;
+//!   and every directory under `regressions/` names a target (see
 //!   [`regression_problems`]).
-//! * `fuzz run <target>`: `cargo +nightly fuzz run` with the limits, the
+//! * `fuzz run <target>`: `cargo +nightly fuzz run` with the limits (extra
+//!   flags may tighten them, never loosen them: [`extra_flag_problems`]), the
 //!   growing corpus `fuzz/corpus/<target>` and the committed seeds.
 //! * `fuzz replay` ([`replay_command`], US-RR-5-7): `cargo test
 //!   --manifest-path fuzz/Cargo.toml --locked` on the **stable** toolchain:
@@ -58,6 +61,11 @@ pub const DEFAULT_TOOLCHAIN: &str = "nightly";
 /// Committed minimised crash inputs, `fuzz/regressions/<target>/<file>`,
 /// relative to the fuzz crate.
 pub const REGRESSIONS_DIR: &str = "regressions";
+
+/// Empty file that keeps `fuzz/regressions/<target>/` in git while the
+/// target has no crash input yet. Never replayed
+/// (`rr_fuzz::replay::PLACEHOLDER`, the same name).
+pub const REGRESSIONS_PLACEHOLDER: &str = ".gitkeep";
 
 /// The fuzz crate's `[[test]]` that replays [`REGRESSIONS_DIR`]
 /// (`fuzz/tests/regressions.rs`, a custom harness).
@@ -339,6 +347,14 @@ pub fn check(root: &Path) -> Result<Vec<String>> {
         if !has_seed {
             out.push(format!("fuzz/seeds/{n}/: needs at least one seed input"));
         }
+        // Every target has the directory its crash inputs go in, so the
+        // replay is visibly wired for it from the start (US-RR-5-3).
+        if !fuzz.join(REGRESSIONS_DIR).join(n).is_dir() {
+            out.push(format!(
+                "fuzz/{REGRESSIONS_DIR}/{n}/: missing; every target needs one (commit an empty \
+                 fuzz/{REGRESSIONS_DIR}/{n}/{REGRESSIONS_PLACEHOLDER} until it has a crash input)"
+            ));
+        }
     }
     if !m.replay_harness {
         out.push(format!(
@@ -376,7 +392,8 @@ pub fn check(root: &Path) -> Result<Vec<String>> {
 /// `targets` (the same rules the replay harness enforces at run time,
 /// `rr_fuzz::replay::discover`): every entry must be a directory named after
 /// a target, and holds only files. A missing `dir`, or a target with no
-/// directory, is fine: nothing to replay.
+/// directory, is fine here: nothing to replay (that every target has its
+/// directory is a separate rule in [`check`]).
 #[must_use]
 pub fn regression_problems(dir: &Path, targets: &[&str]) -> Vec<String> {
     let Ok(entries) = fs::read_dir(dir) else {
@@ -454,8 +471,9 @@ pub struct RunOptions {
     /// Where libFuzzer writes crash/timeout/oom inputs (default
     /// `fuzz/artifacts/<target>/`).
     pub artifact_prefix: Option<PathBuf>,
-    /// Further libFuzzer flags, after the limits (a later flag wins, so an
-    /// explicit override here is deliberate and visible).
+    /// Further libFuzzer flags, after the limits. A later flag wins, so one
+    /// may tighten a limit; [`run`] refuses any that loosens or disables one
+    /// ([`extra_flag_problems`]).
     pub extra: Vec<String>,
 }
 
@@ -566,20 +584,72 @@ pub fn run_command(
     cmd
 }
 
+/// libFuzzer flags that would let a hang, an OOM or a crash end a run as a
+/// pass (US-RR-5-4): never accepted in [`RunOptions::extra`].
+pub const FORBIDDEN_FLAGS: &[&str] = &[
+    "ignore_timeouts",
+    "ignore_ooms",
+    "ignore_crashes",
+    "timeout_exitcode",
+    "error_exitcode",
+];
+
+/// Problems with the extra libFuzzer flags `extra` given `limits`: an extra
+/// `-timeout=`, `-rss_limit_mb=` or `-malloc_limit_mb=` may tighten its
+/// limit (libFuzzer takes the last value) but not loosen or disable it (0,
+/// larger than the committed value, or not an integer), and no
+/// [`FORBIDDEN_FLAGS`] flag is allowed. [`run`] refuses to start on any, so
+/// neither a local run nor the nightly job can bypass the limits through
+/// `cargo xtask fuzz run ... -- <flags>`.
+#[must_use]
+pub fn extra_flag_problems(limits: Limits, extra: &[String]) -> Vec<String> {
+    let caps = [
+        ("timeout", limits.timeout_secs),
+        ("rss_limit_mb", limits.rss_limit_mb),
+        ("malloc_limit_mb", limits.malloc_limit_mb),
+    ];
+    let mut out = Vec::new();
+    for arg in extra {
+        let Some(flag) = arg.strip_prefix('-').map(|f| f.trim_start_matches('-')) else {
+            continue;
+        };
+        let (name, value) = flag.split_once('=').unwrap_or((flag, ""));
+        if FORBIDDEN_FLAGS.contains(&name) {
+            out.push(format!(
+                "`{arg}`: -{name} would let a failing input pass; not allowed (docs/fuzzing.md \"Limits\")"
+            ));
+        } else if let Some(&(_, cap)) = caps.iter().find(|(n, _)| *n == name) {
+            match value.trim().parse::<u64>() {
+                Ok(v) if (1..=cap).contains(&v) => {}
+                _ => out.push(format!(
+                    "`{arg}`: may only tighten -{name} (1..={cap}, fuzz/Cargo.toml \
+                     [package.metadata.rr-fuzz]), not loosen or disable it"
+                )),
+            }
+        }
+    }
+    out
+}
+
 /// Loads the limits from `root`'s fuzz crate and builds [`run_command`],
 /// creating the corpus directory when fuzzing.
 ///
 /// # Errors
 ///
 /// Fails if the manifest cannot be read, its limits are missing or out of
-/// range, `opts.target` is not a target, the toolchain's host triple
-/// cannot be determined, or the corpus directory cannot be created.
+/// range, an extra flag would loosen them ([`extra_flag_problems`]),
+/// `opts.target` is not a target, the toolchain's host triple cannot be
+/// determined, or the corpus directory cannot be created.
 pub fn run(root: &Path, opts: &RunOptions) -> Result<Command> {
     let m = load(root)?;
     let problems = limit_problems(m.limits);
     let Some(limits) = m.limits.filter(|_| problems.is_empty()) else {
         anyhow::bail!("{}", problems.join("; "));
     };
+    let loosened = extra_flag_problems(limits, &opts.extra);
+    if !loosened.is_empty() {
+        anyhow::bail!("fuzz run: {}", loosened.join("; "));
+    }
     if !m.targets.iter().any(|t| t.name == opts.target) {
         let names: Vec<&str> = m.targets.iter().map(|t| t.name.as_str()).collect();
         anyhow::bail!(

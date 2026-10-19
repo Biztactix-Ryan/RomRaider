@@ -218,6 +218,11 @@ const CASES: &[Case] = &[
         expect: Expect::Pass(0),
     },
     Case {
+        name: "placeholder in a target directory is not replayed",
+        files: &[("ecu_id/.gitkeep", b""), ("toy/clean", CLEAN_TOY)],
+        expect: Expect::Pass(1),
+    },
+    Case {
         name: "planted panic",
         files: &[("toy/clean", CLEAN_TOY), ("planted_panic/crash-1", b"x")],
         expect: Expect::Fails("planted_panic/crash-1", "planted panic"),

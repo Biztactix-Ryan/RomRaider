@@ -16,7 +16,8 @@ fuzz/                        cargo-fuzz crate `rr-fuzz` (its own workspace, nigh
   tests/regressions.rs       the replay test (custom harness): self-test, then replay
   fuzz_targets/<name>.rs     one-line fuzz_target! wrapper around rr_fuzz::<name>
   seeds/<name>/              committed starting inputs (small, valid-ish)
-  regressions/<name>/        committed minimised crash inputs (replayed in ci.yml)
+  regressions/<name>/        committed minimised crash inputs (replayed in ci.yml);
+                             every target has one (.gitkeep until its first crash)
   corpus/<name>/             growing corpus: git-ignored, cached by the nightly job
   artifacts/<name>/          crash / timeout / oom inputs libFuzzer saved: git-ignored
 ```
@@ -91,9 +92,15 @@ rss_limit_mb = 2048    # -rss_limit_mb: process RSS above this is a failure
 malloc_limit_mb = 512  # -malloc_limit_mb: one allocation above this is a failure
 ```
 
-`cargo xtask fuzz run` passes all three on every run, before any flags you add
-(libFuzzer takes the last value of a repeated flag, so an override is explicit
-and visible on the command line). `cargo xtask fuzz check`, which the xtask
+`cargo xtask fuzz run` passes all three on every run, for every target,
+before any flags you add. libFuzzer takes the last value of a repeated flag, so
+a flag after `--` may *tighten* a limit (`-- -timeout=3`), but `fuzz run`
+refuses to start on one that loosens or disables it (`-timeout=0`, a value
+above the committed one, a non-integer) or that would let a failing input pass
+(`-ignore_timeouts`, `-ignore_ooms`, `-ignore_crashes`, `-timeout_exitcode`,
+`-error_exitcode`). The nightly job runs every target through the wrapper and
+`xtask/tests/fuzz_ci_config.rs` fails if it calls `cargo fuzz` directly or
+passes a limit flag itself. `cargo xtask fuzz check`, which the xtask
 test suite runs in CI (`xtask/tests/fuzz.rs`), fails if any limit is missing,
 zero, or out of range (timeout 1–60 s, RSS 256–4096 MB, allocation cap at most
 the RSS cap). The file is code-owned (`.github/CODEOWNERS`).
@@ -136,7 +143,11 @@ Use `ecu_id` (the template) as the model. For a target `defs_xml`:
 5. **Seeds.** Add a few small real inputs to `fuzz/seeds/defs_xml/` (a minimal
    valid file, an edge case, one known-bad one). Keep them small and free of
    private data (no customer ROMs).
-6. **Check and run.**
+6. **Regressions directory.** Create `fuzz/regressions/defs_xml/` with an
+   empty `.gitkeep` in it (git does not keep empty directories; the replay
+   skips that file). Crash inputs go here later (see [When the fuzzer finds a
+   bug](#when-the-fuzzer-finds-a-bug)).
+7. **Check and run.**
 
    ```sh
    cargo xtask fuzz check
@@ -144,7 +155,7 @@ Use `ecu_id` (the template) as the model. For a target `defs_xml`:
    cargo xtask fuzz run defs_xml --max-total-time 60
    ```
 
-`fuzz check` fails until steps 2–5 are all done.
+`fuzz check` fails until steps 2–6 are all done.
 
 ## When the fuzzer finds a bug
 
@@ -201,12 +212,21 @@ every push and pull request, and `ci-ok` needs it (wiring checked by
      panic, abort, signal or timeout fails that input; the others still run
      and the output of each failure is printed.
 
+A hang cannot stall CI: the parent polls the child (`Child::try_wait`) and
+kills it at `timeout_secs` (`Child::kill`), and the job has
+`timeout-minutes: 20` as a backstop. Both the timeout and the allocation caps
+use only `std` (no `cfg(unix)` code), so the replay behaves the same on
+Windows, where `Child::kill` is `TerminateProcess` and a refused allocation's
+abort exits with a non-zero code. CI runs the replay on Linux only; on Windows
+it is supported but not exercised by CI.
+
 Layout rules (also checked statically by `cargo xtask fuzz check`):
 
 | Under `fuzz/regressions/`              | Result                                   |
 |----------------------------------------|------------------------------------------|
 | no `regressions/` directory            | ok, nothing to replay                    |
-| a target with no directory, or empty   | ok, nothing to replay for it             |
+| a target with no directory, or empty   | ok, nothing to replay for it (but `fuzz check` requires the directory) |
+| `<target>/.gitkeep`                    | skipped: it only keeps the directory in git |
 | `<target>/<file>`                      | replayed through that target             |
 | `<name>/` that is not a target         | **fails**: rename it or delete it        |
 | a file directly in `regressions/`      | **fails**: it would never be replayed    |
@@ -226,6 +246,11 @@ cargo xtask fuzz replay --features planted-panic  # fails: toy/planted-panic pan
 cargo xtask fuzz replay --features planted-hang   # fails: toy/planted-hang timed out after 10 s
 cargo xtask fuzz replay --features planted-oom    # fails: toy/planted-oom-malloc aborted
 ```
+
+`toy/planted-panic` (`PANIC`) is exactly what the nightly job's own
+planted-panic find (run 39317525293, input `PANIC\x04$`) minimises to with
+`cargo +nightly fuzz tmin --features planted-panic`, so the committed example
+is the real loop's output, not a hand-made stand-in (US-RR-5-3).
 
 No input for a real target is committed that still fails.
 
