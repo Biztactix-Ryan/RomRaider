@@ -3,7 +3,9 @@
 #
 # The workspace bans `static mut`, statics holding mutable state (Mutex, RwLock,
 # Cell/RefCell/UnsafeCell, Atomic*, ...), lazy_static!/LazyLock/once_cell
-# singletons holding such state, and thread_local! globals. An exception needs
+# singletons holding such state, and thread_local! globals. In a stateless
+# module (STATELESS_PATHS in xtask/src/globals.rs: the encoding module, MF-04)
+# every static is banned, read-only OnceLock/LazyLock ones too. An exception needs
 # an entry here, reviewed like code:
 #
 #   [[allow]]

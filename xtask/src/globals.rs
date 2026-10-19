@@ -17,7 +17,19 @@
 //! * every `static` inside `thread_local! { ... }` (per-thread global state).
 //!
 //! Plain read-only statics (`static NAME: &str`, `static TABLE: [u8; 4]`,
-//! `static RE: LazyLock<Regex>`) and `const` items are not flagged.
+//! `static RE: LazyLock<Regex>`) and `const` items are not flagged, except in
+//! a [stateless module](STATELESS_PATHS).
+//!
+//! # Stateless modules
+//!
+//! A source under [`STATELESS_PATHS`] may hold no `static` of any kind, so
+//! also no write-once global (`OnceLock`, `OnceCell`, `LazyLock`, a
+//! `lazy_static!` of any type). The encoding module is one (MF-04): legacy
+//! kept the byte order in a static shared by every open ROM
+//! (`maps/Table.java:40`), and a `static ENDIAN: OnceLock<Endian>` set by the
+//! first definition loaded would bring that bug back while passing the
+//! mutable-state rule. Such a finding is [`Kind::StaticInStatelessModule`];
+//! `const` items stay allowed.
 //!
 //! Sources are parsed with `syn`, so text inside string literals and comments
 //! never matches. Exceptions live in the allowlist file
@@ -50,6 +62,29 @@ pub const SKIP_DIRS: &[&str] = &[
     "test_data",
 ];
 
+/// Sources (relative to the workspace root, `/`-separated) that may hold no
+/// `static` item at all (see [Stateless modules](self#stateless-modules)). An
+/// entry ending in `/` covers every file under that directory; any other
+/// entry names one file.
+pub const STATELESS_PATHS: &[&str] = &[
+    // Encoding (C3, MF-04): every encoding carries its byte order by value.
+    "crates/rr-core/src/encoding.rs",
+    "crates/rr-core/src/encoding/",
+];
+
+/// Whether `path` (relative to the workspace root, `/`-separated) is under
+/// [`STATELESS_PATHS`].
+#[must_use]
+pub fn is_stateless_path(path: &str) -> bool {
+    STATELESS_PATHS.iter().any(|p| {
+        if p.ends_with('/') {
+            path.starts_with(p)
+        } else {
+            path == *p
+        }
+    })
+}
+
 /// Default allowlist location, relative to the workspace root.
 pub const DEFAULT_ALLOWLIST: &str = "xtask/globals-allowlist.toml";
 
@@ -76,6 +111,9 @@ pub enum Kind {
     LazyStatic,
     /// `thread_local! { static NAME: T = ...; }`
     ThreadLocal,
+    /// Any other `static` (`OnceLock`, `LazyLock`, a constant table,
+    /// `lazy_static!`) in a source under [`STATELESS_PATHS`].
+    StaticInStatelessModule,
 }
 
 impl fmt::Display for Kind {
@@ -85,6 +123,7 @@ impl fmt::Display for Kind {
             Self::MutableStatic => "mutable static",
             Self::LazyStatic => "lazy_static! singleton",
             Self::ThreadLocal => "thread_local! global",
+            Self::StaticInStatelessModule => "static in a stateless module",
         })
     }
 }
@@ -125,6 +164,7 @@ pub fn scan_source(path: &str, src: &str) -> Result<Vec<Finding>> {
     })?;
     let mut scanner = Scanner {
         path,
+        stateless: is_stateless_path(path),
         findings: Vec::new(),
     };
     scanner.visit_file(&file);
@@ -135,8 +175,14 @@ pub fn scan_source(path: &str, src: &str) -> Result<Vec<Finding>> {
 
 struct Scanner<'p> {
     path: &'p str,
+    /// `path` is under [`STATELESS_PATHS`]: every `static` is a finding.
+    stateless: bool,
     findings: Vec<Finding>,
 }
+
+/// Why a static in a stateless module is flagged.
+const STATELESS_DETAIL: &str = "no `static` of any kind (OnceLock, LazyLock, tables included) \
+     in a stateless module; carry the state in the value (MF-04)";
 
 impl Scanner<'_> {
     fn push(&mut self, ident: &str, span: Span, kind: Kind, detail: String) {
@@ -170,6 +216,13 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
                     Kind::MutableStatic,
                     format!("type contains `{marker}`: global mutable state is banned"),
                 );
+            } else if self.stateless {
+                self.push(
+                    &name,
+                    i.ident.span(),
+                    Kind::StaticInStatelessModule,
+                    STATELESS_DETAIL.to_owned(),
+                );
             }
         }
         visit::visit_item_static(self, i);
@@ -202,6 +255,12 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
                         decl.span,
                         kind,
                         format!("type contains `{m}`: lazy global singletons holding mutable state are banned"),
+                    ),
+                    (_, None) if self.stateless => self.push(
+                        &decl.name,
+                        decl.span,
+                        Kind::StaticInStatelessModule,
+                        STATELESS_DETAIL.to_owned(),
                     ),
                     (_, None) => {}
                 }
@@ -596,6 +655,94 @@ mod tests {
         );
         let names: Vec<_> = f.iter().map(|f| (f.item.as_str(), f.line)).collect();
         assert_eq!(names, [("A", 3), ("B", 4)]);
+    }
+
+    #[test]
+    fn stateless_paths_cover_the_encoding_module_only() {
+        for p in [
+            "crates/rr-core/src/encoding.rs",
+            "crates/rr-core/src/encoding/codec.rs",
+            "crates/rr-core/src/encoding/codec/tests.rs",
+        ] {
+            assert!(is_stateless_path(p), "{p}");
+        }
+        for p in [
+            "crates/rr-core/src/encoding_x.rs",
+            "crates/rr-core/src/encodings/codec.rs",
+            "crates/rr-core/src/diag.rs",
+            "crates/rr-testkit/src/encoding_oracle.rs",
+            "xtask/src/globals.rs",
+        ] {
+            assert!(!is_stateless_path(p), "{p}");
+        }
+    }
+
+    #[test]
+    fn every_static_in_a_stateless_module_is_flagged() {
+        // MF-04: a write-once global byte order passes the mutable-state
+        // rule, but not the encoding module's no-static rule.
+        let src = "\
+use std::sync::{LazyLock, OnceLock};
+const MAX: usize = 4;
+static ENDIAN: OnceLock<Endian> = OnceLock::new();
+static TABLE: [u8; 4] = [1, 2, 3, 4];
+static RE: LazyLock<Vec<u8>> = LazyLock::new(Vec::new);
+lazy_static! { static ref DEFAULT: Endian = Endian::Big; }
+fn f() -> &'static str { static INNER: &str = \"x\"; INNER }
+static mut HITS: u32 = 0;
+static FLAG: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+thread_local! { static T: u8 = 0; }
+";
+        let got = |path: &str| -> Vec<(String, Kind)> {
+            scan_source(path, src)
+                .unwrap()
+                .into_iter()
+                .map(|f| (f.item, f.kind))
+                .collect()
+        };
+        let named = |v: &[(&str, Kind)]| -> Vec<(String, Kind)> {
+            let mut v: Vec<_> = v.iter().map(|&(n, k)| (n.to_owned(), k)).collect();
+            v.sort();
+            v
+        };
+        let mut stateless = got("crates/rr-core/src/encoding/codec.rs");
+        stateless.sort();
+        assert_eq!(
+            stateless,
+            named(&[
+                ("DEFAULT", Kind::StaticInStatelessModule),
+                ("ENDIAN", Kind::StaticInStatelessModule),
+                ("FLAG", Kind::MutableStatic),
+                ("HITS", Kind::StaticMut),
+                ("INNER", Kind::StaticInStatelessModule),
+                ("RE", Kind::StaticInStatelessModule),
+                ("T", Kind::ThreadLocal),
+                ("TABLE", Kind::StaticInStatelessModule),
+            ])
+        );
+        let mut elsewhere = got("crates/rr-core/src/diag.rs");
+        elsewhere.sort();
+        assert_eq!(
+            elsewhere,
+            named(&[
+                ("FLAG", Kind::MutableStatic),
+                ("HITS", Kind::StaticMut),
+                ("T", Kind::ThreadLocal),
+            ])
+        );
+        let f = scan_source(
+            "crates/rr-core/src/encoding.rs",
+            "static ENDIAN: OnceLock<Endian> = OnceLock::new();\n",
+        )
+        .unwrap();
+        assert_eq!(f.len(), 1, "{f:?}");
+        assert!(
+            f[0].to_string().starts_with(
+                "crates/rr-core/src/encoding.rs:1: static in a stateless module `ENDIAN`"
+            ),
+            "{}",
+            f[0]
+        );
     }
 
     #[test]

@@ -16,7 +16,9 @@
 //! fields and protocol headers (ARCHITECTURE.md C3). The type holds no
 //! static or global state: two encodings with different byte orders are
 //! independent values and can be used from different threads at once
-//! (MF-04).
+//! (MF-04). `cargo xtask check-globals` holds the module to that: no
+//! `static` of any kind, write-once `OnceLock` / `LazyLock` included, may be
+//! added here (`STATELESS_PATHS` in `xtask/src/globals.rs`).
 //!
 //! # Fail closed
 //!

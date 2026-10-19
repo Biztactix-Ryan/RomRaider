@@ -121,6 +121,43 @@ fn planted_global_with_justified_allowlist_entry_passes() {
     assert_eq!(report.findings.len(), 1);
 }
 
+/// MF-04 (US-RR-19-3): the encoding module may hold no `static` at all, so
+/// a write-once global byte order (`OnceLock`) planted there fails the
+/// check, as `cargo xtask check-globals` runs it, while the same item
+/// elsewhere is only a read-only static and passes.
+#[test]
+fn write_once_global_in_the_encoding_module_fails() {
+    const ONCE: &str = "static ENDIAN: std::sync::OnceLock<u8> = std::sync::OnceLock::new();\n";
+    let root = planted(
+        "stateless",
+        &[
+            ("crates/rr-core/src/encoding/codec.rs", ONCE),
+            ("crates/rr-core/src/encoding.rs", "const OK: u8 = 0;\n"),
+            ("crates/rr-core/src/diag.rs", ONCE),
+        ],
+        "",
+    )
+    .unwrap();
+    let out = std::process::Command::new(env!("CARGO_BIN_EXE_xtask"))
+        .arg("check-globals")
+        .arg("--root")
+        .arg(&root)
+        .arg("--allowlist")
+        .arg(root.join("allow.toml"))
+        .output()
+        .unwrap();
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(!out.status.success(), "check-globals passed: {stderr}");
+    assert!(
+        stderr.contains(
+            "crates/rr-core/src/encoding/codec.rs:1: static in a stateless module `ENDIAN`"
+        ),
+        "{stderr}"
+    );
+    assert!(!stderr.contains("diag.rs"), "{stderr}");
+    assert!(stderr.contains("1 problem(s)"), "{stderr}");
+}
+
 /// US-RR-3-3, as CI runs it: the `cargo xtask check-globals` binary exits
 /// non-zero on a planted `static mut` and names it, and exits zero once the
 /// global is gone.
