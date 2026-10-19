@@ -2,7 +2,7 @@
 # working shows the byte arithmetic. Cross-checked independently with Python
 # int.from_bytes / struct.unpack (never with rr-core or rr-testkit code).
 schema = 1
-title = "i64 big-endian: min, -2, a positive"
+title = "i64 big-endian: min, -2, a positive, zero, max, -1"
 notes = "u = hi*2^32 + lo (hi = bytes 0..4, lo = bytes 4..8, big-endian); two's complement: raw = u if u < 2^63, else u - 2^64 (18446744073709551616)."
 
 [definition.encoding]
@@ -14,6 +14,9 @@ hex = """
 80 00 00 00 00 00 00 00
 FF FF FF FF FF FF FF FE
 00 00 00 01 00 00 00 00
+00 00 00 00 00 00 00 00
+7F FF FF FF FF FF FF FF
+FF FF FF FF FF FF FF FF
 """
 
 [[decode]]
@@ -32,7 +35,27 @@ raw = 4294967296
 source = { kind = "hand-calc", working = "bytes 00 00 00 01 00 00 00 00 big-endian: hi = 1, lo = 0; u = 1*4294967296 + 0 = 4294967296 = 2^32; below 2^63, raw = 4294967296" }
 note = "a 32-bit truncation reads 0"
 
+[[decode]]
+offset = 24
+raw = 0
+source = { kind = "hand-calc", working = "bytes 00 00 00 00 00 00 00 00 big-endian: hi = 0, lo = 0; u = 0*4294967296 + 0 = 0; below 2^63, raw = 0" }
+
+[[decode]]
+offset = 32
+raw = 9223372036854775807
+source = { kind = "hand-calc", working = "bytes 7F FF FF FF FF FF FF FF big-endian: hi = 0x7FFFFFFF = 2147483647, lo = 4294967295; u = 2147483647*4294967296 + 4294967295 = 9223372032559808512 + 4294967295 = 9223372036854775807; below 2^63, raw = 9223372036854775807 (i64 max)" }
+
+[[decode]]
+offset = 40
+raw = -1
+source = { kind = "hand-calc", working = "bytes FF FF FF FF FF FF FF FF big-endian: hi = 4294967295, lo = 4294967295; u = 18446744069414584320 + 4294967295 = 18446744073709551615; two's complement: 18446744073709551615 - 18446744073709551616 = -1" }
+
 [[changelog]]
 date = 2026-10-19
 reason = "initial values"
 author = "US-RR-9-8"
+
+[[changelog]]
+date = 2026-10-20
+reason = "boundary values for MF-02 / US-RR-19-2: zero, max, -1 and the sign-bit edge in both byte orders"
+author = "US-RR-19-2"

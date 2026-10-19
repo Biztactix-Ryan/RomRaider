@@ -78,18 +78,93 @@ fn refuses_the_empty_storage_type() {
     assert_eq!(storage_problem_of(""), StorageProblem::Empty);
 }
 
+/// Storage strings refused as [`StorageProblem::Unknown`].
+const UNKNOWN_STORAGE_TYPES: &[&str] = &[
+    // Case: legacy's `uint`/`int` prefixes were case-sensitive
+    // (xml/RomAttributeParser.java:62,65 `startsWith`), so these fell to
+    // `Integer.parseInt` (:69) and threw.
+    "UINT16",
+    "Uint8",
+    "INT8",
+    "Int16",
+    "uInt24",
+    "INT64",
+    // Widths that do not exist; legacy divided by 8 and rounded down (:63,66).
+    "uint48",
+    "uint12",
+    "int1",
+    "uint",
+    "int",
+    "uint128",
+    "int128",
+    "uint256",
+    "uint0",
+    // Float widths with no legacy spelling (only `float`, :59).
+    "float16",
+    "float32",
+    "float64",
+    "half",
+    "double",
+    // Spellings legacy's parseInt took.
+    "uint016",
+    "int+16",
+    "uint-8",
+    // Whitespace is not trimmed by legacy; nor is it here.
+    " uint8",
+    "uint8 ",
+    "float ",
+    " movi20",
+    "\tuint16",
+    "uint16\n",
+    "\r\nint8",
+    "uint 8",
+    "\u{a0}uint8",
+    "uint8\u{200b}",
+    " ",
+    "\t",
+    // Non-ASCII look-alikes (ASCII-only case folding).
+    "\u{ff55}\u{ff49}\u{ff4e}\u{ff54}\u{ff18}",
+    "u\u{131}nt8",
+    "FLOAT\u{0}",
+    // Numeric garbage that is not all ASCII digits.
+    "-1",
+    "1.5",
+    "+8",
+    "0x10",
+    "1e3",
+    "NaN",
+    "\u{661}",
+    // Typos and other dialects.
+    "unit16",
+    "u8",
+    "f32",
+    "i24",
+    "u24",
+    "i64",
+    "bloblist",
+    "movi",
+    "movi20x",
+    "bool",
+];
+
 #[test]
 fn refuses_unknown_and_misspelt_storage_types() {
-    for text in [
-        // Case: legacy's `uint`/`int` prefixes were case-sensitive (it threw).
-        "UINT16", "Uint8", "INT8", "Int16", // Widths that do not exist.
-        "uint48", "uint12", "int1", "uint", "int", // Spellings legacy's parseInt took.
-        "uint016", "int+16", "uint-8", // Whitespace is not trimmed by legacy.
-        " uint8", "uint8 ", "float ", " movi20", // Typos and other dialects.
-        "unit16", "float32", "float64", "double", "u8", "f32", "i24", "bloblist", "-1", "1.5",
-    ] {
-        assert_eq!(storage_problem_of(text), StorageProblem::Unknown, "{text}");
+    for &text in UNKNOWN_STORAGE_TYPES {
+        assert_eq!(
+            storage_problem_of(text),
+            StorageProblem::Unknown,
+            "{text:?}"
+        );
     }
+}
+
+/// Every refused storage string: unknown, empty, `movi20s` and the numeric codes.
+fn every_refused_storage_type() -> Vec<&'static str> {
+    let mut all = UNKNOWN_STORAGE_TYPES.to_vec();
+    all.extend([
+        "", "movi20s", "MOVI20S", "0", "2", "3", "8", "20", "28", "99", "007",
+    ]);
+    all
 }
 
 #[test]
@@ -296,6 +371,156 @@ fn unsupported_storage_is_an_error_diagnostic_never_a_zero_value() {
         "no default encoding even when errors are accepted"
     );
     assert_eq!(diags.len(), 1);
+}
+
+#[test]
+fn every_refused_storage_string_fails_closed_with_enc0001_and_provenance() {
+    // MF-02 for every refusal, whatever the other attributes: one ENC0001
+    // Error at the table's provenance naming the text, and no Encoding on
+    // any route (so no cell can be decoded, as zero or otherwise).
+    for text in every_refused_storage_type() {
+        for endian in ["big", "little"] {
+            for mask in [None, Some(""), Some("FF")] {
+                let loaded = parse_encoding(
+                    &LegacyAttributes {
+                        mask,
+                        ..attrs(text, endian)
+                    },
+                    &here(),
+                );
+                let what = format!("{text:?} {endian} {mask:?}");
+                assert_eq!(codes_of(&loaded), ["ENC0001"], "{what}");
+                let message = loaded.diagnostics()[0].message();
+                assert!(
+                    message.starts_with(&format!("unsupported storage type {text:?}: ")),
+                    "{what}: {message}"
+                );
+                assert_eq!(loaded.value(), None, "{what}");
+                assert!(loaded.clone().into_result().is_err(), "{what}");
+                assert_eq!(loaded.accept_errors().0, None, "{what}");
+            }
+        }
+    }
+}
+
+#[test]
+fn every_legacy_storage_spelling_builds_its_encoding() {
+    // `(text, storage, legacy citation)`; every accepted spelling, through
+    // the whole loader, in both byte orders.
+    for (text, storage, legacy) in [
+        ("uint8", Storage::U8, "RomAttributeParser.java:62-63"),
+        ("uint16", Storage::U16, "RomAttributeParser.java:62-63"),
+        ("uint24", Storage::U24, "RomAttributeParser.java:62-63"),
+        ("uint32", Storage::U32, "RomAttributeParser.java:62-63"),
+        ("uint64", Storage::U64, "RomAttributeParser.java:62-63"),
+        ("int8", Storage::I8, "RomAttributeParser.java:65-66, :73-81"),
+        (
+            "int16",
+            Storage::I16,
+            "RomAttributeParser.java:65-66, :73-81",
+        ),
+        (
+            "int24",
+            Storage::I24,
+            "RomAttributeParser.java:65-66, :73-81",
+        ),
+        (
+            "int32",
+            Storage::I32,
+            "RomAttributeParser.java:65-66, :73-81",
+        ),
+        (
+            "int64",
+            Storage::I64,
+            "RomAttributeParser.java:65-66, :73-81",
+        ),
+        ("float", Storage::F32, "RomAttributeParser.java:59-60"),
+        (
+            "FLOAT",
+            Storage::F32,
+            "RomAttributeParser.java:59 equalsIgnoreCase",
+        ),
+        ("movi20", Storage::U20, "RomAttributeParser.java:53-54"),
+        (
+            "MOVI20",
+            Storage::U20,
+            "RomAttributeParser.java:53 equalsIgnoreCase",
+        ),
+    ] {
+        for (endian_text, endian) in [("big", Endian::Big), ("little", Endian::Little)] {
+            let loaded = parse_encoding(&attrs(text, endian_text), &here());
+            if storage == Storage::U20 && endian == Endian::Little {
+                // MOVI20 is a big-endian SH instruction; see
+                // `parse_encoding_refuses_unsupported_combinations`.
+                assert_eq!(codes_of(&loaded), ["ENC0001"], "{text} {legacy}");
+                assert_eq!(loaded.accept_errors().0, None, "{text} {legacy}");
+                continue;
+            }
+            assert!(
+                loaded.diagnostics().is_empty(),
+                "{text} {endian_text} ({legacy})"
+            );
+            assert_eq!(
+                loaded.value().copied().flatten(),
+                Some(Encoding::new(storage, endian, None, Layout::Default).unwrap()),
+                "{text} {endian_text} ({legacy})"
+            );
+        }
+    }
+}
+
+#[test]
+fn legacy_24_and_64_bit_storages_decode_end_to_end() {
+    // MF-02: legacy accepted these spellings but its decode switch has no
+    // 3- or 8-byte case (xml/RomAttributeParser.java:135,145-160), so every
+    // cell read as 0. Through the loader here, each decodes to its value.
+    // `(storage text, big-endian bytes, value)`; little-endian is reversed.
+    let cases: &[(&str, &[u8], i128)] = &[
+        ("uint24", &[0, 0, 0], 0),
+        ("uint24", &[0x12, 0x34, 0x56], 0x12_3456),
+        ("uint24", &[0x7F, 0xFF, 0xFF], 0x7F_FFFF),
+        ("uint24", &[0x80, 0, 0], 0x80_0000),
+        ("uint24", &[0xFF, 0xFF, 0xFF], 0xFF_FFFF),
+        ("int24", &[0, 0, 0], 0),
+        ("int24", &[0, 0, 1], 1),
+        ("int24", &[0x7F, 0xFF, 0xFF], 0x7F_FFFF),
+        ("int24", &[0x80, 0, 0], -0x80_0000),
+        ("int24", &[0x80, 0, 1], -0x7F_FFFF),
+        ("int24", &[0xFF, 0xFF, 0xFF], -1),
+        ("int64", &[0; 8], 0),
+        ("int64", &[0, 0, 0, 0, 0, 0, 0, 1], 1),
+        ("int64", &[0, 0, 0, 1, 0, 0, 0, 0], 1 << 32),
+        (
+            "int64",
+            &[0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF],
+            i64::MAX.into(),
+        ),
+        ("int64", &[0x80, 0, 0, 0, 0, 0, 0, 0], i64::MIN.into()),
+        ("int64", &[0x80, 0, 0, 0, 0, 0, 0, 1], (i64::MIN + 1).into()),
+        ("int64", &[0xFF; 8], -1),
+        ("uint64", &[0x80, 0, 0, 0, 0, 0, 0, 0], 1 << 63),
+        ("uint64", &[0xFF; 8], u64::MAX.into()),
+    ];
+    for &(text, big_bytes, value) in cases {
+        let little_bytes: Vec<u8> = big_bytes.iter().rev().copied().collect();
+        for (endian, bytes) in [("big", big_bytes.to_vec()), ("little", little_bytes)] {
+            let encoding = parse_encoding(&attrs(text, endian), &here())
+                .into_result()
+                .unwrap()
+                .0
+                .unwrap();
+            assert_eq!(
+                encoding.decode(&bytes),
+                Ok(crate::encoding::Raw::Int(value)),
+                "{text} {endian} {bytes:02X?}"
+            );
+            assert_eq!(
+                encoding.encode(crate::encoding::Raw::Int(value)),
+                Ok(bytes.clone()),
+                "{text} {endian} {bytes:02X?}"
+            );
+        }
+    }
 }
 
 #[test]
