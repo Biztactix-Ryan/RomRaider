@@ -403,6 +403,72 @@ fn mf_15_a_legacy_float_table_gets_the_full_range() {
     );
 }
 
+/// The float ranges, evaluated at compile time from the storage alone: the
+/// range is a pure function of the encoding, with no table, definition or
+/// default to consult (the test below checks every encoding gives exactly
+/// its storage's range).
+const F32_RANGE: RawRange = Storage::F32.raw_range();
+const F64_RANGE: RawRange = Storage::F64.raw_range();
+
+/// MF-15: the range's kind is the storage's, for every valid storage ×
+/// endian × layout: an integer storage never gets a float range and a float
+/// storage never an integer one; F32 never gets F64's range or vice versa.
+/// No "signed" float context can be built: a signed or unsigned bitfield on
+/// a float storage is refused, so the storage alone picks the float range.
+#[test]
+fn mf_15_the_range_kind_and_float_bounds_follow_the_storage_only() {
+    assert_eq!(
+        F32_RANGE,
+        RawRange::F32 {
+            min: -f32::MAX,
+            max: f32::MAX
+        }
+    );
+    assert_eq!(
+        F64_RANGE,
+        RawRange::F64 {
+            min: -f64::MAX,
+            max: f64::MAX
+        }
+    );
+    for storage in Storage::ALL {
+        for endian in [BE, LE] {
+            for layout in [Layout::Default, Layout::BoschSubtract] {
+                let Ok(encoding) = Encoding::new(storage, endian, None, layout) else {
+                    continue;
+                };
+                let range = encoding.stored_range();
+                assert_eq!(range, storage.raw_range(), "{encoding:?}");
+                let (kind, min, max) = match storage {
+                    Storage::F32 => (RawKind::F32, Raw::F32(-f32::MAX), Raw::F32(f32::MAX)),
+                    Storage::F64 => (RawKind::F64, Raw::F64(-f64::MAX), Raw::F64(f64::MAX)),
+                    _ => {
+                        assert_eq!(range.kind(), RawKind::Int, "{encoding:?}");
+                        assert!(range.as_int().is_some(), "{encoding:?}");
+                        continue;
+                    }
+                };
+                assert_eq!(range.kind(), kind, "{encoding:?}");
+                assert_eq!(range.as_int(), None, "{encoding:?}");
+                assert_eq!((range.min(), range.max()), (min, max), "{encoding:?}");
+                assert_eq!(encoding.raw_range(), Ok(range), "{encoding:?}");
+            }
+            for signed in [true, false] {
+                let bitfield = BitField::new(0x0F, None, signed).unwrap();
+                let result = Encoding::new(storage, endian, Some(bitfield), Layout::Default);
+                if storage.is_float() {
+                    assert!(
+                        matches!(result, Err(EncodingError::InvalidBitField { .. })),
+                        "{storage} {endian:?} signed={signed}: {result:?}"
+                    );
+                } else if let Ok(encoding) = result {
+                    assert_eq!(encoding.raw_range().unwrap().kind(), RawKind::Int);
+                }
+            }
+        }
+    }
+}
+
 #[test]
 fn the_f32_range_is_exact_in_f32() {
     let range = enc(Storage::F32, BE).raw_range().unwrap();

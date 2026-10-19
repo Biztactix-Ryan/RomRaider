@@ -523,3 +523,143 @@ fn edit_into_passes_codec_errors_through_and_writes_nothing() {
     );
     assert_eq!(table, [1]);
 }
+
+// ---------------------------------------------------------------------------
+// Whole tables and diagnostics (US-RR-19-5)
+// ---------------------------------------------------------------------------
+//
+// Legacy (read-only, `legacy/src/main/java/com/romraider/`) has no such
+// gate: `maps/DataCell.java:161-167` widens each f32 cell to a `double`,
+// `maps/DataCell.java:302-304` narrows it back with `(float)` on save, and
+// `maps/DataCell.java:481-505` (`setBinValue`) only clamps to
+// `±Float.MAX_VALUE` (`:141-147`), so a NaN (every comparison false) is
+// stored unrefused and `±Inf` is silently clamped. NaN is only displayed
+// as "NaN" (`util/NumberUtil.java:65`); subnormals are not distinguished.
+
+/// `true` for the classes EC-07 names, written out here rather than taken
+/// from [`FloatClass::is_special`], the code under test.
+const fn hand_special(class: FloatClass) -> bool {
+    matches!(
+        class,
+        FloatClass::Nan { .. } | FloatClass::Infinite | FloatClass::Subnormal
+    )
+}
+
+#[test]
+fn whole_f32_table_decode_flags_every_special_cell_and_round_trips_bit_exactly() {
+    // One table whose cells are every hand-written binary32 boundary: both
+    // zeros, subnormals, normals, infinities, quiet and signalling NaNs.
+    let expected: Vec<usize> = (0..F32_CASES.len())
+        .filter(|&i| hand_special(F32_CASES[i].1))
+        .collect();
+    assert_eq!(expected.len(), 17, "five subnormals, two infs, ten NaNs");
+    for endian in [Endian::Big, Endian::Little] {
+        let encoding = enc(Storage::F32, endian);
+        let bytes: Vec<u8> = F32_CASES
+            .iter()
+            .flat_map(|&(bits, _)| match endian {
+                Endian::Big => bits.to_be_bytes(),
+                Endian::Little => bits.to_le_bytes(),
+            })
+            .collect();
+        let values = encoding.decode_table(&bytes, F32_CASES.len()).unwrap();
+        assert_eq!(values.len(), F32_CASES.len());
+        for (i, (&(bits, class), raw)) in F32_CASES.iter().zip(&values).enumerate() {
+            assert_eq!(
+                raw.float_bits(),
+                Some(u64::from(bits)),
+                "{endian:?} cell {i}"
+            );
+            assert_eq!(raw.float_class(), Some(class), "{endian:?} cell {i}");
+        }
+        let flagged: Vec<usize> = (0..values.len())
+            .filter(|&i| values[i].is_special_float())
+            .collect();
+        assert_eq!(flagged, expected, "{endian:?}");
+        // The unchecked table encoder writes every value back bit-exactly,
+        // signalling NaN payloads and the sign of zero included.
+        let mut out = vec![0_u8; bytes.len()];
+        encoding.encode_table(&values, &mut out).unwrap();
+        assert_eq!(out, bytes, "{endian:?}");
+    }
+}
+
+#[test]
+fn whole_f64_table_decode_flags_every_special_cell_and_round_trips_bit_exactly() {
+    let expected: Vec<usize> = (0..F64_CASES.len())
+        .filter(|&i| hand_special(F64_CASES[i].1))
+        .collect();
+    assert_eq!(expected.len(), 16, "five subnormals, two infs, nine NaNs");
+    for endian in [Endian::Big, Endian::Little] {
+        let encoding = enc(Storage::F64, endian);
+        let bytes: Vec<u8> = F64_CASES
+            .iter()
+            .flat_map(|&(bits, _)| match endian {
+                Endian::Big => bits.to_be_bytes(),
+                Endian::Little => bits.to_le_bytes(),
+            })
+            .collect();
+        let values = encoding.decode_table(&bytes, F64_CASES.len()).unwrap();
+        assert_eq!(values.len(), F64_CASES.len());
+        for (i, (&(bits, class), raw)) in F64_CASES.iter().zip(&values).enumerate() {
+            assert_eq!(raw.float_bits(), Some(bits), "{endian:?} cell {i}");
+            assert_eq!(raw.float_class(), Some(class), "{endian:?} cell {i}");
+        }
+        let flagged: Vec<usize> = (0..values.len())
+            .filter(|&i| values[i].is_special_float())
+            .collect();
+        assert_eq!(flagged, expected, "{endian:?}");
+        let mut out = vec![0_u8; bytes.len()];
+        encoding.encode_table(&values, &mut out).unwrap();
+        assert_eq!(out, bytes, "{endian:?}");
+    }
+}
+
+#[test]
+fn a_refused_special_float_edit_is_an_enc0009_error_diagnostic_with_provenance() {
+    use crate::diag::{Provenance, Severity, Span, codes};
+
+    let provenance = Provenance::new("roms/test.bin", Span::byte_offset(0x1_2340))
+        .with_layer("base")
+        .with_rule("table:Fuel Map");
+    // A signalling NaN stored in the cell (big-endian f32), edit refused.
+    let f32be = enc(Storage::F32, Endian::Big);
+    let mut cell = [0x7F, 0xA0, 0x56, 0x78];
+    let stored = f32be
+        .edit_into(Raw::F32(1.0), &mut cell, SpecialFloats::Refuse)
+        .unwrap_err();
+    assert_eq!(cell, [0x7F, 0xA0, 0x56, 0x78], "nothing written");
+    // A subnormal new value (little-endian f64), edit refused.
+    let f64le = enc(Storage::F64, Endian::Little);
+    let mut cell64 = 1.0_f64.to_le_bytes();
+    let new = f64le
+        .edit_into(
+            Raw::F64(f64::from_bits(1)),
+            &mut cell64,
+            SpecialFloats::Refuse,
+        )
+        .unwrap_err();
+    assert_eq!(cell64, 1.0_f64.to_le_bytes(), "nothing written");
+
+    for (error, message) in [
+        (
+            stored,
+            "refusing the stored f32 value 0x7FA05678 (signalling NaN): NaN, infinite and \
+             subnormal floats are edited only when explicitly allowed",
+        ),
+        (
+            new,
+            "refusing the new f64 value 0x0000000000000001 (subnormal): NaN, infinite and \
+             subnormal floats are edited only when explicitly allowed",
+        ),
+    ] {
+        let diag = error.to_diagnostic(provenance.clone());
+        assert_eq!(diag.code().as_str(), "ENC0009");
+        assert_eq!(diag.code(), codes::SPECIAL_FLOAT_EDIT);
+        assert_eq!(diag.severity(), Severity::Error);
+        assert!(diag.is_error());
+        assert_eq!(diag.message(), message);
+        assert_eq!(diag.provenance(), &provenance);
+        assert_eq!(diag.provenance().layer(), Some("base"));
+    }
+}
