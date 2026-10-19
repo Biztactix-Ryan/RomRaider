@@ -1478,7 +1478,7 @@ entries:
   title: 'Test: Property test: decode(encode(x)) == x for every storage/endian/bitfield/layout
     combination over the full value ...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-19
@@ -1515,7 +1515,7 @@ entries:
   title: 'Test: U24, I24 and I64 values decode correctly; an unsupported storage string
     in a definition produces an Error diagn...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-19
@@ -6491,7 +6491,7 @@ entries:
   epic_id: null
   tags: []
 total_points: 1286
-completed_points: 228
+completed_points: 230
 story_count: 78
 task_count: 604
 epic_count: 10

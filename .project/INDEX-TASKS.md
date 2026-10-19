@@ -74,11 +74,11 @@
 | [US-RR-18-5](tasks/US-RR-18-5.md) | Define Clock trait and RealClock | ✅ done | 2 |  | claude | US-RR-1-5 | [US-RR-18](stories/US-RR-18.md) |
 | [US-RR-18-6](tasks/US-RR-18-6.md) | Implement VirtualClock | ✅ done | 3 |  | claude | US-RR-18-5 | [US-RR-18](stories/US-RR-18.md) |
 | [US-RR-18-7](tasks/US-RR-18-7.md) | Separate monotonic and wall-clock time | ✅ done | 1 |  | claude | US-RR-18-5 | [US-RR-18](stories/US-RR-18.md) |
-| [US-RR-19-1](tasks/US-RR-19-1.md) | Test: Property test: decode(encode(x)) == x for every storage/endian/bitfield/layout combination over the full value ... | ⚪ todo | 1 |  | — | US-RR-19-8, US-RR-19-9, US-RR-19-10, US-RR-19-12 | [US-RR-19](stories/US-RR-19.md) |
+| [US-RR-19-1](tasks/US-RR-19-1.md) | Test: Property test: decode(encode(x)) == x for every storage/endian/bitfield/layout combination over the full value ... | ✅ done | 1 |  | claude | US-RR-19-8, US-RR-19-9, US-RR-19-10, US-RR-19-12 | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-10](tasks/US-RR-19-10.md) | Implement bitfields and Bosch-subtract layout | ✅ done | 3 |  | claude | US-RR-19-8 | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-11](tasks/US-RR-19-11.md) | Derive value ranges from Encoding | ✅ done | 2 |  | claude | US-RR-19-8, US-RR-19-9 | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-12](tasks/US-RR-19-12.md) | Add Encoding proptest strategies to rr-testkit | ✅ done | 2 |  | claude | US-RR-19-7 | [US-RR-19](stories/US-RR-19.md) |
-| [US-RR-19-2](tasks/US-RR-19-2.md) | Test: U24, I24 and I64 values decode correctly; an unsupported storage string in a definition produces an Error diagn... | ⚪ todo | 1 |  | — | US-RR-19-7, US-RR-19-8 | [US-RR-19](stories/US-RR-19.md) |
+| [US-RR-19-2](tasks/US-RR-19-2.md) | Test: U24, I24 and I64 values decode correctly; an unsupported storage string in a definition produces an Error diagn... | ✅ done | 1 |  | claude | US-RR-19-7, US-RR-19-8 | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-3](tasks/US-RR-19-3.md) | Test: Two images with different endianness decode correctly in the same process concurrently (MF-04) | ⚪ todo | 2 |  | — | US-RR-19-8 | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-4](tasks/US-RR-19-4.md) | Test: Float min/max ranges are derived from the Encoding and are correct for F32/F64 signed and unsigned contexts (MF... | ⚪ todo | 1 |  | — | US-RR-19-11 | [US-RR-19](stories/US-RR-19.md) |
 | [US-RR-19-5](tasks/US-RR-19-5.md) | Test: NaN, +/-Inf and denormal floats decode faithfully and are flagged so edit layers can refuse them (EC-07) | ⚪ todo | 1 |  | — | US-RR-19-9 | [US-RR-19](stories/US-RR-19.md) |
