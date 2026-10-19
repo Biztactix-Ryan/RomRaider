@@ -38,6 +38,12 @@
 //!   job installs the target and runs `cargo nextest run --workspace` and the
 //!   doctests with `--target i686-pc-windows-msvc`; `test` is in
 //!   `ci-ok.needs`. Whether that run is green can only be seen on GitHub.
+//! * **US-RR-18-3** ([`faketime_problems`]): job `faketime` installs
+//!   libfaketime and runs the ignored
+//!   `rr-core/tests/realclock_wall_step.rs` test binary with it preloaded
+//!   (`FAKETIME_DONT_FAKE_MONOTONIC=1`, `FAKETIME_NO_CACHE=1`, a timestamp
+//!   file shared with the test via `RR_FAKETIME_FILE`), demands that exactly
+//!   that test ran and passed, can't be skipped, and is in `ci-ok.needs`.
 //!
 //! The std-only ci.yml reader is shared with `t6_ci_config.rs`
 //! (`common/workflow.rs`).
@@ -325,8 +331,8 @@ fn ci_snapshots_check_rejects_weakened_snapshots_job() {
     assert_flags(
         &m(&|s| {
             s.replace(
-                "needs: [fmt, clippy, test, deny, t6, snapshots]",
-                "needs: [fmt, clippy, test, deny, t6]",
+                "needs: [fmt, clippy, test, deny, t6, snapshots, ",
+                "needs: [fmt, clippy, test, deny, t6, ",
             )
         }),
         "`ci-ok.needs` does not include `snapshots`",
@@ -1009,5 +1015,127 @@ fn matrix_reader_reads_include_entries() {
     assert_eq!(
         expand("run on ${{ matrix.os }} for ${{ matrix.target }}", &inc[1]),
         "run on y for b"
+    );
+}
+
+// --- US-RR-18-3: RealClock under an OS wall-clock step ----------------------
+
+const FAKETIME_JOB: &str = "faketime";
+const WALL_STEP_TEST: &str = "real_clock_mono_never_follows_os_wall_clock_steps";
+
+/// What the wall-step run needs: libfaketime preloaded on the test binary,
+/// monotonic time left real, the timestamp file re-read on every call and
+/// shared with the test, the ignored test selected, and a guard that it ran.
+const WALL_STEP_NEEDS: &[&str] = &[
+    "LD_PRELOAD=/usr/lib/x86_64-linux-gnu/faketime/libfaketime.so.1",
+    "FAKETIME_DONT_FAKE_MONOTONIC=1",
+    "FAKETIME_NO_CACHE=1",
+    "FAKETIME_TIMESTAMP_FILE=\"$ts\"",
+    "RR_FAKETIME_FILE=\"$ts\"",
+    "--ignored --exact",
+    "grep -q '^test result: ok. 1 passed'",
+];
+
+/// The committed wall-step test file, `\r\n` normalised like [`ci_yml`].
+fn wall_step_test_rs() -> String {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../crates/rr-core/tests/realclock_wall_step.rs");
+    std::fs::read_to_string(&path)
+        .map(|s| s.replace("\r\n", "\n"))
+        .unwrap_or_else(|e| format!("<unreadable {}: {e}>", path.display()))
+}
+
+/// Every way `src` (ci.yml) and `test_rs` fail the US-RR-18-3 wiring.
+fn faketime_problems_in(src: &str, test_rs: &str) -> Vec<String> {
+    let wf = Workflow::parse(src);
+    let mut problems = trigger_problems(&wf);
+    problems.extend(gate_needs_problems(&wf, FAKETIME_JOB));
+    if !test_rs.contains(&format!("fn {WALL_STEP_TEST}()")) {
+        problems.push(format!("realclock_wall_step.rs has no `{WALL_STEP_TEST}`"));
+    }
+    let Some(job) = wf.job(FAKETIME_JOB) else {
+        problems.push(format!("no `{FAKETIME_JOB}` job"));
+        return problems;
+    };
+    let scripts = job.run_scripts();
+    if !scripts
+        .iter()
+        .any(|s| s.contains("apt-get install") && s.contains("libfaketime"))
+    {
+        problems.push(format!("`{FAKETIME_JOB}` does not install libfaketime"));
+    }
+    match scripts.iter().find(|s| s.contains(WALL_STEP_TEST)) {
+        None => problems.push(format!("`{FAKETIME_JOB}` does not run `{WALL_STEP_TEST}`")),
+        Some(run) => {
+            for needed in WALL_STEP_NEEDS {
+                if !run.contains(needed) {
+                    problems.push(format!("`{FAKETIME_JOB}` wall-step run lacks `{needed}`"));
+                }
+            }
+        }
+    }
+    problems.extend(skippable_problems(job, &[]));
+    problems
+}
+
+fn faketime_problems(src: &str) -> Vec<String> {
+    faketime_problems_in(src, &wall_step_test_rs())
+}
+
+#[test]
+fn ci_faketime_job_steps_the_wall_clock_under_real_clock_as_gate() {
+    let problems = faketime_problems(&ci_yml());
+    assert!(
+        problems.is_empty(),
+        ".github/workflows/ci.yml violates US-RR-18-3:\n{}",
+        problems.join("\n")
+    );
+}
+
+#[test]
+fn ci_faketime_check_rejects_weakened_job() {
+    let m = |edit: &dyn Fn(&str) -> String| workflow::mutated(faketime_problems, edit);
+    for needed in WALL_STEP_NEEDS {
+        assert_flags(&m(&|s| s.replace(needed, "")), needed);
+    }
+    assert_flags(
+        &m(&|s| s.replace("--no-install-recommends libfaketime", "jq")),
+        "does not install libfaketime",
+    );
+    assert_flags(
+        &m(&|s| s.replace(&format!("--exact {WALL_STEP_TEST}"), "--exact")),
+        "does not run",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replace(
+                "      - name: RealClock under wall-clock steps\n",
+                "      - name: RealClock under wall-clock steps\n        continue-on-error: true\n",
+            )
+        }),
+        "continue-on-error",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replace(
+                "      - name: RealClock under wall-clock steps\n",
+                "      - name: RealClock under wall-clock steps\n        if: false\n",
+            )
+        }),
+        "has a conditional",
+    );
+    assert_flags(
+        &m(&|s| s.replace(", snapshots, faketime]", ", snapshots]")),
+        "`ci-ok.needs` does not include `faketime`",
+    );
+    assert_flags(
+        &m(&|s| s.replace("\n  faketime:\n", "\n  wall-clock:\n")),
+        "no `faketime` job",
+    );
+    // Renaming the test without the job would select nothing.
+    let renamed = wall_step_test_rs().replace(WALL_STEP_TEST, "renamed_test");
+    assert_flags(
+        &faketime_problems_in(&ci_yml(), &renamed),
+        "realclock_wall_step.rs has no",
     );
 }

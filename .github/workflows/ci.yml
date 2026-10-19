@@ -255,10 +255,49 @@ jobs:
 
   # Aggregate gate: the single required status check for branch protection.
   # Add every new job id to `needs`.
+  # RealClock under an OS wall-clock step (story US-RR-18-3, EC-26).
+  # libfaketime steps CLOCK_REALTIME for the test process only, mid-run, by
+  # rewriting its timestamp file; FAKETIME_DONT_FAKE_MONOTONIC=1 leaves
+  # CLOCK_MONOTONIC real, exactly as an NTP/user clock step does. No root, and
+  # no other process on the runner is touched. The preload goes on the test
+  # binary alone: cargo hangs under libfaketime. The test is #[ignore]d
+  # everywhere else (crates/rr-core/tests/realclock_wall_step.rs).
+  faketime:
+    name: RealClock wall-clock step (libfaketime)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install toolchain
+        run: rustup toolchain install --no-self-update && rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rust-rewrite' }}
+      - name: Install libfaketime
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libfaketime
+      - name: Build the wall-step test
+        id: build
+        run: |
+          bin=$(cargo test -p rr-core --test realclock_wall_step --locked --no-run --message-format=json \
+            | jq -r 'select(.reason == "compiler-artifact" and .target.name == "realclock_wall_step") | .executable')
+          test -x "$bin"
+          echo "bin=$bin" >> "$GITHUB_OUTPUT"
+      - name: RealClock under wall-clock steps
+        run: |
+          ts="$RUNNER_TEMP/faketime"
+          echo +0 > "$ts"
+          LD_PRELOAD=/usr/lib/x86_64-linux-gnu/faketime/libfaketime.so.1 \
+            FAKETIME_DONT_FAKE_MONOTONIC=1 FAKETIME_NO_CACHE=1 \
+            FAKETIME_TIMESTAMP_FILE="$ts" RR_FAKETIME_FILE="$ts" \
+            "${{ steps.build.outputs.bin }}" --ignored --exact real_clock_mono_never_follows_os_wall_clock_steps \
+            | tee "$RUNNER_TEMP/faketime.out"
+          # An --exact filter that matches nothing still exits 0: demand the run.
+          grep -q '^test result: ok. 1 passed' "$RUNNER_TEMP/faketime.out"
+
   ci-ok:
     name: ci-ok
     if: always()
-    needs: [fmt, clippy, test, deny, t6, snapshots]
+    needs: [fmt, clippy, test, deny, t6, snapshots, faketime]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:

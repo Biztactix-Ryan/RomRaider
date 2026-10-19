@@ -565,12 +565,12 @@ mod tests {
     /// NOT asserted non-decreasing: it reads the system clock, which NTP/DST/
     /// the user may step backwards at any moment.
     ///
-    /// Why this cannot literally change the OS clock: setting
-    /// `CLOCK_REALTIME` needs `CAP_SYS_TIME` (root) and would disturb every
-    /// other process on the CI runner; Linux time namespaces virtualise only
-    /// `CLOCK_MONOTONIC`/`CLOCK_BOOTTIME`, not wall time; and an
-    /// `LD_PRELOAD` faker (libfaketime) is not available on the runners. So
-    /// the criterion is proven in three parts:
+    /// This test does not change the OS clock: setting `CLOCK_REALTIME` needs
+    /// `CAP_SYS_TIME` (root) and would disturb every other process, and Linux
+    /// time namespaces virtualise only `CLOCK_MONOTONIC`/`CLOCK_BOOTTIME`.
+    /// The literal wall-clock step is `tests/realclock_wall_step.rs`, run
+    /// under libfaketime by the CI `faketime` job. The criterion is proven
+    /// by that test together with three parts here:
     ///
     /// * (a) this test: `RealClock`'s monotonic reading is non-decreasing over
     ///   many samples and sleeps, with wall time sampled separately (by
