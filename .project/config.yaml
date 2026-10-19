@@ -1,0 +1,8 @@
+name: RomRaider-RS
+prefix: RR
+description: "Ground-up Rust rewrite of RomRaider (ECU ROM editor + logger) with a unified, data-driven core and a fixture-first test strategy"
+repo: "https://github.com/Biztactix-Ryan/RomRaider.git"
+hub: false
+next_story_id: 1
+next_epic_id: 1
+
