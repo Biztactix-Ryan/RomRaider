@@ -618,6 +618,8 @@ fn disguised_directories_inside_the_repository_are_refused() {
     let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
     let name = format!("rr-fetch-corpus-disguised-{}", std::process::id());
     let target_dir = repo.join("target");
+    // Only the unix symlink case below pushes onto it.
+    #[cfg_attr(not(unix), allow(unused_mut))]
     let mut dirs = vec![
         // `..` through a directory that does not exist.
         repo.join("target/no-such-dir/../..")
