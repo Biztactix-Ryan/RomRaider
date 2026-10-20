@@ -8,13 +8,13 @@ depends_on:
 - US-RR-29-6
 - US-RR-29-7
 id: US-RR-29-2
-points: null
+points: 2
 status: todo
 story_id: US-RR-29
 tags: []
 title: 'Test: Each table type has a hand-checked KAT fixture: minimal XML in, expected
   typed layered doc out'
-updated: '2026-10-19'
+updated: '2026-10-21'
 ---
 
 Verify acceptance criterion for story US-RR-29:

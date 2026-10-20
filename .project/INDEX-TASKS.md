@@ -35,10 +35,10 @@
 | [US-RR-12-7](tasks/US-RR-12-7.md) | Catalogue checksum algorithms | ⚪ todo | 3 |  | — | — | [US-RR-12](stories/US-RR-12.md) |
 | [US-RR-12-8](tasks/US-RR-12-8.md) | Catalogue SSM/K-line protocol flow | ⚪ todo | 3 |  | — | — | [US-RR-12](stories/US-RR-12.md) |
 | [US-RR-12-9](tasks/US-RR-12-9.md) | Catalogue logger defs, CSV format and settings.xml | ⚪ todo | 3 |  | — | — | [US-RR-12](stories/US-RR-12.md) |
-| [US-RR-13-1](tasks/US-RR-13-1.md) | Test: Attempting to commit a stock ROM from the corpus under fixtures/public is blocked by the pre-commit hook and by CI | ⚪ todo | — |  | — | US-RR-13-5, US-RR-13-6 | [US-RR-13](stories/US-RR-13.md) |
-| [US-RR-13-2](tasks/US-RR-13-2.md) | Test: A trace containing a 17-character VIN pattern under fixtures/public fails CI | ⚪ todo | — |  | — | US-RR-13-5 | [US-RR-13](stories/US-RR-13.md) |
-| [US-RR-13-3](tasks/US-RR-13-3.md) | Test: Private-fixture tests run when RR_FIXTURES_DIR is set and report skipped otherwise | ⚪ todo | — |  | — | US-RR-13-7 | [US-RR-13](stories/US-RR-13.md) |
-| [US-RR-13-4](tasks/US-RR-13-4.md) | Test: The guard itself has tests with planted positive and negative samples | ⚪ todo | — |  | — | US-RR-13-5 | [US-RR-13](stories/US-RR-13.md) |
+| [US-RR-13-1](tasks/US-RR-13-1.md) | Test: Attempting to commit a stock ROM from the corpus under fixtures/public is blocked by the pre-commit hook and by CI | ⚪ todo | 1 |  | — | US-RR-13-5, US-RR-13-6 | [US-RR-13](stories/US-RR-13.md) |
+| [US-RR-13-2](tasks/US-RR-13-2.md) | Test: A trace containing a 17-character VIN pattern under fixtures/public fails CI | ⚪ todo | 1 |  | — | US-RR-13-5 | [US-RR-13](stories/US-RR-13.md) |
+| [US-RR-13-3](tasks/US-RR-13-3.md) | Test: Private-fixture tests run when RR_FIXTURES_DIR is set and report skipped otherwise | ⚪ todo | 1 |  | — | US-RR-13-7 | [US-RR-13](stories/US-RR-13.md) |
+| [US-RR-13-4](tasks/US-RR-13-4.md) | Test: The guard itself has tests with planted positive and negative samples | ⚪ todo | 1 |  | — | US-RR-13-5 | [US-RR-13](stories/US-RR-13.md) |
 | [US-RR-13-5](tasks/US-RR-13-5.md) | Implement ROM-leak guard checker | ⚪ todo | 3 |  | — | — | [US-RR-13](stories/US-RR-13.md) |
 | [US-RR-13-6](tasks/US-RR-13-6.md) | Wire leak guard into pre-commit hook and CI | ⚪ todo | 1 |  | — | US-RR-13-5 | [US-RR-13](stories/US-RR-13.md) |
 | [US-RR-13-7](tasks/US-RR-13-7.md) | Wire the private fixture tier | ⚪ todo | 1 |  | — | — | [US-RR-13](stories/US-RR-13.md) |
@@ -121,19 +121,19 @@
 | [US-RR-22-7](tasks/US-RR-22-7.md) | Define Layered<T>, layer metadata and merge semantics | ✅ done | 3 |  | claude | — | [US-RR-22](stories/US-RR-22.md) |
 | [US-RR-22-8](tasks/US-RR-22-8.md) | Implement resolver: base chains, override, append, omit | ✅ done | 5 |  | claude | US-RR-22-7 | [US-RR-22](stories/US-RR-22.md) |
 | [US-RR-22-9](tasks/US-RR-22-9.md) | Cross-file references and cycle detection | ✅ done | 3 |  | claude | US-RR-22-8 | [US-RR-22](stories/US-RR-22.md) |
-| [US-RR-23-1](tasks/US-RR-23-1.md) | Test: Property test: a byte pattern compiled from a concrete byte string with random wildcards matches that string an... | ⚪ todo | — |  | — | US-RR-23-4 | [US-RR-23](stories/US-RR-23.md) |
-| [US-RR-23-2](tasks/US-RR-23-2.md) | Test: Pattern text parsing is fuzzed with no panics; malformed patterns produce diagnostics | ⚪ todo | — |  | — | US-RR-23-5 | [US-RR-23](stories/US-RR-23.md) |
-| [US-RR-23-3](tasks/US-RR-23-3.md) | Test: Matching at an offset past the end of the input returns no-match, never panics | ⚪ todo | — |  | — | US-RR-23-4 | [US-RR-23](stories/US-RR-23.md) |
+| [US-RR-23-1](tasks/US-RR-23-1.md) | Test: Property test: a byte pattern compiled from a concrete byte string with random wildcards matches that string an... | ⚪ todo | 1 |  | — | US-RR-23-4 | [US-RR-23](stories/US-RR-23.md) |
+| [US-RR-23-2](tasks/US-RR-23-2.md) | Test: Pattern text parsing is fuzzed with no panics; malformed patterns produce diagnostics | ⚪ todo | 1 |  | — | US-RR-23-5 | [US-RR-23](stories/US-RR-23.md) |
+| [US-RR-23-3](tasks/US-RR-23-3.md) | Test: Matching at an offset past the end of the input returns no-match, never panics | ⚪ todo | 1 |  | — | US-RR-23-4 | [US-RR-23](stories/US-RR-23.md) |
 | [US-RR-23-4](tasks/US-RR-23-4.md) | Implement Pattern kinds and compiler | ⚪ todo | 3 |  | — | — | [US-RR-23](stories/US-RR-23.md) |
 | [US-RR-23-5](tasks/US-RR-23-5.md) | Pattern text parser with diagnostics and fuzz target | ⚪ todo | 2 |  | — | US-RR-23-4 | [US-RR-23](stories/US-RR-23.md) |
-| [US-RR-24-1](tasks/US-RR-24-1.md) | Test: Property test: for every invertible conversion and every raw value r, to_raw(to_real(r)) == r exactly for linea... | ⚪ todo | — |  | — | US-RR-24-8, US-RR-24-9 | [US-RR-24](stories/US-RR-24.md) |
+| [US-RR-24-1](tasks/US-RR-24-1.md) | Test: Property test: for every invertible conversion and every raw value r, to_raw(to_real(r)) == r exactly for linea... | ⚪ todo | 2 |  | — | US-RR-24-8, US-RR-24-9 | [US-RR-24](stories/US-RR-24.md) |
 | [US-RR-24-10](tasks/US-RR-24-10.md) | Compute display ranges correctly | ⚪ todo | 3 |  | — | US-RR-24-7 | [US-RR-24](stories/US-RR-24.md) |
 | [US-RR-24-11](tasks/US-RR-24-11.md) | Edit validation with rejection reasons | ⚪ todo | 2 |  | — | US-RR-24-8, US-RR-24-9 | [US-RR-24](stories/US-RR-24.md) |
-| [US-RR-24-2](tasks/US-RR-24-2.md) | Test: Decreasing scalings report correct min/max display ranges (MF-13) - KAT fixtures with hand-calculated ranges | ⚪ todo | — |  | — | US-RR-24-10 | [US-RR-24](stories/US-RR-24.md) |
-| [US-RR-24-3](tasks/US-RR-24-3.md) | Test: A non-monotonic conversion with no to_raw is rejected for editing with a diagnostic; 4-byte storage inverse nev... | ⚪ todo | — |  | — | US-RR-24-9 | [US-RR-24](stories/US-RR-24.md) |
-| [US-RR-24-4](tasks/US-RR-24-4.md) | Test: A target real value outside the representable range, or hitting a division-by-zero region, is rejected with a r... | ⚪ todo | — |  | — | US-RR-24-11 | [US-RR-24](stories/US-RR-24.md) |
-| [US-RR-24-5](tasks/US-RR-24-5.md) | Test: The same input always yields the same output regardless of call order (no cache-dependent results) - property t... | ⚪ todo | — |  | — | US-RR-24-8, US-RR-24-9 | [US-RR-24](stories/US-RR-24.md) |
-| [US-RR-24-6](tasks/US-RR-24-6.md) | Test: cargo-mutants reports zero surviving mutants in the conversion module | ⚪ todo | — |  | — | US-RR-24-8, US-RR-24-9, US-RR-24-10, US-RR-24-11 | [US-RR-24](stories/US-RR-24.md) |
+| [US-RR-24-2](tasks/US-RR-24-2.md) | Test: Decreasing scalings report correct min/max display ranges (MF-13) - KAT fixtures with hand-calculated ranges | ⚪ todo | 1 |  | — | US-RR-24-10 | [US-RR-24](stories/US-RR-24.md) |
+| [US-RR-24-3](tasks/US-RR-24-3.md) | Test: A non-monotonic conversion with no to_raw is rejected for editing with a diagnostic; 4-byte storage inverse nev... | ⚪ todo | 1 |  | — | US-RR-24-9 | [US-RR-24](stories/US-RR-24.md) |
+| [US-RR-24-4](tasks/US-RR-24-4.md) | Test: A target real value outside the representable range, or hitting a division-by-zero region, is rejected with a r... | ⚪ todo | 1 |  | — | US-RR-24-11 | [US-RR-24](stories/US-RR-24.md) |
+| [US-RR-24-5](tasks/US-RR-24-5.md) | Test: The same input always yields the same output regardless of call order (no cache-dependent results) - property t... | ⚪ todo | 1 |  | — | US-RR-24-8, US-RR-24-9 | [US-RR-24](stories/US-RR-24.md) |
+| [US-RR-24-6](tasks/US-RR-24-6.md) | Test: cargo-mutants reports zero surviving mutants in the conversion module | ⚪ todo | 2 |  | — | US-RR-24-8, US-RR-24-9, US-RR-24-10, US-RR-24-11 | [US-RR-24](stories/US-RR-24.md) |
 | [US-RR-24-7](tasks/US-RR-24-7.md) | Define Conversion enum and build from Expr | ⚪ todo | 2 |  | — | — | [US-RR-24](stories/US-RR-24.md) |
 | [US-RR-24-8](tasks/US-RR-24-8.md) | Detect linear forms and use exact inverses | ⚪ todo | 3 |  | — | US-RR-24-7 | [US-RR-24](stories/US-RR-24.md) |
 | [US-RR-24-9](tasks/US-RR-24-9.md) | Implement bounded monotonic numeric solve | ⚪ todo | 3 |  | — | US-RR-24-7 | [US-RR-24](stories/US-RR-24.md) |
@@ -156,10 +156,10 @@
 | [US-RR-26-7](tasks/US-RR-26-7.md) | Define Rule, When and Action types | ⚪ todo | 2 |  | — | — | [US-RR-26](stories/US-RR-26.md) |
 | [US-RR-26-8](tasks/US-RR-26-8.md) | Flatten rules into per-op lookup with layer precedence | ⚪ todo | 3 |  | — | US-RR-26-7 | [US-RR-26](stories/US-RR-26.md) |
 | [US-RR-26-9](tasks/US-RR-26-9.md) | Implement action application API and trace sink | ⚪ todo | 3 |  | — | US-RR-26-8 | [US-RR-26](stories/US-RR-26.md) |
-| [US-RR-27-1](tasks/US-RR-27-1.md) | Test: Billion-laughs, external-entity (XXE) and deeply-nested inputs are rejected with diagnostics within bounded tim... | ⚪ todo | — |  | — | US-RR-27-5, US-RR-27-7 | [US-RR-27](stories/US-RR-27.md) |
-| [US-RR-27-2](tasks/US-RR-27-2.md) | Test: ISO-8859-1, UTF-8 with BOM and CRLF variants of the same definition parse to identical results | ⚪ todo | — |  | — | US-RR-27-6 | [US-RR-27](stories/US-RR-27.md) |
-| [US-RR-27-3](tasks/US-RR-27-3.md) | Test: The XML fuzz target runs nightly with no panics, hangs or unbounded allocation | ⚪ todo | — |  | — | US-RR-27-7 | [US-RR-27](stories/US-RR-27.md) |
-| [US-RR-27-4](tasks/US-RR-27-4.md) | Test: Every pinned definition file in the corpus parses without Error diagnostics | ⚪ todo | — |  | — | US-RR-27-5, US-RR-27-6 | [US-RR-27](stories/US-RR-27.md) |
+| [US-RR-27-1](tasks/US-RR-27-1.md) | Test: Billion-laughs, external-entity (XXE) and deeply-nested inputs are rejected with diagnostics within bounded tim... | ⚪ todo | 2 |  | — | US-RR-27-5, US-RR-27-7 | [US-RR-27](stories/US-RR-27.md) |
+| [US-RR-27-2](tasks/US-RR-27-2.md) | Test: ISO-8859-1, UTF-8 with BOM and CRLF variants of the same definition parse to identical results | ⚪ todo | 1 |  | — | US-RR-27-6 | [US-RR-27](stories/US-RR-27.md) |
+| [US-RR-27-3](tasks/US-RR-27-3.md) | Test: The XML fuzz target runs nightly with no panics, hangs or unbounded allocation | ⚪ todo | 1 |  | — | US-RR-27-7 | [US-RR-27](stories/US-RR-27.md) |
+| [US-RR-27-4](tasks/US-RR-27-4.md) | Test: Every pinned definition file in the corpus parses without Error diagnostics | ⚪ todo | 2 |  | — | US-RR-27-5, US-RR-27-6 | [US-RR-27](stories/US-RR-27.md) |
 | [US-RR-27-5](tasks/US-RR-27-5.md) | Implement hardened XML reader over quick-xml | ⚪ todo | 3 |  | — | — | [US-RR-27](stories/US-RR-27.md) |
 | [US-RR-27-6](tasks/US-RR-27-6.md) | Add encoding detection and CRLF handling | ⚪ todo | 2 |  | — | US-RR-27-5 | [US-RR-27](stories/US-RR-27.md) |
 | [US-RR-27-7](tasks/US-RR-27-7.md) | Add XML fuzz target and hostile sample set | ⚪ todo | 2 |  | — | US-RR-27-5 | [US-RR-27](stories/US-RR-27.md) |
@@ -172,15 +172,15 @@
 | [US-RR-28-7](tasks/US-RR-28-7.md) | Define ChecksumSpec schema | ⚪ todo | 2 |  | — | — | [US-RR-28](stories/US-RR-28.md) |
 | [US-RR-28-8](tasks/US-RR-28-8.md) | Implement schema versioning, migrations and JSON Schema export | ⚪ todo | 3 |  | — | US-RR-28-5, US-RR-28-6, US-RR-28-7 | [US-RR-28](stories/US-RR-28.md) |
 | [US-RR-28-9](tasks/US-RR-28-9.md) | Add TOML profile fuzz target | ⚪ todo | 1 |  | — | US-RR-28-5 | [US-RR-28](stories/US-RR-28.md) |
-| [US-RR-29-1](tasks/US-RR-29-1.md) | Test: Every definition file in the pinned definition corpus loads; any Error diagnostic is either fixed or recorded a... | ⚪ todo | — |  | — | US-RR-29-8 | [US-RR-29](stories/US-RR-29.md) |
-| [US-RR-29-2](tasks/US-RR-29-2.md) | Test: Each table type has a hand-checked KAT fixture: minimal XML in, expected typed layered doc out | ⚪ todo | — |  | — | US-RR-29-6, US-RR-29-7 | [US-RR-29](stories/US-RR-29.md) |
-| [US-RR-29-3](tasks/US-RR-29-3.md) | Test: Unknown elements or attributes produce Warning diagnostics naming them with line:col (snapshot tested) | ⚪ todo | — |  | — | US-RR-29-8 | [US-RR-29](stories/US-RR-29.md) |
-| [US-RR-29-4](tasks/US-RR-29-4.md) | Test: The reader never panics on any fuzzed definition input | ⚪ todo | — |  | — | US-RR-29-9 | [US-RR-29](stories/US-RR-29.md) |
-| [US-RR-29-5](tasks/US-RR-29-5.md) | Read rom and romid elements | ⚪ todo | 2 |  | — | — | [US-RR-29](stories/US-RR-29.md) |
-| [US-RR-29-6](tasks/US-RR-29-6.md) | Read table elements of all kinds with axes | ⚪ todo | 5 |  | — | US-RR-29-5 | [US-RR-29](stories/US-RR-29.md) |
-| [US-RR-29-7](tasks/US-RR-29-7.md) | Read scaling elements into Encoding and Conversion | ⚪ todo | 3 |  | — | US-RR-29-5 | [US-RR-29](stories/US-RR-29.md) |
+| [US-RR-29-1](tasks/US-RR-29-1.md) | Test: Every definition file in the pinned definition corpus loads; any Error diagnostic is either fixed or recorded a... | ⚪ todo | 3 |  | — | US-RR-29-8, US-RR-27-6 | [US-RR-29](stories/US-RR-29.md) |
+| [US-RR-29-2](tasks/US-RR-29-2.md) | Test: Each table type has a hand-checked KAT fixture: minimal XML in, expected typed layered doc out | ⚪ todo | 2 |  | — | US-RR-29-6, US-RR-29-7 | [US-RR-29](stories/US-RR-29.md) |
+| [US-RR-29-3](tasks/US-RR-29-3.md) | Test: Unknown elements or attributes produce Warning diagnostics naming them with line:col (snapshot tested) | ⚪ todo | 1 |  | — | US-RR-29-8 | [US-RR-29](stories/US-RR-29.md) |
+| [US-RR-29-4](tasks/US-RR-29-4.md) | Test: The reader never panics on any fuzzed definition input | ⚪ todo | 1 |  | — | US-RR-29-9 | [US-RR-29](stories/US-RR-29.md) |
+| [US-RR-29-5](tasks/US-RR-29-5.md) | Read rom and romid elements | ⚪ todo | 2 |  | — | US-RR-27-5 | [US-RR-29](stories/US-RR-29.md) |
+| [US-RR-29-6](tasks/US-RR-29-6.md) | Read table elements of all kinds with axes | ⚪ todo | 5 |  | — | US-RR-29-5, US-RR-27-5 | [US-RR-29](stories/US-RR-29.md) |
+| [US-RR-29-7](tasks/US-RR-29-7.md) | Read scaling elements into Encoding and Conversion | ⚪ todo | 3 |  | — | US-RR-29-5, US-RR-24-7 | [US-RR-29](stories/US-RR-29.md) |
 | [US-RR-29-8](tasks/US-RR-29-8.md) | Map base/omit to Layered and warn on unknown elements | ⚪ todo | 2 |  | — | US-RR-29-6, US-RR-29-7 | [US-RR-29](stories/US-RR-29.md) |
-| [US-RR-29-9](tasks/US-RR-29-9.md) | Add ECU definition reader fuzz target | ⚪ todo | 1 |  | — | — | [US-RR-29](stories/US-RR-29.md) |
+| [US-RR-29-9](tasks/US-RR-29-9.md) | Add ECU definition reader fuzz target | ⚪ todo | 1 |  | — | US-RR-27-5 | [US-RR-29](stories/US-RR-29.md) |
 | [US-RR-3-1](tasks/US-RR-3-1.md) | Test: A test crate calling std::thread::sleep or Instant::now outside RealClock fails clippy in CI | ✅ done | 2 |  | claude | US-RR-3-5, US-RR-2-5 | [US-RR-3](stories/US-RR-3.md) |
 | [US-RR-3-2](tasks/US-RR-3-2.md) | Test: unwrap() or expect() in non-test library code fails clippy | ✅ done | 1 |  | claude | US-RR-3-5 | [US-RR-3](stories/US-RR-3.md) |
 | [US-RR-3-3](tasks/US-RR-3-3.md) | Test: A static mut or a mutable global singleton in any workspace crate fails CI (clippy or a grep-based check with a... | ✅ done | 2 |  | claude | US-RR-3-6 | [US-RR-3](stories/US-RR-3.md) |

@@ -1,6 +1,6 @@
 # Project Audit Report
 
-digest: 4b46b46025ffb2c6
+digest: d03ef82c5e57198d
 
 **Errors:** 0 | **Warnings:** 0 | **Info:** 69
 
@@ -8,7 +8,7 @@ digest: 4b46b46025ffb2c6
 - [INFO] Story US-RR-10 has 8pts but tasks sum to 18pts
 - [INFO] Story US-RR-11 has 5pts but tasks sum to 14pts
 - [INFO] Story US-RR-12 has 8pts but tasks sum to 15pts
-- [INFO] Story US-RR-13 has 3pts but tasks sum to 5pts
+- [INFO] Story US-RR-13 has 3pts but tasks sum to 9pts
 - [INFO] Story US-RR-14 has 5pts but tasks sum to 8pts
 - [INFO] Story US-RR-15 has 3pts but tasks sum to 5pts
 - [INFO] Story US-RR-16 has 3pts but tasks sum to 10pts
@@ -19,13 +19,13 @@ digest: 4b46b46025ffb2c6
 - [INFO] Story US-RR-20 has 8pts but tasks sum to 23pts
 - [INFO] Story US-RR-21 has 3pts but tasks sum to 5pts
 - [INFO] Story US-RR-22 has 8pts but tasks sum to 25pts
-- [INFO] Story US-RR-23 has 3pts but tasks sum to 5pts
-- [INFO] Story US-RR-24 has 8pts but tasks sum to 13pts
+- [INFO] Story US-RR-23 has 3pts but tasks sum to 8pts
+- [INFO] Story US-RR-24 has 8pts but tasks sum to 21pts
 - [INFO] Story US-RR-25 has 5pts but tasks sum to 9pts
 - [INFO] Story US-RR-26 has 8pts but tasks sum to 11pts
-- [INFO] Story US-RR-27 has 5pts but tasks sum to 7pts
+- [INFO] Story US-RR-27 has 5pts but tasks sum to 13pts
 - [INFO] Story US-RR-28 has 5pts but tasks sum to 12pts
-- [INFO] Story US-RR-29 has 8pts but tasks sum to 13pts
+- [INFO] Story US-RR-29 has 8pts but tasks sum to 20pts
 - [INFO] Story US-RR-3 has 3pts but tasks sum to 11pts
 - [INFO] Story US-RR-30 has 8pts but tasks sum to 13pts
 - [INFO] Story US-RR-31 has 5pts but tasks sum to 9pts

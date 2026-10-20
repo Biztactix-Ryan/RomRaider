@@ -7,13 +7,13 @@ created: '2026-10-19'
 depends_on:
 - US-RR-13-5
 id: US-RR-13-2
-points: null
+points: 1
 status: todo
 story_id: US-RR-13
 tags: []
 title: 'Test: A trace containing a 17-character VIN pattern under fixtures/public
   fails CI'
-updated: '2026-10-19'
+updated: '2026-10-21'
 ---
 
 Verify acceptance criterion for story US-RR-13:

@@ -7,13 +7,13 @@ created: '2026-10-19'
 depends_on:
 - US-RR-24-11
 id: US-RR-24-4
-points: null
+points: 1
 status: todo
 story_id: US-RR-24
 tags: []
 title: 'Test: A target real value outside the representable range, or hitting a division-by-zero
   region, is rejected with a r...'
-updated: '2026-10-19'
+updated: '2026-10-21'
 ---
 
 Verify acceptance criterion for story US-RR-24:

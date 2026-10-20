@@ -10,12 +10,12 @@ depends_on:
 - US-RR-24-10
 - US-RR-24-11
 id: US-RR-24-6
-points: null
+points: 2
 status: todo
 story_id: US-RR-24
 tags: []
 title: 'Test: cargo-mutants reports zero surviving mutants in the conversion module'
-updated: '2026-10-19'
+updated: '2026-10-21'
 ---
 
 Verify acceptance criterion for story US-RR-24:

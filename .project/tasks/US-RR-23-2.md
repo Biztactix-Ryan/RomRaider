@@ -7,13 +7,13 @@ created: '2026-10-19'
 depends_on:
 - US-RR-23-5
 id: US-RR-23-2
-points: null
+points: 1
 status: todo
 story_id: US-RR-23
 tags: []
 title: 'Test: Pattern text parsing is fuzzed with no panics; malformed patterns produce
   diagnostics'
-updated: '2026-10-19'
+updated: '2026-10-21'
 ---
 
 Verify acceptance criterion for story US-RR-23:

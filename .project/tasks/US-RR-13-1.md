@@ -8,13 +8,13 @@ depends_on:
 - US-RR-13-5
 - US-RR-13-6
 id: US-RR-13-1
-points: null
+points: 1
 status: todo
 story_id: US-RR-13
 tags: []
 title: 'Test: Attempting to commit a stock ROM from the corpus under fixtures/public
   is blocked by the pre-commit hook and by CI'
-updated: '2026-10-19'
+updated: '2026-10-21'
 ---
 
 Verify acceptance criterion for story US-RR-13:
