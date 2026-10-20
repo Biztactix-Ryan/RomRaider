@@ -923,3 +923,37 @@ fn nightly_matrix_runs_the_template_and_picks_up_new_targets() {
         "`fuzz list` still lists `{TEMPLATE}` without its [[bin]]: {without:?}"
     );
 }
+
+/// The formula target (US-RR-20-3, story US-RR-20 "the expr fuzz target runs
+/// nightly"): `expr` is a leg of the nightly matrix, from the same `fuzz
+/// list --json` the `targets` job runs, a manual run can pick it alone, and
+/// it starts each night from committed seeds and replays committed
+/// regressions. Pinned by name, so dropping the target (its `[[bin]]` and
+/// `TARGETS` entry together, which `fuzz check` alone would accept) fails
+/// here.
+#[test]
+fn nightly_matrix_fuzzes_the_expr_target() {
+    const EXPR: &str = "expr";
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+    let list = |only: &str| {
+        let o = Command::new(env!("CARGO_BIN_EXE_xtask"))
+            .args(["fuzz", "list", "--json", "--only", only])
+            .output()
+            .unwrap();
+        assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
+        serde_json::from_slice::<Vec<String>>(&o.stdout).unwrap()
+    };
+    let nightly = list("");
+    assert!(
+        nightly.iter().any(|t| t == EXPR),
+        "`{EXPR}` is not in the nightly matrix {nightly:?}"
+    );
+    assert_eq!(list(EXPR), [EXPR]);
+    for dir in ["seeds", "regressions"] {
+        let path = root.join("fuzz").join(dir).join(EXPR);
+        let n = std::fs::read_dir(&path)
+            .unwrap_or_else(|e| panic!("{path:?}: {e}"))
+            .count();
+        assert!(n > 0, "{path:?} is empty");
+    }
+}

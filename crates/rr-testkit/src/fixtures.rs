@@ -15,6 +15,13 @@
 //! below) and Cargo cannot cheaply track a directory that may not exist yet.
 //! After fetching, run with `RR_CORPUS_DIR=~/.cache/romraider-rs/corpus`.
 //!
+//! `RR_CORPUS_DIR` must name a directory outside the repository working
+//! tree (D-025): [`fixture_root`]`(Tier::Corpus)` returns
+//! [`FixtureError::InsideRepo`] otherwise, so every
+//! [`corpus_test!`](crate::corpus_test) fails rather than read ROM bytes from
+//! inside the repo. [`crate::corpus::Corpus`] is the loader for the corpus
+//! itself.
+//!
 //! A variable that is set but names something that is not a directory is a
 //! misconfiguration: [`fixture_root`] returns
 //! [`FixtureError::TierNotADirectory`] and the test **fails** (it is not
@@ -232,6 +239,11 @@ pub enum FixtureError {
         /// The variable to set as well.
         env_var: &'static str,
     },
+    /// [`Tier::Corpus`]'s variable names a directory inside this
+    /// repository's working tree, or one containing it (D-025; see
+    /// [`crate::corpus::location`]).
+    #[error(transparent)]
+    InsideRepo(#[from] crate::corpus::RepoGuardError),
     /// The tier's variable is set but does not name a directory.
     #[error("{tier} fixtures misconfigured: {env_var}={} is not a directory", path.display())]
     TierNotADirectory {
@@ -339,6 +351,9 @@ pub fn fixture_root(tier: Tier) -> Result<PathBuf, FixtureError> {
         Some(value) if !value.is_empty() => PathBuf::from(value),
         _ => return Err(TierMissing { tier, env_var }.into()),
     };
+    if tier == Tier::Corpus {
+        crate::corpus::location::check_outside_repo(&path, &repo_root())?;
+    }
     if path.is_dir() {
         Ok(path)
     } else {

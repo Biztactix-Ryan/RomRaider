@@ -59,6 +59,13 @@ doc = false
 bench = false
 
 [[bin]]
+name = "expr"
+path = "fuzz_targets/expr.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "toy"
 path = "fuzz_targets/toy.rs"
 test = false

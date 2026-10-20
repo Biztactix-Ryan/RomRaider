@@ -1,0 +1,1 @@
+sin(x)+cos(x)*tan(x)-asin(0.5)+acos(0.5)/atan(x)+atan2(x,1)+sinh(1)+cosh(1)+tanh(x)+asinh(x)+acosh(2)+atanh(0.5)

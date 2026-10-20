@@ -1,0 +1,6428 @@
+# External stock-ROM and ECU-definition corpus manifest (D-025, D-028).
+# GENERATED: do not edit.
+#   regenerate: cargo xtask gen-corpus-manifest --mirror <dir> --defs-mirror <dir>
+#   check:      cargo xtask gen-corpus-manifest --check --mirror <dir> --defs-mirror <dir>
+# Metadata only: the images and definitions are never committed.
+# `cargo xtask fetch-corpus` downloads them into RR_CORPUS_DIR and verifies
+# them against this file.
+# An entry's upstream file is `[roms] upstream` at `commit`, path
+# `path_prefix + path`. filename_rom_id, year, year_end, region, model and
+# trim are parsed from the file name and absent when it does not parse;
+# filename_rom_id is not the ROM ID read from the image.
+# A [roms.files.suspect] table marks an image that is not a plain ROM of a
+# standard size (kind, reason, and where a standard-size image sits inside
+# it when one was found); corpus tests must handle those entries explicitly.
+# [defs] pins the ECU definitions the same way (upstream, commit,
+# path_prefix, files); [defs.logger_v370] pins the forum logger package,
+# which no tool downloads: fetch-corpus only verifies a copy supplied to it.
+
+schema = 1
+
+[roms]
+upstream = "https://github.com/samuelw9999/RomRaider"
+commit = "639f3c73c1bd8efee48347bd71bb064211b95242"
+path_prefix = ""
+
+[[roms.files]]
+path = "ADM/Forester/A2WC400H-2005-ADM-Subaru-Forester-XT-AT.hex"
+size = 524288
+sha256 = "6dad26e8a605d53570c3523b5d95082eadee60084328d5f9da60b0a163c2fc48"
+filename_rom_id = "A2WC400H"
+year = 2005
+region = "ADM"
+model = "Forester"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "ADM/Forester/A2WC400M-2005-ADM-Subaru-Forester-XT-MT.hex"
+size = 524288
+sha256 = "e90f467f3fc4acb1fcb9d6a0eae054996eb966eff1ab74fe47ac159788cdc4e9"
+filename_rom_id = "A2WC400M"
+year = 2005
+region = "ADM"
+model = "Forester"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "ADM/Forester/A2WC420H-2005-ADM-Subaru-Forester-XT-AT.hex"
+size = 524288
+sha256 = "dca4f676b03e428eeb023e07977945f2dc71efb62eced8b1fab58395080d3063"
+filename_rom_id = "A2WC420H"
+year = 2005
+region = "ADM"
+model = "Forester"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "ADM/Forester/A2WC420M-2005-ADM-Subaru-Forester-XT-MT.hex"
+size = 524288
+sha256 = "19d82ce7f995250f92fe134ec31c877a7c5a5636e698b94c218e1e79870dc318"
+filename_rom_id = "A2WC420M"
+year = 2005
+region = "ADM"
+model = "Forester"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "ADM/Forester/A2ZJ500H-2004-ADM-Subaru-Forester-XT-AT.hex"
+size = 524288
+sha256 = "c4cace80fefcaf75d212e6ac123b656eabd4d52b601d8bd1468bee15a7fc7c10"
+filename_rom_id = "A2ZJ500H"
+year = 2004
+region = "ADM"
+model = "Forester"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "ADM/Forester/A2ZJ500M-2004-ADM-Subaru-Forester-XT-MT.hex"
+size = 524288
+sha256 = "7a3a8ea2079f44ee13c437d98305d4e7785a783c12560e2c6783fb909ce92e95"
+filename_rom_id = "A2ZJ500M"
+year = 2004
+region = "ADM"
+model = "Forester"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "ADM/Forester/A2ZJA00Q-2005-ADM-Forester-XT.hex"
+size = 524288
+sha256 = "0b738002819e0a831994ec2e61a5c2c7b3374d2007d6b6792ce3932e4d260ed2"
+filename_rom_id = "A2ZJA00Q"
+year = 2005
+region = "ADM"
+model = "Forester"
+trim = "XT"
+
+[[roms.files]]
+path = "ADM/Forester/A4RL100K-2003-ADM-Forester-Turbo.hex"
+size = 163840
+sha256 = "ff2fe5adc4c545a97d4f5195c50220818980c7a131513037bd195295cfa9605f"
+filename_rom_id = "A4RL100K"
+year = 2003
+region = "ADM"
+model = "Forester"
+trim = "Turbo"
+
+[[roms.files]]
+path = "ADM/Forester/A4SE700F-2001-02-ADM-Subaru-Forester-Turbo-MT-AT.hex"
+size = 163840
+sha256 = "4a058920bbee03a7f2791504fbf23886ec65b42e816170c74fece96cac772ccc"
+filename_rom_id = "A4SE700F"
+year = 2001
+year_end = 2002
+region = "ADM"
+model = "Forester"
+trim = "Turbo-MT-AT"
+
+[[roms.files]]
+path = "ADM/Forester/A4SE700J-2001-02-ADM-Forester-Turbo.hex"
+size = 163840
+sha256 = "ee816229af3ea6f807d56170f680a2468cb955f226754776deb73fa4d946b9a9"
+filename_rom_id = "A4SE700J"
+year = 2001
+year_end = 2002
+region = "ADM"
+model = "Forester"
+trim = "Turbo"
+
+[[roms.files]]
+path = "ADM/Forester/A8DH100E-2006-SADM-Subaru-Forester-XT-AT.hex"
+size = 1048576
+sha256 = "d3370ffdb2b8705a96b8d405b8b3bf51a8fa422d7dc3d3ffc1465dcdc8ce6821"
+filename_rom_id = "A8DH100E"
+year = 2006
+region = "SADM"
+model = "Forester"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "ADM/Forester/A8DH100H-2006-ADM-Subaru-Forester-XT-AT.hex"
+size = 1048576
+sha256 = "2e38c168c5948e22f3baf14ec089c580dc42d64f6df67fc2db44cdbde29c9422"
+filename_rom_id = "A8DH100H"
+year = 2006
+region = "ADM"
+model = "Forester"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "ADM/Forester/A8DH100M-2006-ADM-Forester-XT.hex"
+size = 1048576
+sha256 = "33d6a1369e0babbfb94703faf2df2185ef1cb9639ec3389d599136faba5a25b6"
+filename_rom_id = "A8DH100M"
+year = 2006
+region = "ADM"
+model = "Forester"
+trim = "XT"
+
+[[roms.files]]
+path = "ADM/Forester/A8DK100E-2007-SADM-Subaru-Forester-XT-AT.hex"
+size = 1048576
+sha256 = "b56b85bbdc2e1398ef76ab1ee079934c29a4cbd7506d40db66769694138b8870"
+filename_rom_id = "A8DK100E"
+year = 2007
+region = "SADM"
+model = "Forester"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "ADM/Forester/A8DK100H-2007-ADM-Forester-XT.hex"
+size = 1048576
+sha256 = "ee4a354edbd0c73041c3afe179f1724f08f9290f5954693a1855744b9513ac49"
+filename_rom_id = "A8DK100H"
+year = 2007
+region = "ADM"
+model = "Forester"
+trim = "XT"
+
+[[roms.files]]
+path = "ADM/Forester/A8DK100M-2007-ADM-Subaru-Forester-XT-MT.hex"
+size = 1048576
+sha256 = "832c9ca3914779e1ac02c23bff69dae1e2fe7b5153d52b01a3640b445fa2b193"
+filename_rom_id = "A8DK100M"
+year = 2007
+region = "ADM"
+model = "Forester"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "ADM/Forester/A8DK100Q-2008-SADM-Subaru-Forester-XT-MT.hex"
+size = 1048576
+sha256 = "70580756497d7de30f85bde5c7e28a477647271b3dac2ffe6d73df0a23484e26"
+filename_rom_id = "A8DK100Q"
+year = 2008
+region = "SADM"
+model = "Forester"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "ADM/Forester/AZ1G100T-2009-SADM-Subaru-Forester-XT-AT.hex"
+size = 1048576
+sha256 = "51fcecf958478bca57afc602f9279a7e52a64a707dbed2fb10f3005ba9699b8c"
+filename_rom_id = "AZ1G100T"
+year = 2009
+region = "SADM"
+model = "Forester"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "ADM/Forester/AZ1G111T-2011-SADM-Subaru-Forester-XT-AT.hex"
+size = 1048576
+sha256 = "cebe53f843285b54f2fa6cbf66d125029672cbc5663cb49bc41c9730e4908b62"
+filename_rom_id = "AZ1G111T"
+year = 2011
+region = "SADM"
+model = "Forester"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "ADM/Forester/AZ1J500T-2011-SADM-Subaru-Forester-S.Edition-AT.hex"
+size = 1048576
+sha256 = "259347b248a9a55b95963d002c6ecf2fdfad16f023782eb489e38ca628a5086a"
+filename_rom_id = "AZ1J500T"
+year = 2011
+region = "SADM"
+model = "Forester"
+trim = "S.Edition-AT"
+
+[[roms.files]]
+path = "ADM/Forester/AZ1J500V-2011-ADM-Subaru-Forester-S-Edition-AT.hex"
+size = 1048576
+sha256 = "710163eae420a7be3385c2ca3440b07626d9104e38d1257782073b6c7075544a"
+filename_rom_id = "AZ1J500V"
+year = 2011
+region = "ADM"
+model = "Forester"
+trim = "S-Edition-AT"
+
+[[roms.files]]
+path = "ADM/Forester/E2UE101J-2006-07-ADM-Subaru-Forester-2.5-AT.hex"
+size = 1048576
+sha256 = "351f096fbf0b23e6f8148ba170353e8aa66ecf57bb9380aca2b387b5b3ff86a3"
+filename_rom_id = "E2UE101J"
+year = 2006
+year_end = 2007
+region = "ADM"
+model = "Forester"
+trim = "2.5-AT"
+
+[[roms.files]]
+path = "ADM/Forester/E2UE102J-2006-07-ADM-Subaru-Forester-2.5-MT.hex"
+size = 1048576
+sha256 = "99e8e197a3b49bff8a5346d126d0e3fdf9241d597dd7a7b828a1ef4cb69b73ff"
+filename_rom_id = "E2UE102J"
+year = 2006
+year_end = 2007
+region = "ADM"
+model = "Forester"
+trim = "2.5-MT"
+
+[[roms.files]]
+path = "ADM/Forester/E2VG211E-2006-ADM-Subaru-Forester-2.5-MT-AT.hex"
+size = 1048576
+sha256 = "22c5e0fdb09a80aa90859f22d559ad2a6811a46d05454c5a1f513d71e86e73df"
+filename_rom_id = "E2VG211E"
+year = 2006
+region = "ADM"
+model = "Forester"
+trim = "2.5-MT-AT"
+
+[[roms.files]]
+path = "ADM/Forester/E2VG212E-2006-ADM-Forester-2.5.hex"
+size = 1048576
+sha256 = "3abae1652acbdf2c9b470971b2651332a8d0701433a57899ab0a8866c8c8004c"
+filename_rom_id = "E2VG212E"
+year = 2006
+region = "ADM"
+model = "Forester"
+trim = "2.5"
+
+[[roms.files]]
+path = "ADM/Forester/EP5D202N-2012-ADM-Subaru-Forester-2.5-FB-MT.hex"
+size = 1048576
+sha256 = "040f0d93a47fffe2cdb1e22757ace0ff1ebd163a454eea8d29e766d3637828fe"
+filename_rom_id = "EP5D202N"
+year = 2012
+region = "ADM"
+model = "Forester"
+trim = "2.5-FB-MT"
+
+[[roms.files]]
+path = "ADM/Forester/EZ1G107M-2009-ADM-Subaru-Forester-2.5-MT.hex"
+size = 1048576
+sha256 = "91cb3cb187691537d4ccdd8a319e5d4a7b9d75b063291a24707e1cf78a447c51"
+filename_rom_id = "EZ1G107M"
+year = 2009
+region = "ADM"
+model = "Forester"
+trim = "2.5-MT"
+
+[[roms.files]]
+path = "ADM/Forester/EZ1G108N-2009-ADM-Subaru-Forester-2.5i-MT.hex"
+size = 1048576
+sha256 = "e6b5aa97afb19be50355e31322a96b54dc4967609ff099f6b18747acce647d8f"
+filename_rom_id = "EZ1G108N"
+year = 2009
+region = "ADM"
+model = "Forester"
+trim = "2.5i-MT"
+
+[[roms.files]]
+path = "ADM/Impreza/A4RG060P-2001-02-ADM-Subaru-Impreza-STi.hex"
+size = 196608
+sha256 = "5a26000a5addd2938e94185f5505fd75c4503ce7b31b31c5c041a6df1ddd0793"
+filename_rom_id = "A4RG060P"
+year = 2001
+year_end = 2002
+region = "ADM"
+model = "Impreza"
+trim = "STi"
+
+[[roms.files]]
+path = "ADM/Impreza/A4RM100F-2005-ADM-Subaru-Impreza-WRX.hex"
+size = 163840
+sha256 = "498f9d75371b4061ffe5e1a975be550d1050201f0b756e9b250182ff062c3b33"
+filename_rom_id = "A4RM100F"
+year = 2005
+region = "ADM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "ADM/Impreza/A4RM100G-2003-ADM-Subaru-Impreza-STi-MT-AT.hex"
+size = 163840
+sha256 = "d9f2a3e0ad8c0e66a6b08480175e9a3a0fb57f4c7dd56b240abd0834a683b56c"
+filename_rom_id = "A4RM100G"
+year = 2003
+region = "ADM"
+model = "Impreza"
+trim = "STi-MT-AT"
+
+[[roms.files]]
+path = "ADM/Impreza/A4RM200K-2005-SADM-Subaru-Impreza-WRX-MT-AT.hex"
+size = 196608
+sha256 = "57bd96996c193bfcf97a0a999348f3dc9a0ca6c1f5bb70f5d5c86ae7a756cd85"
+filename_rom_id = "A4RM200K"
+year = 2005
+region = "SADM"
+model = "Impreza"
+trim = "WRX-MT-AT"
+
+[[roms.files]]
+path = "ADM/Impreza/A4RN300I-2004-ADM-Subaru-Impreza-STi.hex"
+size = 196608
+sha256 = "b650bc5d1bb4215ada4cd07dc2a97de42d98547a362e15f443b5d920a1177d40"
+filename_rom_id = "A4RN300I"
+year = 2004
+region = "ADM"
+model = "Impreza"
+trim = "STi"
+
+[[roms.files]]
+path = "ADM/Impreza/A4SE700I-2001-02-ADM-Subaru-Impreza-WRX.hex"
+size = 196608
+sha256 = "b9ceb850c6d76c42268852abd2d9a27718d64e411888d7e32fdf89b3c573696c"
+filename_rom_id = "A4SE700I"
+year = 2001
+year_end = 2002
+region = "ADM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "ADM/Impreza/A4SE900I-2001-02-ADM-Subaru-Impreza-WRX.hex"
+size = 196608
+sha256 = "815ee9717b9789d5557c1d7a1e05d4e9ba2dea1691f76000c2f91334451a3308"
+filename_rom_id = "A4SE900I"
+year = 2001
+year_end = 2002
+region = "ADM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "ADM/Impreza/A4TE001I-2003-ADM-Subaru-Impreza-WRX.hex"
+size = 196608
+sha256 = "442460759162cb61d9c9bdcbdebeced8ce8b773baa7852473f8bb056cac4b51e"
+filename_rom_id = "A4TE001I"
+year = 2003
+region = "ADM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "ADM/Impreza/A4TH000N-2004-ADM-Subaru-Impreza-WRX-MT-AT.hex"
+size = 163840
+sha256 = "e70bb3c046200e767542e68a17c8ff915aff1e3a7435acbf32d4a4fbe491bd53"
+filename_rom_id = "A4TH000N"
+year = 2004
+region = "ADM"
+model = "Impreza"
+trim = "WRX-MT-AT"
+
+[[roms.files]]
+path = "ADM/Impreza/A4TH000O-2004-ADM-Subaru-Impreza-WRX.hex"
+size = 163840
+sha256 = "0beb0b5bd398d97ce87dcfee94bf768debb1d35081b4f9efb0b72f0c06e55097"
+filename_rom_id = "A4TH000O"
+year = 2004
+region = "ADM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "ADM/Impreza/A4TH100H-2005-ADM-Subaru-Impreza-WRX-MT-AT.hex"
+size = 196608
+sha256 = "8ed53604eb7aa24d37e8aaa82c846566c3af5f5a19507a22a39a2dd33984b59f"
+filename_rom_id = "A4TH100H"
+year = 2005
+region = "ADM"
+model = "Impreza"
+trim = "WRX-MT-AT"
+
+[[roms.files]]
+path = "ADM/Impreza/A4TH100L-2005-ADM-Subaru-Impreza-WRX-WRP10-limited.hex"
+size = 196608
+sha256 = "2a20927ecaac699ca6c9553044158d9f7ffd8cd7b8cd9950eea7885de90c4aba"
+filename_rom_id = "A4TH100L"
+year = 2005
+region = "ADM"
+model = "Impreza"
+trim = "WRX-WRP10-limited"
+
+[[roms.files]]
+path = "ADM/Impreza/A8DH200O-2006-ADM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "72a71b7da8efc74f6da394da5416ce66174387fa5921f3252e817071a740f7ef"
+filename_rom_id = "A8DH200O"
+year = 2006
+region = "ADM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "ADM/Impreza/A8DH200U-2006-SADM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "c66243510e1ed09ac5a558084a415b2e56bf9c64259850c208d2bb34b520bfe4"
+filename_rom_id = "A8DH200U"
+year = 2006
+region = "SADM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "ADM/Impreza/A8DH200V-2006-ADM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "76424a80eac017e6faffb1cabfadb6efc9225ed8c0c0724fd3e3c3b4df9bc0f7"
+filename_rom_id = "A8DH200V"
+year = 2006
+region = "ADM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "ADM/Impreza/A8DK100L-2007-ADM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "37b71e38ba0a91a6127cb8be89ca30dff527e420150fbe7cf23d08df29a32bbd"
+filename_rom_id = "A8DK100L"
+year = 2007
+region = "ADM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "ADM/Impreza/A8DK100O-2007-ADM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "ff78ec3a7a18fa40dc14293637c8ed2876ef2e9b7e6e9d5c24b5ce06f4e18d30"
+filename_rom_id = "A8DK100O"
+year = 2007
+region = "ADM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "ADM/Impreza/A8DK100U-2007-SADM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "00ab537d32945a22f9f1827fef85d2420f373c782429c9b5d6ca3af14c875d21"
+filename_rom_id = "A8DK100U"
+year = 2007
+region = "SADM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "ADM/Impreza/A8DK100V-2007-ADM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "6bcb3786ab3dcb9eadf398351b966f16609de05c31d9f05416e3bc9412950299"
+filename_rom_id = "A8DK100V"
+year = 2007
+region = "ADM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "ADM/Impreza/AZ1E400C-2008-ADM-Subaru-Impreza-WRX.hex"
+size = 1048576
+sha256 = "d687814eff25d6d518fe968056410e57e5b79dfabf88c2f2197798ea3c576f60"
+filename_rom_id = "AZ1E400C"
+year = 2008
+region = "ADM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "ADM/Impreza/AZ1E400E-2008-ADM-Subaru-Impreza-WRX.hex"
+size = 1048576
+sha256 = "b115ecd630b7e10f752fc5d5857b42c9f0b5da08a445b35f9142fe04edb05a64"
+filename_rom_id = "AZ1E400E"
+year = 2008
+region = "ADM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "ADM/Impreza/AZ1G200J-2008-SADM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "a03f0cda2b0db368dbc5f04f2626c1cf3dff575e852e9e05c5a7279d94a7f809"
+filename_rom_id = "AZ1G200J"
+year = 2008
+region = "SADM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "ADM/Impreza/AZ1G400W-2009-ADM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "e85821bbf4b205a8a164211a79ddb9da0e1688ef277bb9147cf27c180211c210"
+filename_rom_id = "AZ1G400W"
+year = 2009
+region = "ADM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "ADM/Impreza/AZ1G400Y-2009-SADM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "e8f9b0027f27ad66efb4d9792bd61285c96525285315eed2fc87426116a9279f"
+filename_rom_id = "AZ1G400Y"
+year = 2009
+region = "SADM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "ADM/Impreza/AZ1G800D-2011-SADM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "26c8929d4631aee8b796a206b982ee4a8aacc087eb8c2a19bd3a97668494369d"
+filename_rom_id = "AZ1G800D"
+year = 2011
+region = "SADM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "ADM/Impreza/AZ1G800L-2011-SADM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "74b6b52904a1150550ee33d8d3094a535ef5d998724366389dbb4c7b26f54b7c"
+filename_rom_id = "AZ1G800L"
+year = 2011
+region = "SADM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "ADM/Impreza/AZ1G900C-2011-ADM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "2707903eb447d2ff95876e87418176bcd7f23234a8f4ec727a0db7c4984826ed"
+filename_rom_id = "AZ1G900C"
+year = 2011
+region = "ADM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "ADM/Impreza/AZ1L100C-2014-ADM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "d9837aca88b2bdb97fbd90661aa6453edc70ffa31b3cf914ada6690bc669adb5"
+filename_rom_id = "AZ1L100C"
+year = 2014
+region = "ADM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "ADM/Impreza/AZ1P000L-2015-SADM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "79d77f7b1b967eafae87d36f130134f11b45b8fc1c1f3f6ac3bfca5692c7ce39"
+filename_rom_id = "AZ1P000L"
+year = 2015
+region = "SADM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "ADM/Impreza/AZ1P000M-2015-SADM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "49097a132d82350763c2f5954100314e195f12f7b2324f97e815761dec9ac81a"
+filename_rom_id = "AZ1P000M"
+year = 2015
+region = "SADM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "ADM/Legacy/A2UG001G-2008-ADM-Subaru-Liberty-GT-AT.hex"
+size = 1048576
+sha256 = "9fe9530e71a1b311e9ce026c212f6bae6fcb81a5bf352ff8fcfb4e51c2d522b5"
+filename_rom_id = "A2UG001G"
+year = 2008
+region = "ADM"
+model = "Liberty"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "ADM/Legacy/A2UG002T-2007-ADM-Subaru-Liberty-GT-MT.hex"
+size = 1048576
+sha256 = "a2184d6c8db17da962bc29c4b695658cd6139af7347c408c469e782c06407975"
+filename_rom_id = "A2UG002T"
+year = 2007
+region = "ADM"
+model = "Liberty"
+trim = "GT-MT"
+
+[[roms.files]]
+path = "ADM/Legacy/A2UI000Y-2008-ADM-Subaru-Liberty-GT-AT.hex"
+size = 1048576
+sha256 = "412818f31c2c3771197142e504d115f2d0b153e72161bd39842e64a4d85505f1"
+filename_rom_id = "A2UI000Y"
+year = 2008
+region = "ADM"
+model = "Liberty"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "ADM/Legacy/A2UI000Z-2008-ADM-Liberty-GT.hex"
+size = 1048576
+sha256 = "2f44a902f27c19cbe92c5694fd2527d89af7a15be0af9a9d73e5bc11643765d1"
+filename_rom_id = "A2UI000Z"
+year = 2008
+region = "ADM"
+model = "Liberty"
+trim = "GT"
+
+[[roms.files]]
+path = "ADM/Legacy/A2WD001G-2004-ADM-Liberty-GT.hex"
+size = 524288
+sha256 = "07ef02b0b7358d006e25fe89629e593287fa133f15660ede1ae240b222020ae8"
+filename_rom_id = "A2WD001G"
+year = 2004
+region = "ADM"
+model = "Liberty"
+trim = "GT"
+
+[[roms.files]]
+path = "ADM/Legacy/A2WD002T-2005-ADM-Liberty-GT.hex"
+size = 524288
+sha256 = "5e6224fb4e998d48cc2b2c492cca7698afadaa897ba6c988c5a6b0a89226cab3"
+filename_rom_id = "A2WD002T"
+year = 2005
+region = "ADM"
+model = "Liberty"
+trim = "GT"
+
+[[roms.files]]
+path = "ADM/Legacy/A2WD010G-2004-ADM-Subaru-Liberty-GT-AT.hex"
+size = 524288
+sha256 = "40ab5c0c651fd5c846229b8bc98f7eb0bcefd0de21bc4a14587b6a36fe4f7869"
+filename_rom_id = "A2WD010G"
+year = 2004
+region = "ADM"
+model = "Liberty"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "ADM/Legacy/A2WD010T-2005-ADM-Subaru-Liberty-GT-MT.hex"
+size = 524288
+sha256 = "e9235a9f7568973314f08e75a0c652de4ad585cec175a534952b572860db3723"
+filename_rom_id = "A2WD010T"
+year = 2005
+region = "ADM"
+model = "Liberty"
+trim = "GT-MT"
+
+[[roms.files]]
+path = "ADM/Legacy/A2WD010Y-2006-ADM-Subaru-Liberty-GT-AT.hex"
+size = 524288
+sha256 = "5d3f34cf10c53c69a573866b214aa842f8548af58d2e364050d5a0354aedea66"
+filename_rom_id = "A2WD010Y"
+year = 2006
+region = "ADM"
+model = "Liberty"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "ADM/Legacy/A2WD010Z-2006-ADM-Subaru-Liberty-GT-MT.hex"
+size = 524288
+sha256 = "d1731079890a7e16745af434ea5e56466bb3630574cfef5c8032f5fa066074c3"
+filename_rom_id = "A2WD010Z"
+year = 2006
+region = "ADM"
+model = "Liberty"
+trim = "GT-MT"
+
+[[roms.files]]
+path = "ADM/Legacy/A2WD012G-2004-ADM-Subaru-Liberty-GT-AT.hex"
+size = 524288
+sha256 = "3f9316423c7c35a32e346b2f075eb7c27e1229b6d676562023a3e5beeba93dd7"
+filename_rom_id = "A2WD012G"
+year = 2004
+region = "ADM"
+model = "Liberty"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "ADM/Legacy/A2WD012T-2005-ADM-Subaru-Liberty-GT-MT.hex"
+size = 524288
+sha256 = "180f90c7a7fa4d50bd3e99657dbaaf80e1e3cca0d0c32c4f64c621b2bb87bdaf"
+filename_rom_id = "A2WD012T"
+year = 2005
+region = "ADM"
+model = "Liberty"
+trim = "GT-MT"
+
+[[roms.files]]
+path = "ADM/Legacy/A2ZJ800G-2004-ADM-Subaru-Liberty-GT-AT.hex"
+size = 524288
+sha256 = "fa71f1678b0334d8999d818796a03ac0191be8be4e58b823043835fab99439d9"
+filename_rom_id = "A2ZJ800G"
+year = 2004
+region = "ADM"
+model = "Liberty"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "ADM/Legacy/A2ZJC00G-2004-ADM-Subaru-Liberty-GT-AT.hex"
+size = 524288
+sha256 = "b5abc68a82ec680d4ddb38b8f7f6dac5237fc793421d32b3686152015fa75013"
+filename_rom_id = "A2ZJC00G"
+year = 2004
+region = "ADM"
+model = "Liberty"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "ADM/Legacy/A2ZJD00G-2004-ADM-Subaru-Liberty-GT-AT.hex"
+size = 524288
+sha256 = "cb6587dc87fd6f205d18b99c10c18011417b0bd5cb5c911ae40c4bf4c97bbf88"
+filename_rom_id = "A2ZJD00G"
+year = 2004
+region = "ADM"
+model = "Liberty"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "ADM/Legacy/A2ZJD02G-2004-ADM-Liberty-GT.hex"
+size = 524288
+sha256 = "76351c62acf0e70f9f70ce09403618fe40f34c0680942dd079f7ac634aa3c516"
+filename_rom_id = "A2ZJD02G"
+year = 2004
+region = "ADM"
+model = "Liberty"
+trim = "GT"
+
+[[roms.files]]
+path = "ADM/Legacy/A4SH701K-2002-ADM-Liberty-B4.hex"
+size = 163840
+sha256 = "294d39262dc8577301fba279e62e4deda6e175ced1c198a4581c7b087e840bcd"
+filename_rom_id = "A4SH701K"
+year = 2002
+region = "ADM"
+model = "Liberty"
+trim = "B4"
+
+[[roms.files]]
+path = "ADM/Legacy/A4SHA10R-2003-ADM-Liberty-B4.hex"
+size = 163840
+sha256 = "d9b948255575feef260ed4c5937f4b9a82a87b16524f00f2deabcf3ac43067fa"
+filename_rom_id = "A4SHA10R"
+year = 2003
+region = "ADM"
+model = "Liberty"
+trim = "B4"
+
+[[roms.files]]
+path = "ADM/Legacy/AE5F301D-2010-ADM-Subaru-Liberty-GT-MT.hex"
+size = 1048576
+sha256 = "366b15c7348325f207128e5b7959271e239c1745a0ee220eda5a01a3fd16523c"
+filename_rom_id = "AE5F301D"
+year = 2010
+region = "ADM"
+model = "Liberty"
+trim = "GT-MT"
+
+[[roms.files]]
+path = "ADM/Legacy/AE5I500F-2012-ADM-Subaru-Liberty-GT-AT.hex"
+size = 1048576
+sha256 = "ab1c1fe9fcd13d21612259156173139b5fe341308e72165a5c79d293c65b8e9c"
+filename_rom_id = "AE5I500F"
+year = 2012
+region = "ADM"
+model = "Liberty"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "ADM/Legacy/D0XJ001T-2006-ADM-Subaru-Liberty-3.0R-AT.hex"
+size = 1048576
+sha256 = "59411383f0d1d4f67a462522e41f984d251711271ab6fe1c3d105b74a4fb9bd8"
+filename_rom_id = "D0XJ001T"
+year = 2006
+region = "ADM"
+model = "Liberty"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "ADM/Legacy/D2UH001M-2007-ADM-Liberty-3.0R.hex"
+size = 1048576
+sha256 = "a2c073f43769bda379a031a25baf84769f0e5ae0e95a435873250a56d0e3b488"
+filename_rom_id = "D2UH001M"
+year = 2007
+region = "ADM"
+model = "Liberty"
+trim = "3.0R"
+
+[[roms.files]]
+path = "ADM/Legacy/D2UJ001T-2008-ADM-Subaru-Liberty-3.0R-AT.hex"
+size = 1048576
+sha256 = "b83a2c0afa6b3438c10ea4c97e2533b5c8b2205c5c0a8d3f362d8cd8d000decd"
+filename_rom_id = "D2UJ001T"
+year = 2008
+region = "ADM"
+model = "Liberty"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "ADM/Legacy/D2WD603H-2005-ADM-Subaru-Liberty-3.0R-MT.hex"
+size = 524288
+sha256 = "623c7a99b83f51836ddc5a082077c490b9cb2219c3e00559a4c3331c152c8830"
+filename_rom_id = "D2WD603H"
+year = 2005
+region = "ADM"
+model = "Liberty"
+trim = "3.0R-MT"
+
+[[roms.files]]
+path = "ADM/Legacy/D2WD610H-2004-ADM-Subaru-Liberty-3.0R-MT.hex"
+size = 524288
+sha256 = "ed0fe0341d97fb760c2cda3f07277f861495d32f6520e3ce8047b8b0f7bfd4ee"
+filename_rom_id = "D2WD610H"
+year = 2004
+region = "ADM"
+model = "Liberty"
+trim = "3.0R-MT"
+
+[[roms.files]]
+path = "ADM/Legacy/D2ZY110H-2005-ADM-Subaru-Liberty-3.0R-AT.hex"
+size = 524288
+sha256 = "8352d1ced056b5bb4b142ec4a5b3bf593ee98d83166a14ea74ca582553da4e48"
+filename_rom_id = "D2ZY110H"
+year = 2005
+region = "ADM"
+model = "Liberty"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "ADM/Legacy/E2TB102M-2008-ADM-Liberty-2.5i.hex"
+size = 1048576
+sha256 = "11bcfb376732b60961d43b1c69af6a12b4ce2fbc4447b4b3fde416f0de31a4f8"
+filename_rom_id = "E2TB102M"
+year = 2008
+region = "ADM"
+model = "Liberty"
+trim = "2.5i"
+
+[[roms.files]]
+path = "ADM/Legacy/E2UE102G-2006-07-ADM-Subaru-Legacy-2.5i-AT-MT.hex"
+size = 1048576
+sha256 = "40912f4aa2824c072c18245a7d04141916d06154a725f0671f05081f6ac661eb"
+filename_rom_id = "E2UE102G"
+year = 2006
+year_end = 2007
+region = "ADM"
+model = "Legacy"
+trim = "2.5i-AT-MT"
+
+[[roms.files]]
+path = "ADM/Outback/D2ZS002D-2004-ADM-Subaru-Outback-3.0R-AT.hex"
+size = 524288
+sha256 = "af791b732f939f5b2046d3e3f9b6b1462ca8f456661dc5bbf4ac90d279e5b6b9"
+filename_rom_id = "D2ZS002D"
+year = 2004
+region = "ADM"
+model = "Outback"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "EDM/Forester/A2WC401F-2004-EDM-Forester-XT.hex"
+size = 524288
+sha256 = "3a51c7ba4d5e0f22e1f9d045dd3716eeaa46911f13dc5568856f5dcdb4904210"
+filename_rom_id = "A2WC401F"
+year = 2004
+region = "EDM"
+model = "Forester"
+trim = "XT"
+
+[[roms.files]]
+path = "EDM/Forester/A2WC420F-2004-EDM-Forester-XT.hex"
+size = 524288
+sha256 = "142f86d8c9e31d6cf15da610b3ee38a52a4ed01f82d661f9b7304cc8a48b0b6b"
+filename_rom_id = "A2WC420F"
+year = 2004
+region = "EDM"
+model = "Forester"
+trim = "XT"
+
+[[roms.files]]
+path = "EDM/Forester/A2ZJ500F-2004-EDM-Forester-XT.hex"
+size = 524288
+sha256 = "25616732ce77a1f3fc7428d1c282b2cb490978687d458a499d3843f526ac67c4"
+filename_rom_id = "A2ZJ500F"
+year = 2004
+region = "EDM"
+model = "Forester"
+trim = "XT"
+
+[[roms.files]]
+path = "EDM/Forester/A2ZJA00P-2005-EDM-Subaru-Forester-XT-MT-AT.hex"
+size = 524288
+sha256 = "99debfc28b1f98759ab9fd597cc44b7e184596609ca93bdf3d6db5e4b3d7fabf"
+filename_rom_id = "A2ZJA00P"
+year = 2005
+region = "EDM"
+model = "Forester"
+trim = "XT-MT-AT"
+
+[[roms.files]]
+path = "EDM/Forester/A2ZJA10P-2005-EDM-Forester-XT.hex"
+size = 524288
+sha256 = "5da0635c0197b7604a53b06a0a86db9ff81485149c668e6405406382ccd5b3d0"
+filename_rom_id = "A2ZJA10P"
+year = 2005
+region = "EDM"
+model = "Forester"
+trim = "XT"
+
+[[roms.files]]
+path = "EDM/Forester/A4RL100J-2003-EDM-Forester-Turbo.HEX"
+size = 163840
+sha256 = "02ff2f881cd12fb3dc70244dde93a2863254f738fc6547366590c8b816a71c09"
+filename_rom_id = "A4RL100J"
+year = 2003
+region = "EDM"
+model = "Forester"
+trim = "Turbo"
+
+[[roms.files]]
+path = "EDM/Forester/A4SE700E-2001-02-EDM-Forester-Turbo.hex"
+size = 163840
+sha256 = "984418f5d2bdb07244d9f458293a737fabba7d62f0b166d64692408cd94c0c4f"
+filename_rom_id = "A4SE700E"
+year = 2001
+year_end = 2002
+region = "EDM"
+model = "Forester"
+trim = "Turbo"
+
+[[roms.files]]
+path = "EDM/Forester/A8DH100F-2006-EDM-Forester-XT.hex"
+size = 1048576
+sha256 = "0ca030aa6aa77a994ea6b9dbaca21ab3e1c3584e6ca910ff790f5d2619ea8069"
+filename_rom_id = "A8DH100F"
+year = 2006
+region = "EDM"
+model = "Forester"
+trim = "XT"
+
+[[roms.files]]
+path = "EDM/Forester/A8DH100P-2006-EDM-Forester-XT-AT.hex"
+size = 1048576
+sha256 = "431d8ed048318692e75f149109b78e0d9df3420b2fa9ea243d11af44b6daed46"
+filename_rom_id = "A8DH100P"
+year = 2006
+region = "EDM"
+model = "Forester"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "EDM/Forester/A8DH101P-2006-EDM-Subaru-Forester-XT-AT.hex"
+size = 1048576
+sha256 = "1cab1153d846b45e0b1aef627ed5ed73fe4d12accd275ecbc727b561e98a51b8"
+filename_rom_id = "A8DH101P"
+year = 2006
+region = "EDM"
+model = "Forester"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "EDM/Forester/A8DK100F-2007-EDM-Forester-XT-MT.hex"
+size = 1048576
+sha256 = "0a77950824a9c03a65882341bbf80bdeb10e04be4a7542ac322d24ae28b79e44"
+filename_rom_id = "A8DK100F"
+year = 2007
+region = "EDM"
+model = "Forester"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "EDM/Forester/AZ1G101M-2009-10-EDM-Subaru-Forester-XT-MT.hex"
+size = 1048576
+sha256 = "8ea25f2ad4866c6b16c67ee2a7618c0ae80b2f025788ab3124cf7bb117a10f8d"
+filename_rom_id = "AZ1G101M"
+year = 2009
+year_end = 2010
+region = "EDM"
+model = "Forester"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "EDM/Forester/AZ1G101N-2009-10-EDM-Forester-XT.hex"
+size = 1048576
+sha256 = "8de91ab382cd04fec9bad4594939170fc7761f8b58d7fe114e61c68df072e7ab"
+filename_rom_id = "AZ1G101N"
+year = 2009
+year_end = 2010
+region = "EDM"
+model = "Forester"
+trim = "XT"
+
+[[roms.files]]
+path = "EDM/Forester/AZ1G900O-2011-EDM-Subaru-Forester-XT-AT.hex"
+size = 1048576
+sha256 = "0c58c8096c069685b8e214cc0f89dda43a2755aa151ef1f207f1de18f8856410"
+filename_rom_id = "AZ1G900O"
+year = 2011
+region = "EDM"
+model = "Forester"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "EDM/Forester/AZ1G900P-2011-EDM-Subaru-Forester-XT-AT.hex"
+size = 1048576
+sha256 = "996840c3276d4a783515ee0f3fbf689eda9643d44883b6a8780a918976bbfcc1"
+filename_rom_id = "AZ1G900P"
+year = 2011
+region = "EDM"
+model = "Forester"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "EDM/Forester/EP5D004L-2011-EDM-Subaru-Forester-2.0X-AT.hex"
+size = 1048576
+sha256 = "68c664e555ed04db4b98ccbea46245e9f3a841b91092280bbc982db4d7c41347"
+filename_rom_id = "EP5D004L"
+year = 2011
+region = "EDM"
+model = "Forester"
+trim = "2.0X-AT"
+
+[[roms.files]]
+path = "EDM/Forester/EP5D700X-2013-EDM-Subaru-Forester-2.0X-AT.hex.hex"
+size = 1048576
+sha256 = "c35715ff0efb23dec754890237294f4eb3a7dc464fb5c9e0d28fe707a97bfee9"
+filename_rom_id = "EP5D700X"
+year = 2013
+region = "EDM"
+model = "Forester"
+trim = "2.0X-AT.hex"
+
+[[roms.files]]
+path = "EDM/Forester/EZ1G108N-2009-EDM-Subaru-Forester-2.5i-MT.hex"
+size = 1048576
+sha256 = "e6b5aa97afb19be50355e31322a96b54dc4967609ff099f6b18747acce647d8f"
+filename_rom_id = "EZ1G108N"
+year = 2009
+region = "EDM"
+model = "Forester"
+trim = "2.5i-MT"
+
+[[roms.files]]
+path = "EDM/Forester/JP3F522A-2011-EDM-Subaru-Forester-2.0T-Diesel-MT.hex"
+size = 1048576
+sha256 = "5dc1408892c36fee5d8a88364f994df7157089697a4dcc9bb8e84d8a7da1ede6"
+filename_rom_id = "JP3F522A"
+year = 2011
+region = "EDM"
+model = "Forester"
+trim = "2.0T-Diesel-MT"
+
+[[roms.files]]
+path = "EDM/Impreza/A4RG060Q-2001-02-EDM-Subaru-Impreza-STi-MT.hex"
+size = 196608
+sha256 = "2ac553408963493f9f3a22ad6b2ac1dba35752735a65e5148fb8dc337dab7b65"
+filename_rom_id = "A4RG060Q"
+year = 2001
+year_end = 2002
+region = "EDM"
+model = "Impreza"
+trim = "STi-MT"
+
+[[roms.files]]
+path = "EDM/Impreza/A4RG060Q-2002-EDM-Subaru-Impreza-STI.hex"
+size = 163840
+sha256 = "7e1b2c8b8fa127f6d1764d8b518cd76e13421ba54e1b2cf7cf8cc4c6b9af43cd"
+filename_rom_id = "A4RG060Q"
+year = 2002
+region = "EDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "EDM/Impreza/A4RM100H-2003-EDM-Subaru-Impreza-STI.hex"
+size = 163840
+sha256 = "0891b64059376156191184c2d67131bb4d3e9e5e188808527ce4c607ab5dffcd"
+filename_rom_id = "A4RM100H"
+year = 2003
+region = "EDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "EDM/Impreza/A4RN1000-2001-02-EDM-Subaru-Impreza-STi.hex"
+size = 196608
+sha256 = "1359bc98913182a0fd6ec30ef2406de398576cc0b38913ad81f4f541f05ff929"
+filename_rom_id = "A4RN1000"
+year = 2001
+year_end = 2002
+region = "EDM"
+model = "Impreza"
+trim = "STi"
+
+[[roms.files]]
+path = "EDM/Impreza/A4RN200H-2003-EDM-Subaru-Impreza-STi-MT.hex"
+size = 163840
+sha256 = "ab20eaeff1066d15568972739e353097334b01ebccd86bb9a8b44ac8603dbaf7"
+filename_rom_id = "A4RN200H"
+year = 2003
+region = "EDM"
+model = "Impreza"
+trim = "STi-MT"
+
+[[roms.files]]
+path = "EDM/Impreza/A4RN300G-2005-EDM-Subaru-Impreza-STI.hex"
+size = 163840
+sha256 = "208809846dc1c8dc00e673c791338ce515f03e4c9bb0fd787e7fa372241271a3"
+filename_rom_id = "A4RN300G"
+year = 2005
+region = "EDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "EDM/Impreza/A4SE300D-2001-02-EDM-Subaru-Impreza-WRX-MT-AT.hex"
+size = 163840
+sha256 = "bfa857fb7c161f26335b4a47401e9b0b94466244dd15403667112c9b04224818"
+filename_rom_id = "A4SE300D"
+year = 2001
+year_end = 2002
+region = "EDM"
+model = "Impreza"
+trim = "WRX-MT-AT"
+
+[[roms.files]]
+path = "EDM/Impreza/A4SE700D-2001-02-EDM-Subaru-Impreza-WRX.hex"
+size = 163840
+sha256 = "5f72d3909af128b35910ce25e1bf5ad66a7714190b2081ea36fcbb44d509d426"
+filename_rom_id = "A4SE700D"
+year = 2001
+year_end = 2002
+region = "EDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "EDM/Impreza/A4SE700D-2001-EDM-Subaru-Impreza-WRX.hex"
+size = 196608
+sha256 = "61fee2ad57acd8e6ffce573ad6bec51b49dbd787f2f05757d37f0df581d6792f"
+filename_rom_id = "A4SE700D"
+year = 2001
+region = "EDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "EDM/Impreza/A4SE900D-2001-EDM-Subaru-Impreza-WRX.hex"
+size = 196608
+sha256 = "7a4eeec2bf6ade5107e59a63ad7c4e91d317873bf8c06cc3ddfbe2eb3f916018"
+filename_rom_id = "A4SE900D"
+year = 2001
+region = "EDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "EDM/Impreza/A4TE001G-2003-EDM-Subaru-Impreza-WRX.hex"
+size = 163840
+sha256 = "4f49048377027d3f429d2129841510cd64bef4455b564e4dff97c2caba2b6d32"
+filename_rom_id = "A4TE001G"
+year = 2003
+region = "EDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "EDM/Impreza/A4TE100G-2003-EDM-Subaru-Impreza-WRX.hex"
+size = 163840
+sha256 = "77115412d2ac034611fc47c11faa338414a6801302fc68d2fbcfb5e022319f1e"
+filename_rom_id = "A4TE100G"
+year = 2003
+region = "EDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "EDM/Impreza/A4TE300D-2005-EDM-Subaru-Impreza-WRX-MT-AT.hex"
+size = 196608
+sha256 = "cdd0222e413963ef7342509d07f1fec70e10c7ec55b5f8e747e46718cad09b8e"
+filename_rom_id = "A4TE300D"
+year = 2005
+region = "EDM"
+model = "Impreza"
+trim = "WRX-MT-AT"
+
+[[roms.files]]
+path = "EDM/Impreza/A8DH200Y-2006-EDM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "75c0a69ba59169ccf45fe85688244e214231b4cf850bd5392ad2c4c030cd4a50"
+filename_rom_id = "A8DH200Y"
+year = 2006
+region = "EDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "EDM/Impreza/A8DH200Z-2006-EDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "d365e3cff25c97bf68fc485e2a9bf4992c192a26ea6921d3d5e862109c2ab7de"
+filename_rom_id = "A8DH200Z"
+year = 2006
+region = "EDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "EDM/Impreza/A8DH2Z1Z-2006-EDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "d62b6eb47c36aa0d33923d181d108627d4bb023fa7715c3475668b23013554e4"
+filename_rom_id = "A8DH2Z1Z"
+year = 2006
+region = "EDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "EDM/Impreza/A8DK100Y-2007-EDM-Subaru-Impreza-WRX.hex"
+size = 1048576
+sha256 = "cc88d09a23194338483ce842fc734742bcd405ca0ccec26066011e6f23a8a3df"
+filename_rom_id = "A8DK100Y"
+year = 2007
+region = "EDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "EDM/Impreza/A8DK100Z-2007-EDM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "dfcc0cf6d242e86b28dd109dac8eff32c2ba76932e6c6ea60f663154f3223379"
+filename_rom_id = "A8DK100Z"
+year = 2007
+region = "EDM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "EDM/Impreza/AZ1E400U-2008-EDM-Subaru-Impreza-WRX.hex"
+size = 1048576
+sha256 = "b52ee4d2ad83c546fc353e876103cd067a6dbe52f322db01dd7653d1431b7da6"
+filename_rom_id = "AZ1E400U"
+year = 2008
+region = "EDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "EDM/Impreza/AZ1G201G-2008-EDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "215f16aafaad1d7fc8987060817f174e3b744d801ebf90733bac5461c47ec694"
+filename_rom_id = "AZ1G201G"
+year = 2008
+region = "EDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "EDM/Impreza/AZ1G202G-2008-EDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "7ab946705e85525d60aee54c410153d8e86caea63040dc7c18de5b3873091e82"
+filename_rom_id = "AZ1G202G"
+year = 2008
+region = "EDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "EDM/Impreza/AZ1G400U-2009-EDM-Subaru-Impreza-WRX.hex"
+size = 1048576
+sha256 = "4efc38b5112c38954621a0a1060b0b53f1632db22e2bd359bc44a2bcf6df3f04"
+filename_rom_id = "AZ1G400U"
+year = 2009
+region = "EDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "EDM/Impreza/AZ1G700K-2012-EDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "7ccf332791cc652a409a69151d3f87882a7ccadcea646ddbcdbb20b7864541c4"
+filename_rom_id = "AZ1G700K"
+year = 2012
+region = "EDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "EDM/Impreza/AZ1J400H-2011-EDM-Subaru-Impreza-STI-AT.hex"
+size = 1048576
+sha256 = "660e720a95c91b59847a6805cf3f509ab2f7613ed4a7a5c051ad6b1b64b13a97"
+filename_rom_id = "AZ1J400H"
+year = 2011
+region = "EDM"
+model = "Impreza"
+trim = "STI-AT"
+
+[[roms.files]]
+path = "EDM/Impreza/AZ1J500G-2011-EDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "3303cd3bd9934ff15b1288c8da0d7430d4133d9660d00e56037875e7b872907e"
+filename_rom_id = "AZ1J500G"
+year = 2011
+region = "EDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "EDM/Impreza/AZ1L100G-2013-EDM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "f83fb100d3f3017109252290b9aa1394a5e4c4f6cc50d985765d839786a784c5"
+filename_rom_id = "AZ1L100G"
+year = 2013
+region = "EDM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "EDM/Impreza/AZ1L100K-2014-EDM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "1e24d6e7ad6999f7227eb77e8e96fdb3a6cbae9cf7e10228d5b62fa494ebf608"
+filename_rom_id = "AZ1L100K"
+year = 2014
+region = "EDM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "EDM/Impreza/AZ1N100G-2014-EDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "201cbb1ff81a4f5e0cb21e99e3f2dccfd9039e691d79c20bd31b26a1d5b07235"
+filename_rom_id = "AZ1N100G"
+year = 2014
+region = "EDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "EDM/Impreza/AZ1N100M-2014-EDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "f9d81b0882eaef462380ddc8fe70749b3daa75cea670b36c8d2e86acdc6efd01"
+filename_rom_id = "AZ1N100M"
+year = 2014
+region = "EDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "EDM/Impreza/AZ1P000G-2016-EDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "b90b11b85ff572463600cc77b6c81815a11443b6bf4504a4c5fa13e60b52df79"
+filename_rom_id = "AZ1P000G"
+year = 2016
+region = "EDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "EDM/Impreza/EP5F300H-2013-EDM-Subaru-Impreza-2.0-FB-MT.hex"
+size = 1048576
+sha256 = "5eaab2365b1455d663de5aaf35ce83b7a592e071dc7a64b2f11e6d566fbf60a7"
+filename_rom_id = "EP5F300H"
+year = 2013
+region = "EDM"
+model = "Impreza"
+trim = "2.0-FB-MT"
+
+[[roms.files]]
+path = "EDM/Impreza/EP5F301I-2013-EDM-Subaru-Impreza-2.0i-CVT.hex"
+size = 1048576
+sha256 = "89fedbecf42d0c0dc13a019af0f10e6d4c58d0148387908a95b2baeba1e2898a"
+filename_rom_id = "EP5F301I"
+year = 2013
+region = "EDM"
+model = "Impreza"
+trim = "2.0i-CVT"
+
+[[roms.files]]
+path = "EDM/Impreza/JZ2F401A-2009-10-EDM-Subaru-Impreza-2.0T-Diesel-MT.hex"
+size = 1048576
+sha256 = "490c4dcff68d9adc252921aee76f0ffe9fe29255248191efdb319c76dd1741a4"
+filename_rom_id = "JZ2F401A"
+year = 2009
+year_end = 2010
+region = "EDM"
+model = "Impreza"
+trim = "2.0T-Diesel-MT"
+
+[[roms.files]]
+path = "EDM/Impreza/JZ2F411A-2009-11-EDM-Subaru-Impreza-2.0T-Diesel-MT.hex"
+size = 1048576
+sha256 = "ddfac05fa08a7339def9157bbc52dd31d631aa1b98e55e4a5b7f9cf7bdde10f4"
+filename_rom_id = "JZ2F411A"
+year = 2009
+year_end = 2011
+region = "EDM"
+model = "Impreza"
+trim = "2.0T-Diesel-MT"
+
+[[roms.files]]
+path = "EDM/Impreza/JZ2F430A-2011-EDM-Subaru-Impreza-2.0T-Diesel-MT.hex"
+size = 1048576
+sha256 = "8be85d1ccf946cf50d1eed1a960c9e47c3b11628a42b83417507d7e17019f1dd"
+filename_rom_id = "JZ2F430A"
+year = 2011
+region = "EDM"
+model = "Impreza"
+trim = "2.0T-Diesel-MT"
+
+[[roms.files]]
+path = "EDM/Impreza/JZ2F441A-2010-EDM-Subaru-Impreza-2.0T-Diesel-MT.hex"
+size = 1048576
+sha256 = "e9e04b3c80a38d1fd740b21a44de50277d631ac934532666cef2696954f0ba03"
+filename_rom_id = "JZ2F441A"
+year = 2010
+region = "EDM"
+model = "Impreza"
+trim = "2.0T-Diesel-MT"
+
+[[roms.files]]
+path = "EDM/Impreza/Z1G20000-2008-09-EDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "be0e91292c8e93e7f5dc1451a56a9849d15fed86a216a4b02d8dfcb1c32f16a4"
+filename_rom_id = "Z1G20000"
+year = 2008
+year_end = 2009
+region = "EDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "EDM/Legacy/AE5F301C-2010-EDM-Legacy-GT.hex"
+size = 1048576
+sha256 = "b8a1f4f7ba30ac7ad29e8ada5d9a67161333bb0a2e5ef0514f27fdc98181f4b4"
+filename_rom_id = "AE5F301C"
+year = 2010
+region = "EDM"
+model = "Legacy"
+trim = "GT"
+
+[[roms.files]]
+path = "EDM/Legacy/AE5F301H-2010-EDM-Subaru-Legacy-GT-AT.hex"
+size = 1048576
+sha256 = "4cc14077b857bc180d5768c762f3192029add4d03f43df103ec8b4aefb0c4b7b"
+filename_rom_id = "AE5F301H"
+year = 2010
+region = "EDM"
+model = "Legacy"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "EDM/Legacy/AE5M100G-2013-EDM-Subaru-Legacy-GT-AT.hex"
+size = 1048576
+sha256 = "9955d758fe885c0f0446ba48f0211f2dc229bcc19128cf50fcfcbbe8888d8449"
+filename_rom_id = "AE5M100G"
+year = 2013
+region = "EDM"
+model = "Legacy"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "EDM/Legacy/D0XJ001R-2006-EDM-Legacy-3.0R.hex"
+size = 1048576
+sha256 = "6f49ba865773ed69d0dd462790b8e8d905d10627d981bef6582a3e39eeb68638"
+filename_rom_id = "D0XJ001R"
+year = 2006
+region = "EDM"
+model = "Legacy"
+trim = "3.0R"
+
+[[roms.files]]
+path = "EDM/Legacy/D2TB201R-2008-EDM-Legacy-3.0R.hex"
+size = 1048576
+sha256 = "12cb3cdf30f3294e4344f135364341851a304026b5179132f8f0a9e14eada133"
+filename_rom_id = "D2TB201R"
+year = 2008
+region = "EDM"
+model = "Legacy"
+trim = "3.0R"
+
+[[roms.files]]
+path = "EDM/Legacy/D2UH003R-2007-EDM-Subaru-Legacy-3.0R-AT.hex"
+size = 1048576
+sha256 = "b7b7481366466bdea041bb0b0e00aea5ca52936deb262e734387e150fc3456d3"
+filename_rom_id = "D2UH003R"
+year = 2007
+region = "EDM"
+model = "Legacy"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "EDM/Legacy/D2UJ003R-2007-EDM-Subaru-Legacy-3.0R-AT.hex"
+size = 1048576
+sha256 = "78159553dd3a76421523bcdb20ef4e932bdc355e437d0ecb1da02eaffb91629c"
+filename_rom_id = "D2UJ003R"
+year = 2007
+region = "EDM"
+model = "Legacy"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "EDM/Legacy/D2WD701C-2005-EDM-Legacy-3.0R-MT.hex"
+size = 1048576
+sha256 = "9c1f4417280654e36a13d2ddd4955f3093d4a67e203b63a491009177aeea7412"
+filename_rom_id = "D2WD701C"
+year = 2005
+region = "EDM"
+model = "Legacy"
+trim = "3.0R-MT"
+
+[[roms.files]]
+path = "EDM/Legacy/D2ZS002C-2004-EDM-Subaru-Legacy-3.0R-AT.hex"
+size = 524288
+sha256 = "7a5ae925c381861436e05e66a136814c254a264bde03f22ca63a00d589eb19e6"
+filename_rom_id = "D2ZS002C"
+year = 2004
+region = "EDM"
+model = "Legacy"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "EDM/Legacy/D2ZZ001E-2005-EDM-Subaru-Legacy-3.0R-AT.hex"
+size = 524288
+sha256 = "d183eb52750960805fd15131f74393f15098da88a442173cfe37b009920983c0"
+filename_rom_id = "D2ZZ001E"
+year = 2005
+region = "EDM"
+model = "Legacy"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "EDM/Legacy/E2TB101L-2008-EDM-Subaru-Legacy-2.5i-AT.hex"
+size = 1048576
+sha256 = "f057afcb360b5cdf6fcf9d5802b6d6a15c673d7d778d1ef1dcda623b6f8ab97b"
+filename_rom_id = "E2TB101L"
+year = 2008
+region = "EDM"
+model = "Legacy"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "EDM/Legacy/E2WD201C-2005-EDM-Subaru-Legacy-2.5i-MT-AT.hex"
+size = 524288
+sha256 = "459099c9d32bfe43692d45acfd9e1a5fe67ef61cc01bb917854c60c3210b46df"
+filename_rom_id = "E2WD201C"
+year = 2005
+region = "EDM"
+model = "Legacy"
+trim = "2.5i-MT-AT"
+
+[[roms.files]]
+path = "EDM/Outback/D0XJ002S-2006-EDM-Subaru-Outback-3.0R-AT.hex"
+size = 1048576
+sha256 = "e55fc55dbbc38e6489f2df12a67e75bc34097e8936ce91d7c13c35205484b557"
+filename_rom_id = "D0XJ002S"
+year = 2006
+region = "EDM"
+model = "Outback"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "EDM/Outback/DE5F301H-2011-EDM-Subaru-Outback-3.6-AT.hex"
+size = 1048576
+sha256 = "4959719bff119a8d7de36907526cda20f327f6755c08ec37618f3dfd02c4869a"
+filename_rom_id = "DE5F301H"
+year = 2011
+region = "EDM"
+model = "Outback"
+trim = "3.6-AT"
+
+[[roms.files]]
+path = "EDM/Outback/E2WD200C-2005-EDM-Subaru-Outback-2.5i-MT-AT.hex"
+size = 524288
+sha256 = "08ef99d899745f431cbc8fd61b6d5bb1e9a2daa176d1d49d410b90cbfd532bc7"
+filename_rom_id = "E2WD200C"
+year = 2005
+region = "EDM"
+model = "Outback"
+trim = "2.5i-MT-AT"
+
+[[roms.files]]
+path = "EDM/Outback/E2ZD508C-2004-EDM-Outback-2.5i.hex"
+size = 524288
+sha256 = "2eedf236e8541ee85b5b012793aacd18bd342ee8fe63dbc1522d0731a28df1fa"
+filename_rom_id = "E2ZD508C"
+year = 2004
+region = "EDM"
+model = "Outback"
+trim = "2.5i"
+
+[[roms.files]]
+path = "EDM/Outback/EE5I500A-2011-EDM-Subaru-Outback-2.5i-AT.hex"
+size = 1048576
+sha256 = "d8de0eba9194b32319357f7cd8262da2a24d6cc2c15f3ff52a462d114c500c3c"
+filename_rom_id = "EE5I500A"
+year = 2011
+region = "EDM"
+model = "Outback"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "EDM/Tribeca/DE5I500M-2012-EDM-Subaru-Tribeca-3.6R-AT.hex"
+size = 1048576
+sha256 = "be19854e766352ccecd68aa4abfc45adca61a4eab824d0e49482afbb741218c3"
+filename_rom_id = "DE5I500M"
+year = 2012
+region = "EDM"
+model = "Tribeca"
+trim = "3.6R-AT"
+
+[[roms.files]]
+path = "EDM/Tribeca/DZ1G001F-2009-EDM-Subaru-Tribeca-B9-AT.hex"
+size = 1048576
+sha256 = "8144581a87c222bee88cfc7b34e3342b8d211db2d5211bd610d0fbbd81ba2273"
+filename_rom_id = "DZ1G001F"
+year = 2009
+region = "EDM"
+model = "Tribeca"
+trim = "B9-AT"
+
+[[roms.files]]
+path = "EDM/XV/EP5G401z-2013-EDM-Subaru-XVCVT.hex"
+size = 1048576
+sha256 = "349a89feb5dc17c73eff02097532227a7bd426e7c08cacaf5d07acf663d9899e"
+filename_rom_id = "EP5G401z"
+year = 2013
+region = "EDM"
+model = "XVCVT"
+
+[[roms.files]]
+path = "EDM/XV/EP5L000p-2014-EDM-Subaru-XV-2.5-FB-MT.hex"
+size = 1048576
+sha256 = "3f2049cb3151a32839027c9d558db821bf9c64720e74e5cc92c313438620c08f"
+filename_rom_id = "EP5L000p"
+year = 2014
+region = "EDM"
+model = "XV"
+trim = "2.5-FB-MT"
+
+[[roms.files]]
+path = "JDM/Exiga/AZ1H102W-2008-JDM-Subaru-Exiga-2.0GT-AT.hex"
+size = 1048576
+sha256 = "490cc32b4a94dcba4dbdb423bb62cc05a70ad0953b66ae60441ce9537895198e"
+filename_rom_id = "AZ1H102W"
+year = 2008
+region = "JDM"
+model = "Exiga"
+trim = "2.0GT-AT"
+
+[[roms.files]]
+path = "JDM/Exiga/AZ1L100X-2013-JDM-Subaru-Exiga-2.0-GT-AT.hex"
+size = 1048576
+sha256 = "8b0ec95b1bb2ead8fe9cb4f19604d82090e812dc5ab43af241b859f38df6fb74"
+filename_rom_id = "AZ1L100X"
+year = 2013
+region = "JDM"
+model = "Exiga"
+trim = "2.0-GT-AT"
+
+[[roms.files]]
+path = "JDM/Forester/A2WC000E-2004-JDM-Forester-STi.hex"
+size = 524288
+sha256 = "36786588076564ed9d4fbd02fbe0885c3e48851c846e29d77cba9302ef9d5fa9"
+filename_rom_id = "A2WC000E"
+year = 2004
+region = "JDM"
+model = "Forester"
+trim = "STi"
+
+[[roms.files]]
+path = "JDM/Forester/A2WC011E-2004-07-JDM-Forester-STi.hex"
+size = 524288
+sha256 = "6dfbf7f17d20c84f7687dc106216f2368ac38e2e283b57213af05480117de15d"
+filename_rom_id = "A2WC011E"
+year = 2004
+year_end = 2007
+region = "JDM"
+model = "Forester"
+trim = "STi"
+
+[[roms.files]]
+path = "JDM/Forester/A2WC012E-2004-07-JDM-Forester-STi.hex"
+size = 524288
+sha256 = "50ca1f3e1c631f4ca04861469f21c12fed7d0c7fae9448607dfe7cfc4f0b4733"
+filename_rom_id = "A2WC012E"
+year = 2004
+year_end = 2007
+region = "JDM"
+model = "Forester"
+trim = "STi"
+
+[[roms.files]]
+path = "JDM/Forester/A2WC013E-2004-07-JDM-Subaru-Forester-STi-MT.hex"
+size = 524288
+sha256 = "7691de4df8314620a79e534c9e2602d6a8cb559f4adaa32dc44593582bd30c8a"
+filename_rom_id = "A2WC013E"
+year = 2004
+year_end = 2007
+region = "JDM"
+model = "Forester"
+trim = "STi-MT"
+
+[[roms.files]]
+path = "JDM/Forester/A4RI200I-2001-02-JDM-Subaru-Forester-Turbo-MT-AT.hex"
+size = 163840
+sha256 = "17971b400cafe4ed7326ae62b85eb7ca765142c66f2b8ae528acfdfdd97566c3"
+filename_rom_id = "A4RI200I"
+year = 2001
+year_end = 2002
+region = "JDM"
+model = "Forester"
+trim = "Turbo-MT-AT"
+
+[[roms.files]]
+path = "JDM/Forester/A4RI300I-2001-02-JDM-Subaru-Forester-Turbo-MT-AT.hex"
+size = 163840
+sha256 = "7e83c0c918a5e96e5d9c29e32576208fa95983798e9fb5e6b30a08a556485e06"
+filename_rom_id = "A4RI300I"
+year = 2001
+year_end = 2002
+region = "JDM"
+model = "Forester"
+trim = "Turbo-MT-AT"
+
+[[roms.files]]
+path = "JDM/Forester/A4RI401I-2001-02-JDM-Forester-Turbo.hex"
+size = 163840
+sha256 = "c6671baa922783ae911ffe166c1e75dadb64aad2ad9666b017ba7a09aa6a6fb3"
+filename_rom_id = "A4RI401I"
+year = 2001
+year_end = 2002
+region = "JDM"
+model = "Forester"
+trim = "Turbo"
+
+[[roms.files]]
+path = "JDM/Forester/AF5G200A-2013-JDM-Forester-SJG-DIT.hex"
+size = 1572864
+sha256 = "b212d3f46991e289d525a8c2aef96314c0d73054de59ce21aa7c58e05ed27303"
+filename_rom_id = "AF5G200A"
+year = 2013
+region = "JDM"
+model = "Forester"
+trim = "SJG-DIT"
+
+[[roms.files]]
+path = "JDM/Forester/AZ1G105L-2009-JDM-Subaru-Forester-XT-AT.hex"
+size = 1048576
+sha256 = "af2e765d5eafb944658b3c2011e3c82a59614a915b9b80e6dd8d50d068235496"
+filename_rom_id = "AZ1G105L"
+year = 2009
+region = "JDM"
+model = "Forester"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "JDM/Forester/AZ1J200N-2010-JDM-Subaru-Forester-XT-MT.hex"
+size = 1048576
+sha256 = "aa7799ad27c17c3b28bee3c95fc431e1fb43681838e5345442badf48eb9d0ab2"
+filename_rom_id = "AZ1J200N"
+year = 2010
+region = "JDM"
+model = "Forester"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "JDM/Forester/AZ1J500L-2011-JDM-Subaru-Forester-XT-MT.hex"
+size = 1048576
+sha256 = "c43ab358dd6f10c4a0a9160af241074dda090527c863868c32667e2545436989"
+filename_rom_id = "AZ1J500L"
+year = 2011
+region = "JDM"
+model = "Forester"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "JDM/Forester/EP5D003Q-2011-JDM-Subaru-Forester-2.0-XS-MT.hex"
+size = 1048576
+sha256 = "8c3426edbe38c89eb1096ec70426c0abb5a270ff3378616c4709bbe49d6decd5"
+filename_rom_id = "EP5D003Q"
+year = 2011
+region = "JDM"
+model = "Forester"
+trim = "2.0-XS-MT"
+
+[[roms.files]]
+path = "JDM/Impreza/A2TB100U-2008-JDM-Subaru-Impreza-SGT-MT.hex"
+size = 1048576
+sha256 = "e5f41b10aca6d364317ea5f6f75022ed7e3561e13661a0872c7a8f648995b72d"
+filename_rom_id = "A2TB100U"
+year = 2008
+region = "JDM"
+model = "Impreza"
+trim = "SGT-MT"
+
+[[roms.files]]
+path = "JDM/Impreza/A2TB100V-2008-JDM-Subaru-Impreza-SGT.hex"
+size = 1048576
+sha256 = "d15403e1b23e0f261d1f99d7549eed9c3307feedd49424ca08c080e9a524bf08"
+filename_rom_id = "A2TB100V"
+year = 2008
+region = "JDM"
+model = "Impreza"
+trim = "SGT"
+
+[[roms.files]]
+path = "JDM/Impreza/A4RG050N-2001-02-JDM-Subaru-Impreza-STi-MT-AT.hex"
+size = 163840
+sha256 = "a9f3979c77d6354eaaf22ca8458a500ecda567a39423f738ec1f7744227f22ca"
+filename_rom_id = "A4RG050N"
+year = 2001
+year_end = 2002
+region = "JDM"
+model = "Impreza"
+trim = "STi-MT-AT"
+
+[[roms.files]]
+path = "JDM/Impreza/A4RG050R-2001-02-JDM-Subaru-Impreza-STi-MT-AT.hex"
+size = 163840
+sha256 = "f0ea85cbd8c7f426094380686efb451e9045d5b64f620cfd4faf7dbd468e3cc1"
+filename_rom_id = "A4RG050R"
+year = 2001
+year_end = 2002
+region = "JDM"
+model = "Impreza"
+trim = "STi-MT-AT"
+
+[[roms.files]]
+path = "JDM/Impreza/A4RG051N-2001-02-JDM-Subaru-Impreza-STi-MT-AT.hex"
+size = 163840
+sha256 = "c8b8c5401a3d1da2fcd0dbdce121c1f299902efd923fe6997d16f9aae4bfe2d2"
+filename_rom_id = "A4RG051N"
+year = 2001
+year_end = 2002
+region = "JDM"
+model = "Impreza"
+trim = "STi-MT-AT"
+
+[[roms.files]]
+path = "JDM/Impreza/A4RG052N-2002-JDM-Subaru-Impreza-STI-S202.hex"
+size = 163840
+sha256 = "04ddf55fbc709457005aed6cfe2ddf503a5ab8de301551e75f60d2165ee206ff"
+filename_rom_id = "A4RG052N"
+year = 2002
+region = "JDM"
+model = "Impreza"
+trim = "STI-S202"
+
+[[roms.files]]
+path = "JDM/Impreza/A4SD501A-2001-02-JDM-Subaru-Impreza-WRX-MT-AT.hex"
+size = 163840
+sha256 = "0c54f37e94bf085dff165fbada4c1ab5fc68eef8f8cb9c31fff34ed228b7e9c3"
+filename_rom_id = "A4SD501A"
+year = 2001
+year_end = 2002
+region = "JDM"
+model = "Impreza"
+trim = "WRX-MT-AT"
+
+[[roms.files]]
+path = "JDM/Impreza/A4SD800A-2001-02-JDM-Subaru-Impreza-WRX.hex"
+size = 163840
+sha256 = "93de26e577f76a96cf360e8623b7f2f7842cf3ddf069bc98aa5c76ad056b9524"
+filename_rom_id = "A4SD800A"
+year = 2001
+year_end = 2002
+region = "JDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "JDM/Impreza/A4SD800B-2001-02-JDM-Subaru-Impreza-STi-MT-AT.hex"
+size = 163840
+sha256 = "7fbf2b6a4a0992dc243db71606acb3c0d2fd489cb86525d965e89181c9fcfd7b"
+filename_rom_id = "A4SD800B"
+year = 2001
+year_end = 2002
+region = "JDM"
+model = "Impreza"
+trim = "STi-MT-AT"
+
+[[roms.files]]
+path = "JDM/Impreza/A4SD900A-2001-02-JDM-Subaru-Impreza-WRX-MT-AT.hex"
+size = 196608
+sha256 = "46ff4be1884bbc9381339521cc2a174de0ffcd5305972661487da6fb85b0c5f1"
+filename_rom_id = "A4SD900A"
+year = 2001
+year_end = 2002
+region = "JDM"
+model = "Impreza"
+trim = "WRX-MT-AT"
+
+[[roms.files]]
+path = "JDM/Impreza/A4SD900B-2001-02-JDM-Subaru-Impreza-STi.hex"
+size = 163840
+sha256 = "c9f93035d1c80788992f886b741a12dcb9e1e19f38a04c2e3da74d8b551a317c"
+filename_rom_id = "A4SD900B"
+year = 2001
+year_end = 2002
+region = "JDM"
+model = "Impreza"
+trim = "STi"
+
+[[roms.files]]
+path = "JDM/Impreza/A4SDA00P-2001-02-JDM-Subaru-Impreza-STi-MT-AT.hex"
+size = 196608
+sha256 = "2b98f96e8c9fe2b7e16c00a28e61aabbb46861caa2d4e4843b983c970495b0f0"
+filename_rom_id = "A4SDA00P"
+year = 2001
+year_end = 2002
+region = "JDM"
+model = "Impreza"
+trim = "STi-MT-AT"
+
+[[roms.files]]
+path = "JDM/Impreza/A4SDA00Q-2001-02-JDM-Subaru-Impreza-STi-MT-AT.hex"
+size = 163840
+sha256 = "7e1a1183e1978c6d25593084dcabd90a0ab4e9fe1cd4c76976c93003f497d723"
+filename_rom_id = "A4SDA00Q"
+year = 2001
+year_end = 2002
+region = "JDM"
+model = "Impreza"
+trim = "STi-MT-AT"
+
+[[roms.files]]
+path = "JDM/Impreza/A4SDA01B-2001-02-JDM-Subaru-Impreza-STi.hex"
+size = 163840
+sha256 = "204386eb9bde8baad59e21278b9a33d6aa13321963770adfb5cc1267956c2019"
+filename_rom_id = "A4SDA01B"
+year = 2001
+year_end = 2002
+region = "JDM"
+model = "Impreza"
+trim = "STi"
+
+[[roms.files]]
+path = "JDM/Impreza/A4SDA01Q-2001-02-JDM-Subaru-Impreza-STi.hex"
+size = 196608
+sha256 = "ea42269aaea51a55fd1008240b76da3016a3c32e986d2a2d4b33be493186e9f6"
+filename_rom_id = "A4SDA01Q"
+year = 2001
+year_end = 2002
+region = "JDM"
+model = "Impreza"
+trim = "STi"
+
+[[roms.files]]
+path = "JDM/Impreza/A4TE000A-2003-JDM-Subaru-Impreza-WRX-MT-AT.hex"
+size = 163840
+sha256 = "8ad70956472cd4608e995c9c2c4bc616e2d87017e3a6ad304c750dc41ff29a98"
+filename_rom_id = "A4TE000A"
+year = 2003
+region = "JDM"
+model = "Impreza"
+trim = "WRX-MT-AT"
+
+[[roms.files]]
+path = "JDM/Impreza/A4TE001B-2003-JDM-Subaru-Impreza-STI.hex"
+size = 163840
+sha256 = "e7abec2b381bc1649691aacd60491f4968ae77cf980f7ec0da67d54d10878561"
+filename_rom_id = "A4TE001B"
+year = 2003
+region = "JDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "JDM/Impreza/A4TE002B-2003-JDM-Subaru-Impreza-STi.hex"
+size = 196608
+sha256 = "e3cc868a51476aaa25c1ffb63e8af8ba3e35ca4ace404e842f193bf117754b44"
+filename_rom_id = "A4TE002B"
+year = 2003
+region = "JDM"
+model = "Impreza"
+trim = "STi"
+
+[[roms.files]]
+path = "JDM/Impreza/A4TE002C-2003-JDM-Subaru-Impreza-STI-SpecC.hex"
+size = 196608
+sha256 = "3060216f00525024256eaef5138f0e35f2baa014e0d9bed44a25f873c412c6da"
+filename_rom_id = "A4TE002C"
+year = 2003
+region = "JDM"
+model = "Impreza"
+trim = "STI-SpecC"
+
+[[roms.files]]
+path = "JDM/Impreza/A4TE200A-2004-JDM-Subaru-Impreza-WRX.hex"
+size = 196608
+sha256 = "f403e430c7ca90e2f3485c43318937c87d4e8e7942fc6ab322c43b362d648590"
+filename_rom_id = "A4TE200A"
+year = 2004
+region = "JDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "JDM/Impreza/A4TJ111B-2005-JDM-Subaru-Impreza-STi.hex"
+size = 163840
+sha256 = "cb222d3b9a43cfa5f086c307b161903545542dc23c491dcd012225002bad5d7a"
+filename_rom_id = "A4TJ111B"
+year = 2005
+region = "JDM"
+model = "Impreza"
+trim = "STi"
+
+[[roms.files]]
+path = "JDM/Impreza/A4TJ111C-2005-JDM-Subaru-Impreza-STi-MT-AT.hex"
+size = 163840
+sha256 = "d530f620aa3810c91904562b97b9e99a39a33b149523ace31131e4cfe6e4258b"
+filename_rom_id = "A4TJ111C"
+year = 2005
+region = "JDM"
+model = "Impreza"
+trim = "STi-MT-AT"
+
+[[roms.files]]
+path = "JDM/Impreza/A4TJ120S-2005-JDM-Subaru-Impreza-STI-S203.hex"
+size = 163840
+sha256 = "8968a5be610cd8af7b07effeda4c659b93fa5b3508da530cd4a99e6a7b816da6"
+filename_rom_id = "A4TJ120S"
+year = 2005
+region = "JDM"
+model = "Impreza"
+trim = "STI-S203"
+
+[[roms.files]]
+path = "JDM/Impreza/A4TJ121B-2005-JDM-Subaru-Impreza-STi.hex"
+size = 163840
+sha256 = "b1093781802a8733a4882fd51b12f69cb725026dd6d1275aa43a819e312fa444"
+filename_rom_id = "A4TJ121B"
+year = 2005
+region = "JDM"
+model = "Impreza"
+trim = "STi"
+
+[[roms.files]]
+path = "JDM/Impreza/A4TJ121C-2006-JDM-Subaru-Impreza-STI-SpecC-TypeRA.hex"
+size = 163840
+sha256 = "d1544a0ad4ae7773e15c0a20ad7576f53a01d915a2668b7a6b9f33e6e384b588"
+filename_rom_id = "A4TJ121C"
+year = 2006
+region = "JDM"
+model = "Impreza"
+trim = "STI-SpecC-TypeRA"
+
+[[roms.files]]
+path = "JDM/Impreza/A4TJ121S-2005-JDM-Subaru-Impreza-STI-S204.hex"
+size = 163840
+sha256 = "1704eda14e2002949ca01d01b13ed80226fee923a50897ea71247b9f05ccb2e4"
+filename_rom_id = "A4TJ121S"
+year = 2005
+region = "JDM"
+model = "Impreza"
+trim = "STI-S204"
+
+[[roms.files]]
+path = "JDM/Impreza/A4TJ1X00-20xx-JDM-Subaru-Impreza-STi-MT-AT.hex"
+size = 163840
+sha256 = "bfeb06c4b4749110a125b170afb0860e384033b156f62529500cb631fb969e8e"
+filename_rom_id = "A4TJ1X00"
+
+[[roms.files]]
+path = "JDM/Impreza/AE5I500N-2011-JDM-Subaru-Impreza-STI-AT.hex"
+size = 1048576
+sha256 = "3ee01400efa1265da8b6a4e201e63d26f9367188abbac1712f5c9c53773654bf"
+filename_rom_id = "AE5I500N"
+year = 2011
+region = "JDM"
+model = "Impreza"
+trim = "STI-AT"
+
+[[roms.files]]
+path = "JDM/Impreza/AZ1G300F-2008-JDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "856a0c2405cc804200435fa669854456bbcb8862552bb57154cc2b5da5fe2d85"
+filename_rom_id = "AZ1G300F"
+year = 2008
+region = "JDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "JDM/Impreza/AZ1G301F-2008-JDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "f215190070235670f28e4a299e2f2a10654dd0513fc23ea6235d22f355359251"
+filename_rom_id = "AZ1G301F"
+year = 2008
+region = "JDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "JDM/Impreza/AZ1G500F-2009-JDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "b0e99f3ab8f4ec3e865bbe0da76c74d30e497bb12883f9742becf55bb99e66eb"
+filename_rom_id = "AZ1G500F"
+year = 2009
+region = "JDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "JDM/Impreza/AZ1G500Z-2010-JDM-Subaru-Impreza-STI-R205.hex"
+size = 1048576
+sha256 = "33b715f0bdd70127095a8981876131e6de532d18dd20453e310d0a5bb48401dc"
+filename_rom_id = "AZ1G500Z"
+year = 2010
+region = "JDM"
+model = "Impreza"
+trim = "STI-R205"
+
+[[roms.files]]
+path = "JDM/Impreza/AZ1G501K-2009-JDM-Subaru-Impreza-STI-SpecC.hex"
+size = 1048576
+sha256 = "4b3e7bf7eba595322d0681d11c7de998628ce568a90937836040ba44c7d42700"
+filename_rom_id = "AZ1G501K"
+year = 2009
+region = "JDM"
+model = "Impreza"
+trim = "STI-SpecC"
+
+[[roms.files]]
+path = "JDM/Impreza/AZ1G502L-2009-JDM-Subaru-Impreza-STI-AT.hex"
+size = 1048576
+sha256 = "c2cc78af8daee1e7e27c32d3a8e2a0868401e0f15b3bd5899fe8238ff5a6f637"
+filename_rom_id = "AZ1G502L"
+year = 2009
+region = "JDM"
+model = "Impreza"
+trim = "STI-AT"
+
+[[roms.files]]
+path = "JDM/Impreza/AZ1G800F-2011-JDM-Subaru-Impreza-STI-AT.hex"
+size = 1048576
+sha256 = "7f2c605e52a5ac8388aebda74216a87273c4fbd6a90ec247396cf9ad9018a1ee"
+filename_rom_id = "AZ1G800F"
+year = 2011
+region = "JDM"
+model = "Impreza"
+trim = "STI-AT"
+
+[[roms.files]]
+path = "JDM/Impreza/AZ1G800S-2012-JDM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "78f9a9ee55e3eb3d811b249c246529e2e81cd7c54cd003543bb49a8818f6aea5"
+filename_rom_id = "AZ1G800S"
+year = 2012
+region = "JDM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "JDM/Impreza/AZ1G800T-2011-JDM-Subaru-Impreza-WRX-spec.C-MT.hex"
+size = 1048576
+sha256 = "0f3e14e16799951c5a3809ef5614c5bd8ec0757fe3de701f93af8e95827afcf6"
+filename_rom_id = "AZ1G800T"
+year = 2011
+region = "JDM"
+model = "Impreza"
+trim = "WRX-spec.C-MT"
+
+[[roms.files]]
+path = "JDM/Impreza/AZ1G800V-2012-JDM-Subaru-Impreza-STI-S206.hex"
+size = 1048576
+sha256 = "ba7ff012554561526f385e5059ca82e431bef36b2b58bf2b7c3b8a408c07dd7d"
+filename_rom_id = "AZ1G800V"
+year = 2012
+region = "JDM"
+model = "Impreza"
+trim = "STI-S206"
+
+[[roms.files]]
+path = "JDM/Impreza/AZ1J500J-2011-JDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "30e12fc6ca37b80bf22610bf14014f6a291b46965640999d6af94876688b07ad"
+filename_rom_id = "AZ1J500J"
+year = 2011
+region = "JDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "JDM/Impreza/AZ1J500X-2010-JDM-Subaru-Impreza-Exiga-MT.hex"
+size = 1048576
+sha256 = "32f419364c3d9675504d15150e9c387cba26c4cedf50d32f3d0add7b9a5dadeb"
+filename_rom_id = "AZ1J500X"
+year = 2010
+region = "JDM"
+model = "Impreza"
+trim = "Exiga-MT"
+
+[[roms.files]]
+path = "JDM/Impreza/AZ1K000T-2012-JDM-Subaru-Impreza-STI-SpecC.hex"
+size = 1048576
+sha256 = "fc63be8f7dc743132313ebecbf13bd23297a8ee73a23043c2b17d410b574630f"
+filename_rom_id = "AZ1K000T"
+year = 2012
+region = "JDM"
+model = "Impreza"
+trim = "STI-SpecC"
+
+[[roms.files]]
+path = "JDM/Impreza/AZ1L100T-2014-JDM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "5954a2708383dda09ac2b8814f06d1bb0c3d701b9feff2a165731d5a662cf794"
+filename_rom_id = "AZ1L100T"
+year = 2014
+region = "JDM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "JDM/Impreza/AZ1N100S-2015-JDM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "747267415fb4dcd8ece992ff3c278d953a40c8481375f57345403d46ae20274b"
+filename_rom_id = "AZ1N100S"
+year = 2015
+region = "JDM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "JDM/Impreza/AZ1P100S-2016-JDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "47a9cc12e90352bd06d485c33063b3a6e21be8084bb61cdfc5bed99a399c74bc"
+filename_rom_id = "AZ1P100S"
+year = 2016
+region = "JDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "JDM/Impreza/AZ1P100T-2016-JDM-Subaru-Impreza-STI-S207.hex"
+size = 1048576
+sha256 = "f85659bdd3491fae17a9aefd2b3e6cd8e5e9651cd7e79c9f574a5d67cbfc43b1"
+filename_rom_id = "AZ1P100T"
+year = 2016
+region = "JDM"
+model = "Impreza"
+trim = "STI-S207"
+
+[[roms.files]]
+path = "JDM/Impreza/LV9N100B-2015-JDM-Subaru-Impreza-WRX-S4.hex"
+size = 2097152
+sha256 = "9ac2febdf4fbeb665291c4b158598b0eaafff47e389dd3bed474e28173396ea1"
+filename_rom_id = "LV9N100B"
+year = 2015
+region = "JDM"
+model = "Impreza"
+trim = "WRX-S4"
+
+[[roms.files]]
+path = "JDM/Legacy/A2PG420A-2007-JDM-Subaru-Legacy-GT-AT.hex"
+size = 1048576
+sha256 = "118e732ccbff3122d4423b6786346cb72677186a8953f0220aa0f58d9ff50e65"
+filename_rom_id = "A2PG420A"
+year = 2007
+region = "JDM"
+model = "Legacy"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2SB000A-2008-JDM-Subaru-Legacy-GT-spec.B-AT.hex"
+size = 1048576
+sha256 = "30299288f73dddfb71d85b18efd96a42b1d2b0567b72a9090049b556e3ea5d40"
+filename_rom_id = "A2SB000A"
+year = 2008
+region = "JDM"
+model = "Legacy"
+trim = "GT-spec.B-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2TB100A-2008-JDM-Legacy-GT.hex"
+size = 1048576
+sha256 = "2eec746d5e8a04dfd9f6c4fd3ea219a132a954b645b7129c559fabfae86a99ea"
+filename_rom_id = "A2TB100A"
+year = 2008
+region = "JDM"
+model = "Legacy"
+trim = "GT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2TB100B-2007-JDM-Subaru-Legacy-GT-MT.hex"
+size = 1048576
+sha256 = "63c8f7f66eaeb92a0da635c92ca34f2f054fdd24e9f2a931a216e7c5c9f34d4b"
+filename_rom_id = "A2TB100B"
+year = 2007
+region = "JDM"
+model = "Legacy"
+trim = "GT-MT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2TB100K-2007-JDM-Subaru-Legacy-GT-spec.B-MT.hex"
+size = 1048576
+sha256 = "b62820ba252fd921c733174dedb71e36874e97cece683bc8284e26203d858717"
+filename_rom_id = "A2TB100K"
+year = 2007
+region = "JDM"
+model = "Legacy"
+trim = "GT-spec.B-MT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2TB100Y-2007-JDM-Legacy-GT-TunedbySTI.hex"
+size = 1048576
+sha256 = "c94faae9bac66224c851db0785e3a5c683a2f4f5d9112f8f58cb6449bf9708cb"
+filename_rom_id = "A2TB100Y"
+year = 2007
+region = "JDM"
+model = "Legacy"
+trim = "GT-TunedbySTI"
+
+[[roms.files]]
+path = "JDM/Legacy/A2UG000B-2006-JDM-Legacy-GT.hex"
+size = 1048576
+sha256 = "1073e1fa354b1d21d24bd8e4aae03549442897281693686168bc3f31bda39c94"
+filename_rom_id = "A2UG000B"
+year = 2006
+region = "JDM"
+model = "Legacy"
+trim = "GT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2UG000k-2006-JDM-Subaru-Legacy-GT-spec.B-MT.hex"
+size = 1048576
+sha256 = "de582f47363ab65b1db60b6052debf5588799d6054e6ac82642c1dd08a05734d"
+filename_rom_id = "A2UG000k"
+year = 2006
+region = "JDM"
+model = "Legacy"
+trim = "GT-spec.B-MT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2UH000A-2006-JDM-Subaru-Legacy-GT-AT.hex"
+size = 1048576
+sha256 = "ecc2c0e69bb5e3b570cb7848eebf56740e9e56b9b641108c434c31d1919bd36a"
+filename_rom_id = "A2UH000A"
+year = 2006
+region = "JDM"
+model = "Legacy"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2UI000K-2007-JDM-Subaru-Legacy-GT-spec.B-MT.hex"
+size = 1048576
+sha256 = "1ef706c90312d03f0b9b0352cba8f934bb69517a3a59f3468116909aa865341a"
+filename_rom_id = "A2UI000K"
+year = 2007
+region = "JDM"
+model = "Legacy"
+trim = "GT-spec.B-MT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2WD000A-2004-JDM-Subaru-Legacy-GT-AT.hex"
+size = 524288
+sha256 = "60e05111a84ea4572c880c4f86257e04d83af536ef2b5927265238c7d83d05d5"
+filename_rom_id = "A2WD000A"
+year = 2004
+region = "JDM"
+model = "Legacy"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2WD001A-2004-JDM-Legacy-GT.hex"
+size = 524288
+sha256 = "946803db51a815840ec42288069215366108a42de284083cf0fedc8aefdb62e3"
+filename_rom_id = "A2WD001A"
+year = 2004
+region = "JDM"
+model = "Legacy"
+trim = "GT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2WD001B-2004-JDM-Subaru-Legacy-GT-MT.hex"
+size = 524288
+sha256 = "f94ab387676955d68bb91c1c2307cef4279e329c2e4e86e4fb83079a3a5a3230"
+filename_rom_id = "A2WD001B"
+year = 2004
+region = "JDM"
+model = "Legacy"
+trim = "GT-MT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2WD010A-2004-JDM-Subaru-Legacy-GT-AT.hex"
+size = 524288
+sha256 = "e493936d0ec3a90cffbcea79b305afba48e179ed9a7fcf4f9b63348ca042cc55"
+filename_rom_id = "A2WD010A"
+year = 2004
+region = "JDM"
+model = "Legacy"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2WD010B-2004-JDM-Subaru-Legacy-GT-MT.hex"
+size = 524288
+sha256 = "6cf6662a0961db5eb099e62876b3dcfcd57235d9f43c750953ec5baebd33e250"
+filename_rom_id = "A2WD010B"
+year = 2004
+region = "JDM"
+model = "Legacy"
+trim = "GT-MT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2WD012A-2004-JDM-Subaru-Legacy-GT-AT.hex"
+size = 524288
+sha256 = "bff7486d557c281f989f1ee19942a0a2a9a42c537ee4c081211cfafdd87f848b"
+filename_rom_id = "A2WD012A"
+year = 2004
+region = "JDM"
+model = "Legacy"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2WD012B-2004-JDM-Legacy-GT.hex"
+size = 524288
+sha256 = "ca57ba0e3dcd23890a504c763308aab29dfc62e4711f1fc97d11660d6b0037e1"
+filename_rom_id = "A2WD012B"
+year = 2004
+region = "JDM"
+model = "Legacy"
+trim = "GT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2ZJ600B-2004-JDM-Legacy-GT.hex"
+size = 524288
+sha256 = "50108ffd797daa8f05e9d1b48fc9885d609911eec8de9022897d3f6b4080856f"
+filename_rom_id = "A2ZJ600B"
+year = 2004
+region = "JDM"
+model = "Legacy"
+trim = "GT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2ZJ601A-2004-JDM-Subaru-Legacy-GT-AT.hex"
+size = 524288
+sha256 = "dc34e9d65af1ac40a77c00c21aad7bfd05cac8c92e9c2628758ba00fe294c794"
+filename_rom_id = "A2ZJ601A"
+year = 2004
+region = "JDM"
+model = "Legacy"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2ZJ800A-2004-JDM-Legacy-GT.hex"
+size = 524288
+sha256 = "fa68dab1e5660197cb2d1e55c68d1fcff5d45cf7bbafd5e9cf3f809f552f76ba"
+filename_rom_id = "A2ZJ800A"
+year = 2004
+region = "JDM"
+model = "Legacy"
+trim = "GT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2ZJC00A-2005-JDM-Legacy-2.0-GT-Auto.hex"
+size = 524288
+sha256 = "d0ff68fbf4de9102178f36e6cc4e8d57a4f4eea86019b024d81fdb7d3162ce83"
+filename_rom_id = "A2ZJC00A"
+year = 2005
+region = "JDM"
+model = "Legacy"
+trim = "2.0-GT-Auto"
+
+[[roms.files]]
+path = "JDM/Legacy/A2ZJC00A-2005-JDM-Subaru-Legacy-GT-AT.hex"
+size = 524288
+sha256 = "b7ef40e8040a8b70f0e8d629af7a8c106c84b163088810e3602e462bf1a61be6"
+filename_rom_id = "A2ZJC00A"
+year = 2005
+region = "JDM"
+model = "Legacy"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2ZJC00B-2004-JDM-Subaru-Legacy-GT-MT.hex"
+size = 524288
+sha256 = "c4c39a57b27072caf10838fa25bc8b4d894a76bda3e0798bcb1ed601024e5946"
+filename_rom_id = "A2ZJC00B"
+year = 2004
+region = "JDM"
+model = "Legacy"
+trim = "GT-MT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2ZJD00A-2004-JDM-Subaru-Legacy-GT-AT.hex"
+size = 524288
+sha256 = "eec916031efd3fe24f64e01a402ca1cb15866a6b2e42bba2b7c73a5aa2267603"
+filename_rom_id = "A2ZJD00A"
+year = 2004
+region = "JDM"
+model = "Legacy"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2ZJD00B-2004-JDM-Subaru-Legacy-GT-MT.hex"
+size = 524288
+sha256 = "0fd23d4caeafdb0e001f4245d607f90fe69c3236a33cd184e75426ed14379e90"
+filename_rom_id = "A2ZJD00B"
+year = 2004
+region = "JDM"
+model = "Legacy"
+trim = "GT-MT"
+
+[[roms.files]]
+path = "JDM/Legacy/A2ZJD02A-2003-JDM-Legacy-2.0-GT-Auto.hex"
+size = 524288
+sha256 = "6500ba8b525e51c7b8c6ddcff9c6a155983d066d1d28cc4d46babc435237d566"
+filename_rom_id = "A2ZJD02A"
+year = 2003
+region = "JDM"
+model = "Legacy"
+trim = "2.0-GT-Auto"
+
+[[roms.files]]
+path = "JDM/Legacy/A4SH701G-2002-JDM-Subaru-Legacy-BH-MT-AT.hex"
+size = 163840
+sha256 = "e6be177418a913988a15244229e1b1a1a5cd1773ba52b19f23895930a0691e9d"
+filename_rom_id = "A4SH701G"
+year = 2002
+region = "JDM"
+model = "Legacy"
+trim = "BH-MT-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/A4SHB00G-2002-JDM-Subaru-Legacy-BH-MT-AT.hex"
+size = 163840
+sha256 = "4635e260b1a6fad121a653a53c071fa07395900be37c27298eabd9694779bfdc"
+filename_rom_id = "A4SHB00G"
+year = 2002
+region = "JDM"
+model = "Legacy"
+trim = "BH-MT-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/A4SHB00H-2002-JDM-Legacy-B4.hex"
+size = 163840
+sha256 = "5da058ed468ee4447bad484e05b5993b72c0cc80afc9949bb2bd23965ac3f016"
+filename_rom_id = "A4SHB00H"
+year = 2002
+region = "JDM"
+model = "Legacy"
+trim = "B4"
+
+[[roms.files]]
+path = "JDM/Legacy/A4SHC00G-2002-JDM-Legacy-B4.hex"
+size = 163840
+sha256 = "d78a275c594b8d979b06ac27f3d24ce6ccf26b9be0716ee28ed728a655611493"
+filename_rom_id = "A4SHC00G"
+year = 2002
+region = "JDM"
+model = "Legacy"
+trim = "B4"
+
+[[roms.files]]
+path = "JDM/Legacy/A4SHC00H-2002-03-JDM-Subaru-Legacy-2.0TT-MT.hex"
+size = 163840
+sha256 = "869aa1d5af2cf7628ceaa0acb9f8bb63e00ec3eb3c02ae2f1820da5160b9d185"
+filename_rom_id = "A4SHC00H"
+year = 2002
+year_end = 2003
+region = "JDM"
+model = "Legacy"
+trim = "2.0TT-MT"
+
+[[roms.files]]
+path = "JDM/Legacy/A4SHC01G-2002-JDM-Legacy-B4-MTAT.hex"
+size = 163840
+sha256 = "59a5feb7eb246f9a846e1a52723fd1dbb3fad3fb045bf2d23722ac52d885d07d"
+filename_rom_id = "A4SHC01G"
+year = 2002
+region = "JDM"
+model = "Legacy"
+trim = "B4-MTAT"
+
+[[roms.files]]
+path = "JDM/Legacy/AE5F300A-2012-JDM-Subaru-Legacy-GT-AT.hex"
+size = 1048576
+sha256 = "f5119f34a204226a4c8a5b089e53c98a1525ca4593ec66dae59d38b966fc290d"
+filename_rom_id = "AE5F300A"
+year = 2012
+region = "JDM"
+model = "Legacy"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/AE5F300B-2009-JDM-Subaru-Legacy-GT-AT.hex"
+size = 1048576
+sha256 = "730a1b23d2d2b7ee137a445f6f8962af6e37109eca5564ec264ab701decf0099"
+filename_rom_id = "AE5F300B"
+year = 2009
+region = "JDM"
+model = "Legacy"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/AE5I001A-2011-JDM-Subaru-Legacy-GT-AT.hex"
+size = 1048576
+sha256 = "f661b0f02662837898dd80c33a8b5c6cc95b8263b5a8a5252351c463318cb26a"
+filename_rom_id = "AE5I001A"
+year = 2011
+region = "JDM"
+model = "Legacy"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/AE5I410A-2011-JDM-Subaru-Legacy-GT-AT.hex"
+size = 1048731
+sha256 = "cb8833b2fa5bd5d93b384d7cdf6b4c0c499cf69abd2109f3fe49f33c34f98c72"
+filename_rom_id = "AE5I410A"
+year = 2011
+region = "JDM"
+model = "Legacy"
+trim = "GT-AT"
+
+[roms.files.suspect]
+kind = "container"
+reason = "size 1048731 = 155 + 1048576, not a standard size: tagged-chunk container, not a raw image: chunks INFO(39) DRMI(48) MEML(36) MEMD(1048576); a 155-byte header, then the MEMD payload, a standard 1048576-byte image (1 MiB, SH7058) ending the file; not CRLF expansion (1829 bare LF, 9 CR-before-LF)"
+image_offset = 155
+image_size = 1048576
+
+[[roms.files]]
+path = "JDM/Legacy/AE5I500G-2011-JDM-Subaru-Legacy-GT-AT.hex"
+size = 1048576
+sha256 = "00ffa8eb75cf265ff5e9e09d53e5388d26451e96a15d037ee9420763b6bbaaa7"
+filename_rom_id = "AE5I500G"
+year = 2011
+region = "JDM"
+model = "Legacy"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/D2PH410Q-2007-JDM-Subaru-Legacy-3.0R-AT.hex"
+size = 1048576
+sha256 = "2381e31bf6cccf32ccd5d7407621d97d1c5cc061e39af29e096f5ad8713525a3"
+filename_rom_id = "D2PH410Q"
+year = 2007
+region = "JDM"
+model = "Legacy"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/D2SB001Q-2008-JDM-Subaru-Legacy-3.0R-AT.hex"
+size = 1048576
+sha256 = "2d084401b8719253a7126d4a9a24926e95f26d092fec56b9d42631e09b1987b7"
+filename_rom_id = "D2SB001Q"
+year = 2008
+region = "JDM"
+model = "Legacy"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/D2UK001Q-2007-JDM-Subaru-Legacy-3.0R-AT.hex"
+size = 1048576
+sha256 = "565972637ee902e8f0c442112fcf96cc850464047b793d42f029bd78e79d1cfb"
+filename_rom_id = "D2UK001Q"
+year = 2007
+region = "JDM"
+model = "Legacy"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/D2WD200A-2004-JDM-Legacy-3.0R.hex"
+size = 524288
+sha256 = "fcef7eed0c13fa40754e1fb24f410e3406f8c393176e11b338ff5ea244ffa359"
+filename_rom_id = "D2WD200A"
+year = 2004
+region = "JDM"
+model = "Legacy"
+trim = "3.0R"
+
+[[roms.files]]
+path = "JDM/Legacy/D2WD610A-2005-JDM-Subaru-Legacy-3.0R-MT.hex"
+size = 524288
+sha256 = "52bb4c065af90ef18b9623680f09f3d334ffd9bf6059fced3df43f3fda06aa1e"
+filename_rom_id = "D2WD610A"
+year = 2005
+region = "JDM"
+model = "Legacy"
+trim = "3.0R-MT"
+
+[[roms.files]]
+path = "JDM/Legacy/D2ZR003A-2003-JDM-Subaru-Legacy-3.0R-AT.hex"
+size = 524288
+sha256 = "757d8a297e0382aeec803fb8754ef9497746422e33d8d159cf2869e5cc2e0cee"
+filename_rom_id = "D2ZR003A"
+year = 2003
+region = "JDM"
+model = "Legacy"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/D2ZU002A-2004-JDM-Subaru-Legacy-3.0R-AT.hex"
+size = 524288
+sha256 = "f7105960b657f64b089030e4863cb1072efc22fcd2fb84895cf1f9251c8632c2"
+filename_rom_id = "D2ZU002A"
+year = 2004
+region = "JDM"
+model = "Legacy"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/D2ZU200A-2004-JDM-Subaru-Legacy-3.0R-AT.hex"
+size = 524288
+sha256 = "329f47a772e2c80e527309ddb1a2dba1dc1ee34e3646e7c3dea013d3e61a8878"
+filename_rom_id = "D2ZU200A"
+year = 2004
+region = "JDM"
+model = "Legacy"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/E2SB001K-2008-JDM-Subaru-Legacy-2.5i-AT.hex"
+size = 1048576
+sha256 = "2b7afb1b2e24c3433e1d7a976ed614fc3002218b45f943753131db061d3b8108"
+filename_rom_id = "E2SB001K"
+year = 2008
+region = "JDM"
+model = "Legacy"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "JDM/Legacy/E2UD001E-2007-JDM-Legacy-2.0-sohc-B-sport-Auto.hex"
+size = 1048576
+sha256 = "b13fd4178eb1be2d68430f2f823bb8ca254cdabcefa3e73867574f59da78036b"
+filename_rom_id = "E2UD001E"
+year = 2007
+region = "JDM"
+model = "Legacy"
+trim = "2.0-sohc-B-sport-Auto"
+
+[[roms.files]]
+path = "JDM/Legacy/E2ZD308E-2004-JDM-Legacy-2.0.hex"
+size = 524288
+sha256 = "e8880b56084926cf238e167c19ad4750e4006e74bf1cf25abd1c204d2c7f4f66"
+filename_rom_id = "E2ZD308E"
+year = 2004
+region = "JDM"
+model = "Legacy"
+trim = "2.0"
+
+[[roms.files]]
+path = "JDM/Outback/A2SB000Y-2008-JDM-Subaru-Outback-XT-AT.hex"
+size = 1048576
+sha256 = "22e0291472f78805be3b9c7ad5fd9b16f07f37919ffd29449afc9b7a838c5730"
+filename_rom_id = "A2SB000Y"
+year = 2008
+region = "JDM"
+model = "Outback"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "JDM/Outback/D0XJ001Q-2005-JDM-Subaru-Outback-3.0R-AT.hex"
+size = 1048576
+sha256 = "1b4d2bacd52cfb1b5ffc9308d5519afe4d82b42e0bb86614d37352e9936bcddb"
+filename_rom_id = "D0XJ001Q"
+year = 2005
+region = "JDM"
+model = "Outback"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "JDM/Outback/D2WD606A-2005-JDM-Subaru-Outback-3.0R-MT.hex"
+size = 524288
+sha256 = "fad471b4060f616525e81ad85840e2ec62a89ac6dbe60c19cc72b92bdbd16a20"
+filename_rom_id = "D2WD606A"
+year = 2005
+region = "JDM"
+model = "Outback"
+trim = "3.0R-MT"
+
+[[roms.files]]
+path = "JDM/Outback/E2SB002L-2008-JDM-Subaru-Outback-2.5i-MT.hex"
+size = 1048576
+sha256 = "91025bbdd43f0762de5e9a6066d22ce118be411c5992df9be7354dad436bdd79"
+filename_rom_id = "E2SB002L"
+year = 2008
+region = "JDM"
+model = "Outback"
+trim = "2.5i-MT"
+
+[[roms.files]]
+path = "JDM/Outback/E2WD500D-2005-JDM-Outback-2.5i.hex"
+size = 524288
+sha256 = "a8140b0c462a0a93fe1fadb51f020347d4e22647b6087a82b29dd1b15e4b37fc"
+filename_rom_id = "E2WD500D"
+year = 2005
+region = "JDM"
+model = "Outback"
+trim = "2.5i"
+
+[[roms.files]]
+path = "JDM/Outback/EE5K000K-2011-JDM-Subaru-Outback-2.5i-AT.hex"
+size = 1048576
+sha256 = "d1c347e9a938016574ffbe35c00d266bbe351195a55960189364bb736af0dde7"
+filename_rom_id = "EE5K000K"
+year = 2011
+region = "JDM"
+model = "Outback"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Baja/A2WC400L-2005-USDM-Subaru-Baja-Turbo-MT.hex"
+size = 1048576
+sha256 = "ba5f204a14f0db2100e14dba01ab4de1c343c6c40f088ea816833b45d6d42607"
+filename_rom_id = "A2WC400L"
+year = 2005
+region = "USDM"
+model = "Baja"
+trim = "Turbo-MT"
+
+[[roms.files]]
+path = "USDM/Baja/A2WC50-A2WC50ZU-2004-USDM-Subaru-Baja-XT-AT.hex"
+size = 1048576
+sha256 = "11260041a9a51bf9dc3c891b24acf4a9f95ede110fe769d184939967e7a2889a"
+
+[[roms.files]]
+path = "USDM/Baja/A2WC500K-2005-USDM-Baja-Turbo.hex"
+size = 1048576
+sha256 = "47ba427f8cfbb3acb340bc7f9e88a7ab5b92015849ff9d0c25b7778ee44d006e"
+filename_rom_id = "A2WC500K"
+year = 2005
+region = "USDM"
+model = "Baja"
+trim = "Turbo"
+
+[[roms.files]]
+path = "USDM/Baja/A2WC500L-2005-USDM-Baja-Turbo.hex"
+size = 1048576
+sha256 = "9b96cbc45d9fce682a1017bdb9e4296cff47c4da306762b5965605a0d2912774"
+filename_rom_id = "A2WC500L"
+year = 2005
+region = "USDM"
+model = "Baja"
+trim = "Turbo"
+
+[[roms.files]]
+path = "USDM/Baja/A2WC501K-2005-USDM-Subaru-Baja-Turbo-AT.hex"
+size = 1048576
+sha256 = "2aeddff84dae17ad1b31f692b59a4b53b020718324347c4762fb5f03899ff4ed"
+filename_rom_id = "A2WC501K"
+year = 2005
+region = "USDM"
+model = "Baja"
+trim = "Turbo-AT"
+
+[[roms.files]]
+path = "USDM/Baja/A2WC501L-2005-USDM-Baja-Turbo.hex"
+size = 1048576
+sha256 = "1625236ab2ff74d19e64f960ab7c66ed32f2417614f781059a8d6e7deabca3b5"
+filename_rom_id = "A2WC501L"
+year = 2005
+region = "USDM"
+model = "Baja"
+trim = "Turbo"
+
+[[roms.files]]
+path = "USDM/Baja/A2WF100L-2006-USDM-Subaru-Baja-Turbo-MT.hex"
+size = 1048576
+sha256 = "1058e2b791263b27114301aab87976c5903bae26e36e57a73266e90a42dc1256"
+filename_rom_id = "A2WF100L"
+year = 2006
+region = "USDM"
+model = "Baja"
+trim = "Turbo-MT"
+
+[[roms.files]]
+path = "USDM/Baja/A2WF101K-2006-USDM-Subaru-Baja-Turbo-AT.hex"
+size = 1048576
+sha256 = "6523dfe8816a7d243caa43182291dbca0bb3dd8d99344b9889c9199ffa25f627"
+filename_rom_id = "A2WF101K"
+year = 2006
+region = "USDM"
+model = "Baja"
+trim = "Turbo-AT"
+
+[[roms.files]]
+path = "USDM/Baja/A2WF101L-2006-USDM-Baja-Turbo.hex"
+size = 1048576
+sha256 = "142d3d3514e375f2d47a75d34776495717d547c30b15591e4c4630f4fbee718a"
+filename_rom_id = "A2WF101L"
+year = 2006
+region = "USDM"
+model = "Baja"
+trim = "Turbo"
+
+[[roms.files]]
+path = "USDM/Baja/A2ZJ500K-2004-USDM-Baja-Turbo.hex"
+size = 524288
+sha256 = "bf99c6dde74d238606f76b6f13319cf9a573a7ac0f7617b82a186e1d3682ffd9"
+filename_rom_id = "A2ZJ500K"
+year = 2004
+region = "USDM"
+model = "Baja"
+trim = "Turbo"
+
+[[roms.files]]
+path = "USDM/Baja/A2ZJ500L-2004-USDM-Subaru-Baja-Turbo-MT.hex"
+size = 524288
+sha256 = "b7014e41bf8c9d23d35ca5a278db5ad9a50f66f8013ce9ddb9a66f29faeadde3"
+filename_rom_id = "A2ZJ500L"
+year = 2004
+region = "USDM"
+model = "Baja"
+trim = "Turbo-MT"
+
+[[roms.files]]
+path = "USDM/Forester/A2WC400D-2005-USDM-Forester-XT.hex"
+size = 1048576
+sha256 = "e80283e4cb60882f60bbe7dae09391004bf74d26993f5ca80f04e1afc16ffb25"
+filename_rom_id = "A2WC400D"
+year = 2005
+region = "USDM"
+model = "Forester"
+trim = "XT"
+
+[[roms.files]]
+path = "USDM/Forester/A2WC400I-2005-USDM-Subaru-Forester-XT-MT.hex"
+size = 1048576
+sha256 = "4ea490a6e38e154f06974a4d977f62315c216737e25d0ac3cdc0f7e04c221b46"
+filename_rom_id = "A2WC400I"
+year = 2005
+region = "USDM"
+model = "Forester"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "USDM/Forester/A2WC410D-2005-USDM-Subaru-Forester-XT-AT.hex"
+size = 1048576
+sha256 = "c927f613f9b5fc8022fac8e2a7716adb3420c7f53aa7f540cc2e134294af653c"
+filename_rom_id = "A2WC410D"
+year = 2005
+region = "USDM"
+model = "Forester"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "USDM/Forester/A2WC410I-2005-USDM-Subaru-Forester-XT-MT.hex"
+size = 1048576
+sha256 = "b962839a8abc05421ea202fc8d52354fef2066732aa0167c7b2e95e528a0ce62"
+filename_rom_id = "A2WC410I"
+year = 2005
+region = "USDM"
+model = "Forester"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "USDM/Forester/A2WC411I-2005-USDM-Subaru-Forester-XT-MT.hex"
+size = 1048576
+sha256 = "fc50ab427f483145e690aed8073bd2b6644e712d3b9a65734204444bd4b562a8"
+filename_rom_id = "A2WC411I"
+year = 2005
+region = "USDM"
+model = "Forester"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "USDM/Forester/A2WC412D-2005-USDM-Subaru-Forester-XT-AT.hex"
+size = 1048576
+sha256 = "9e3fef13a900745e6704188d76d12f021f984ad2e670b7df007d6943e3532d49"
+filename_rom_id = "A2WC412D"
+year = 2005
+region = "USDM"
+model = "Forester"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "USDM/Forester/A2WC412I-2005-USDM-Subaru-Forester-XT-MT.hex"
+size = 1048576
+sha256 = "17fdfa864404aa73d59c8b5780926e7c80ab6f4dd9c6e3bc9d6ffbc29554c2c9"
+filename_rom_id = "A2WC412I"
+year = 2005
+region = "USDM"
+model = "Forester"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "USDM/Forester/A2ZJ201D-2004-USDM-Forester-XT.hex"
+size = 524288
+sha256 = "8cec49398c059ee358d813d8fdbbb063d6939fe8368a5028fc0549e805f2dba8"
+filename_rom_id = "A2ZJ201D"
+year = 2004
+region = "USDM"
+model = "Forester"
+trim = "XT"
+
+[[roms.files]]
+path = "USDM/Forester/A2ZJ500I-2004-USDM-Subaru-Forester-XT-MT.hex"
+size = 524288
+sha256 = "37b12b582f64ba51f36072bbc4f77e542a53093d79cb090c9f2b58163e7a0dae"
+filename_rom_id = "A2ZJ500I"
+year = 2004
+region = "USDM"
+model = "Forester"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "USDM/Forester/A2ZJ512I-2004-USDM-Forester-XT.hex"
+size = 524288
+sha256 = "e2d90a8a428583a508e8437652f906a53fcf14e69ee656eeea3b6cd811943f8e"
+filename_rom_id = "A2ZJ512I"
+year = 2004
+region = "USDM"
+model = "Forester"
+trim = "XT"
+
+[[roms.files]]
+path = "USDM/Forester/A8DH100I-2006-USDM-Subaru-Forester-XT-MT.hex"
+size = 1048576
+sha256 = "d7ca49f41b6acfe70411a98972963b471ee809456d2c5a462ec84cc81f2604c5"
+filename_rom_id = "A8DH100I"
+year = 2006
+region = "USDM"
+model = "Forester"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "USDM/Forester/A8DH101I-2006-USDM-Subaru-Forester-XT-MT.hex"
+size = 1048576
+sha256 = "6facad589405bea6a19bc800b226df203a929a6aefb2d5f41328659b70ff2dfc"
+filename_rom_id = "A8DH101I"
+year = 2006
+region = "USDM"
+model = "Forester"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "USDM/Forester/A8DK100D-2007-USDM-Subaru-Forester-XT-AT.hex"
+size = 1048576
+sha256 = "63cb619791da4d918d21b3dde2969fa13a6fbb395d836b54b94f13e9c4a95d56"
+filename_rom_id = "A8DK100D"
+year = 2007
+region = "USDM"
+model = "Forester"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "USDM/Forester/A8DK100I-2007-2008-USDM-Forester-XT.hex"
+size = 1048576
+sha256 = "60cbc721c02083b007124a35e2314c5874e7ec14479ff6cd31bf25940ec7fc27"
+filename_rom_id = "A8DK100I"
+year = 2007
+year_end = 2008
+region = "USDM"
+model = "Forester"
+trim = "XT"
+
+[[roms.files]]
+path = "USDM/Forester/AE5IB40R-2011-USDM-Subaru-Forester-XT-AT.hex"
+size = 1048576
+sha256 = "cd7039fd21bc30041bc045ab48bccdaffb4f1dee3bf32aafd1c46462bd91c27a"
+filename_rom_id = "AE5IB40R"
+year = 2011
+region = "USDM"
+model = "Forester"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "USDM/Forester/AE5L500R-2013-USDM-Subaru-Forester-XT-MT.hex"
+size = 1048576
+sha256 = "d84fcf9a311338492fd9b5724a09c5e95e0766c49500ab996f66ed02f52640b2"
+filename_rom_id = "AE5L500R"
+year = 2013
+region = "USDM"
+model = "Forester"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "USDM/Forester/AZ1G101R-2009-USDM-Subaru-Forester-XT-AT.hex"
+size = 1048576
+sha256 = "ffc47b003df6cccdfd9408e04a328c828bfe8dc968905fc66cf01dc49d457139"
+filename_rom_id = "AZ1G101R"
+year = 2009
+region = "USDM"
+model = "Forester"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "USDM/Forester/AZ1G601R-2010-USDM-Subaru-Forester-XT-AT.hex"
+size = 1048576
+sha256 = "f4e293d5b6812e73b505c662d2c6363e67c637d0cd230ad5d81ac8afb4230940"
+filename_rom_id = "AZ1G601R"
+year = 2010
+region = "USDM"
+model = "Forester"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "USDM/Forester/E2TB011I-2008-USDM-Subaru-Forester-2.5-AT.hex"
+size = 1048576
+sha256 = "f2a308209a07b2bf44b786a8810038941f43fb9891c017de8a1cc657d0be9286"
+filename_rom_id = "E2TB011I"
+year = 2008
+region = "USDM"
+model = "Forester"
+trim = "2.5-AT"
+
+[[roms.files]]
+path = "USDM/Forester/E2UG001I-2007-USDM-Subaru-Forester-2.5i-MT-AT.hex"
+size = 1048576
+sha256 = "444c94fdf1841fc0c50da766f6588b9e7cda295cafc5c88e4c0daa4831ab32c1"
+filename_rom_id = "E2UG001I"
+year = 2007
+region = "USDM"
+model = "Forester"
+trim = "2.5i-MT-AT"
+
+[[roms.files]]
+path = "USDM/Forester/E2VG211D-2006-USDM-Subaru-Forester-2.5-MT-AT.hex"
+size = 1048576
+sha256 = "80032c357f1bfdf9c576454d87b8b0140107459ddaa9f456ddde5afbc74120da"
+filename_rom_id = "E2VG211D"
+year = 2006
+region = "USDM"
+model = "Forester"
+trim = "2.5-MT-AT"
+
+[[roms.files]]
+path = "USDM/Forester/E2VG212D-2006-USDM-Subaru-Forester-2.5i-MT-AT.hex"
+size = 1048576
+sha256 = "22c7932b3933998e0d1db51e609b805ea5da9d7c66759d0a4f3e86e6d54d6313"
+filename_rom_id = "E2VG212D"
+year = 2006
+region = "USDM"
+model = "Forester"
+trim = "2.5i-MT-AT"
+
+[[roms.files]]
+path = "USDM/Forester/E2VG221D-2007-USDM-Subaru-Forester-2.5-MT-AT.hex"
+size = 1048576
+sha256 = "c13a70ee1cadc628b965d5aef6fd440aeeed0056b8724c79a10613f93c014bef"
+filename_rom_id = "E2VG221D"
+year = 2007
+region = "USDM"
+model = "Forester"
+trim = "2.5-MT-AT"
+
+[[roms.files]]
+path = "USDM/Forester/E2ZJ101H-2005-USDM-Subaru-Forester-XS-MT-AT.hex"
+size = 1048576
+sha256 = "c783ae3539bac87421a3a99f141ff6c2773d0339c2907730516da2f8fe024e82"
+filename_rom_id = "E2ZJ101H"
+year = 2005
+region = "USDM"
+model = "Forester"
+trim = "XS-MT-AT"
+
+[[roms.files]]
+path = "USDM/Forester/E2ZJ121H-2005-USDM-Subaru-Forester-2.5-MT-AT.hex"
+size = 1048576
+sha256 = "8533dc245f05adaf6ecf08b4c917d1f5d0b309e3dc3e7f46224d72ebb68e19a1"
+filename_rom_id = "E2ZJ121H"
+year = 2005
+region = "USDM"
+model = "Forester"
+trim = "2.5-MT-AT"
+
+[[roms.files]]
+path = "USDM/Forester/EP5D201D-2011-USDM-Subaru-Forester-2.5i-AT.hex"
+size = 1048576
+sha256 = "f05446304ea9df499cc9d5ff21dc166c5d9e435e23a648394142fef2b1ae34fc"
+filename_rom_id = "EP5D201D"
+year = 2011
+region = "USDM"
+model = "Forester"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Forester/EP5D202A-2011-USDM-Subaru-Forester-2.0X-MT.hex"
+size = 1048576
+sha256 = "4bc2e2bd7fd37f24daa51b3acbd695a1070cda9d7b32cb8b1f5199b22cda9aad"
+filename_rom_id = "EP5D202A"
+year = 2011
+region = "USDM"
+model = "Forester"
+trim = "2.0X-MT"
+
+[[roms.files]]
+path = "USDM/Forester/EP5G211a-2012-USDM-Subaru-Forester-2.5-FB-MT.hex"
+size = 1048576
+sha256 = "c4a0006e7ef653a32e5989ea1381bbefba7c6b5df4093e7b04e46a74b12547d9"
+filename_rom_id = "EP5G211a"
+year = 2012
+region = "USDM"
+model = "Forester"
+trim = "2.5-FB-MT"
+
+[[roms.files]]
+path = "USDM/Forester/EZ1G108K-2009-USDM-Subaru-Forester-2.5i-AT.hex"
+size = 1048576
+sha256 = "5fabb2a56b4edf5a242f6c8d932e315ef1cba7c3b27e11f9929778b11c9e2864"
+filename_rom_id = "EZ1G108K"
+year = 2009
+region = "USDM"
+model = "Forester"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Forester/EZ1G109J-2009-USDM-Subaru-Forester-2.5i-MT.hex"
+size = 1048576
+sha256 = "0ca3cf59c403e5c6821f0164e92a9f957612e7d5da87f687bf23ea11539c29e1"
+filename_rom_id = "EZ1G109J"
+year = 2009
+region = "USDM"
+model = "Forester"
+trim = "2.5i-MT"
+
+[[roms.files]]
+path = "USDM/Forester/EZ1G109K-2009-USDM-Subaru-Forester-2.5-MT.hex"
+size = 1048576
+sha256 = "fe451fde9fc4d794c52be558e180f03955f4f410f914cfa94a147090a9de3a34"
+filename_rom_id = "EZ1G109K"
+year = 2009
+region = "USDM"
+model = "Forester"
+trim = "2.5-MT"
+
+[[roms.files]]
+path = "USDM/Forester/EZ1G110J-2010-USDM-Subaru-Forester-2.5i-AT.hex"
+size = 1048576
+sha256 = "10384d83e707989752b21c10189081563ccf6f624d8ea48c6b5dcd457f301d5d"
+filename_rom_id = "EZ1G110J"
+year = 2010
+region = "USDM"
+model = "Forester"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Forester/EZ1GB00J-2009-USDM-Subaru-Forester-2.5i-AT.hex"
+size = 1048576
+sha256 = "6d803f03541717149e7e4a48cf608e14757c065ba48b39e2e578bf42c65c478d"
+filename_rom_id = "EZ1GB00J"
+year = 2009
+region = "USDM"
+model = "Forester"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Forester/EZ1GB10J-2010-USDM-Subaru-Forester-2.5i-AT.hex"
+size = 1048576
+sha256 = "64819a2a3a4c900f534f32a28fe910ae3646daaa3e312e36d92804df3fba0aba"
+filename_rom_id = "EZ1GB10J"
+year = 2010
+region = "USDM"
+model = "Forester"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Forester/EZ1GB10K-2010-USDM-Subaru-Forester-2.5i-MT.hex"
+size = 1048576
+sha256 = "c248589e09a99335d8ed74b802e2ecd03db9fceaa571f328b2a2d2d94ce0e2ae"
+filename_rom_id = "EZ1GB10K"
+year = 2010
+region = "USDM"
+model = "Forester"
+trim = "2.5i-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/A2UG000J-2007-USDM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "aaf49b9325697f693788d2251a4c16eed89236aa37c14eb34544f76b827efe3a"
+filename_rom_id = "A2UG000J"
+year = 2007
+region = "USDM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/A2UJ000J-2007-USDM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "94f00702cf3d952b34225a0d60a8c978c8cbfa934b914ea58e76126ffea43f9b"
+filename_rom_id = "A2UJ000J"
+year = 2007
+region = "USDM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/A2UJ000J-2007-USDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "15679f03ff6cf36f6b96d49e032791fe7c3c4b9d034832454cca5618e73aa02d"
+filename_rom_id = "A2UJ000J"
+year = 2007
+region = "USDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "USDM/Impreza/A2ZJ500J-2004-USDM-Subaru-Impreza-STi.hex"
+size = 524288
+sha256 = "8e5ec3e0d6255aab7e85aa8d3fec5ec57e0a44ae6020bc57763bd75c42d43d2e"
+filename_rom_id = "A2ZJ500J"
+year = 2004
+region = "USDM"
+model = "Impreza"
+trim = "STi"
+
+[[roms.files]]
+path = "USDM/Impreza/A2ZJ700J-2004-USDM-Subaru-Impreza-STI.hex"
+size = 524288
+sha256 = "069f737dccf4b049f74e5af01e97deb7da73f30b589bf6984d389d76ba5697e8"
+filename_rom_id = "A2ZJ700J"
+year = 2004
+region = "USDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "USDM/Impreza/A2ZJ710J-2004-USDM-Subaru-Impreza-STi.hex"
+size = 524288
+sha256 = "f3e84376ec0808a2acec444ae2494266d3cd1c85526199edcb30901ded04ffd3"
+filename_rom_id = "A2ZJ710J"
+year = 2004
+region = "USDM"
+model = "Impreza"
+trim = "STi"
+
+[[roms.files]]
+path = "USDM/Impreza/A2ZJB10J-2005-USDM-Subaru-Impreza-STi.hex"
+size = 1048576
+sha256 = "1e6d53c2fbfefc185bf02e79da5589bb4a51a333e3b40106e5c79cb72c683690"
+filename_rom_id = "A2ZJB10J"
+year = 2005
+region = "USDM"
+model = "Impreza"
+trim = "STi"
+
+[[roms.files]]
+path = "USDM/Impreza/A2ZJB11J-2005-USDM-Subaru-Impreza-STi-MT.hex"
+size = 1048576
+sha256 = "2dfcd57a4deace066049ae3bc07195faa46831615a639db87524e843db43e706"
+filename_rom_id = "A2ZJB11J"
+year = 2005
+region = "USDM"
+model = "Impreza"
+trim = "STi-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/A2ZJE11J-2006-USDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "f4d5f692a68e778b2456981e838b8eef085a3929aa8af5b5b39a841cfa5745b9"
+filename_rom_id = "A2ZJE11J"
+year = 2006
+region = "USDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "USDM/Impreza/A4SG900C-2002-USDM-Subaru-Impreza-WRX.hex"
+size = 196608
+sha256 = "e3529439de00e970495b2babcfe5cd036191249ec01dc7a039b9d9ebcb2cb5db"
+filename_rom_id = "A4SG900C"
+year = 2002
+region = "USDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "USDM/Impreza/A4SGA00C-2002-USDM-Subaru-Impreza-WRX.hex"
+size = 163840
+sha256 = "80590ac32412c2be883481b0be2a6f93465ea8f6adb00f20533a34b8eacfc1c0"
+filename_rom_id = "A4SGA00C"
+year = 2002
+region = "USDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "USDM/Impreza/A4SGC00C-2002-USDM-Subaru-Impreza-WRX.hex"
+size = 163840
+sha256 = "6ca42418f124e706f2771e5c584dccd1ea06e488f627882915d7e8d30de90659"
+filename_rom_id = "A4SGC00C"
+year = 2002
+region = "USDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "USDM/Impreza/A4SGD10C-2002-USDM-Subaru-Impreza-WRX.hex"
+size = 196608
+sha256 = "00913cba001bc1cb8755fa889f277a4b9c02cc51e2b856f5caaf58234d794876"
+filename_rom_id = "A4SGD10C"
+year = 2002
+region = "USDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "USDM/Impreza/A4SGE00C-2002-USDM-Subaru-Impreza-WRX-MT-AT.hex"
+size = 163840
+sha256 = "6201a64634dffe6d5e6c197b4ab64e531106b405243ed1163d3838021e5f1f30"
+filename_rom_id = "A4SGE00C"
+year = 2002
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/A4SGE01C-2002-USDM-Subaru-Impreza-WRX.hex"
+size = 163840
+sha256 = "ce7339f4bb9dd052b1e09f14e78a52ba609234ac694ba6d3cbe7bf8597bb139e"
+filename_rom_id = "A4SGE01C"
+year = 2002
+region = "USDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "USDM/Impreza/A4TC101L-2003-USDM-Subaru-Impreza-WRX.hex"
+size = 163840
+sha256 = "1a910c7ad86739fd8780837b79463db71e5a8a599848618811f97f5abb4e5d83"
+filename_rom_id = "A4TC101L"
+year = 2003
+region = "USDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "USDM/Impreza/A4TC300K-2003-USDM-Subaru-Impreza-WRX-AT.hex"
+size = 163840
+sha256 = "7c70f34177f22378d85eb4c42a5bce0da97195d6adf1534efd2ca932a17dd571"
+filename_rom_id = "A4TC300K"
+year = 2003
+region = "USDM"
+model = "Impreza"
+trim = "WRX-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/A4TC300L-2003-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 163840
+sha256 = "88b402459b0eb6c423351c0b002df3a7d45a32ad1cb34f894fc322a77b0ec85b"
+filename_rom_id = "A4TC300L"
+year = 2003
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/A4TC400L-2003-USDM-Subaru-Impreza-WRX.hex"
+size = 196608
+sha256 = "8821d035016c1c168d7df21be1f2ff884eca2c36e9e1e4937e7967eadb1558ce"
+filename_rom_id = "A4TC400L"
+year = 2003
+region = "USDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "USDM/Impreza/A4TC401L-2003-USDM-Subaru-Impreza-WRX.hex"
+size = 196608
+sha256 = "a6d2c213340c7881f0aa173b9019295905eca514a26b965d529269f3240c93e0"
+filename_rom_id = "A4TC401L"
+year = 2003
+region = "USDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "USDM/Impreza/A4TF300E-2004-USDM-Subaru-Impreza-WRX.hex"
+size = 196608
+sha256 = "c235da8424029a63c3f2f1dcdf9c7c1627554a6305c5cd498ff4387d923fcd3b"
+filename_rom_id = "A4TF300E"
+year = 2004
+region = "USDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "USDM/Impreza/A4TF300F-2004-USDM-Subaru-Impreza-WRX.hex"
+size = 196608
+sha256 = "a85fdd7de43eba8d29f5b187ecf437886dbc58887512d518fc64cea237b7f1eb"
+filename_rom_id = "A4TF300F"
+year = 2004
+region = "USDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "USDM/Impreza/A4TF400E-2004-USDM-Subaru-Impreza-WRX-AT.hex"
+size = 163840
+sha256 = "88e67a9a9c9cc4b67f7701c4a942df07519c3d22c7be81bebbfeef2a5a0bd497"
+filename_rom_id = "A4TF400E"
+year = 2004
+region = "USDM"
+model = "Impreza"
+trim = "WRX-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/A4TF500F-2004-USDM-Subaru-Impreza-WRX.hex"
+size = 196608
+sha256 = "50f93809f4068a440f707fdd33204aded6406add92b7ff40fc7d9adacd6c05bc"
+filename_rom_id = "A4TF500F"
+year = 2004
+region = "USDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "USDM/Impreza/A4TF510E-2004-USDM-Subaru-Impreza-WRX-AT.hex"
+size = 163840
+sha256 = "84362ac5a42b5bc3552bed96dcf1a80e8e092471e2cbc07f3a0b223d6965a20d"
+filename_rom_id = "A4TF510E"
+year = 2004
+region = "USDM"
+model = "Impreza"
+trim = "WRX-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/A4TF510F-2004-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 163840
+sha256 = "6ae0bf9dd76ce55d944d4de0a0c1434f08c9c5db0ac417afe499fabd02454f97"
+filename_rom_id = "A4TF510F"
+year = 2004
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/A4TF520F-2004-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 196608
+sha256 = "01a4cf18cb9dd5abda1891d2635091202f3b1bb7cb7c9198f63b0c400b314772"
+filename_rom_id = "A4TF520F"
+year = 2004
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/A4TF520F-2004-USDM-Subaru-Impreza-WRX.hex"
+size = 196608
+sha256 = "15792467da9abcae2f3e1dd0f1fd9a69444425ba60ad0c71bd02028deb8c6fb0"
+filename_rom_id = "A4TF520F"
+year = 2004
+region = "USDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "USDM/Impreza/A4TF800E-2005-USDM-Subaru-Impreza-WRX-AT.hex"
+size = 163840
+sha256 = "34baed977152122a85c1cf3b3db2d21b4a95bd12b51bece892509fcacb5b93cd"
+filename_rom_id = "A4TF800E"
+year = 2005
+region = "USDM"
+model = "Impreza"
+trim = "WRX-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/A4TF800F-2005-USDM-Subaru-Impreza-WRX.hex"
+size = 196608
+sha256 = "a94ca77f04a5755cf9e15a49beff2f32d93bb3a1bb8b0839f7ff85de5cee58f7"
+filename_rom_id = "A4TF800F"
+year = 2005
+region = "USDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "USDM/Impreza/A4TF810F-2005-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 163840
+sha256 = "12bface15b8b5b6e2d703cea9037d3f6802861c22ef73fdc7d7477e2d1f168e5"
+filename_rom_id = "A4TF810F"
+year = 2005
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/A8DH200W-2006-USDM-Subaru-Impreza-WRX-AT.hex"
+size = 1048576
+sha256 = "26095dcc85848efb679a4f8f279517705783e734739b035aef4265ad512da448"
+filename_rom_id = "A8DH200W"
+year = 2006
+region = "USDM"
+model = "Impreza"
+trim = "WRX-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/A8DH200X-2006-USDM-Subaru-Impreza-WRX.hex"
+size = 1048576
+sha256 = "30538cf52381f4c459b36fae0dc408593a991d758b7b1cb5c9a14d1eb7c5efb1"
+filename_rom_id = "A8DH200X"
+year = 2006
+region = "USDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "USDM/Impreza/A8DH201X-2006-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "74810fa9b8b8afcfda98c458e5a454120c7e44d65e0d5b4313aa27e72d8a1a1e"
+filename_rom_id = "A8DH201X"
+year = 2006
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/A8DH202X-2006-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "bb4928e7c136b6a4539dddc6697cfd15aa91465adabf3fb5bb9ad1dacb111462"
+filename_rom_id = "A8DH202X"
+year = 2006
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/A8DK100W-2007-USDM-Subaru-Impreza-WRX-AT.hex"
+size = 1048576
+sha256 = "c56f91a6fd363add716690f20ac82f18e9674f4fdd6ae06a31c7c5b99ee0d3e5"
+filename_rom_id = "A8DK100W"
+year = 2007
+region = "USDM"
+model = "Impreza"
+trim = "WRX-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/A8DK100X-2007-USDM-Subaru-Impreza-WRX.hex"
+size = 1048576
+sha256 = "396890179ef10e9b31762a8f9b028e0dd02363d5057441bbd9d686d2a479d41e"
+filename_rom_id = "A8DK100X"
+year = 2007
+region = "USDM"
+model = "Impreza"
+trim = "WRX"
+
+[[roms.files]]
+path = "USDM/Impreza/A8DK101X-2007-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "302f35200eeaa9be41bb20debeab8bc39df8758edf4f46bbbe5153b627be6d85"
+filename_rom_id = "A8DK101X"
+year = 2007
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5I910V-2011-USDM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "8db843f4519090dfae26d6ffe58162d8635ce563bc58ef15f572891b9c56637e"
+filename_rom_id = "AE5I910V"
+year = 2011
+region = "USDM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5IA10L-2011-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "5921fe373233971738231afb1277a85a07397cb96735ca5eb96351c11c84faca"
+filename_rom_id = "AE5IA10L"
+year = 2011
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5IB00L-2011-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "25f6f2430007f0f77e7c0a7f242480fb864622eeafec894bb50fd7445910c711"
+filename_rom_id = "AE5IB00L"
+year = 2011
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5IB00V-2011-USDM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "ccb6a867ad7ce11702ba0f96ad189807d5da11cb9f61dbacfd4caf8ee797c116"
+filename_rom_id = "AE5IB00V"
+year = 2011
+region = "USDM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5IB40L-2011-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "fb9caf4739b02b52839db0b8cd909266fa34157ce1f809f3e897c067cfc111d6"
+filename_rom_id = "AE5IB40L"
+year = 2011
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5IB40V-2011-USDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "c162511dacfe87e1d4a0af68e66215d950c8fa4636bbf08c3ac31d31329c1315"
+filename_rom_id = "AE5IB40V"
+year = 2011
+region = "USDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5K500L-2012-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "54865a8f78ccd011feb621eb838bbd2f69b00c97be85d58bbf7c667190ab0bbb"
+filename_rom_id = "AE5K500L"
+year = 2012
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5K500V-2012-USDM-Subaru-Impreza-STI.Hex"
+size = 1048576
+sha256 = "b7d648b0575ab655d4634a8f42a837d3fe5e9d10dd5569cd1c670ede2d64fb4b"
+filename_rom_id = "AE5K500V"
+year = 2012
+region = "USDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5K611L-2012-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "f6cfbadbd119aa8592b015cb446b127c55ef62de8912e01751dc71f93e33ec7b"
+filename_rom_id = "AE5K611L"
+year = 2012
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5K611V-2012-USDM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "eb1e349b1ea41c2fbe11cd1215f6326aba9eb3f0a848d3b1d94ed109ce00d1ba"
+filename_rom_id = "AE5K611V"
+year = 2012
+region = "USDM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5K700L-2012-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "a8e854e346b1b016f846ef14deda3ef9b64ac4a17311b2b0717cd0f56b8887be"
+filename_rom_id = "AE5K700L"
+year = 2012
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5K700V-2012-USDM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "bf88fb50895aa47c0a0b9bdf2895e1f60dc46f5ca449bf9226514270deab6735"
+filename_rom_id = "AE5K700V"
+year = 2012
+region = "USDM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5K800L-2012-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "232a580a17823e8a6acae0ea91e103fdff6cbb63b093c34a60e71c97c43a758c"
+filename_rom_id = "AE5K800L"
+year = 2012
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5K800V-2012-USDM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "ffec092b34da2bd3815b9d6f05f7a6efcf5e874c87368f1461f61933366d853f"
+filename_rom_id = "AE5K800V"
+year = 2012
+region = "USDM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5L500L-2013-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "728ac87a7262999bcf82e9b13b09247e70b851156caa3d6b02307eb4b344266b"
+filename_rom_id = "AE5L500L"
+year = 2013
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5L500V-2013-USDM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "9569e881af3ce82f3c73c1bb1dce0009e02da4af5112a995674a0248197a05c4"
+filename_rom_id = "AE5L500V"
+year = 2013
+region = "USDM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5L600L-2013-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "62d8c66c8c442a2d6bc39b0f5b8884c2707bd28dcd32e00bf3cd08dc265f24e6"
+filename_rom_id = "AE5L600L"
+year = 2013
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5L700V-2013-USDM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "d73607f8b28f531a43d49c7b4ea4e4354528888dcefe6551384470c25d52888d"
+filename_rom_id = "AE5L700V"
+year = 2013
+region = "USDM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5Q100L-2014-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "15aaf5a00a69eea47dac50e89fda45e9bf4aec3dda7440503694431ded990119"
+filename_rom_id = "AE5Q100L"
+year = 2014
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5Q100V-2014-USDM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "2a399645ae73531bc17d619c78719ca80010000de687c9810110de27da9e38a3"
+filename_rom_id = "AE5Q100V"
+year = 2014
+region = "USDM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5Q200L-2014-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "f90f5013e058b1245592fbe79f968541c3e70053873279b006220af79a5cff18"
+filename_rom_id = "AE5Q200L"
+year = 2014
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5R100V-2015-USDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "cbee72892fb4cec243f6ec200bfa43b011ec2b7a84b7a32ed2f2af4b68489fbd"
+filename_rom_id = "AE5R100V"
+year = 2015
+region = "USDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5T110V-2016-USDM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "fc0b569c1d2cf386a33439209b3092f2a2653ae6adde6d621e289f9b3ee29766"
+filename_rom_id = "AE5T110V"
+year = 2016
+region = "USDM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AE5T200V-2016-USDM-Subaru-Impreza-STI-MT.hex"
+size = 1048576
+sha256 = "e3667355e28586551b56ce67e8b0ab732c0b3bfab7cdcb7c8248580708340270"
+filename_rom_id = "AE5T200V"
+year = 2016
+region = "USDM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AZ1E401A-2008-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "aae5e0fd6bee633bc1664b26857ccf039a9de80f97f82c85316965dd256dae6c"
+filename_rom_id = "AZ1E401A"
+year = 2008
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AZ1E401B-2008-USDM-Subaru-Impreza-WRX-AT.hex"
+size = 1048576
+sha256 = "c7b8b225eb5001a267869af85f257b6a61622b63842b9a09269f73e64cc121bc"
+filename_rom_id = "AZ1E401B"
+year = 2008
+region = "USDM"
+model = "Impreza"
+trim = "WRX-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/AZ1G201I-2008-2009-USDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "6f9b819a9315b67482112306f44e1be8ea7213b6fc5cd7374a3fc58393cb1b1a"
+filename_rom_id = "AZ1G201I"
+year = 2008
+year_end = 2009
+region = "USDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "USDM/Impreza/AZ1G202I-2008-09-USDM-Subaru-Impreza-STI-MT.HEX"
+size = 1048576
+sha256 = "e9a28b2e6ddc8d18feeb43735b843a7fb4713a1c773b07a3287a252210f18f20"
+filename_rom_id = "AZ1G202I"
+year = 2008
+year_end = 2009
+region = "USDM"
+model = "Impreza"
+trim = "STI-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AZ1G401V-2009-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "7427fcd83d5e72cbace62a1d3f2251121d03454f2aad16edd1afb19c32c27838"
+filename_rom_id = "AZ1G401V"
+year = 2009
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AZ1G701I-2010-USDM-Subaru-Impreza-STI.hex"
+size = 1048576
+sha256 = "d1aab5a570e410576db927fc8da6614638416626fd76ac94e7556650602e5e13"
+filename_rom_id = "AZ1G701I"
+year = 2010
+region = "USDM"
+model = "Impreza"
+trim = "STI"
+
+[[roms.files]]
+path = "USDM/Impreza/AZ1G701V-2010-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "046021ce9fada0a837b27ff6c1d83ed22b1e9a3a459d4525ce851b98fcb40956"
+filename_rom_id = "AZ1G701V"
+year = 2010
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/AZ1G702I-2010-USDM-Subaru-Impreza-STi-SE.hex"
+size = 1048576
+sha256 = "7a56619f6a45b2cfc929b600e01eeb14d0b6fe78c2de04c90c79a36ff1e8f859"
+filename_rom_id = "AZ1G702I"
+year = 2010
+region = "USDM"
+model = "Impreza"
+trim = "STi-SE"
+
+[[roms.files]]
+path = "USDM/Impreza/AZ1G710V-2010-USDM-Subaru-Impreza-WRX-MT.hex"
+size = 1048576
+sha256 = "79f11eadf4de52e554518ac75058fa31b357f09e48f95a782559312fed061250"
+filename_rom_id = "AZ1G710V"
+year = 2010
+region = "USDM"
+model = "Impreza"
+trim = "WRX-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/E2UE102L-2007-USDM-Subaru-Impreza-2.5i.hex"
+size = 1048576
+sha256 = "d4ae659b0c7014d6b19642115909d2da6d859bb959e1c63b12ba550e4a07ad29"
+filename_rom_id = "E2UE102L"
+year = 2007
+region = "USDM"
+model = "Impreza"
+trim = "2.5i"
+
+[[roms.files]]
+path = "USDM/Impreza/E2UE202L-2006-USDM-Subaru-Impreza-2.5i.hex"
+size = 1048576
+sha256 = "252539528642052e6860d633cfec63e38eed2e15dcae4963846d6a58de84461d"
+filename_rom_id = "E2UE202L"
+year = 2006
+region = "USDM"
+model = "Impreza"
+trim = "2.5i"
+
+[[roms.files]]
+path = "USDM/Impreza/E2UG001L-2007-USDM-Subaru-Impreza-2.5i-AT.hex"
+size = 1048576
+sha256 = "0eab8bb9523e11a66ec0665644fc8020c9422da82550f7eaf1deeaad6da83c21"
+filename_rom_id = "E2UG001L"
+year = 2007
+region = "USDM"
+model = "Impreza"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/E2UG002L-2007-USDM-Subaru-Impreza-2.5i-MT.hex"
+size = 1048576
+sha256 = "2823df73aff90dbae46c2099fc7371cd05892402c1ac54cc5d1f3c32e3d6b67e"
+filename_rom_id = "E2UG002L"
+year = 2007
+region = "USDM"
+model = "Impreza"
+trim = "2.5i-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/E2VH101C-2006-USDM-Subaru-Impreza-2.5i-MT-AT.hex"
+size = 1048576
+sha256 = "d962b936706009766adf9f7a3de18dfdd884f948c31b6e936dc833f91e88c7ad"
+filename_rom_id = "E2VH101C"
+year = 2006
+region = "USDM"
+model = "Impreza"
+trim = "2.5i-MT-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/E2VH102C-2006-USDM-Subaru-Impreza-2.5i.hex"
+size = 1048576
+sha256 = "ab3f54cc234ccd465c93c1eb6967ff0db8d95cd340076edc4fcd5c7cd2896367"
+filename_rom_id = "E2VH102C"
+year = 2006
+region = "USDM"
+model = "Impreza"
+trim = "2.5i"
+
+[[roms.files]]
+path = "USDM/Impreza/E2VH111C-2006-USDM-Subaru-Impreza-2.5i-MT-AT.hex"
+size = 1048576
+sha256 = "3f18b459bcddf707282db05f9dcca71b4dd94eecfc75cc4636f76fe716517157"
+filename_rom_id = "E2VH111C"
+year = 2006
+region = "USDM"
+model = "Impreza"
+trim = "2.5i-MT-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/E2VH112C-2006-USDM-Subaru-Impreza-2.5i-MT-AT.hex"
+size = 1048576
+sha256 = "2ad76c6ffae3a1bd4a162fa0a2e9746122cf1e318c129d115c265f7feff3035e"
+filename_rom_id = "E2VH112C"
+year = 2006
+region = "USDM"
+model = "Impreza"
+trim = "2.5i-MT-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/E2VH202C-2006-USDM-Subaru-Impreza-2.5i-MT-AT.hex"
+size = 1048576
+sha256 = "78013d5b9822093a8cd854516a2a12dfe76b4e6c984b1a85a133c307f7a4d1d9"
+filename_rom_id = "E2VH202C"
+year = 2006
+region = "USDM"
+model = "Impreza"
+trim = "2.5i-MT-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/E2ZJ101G-2005-USDM-Subaru-Impreza-2.5RS.hex"
+size = 1048576
+sha256 = "2a8c1eec8a227f69ac4cd7f627594c568923237ea238a7733ca35dc45cfe0d6d"
+filename_rom_id = "E2ZJ101G"
+year = 2005
+region = "USDM"
+model = "Impreza"
+trim = "2.5RS"
+
+[[roms.files]]
+path = "USDM/Impreza/E2ZJ103G-2005-USDM-Subaru-Impreza-2.5RS-MT-AT.hex"
+size = 1048576
+sha256 = "c3770988919a95478276a6040e9556c8ca732b367a8a12666f163bcfafe8cc30"
+filename_rom_id = "E2ZJ103G"
+year = 2005
+region = "USDM"
+model = "Impreza"
+trim = "2.5RS-MT-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/E2ZJ111G-2005-USDM-Subaru-Impreza-2.5RS-MT-AT.hex"
+size = 1048576
+sha256 = "00c0d65537a80f1ba1172af9ff17eecc1ac292e9005e59c52a0ed2319ac5fd35"
+filename_rom_id = "E2ZJ111G"
+year = 2005
+region = "USDM"
+model = "Impreza"
+trim = "2.5RS-MT-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/E2ZJ113G-2005-USDM-Subaru-Impreza-2.5RS-MT-AT.hex"
+size = 1048576
+sha256 = "fc22fddaa8406517b56e560a968a1b597445e5214dc7713d1d83a8201c1975d2"
+filename_rom_id = "E2ZJ113G"
+year = 2005
+region = "USDM"
+model = "Impreza"
+trim = "2.5RS-MT-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/E2ZJ123G-2005-USDM-Subaru-Impreza-2.5RS-MT-AT.hex"
+size = 1048576
+sha256 = "dcd0ef4d68aff9e25b748a2cc7d300564992b794ab5816541e800517c33b7109"
+filename_rom_id = "E2ZJ123G"
+year = 2005
+region = "USDM"
+model = "Impreza"
+trim = "2.5RS-MT-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/E2ZJ133G-2005-USDM-Subaru-Impreza-2.5RS-MT-AT.hex"
+size = 1048576
+sha256 = "5e0d367dd6b2dc56a118a13dee58c5e3060b208fb6373c3bb856de96548d6183"
+filename_rom_id = "E2ZJ133G"
+year = 2005
+region = "USDM"
+model = "Impreza"
+trim = "2.5RS-MT-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/EE5I910G-2011-USDM-Subaru-Impreza-2.5i-MT.hex"
+size = 1048576
+sha256 = "0e3e584e21b71de2078f6e7ef0878c3fac2a0cb9fafdffef98f3798fb07fc216"
+filename_rom_id = "EE5I910G"
+year = 2011
+region = "USDM"
+model = "Impreza"
+trim = "2.5i-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/EE5I910H-2011-USDM-Subaru-Impreza-2.5i-MT.hex"
+size = 1048576
+sha256 = "81db6e78607a7ea11e35a3fc8736d0a22aab04a3fca604865a8b350914e22f1b"
+filename_rom_id = "EE5I910H"
+year = 2011
+region = "USDM"
+model = "Impreza"
+trim = "2.5i-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/EE5I910T-2011-USDM-Subaru-Impreza-2.5i-MT.hex"
+size = 1048576
+sha256 = "17d767050ec5e414844d1a3f30924804301acf4d5259ead2aae8b331dc56c0af"
+filename_rom_id = "EE5I910T"
+year = 2011
+region = "USDM"
+model = "Impreza"
+trim = "2.5i-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/EP5G601B-2012-USDM-Subaru-Impreza-2.0i-CVT.hex"
+size = 1048576
+sha256 = "6fb1c2ac1286aaa9f58fe66ce0297e98c4b263aee65f4bebe7c070e4926d9943"
+filename_rom_id = "EP5G601B"
+year = 2012
+region = "USDM"
+model = "Impreza"
+trim = "2.0i-CVT"
+
+[[roms.files]]
+path = "USDM/Impreza/EP5I200F-2013-USDM-Subaru-Impreza-2.0i-MT.hex"
+size = 1048576
+sha256 = "3f381d8f2520b47ee6c2ad2b14bc165c447b1c2520f3310fb33d9f5d222e70eb"
+filename_rom_id = "EP5I200F"
+year = 2013
+region = "USDM"
+model = "Impreza"
+trim = "2.0i-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/EZ1E102G-2008-USDM-Subaru-Impreza-2.5i.hex"
+size = 1048576
+sha256 = "606517159a726969754da54b8f7600eff996d789e2e29f54495703ad464021ca"
+filename_rom_id = "EZ1E102G"
+year = 2008
+region = "USDM"
+model = "Impreza"
+trim = "2.5i"
+
+[[roms.files]]
+path = "USDM/Impreza/EZ1E401G-2008-09-USDM-Subaru-Impreza-2.5i-MT.hex"
+size = 1048576
+sha256 = "dd3c3631b82219665064dbfd4e6018bfbc04ef9d1906e39ef65b049d120a4873"
+filename_rom_id = "EZ1E401G"
+year = 2008
+year_end = 2009
+region = "USDM"
+model = "Impreza"
+trim = "2.5i-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/EZ1E401H-2008-09-USDM-Subaru-Impreza-2.5i-AT.hex"
+size = 1048576
+sha256 = "3b6e5a3256f1a9642ddaa5c75967b5d7bcb4fc9127acbb053262de9eb6c2651a"
+filename_rom_id = "EZ1E401H"
+year = 2008
+year_end = 2009
+region = "USDM"
+model = "Impreza"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/EZ1G701H-2010-USDM-Subaru-Impreza-2.5i-AT.hex"
+size = 1048576
+sha256 = "95037e423a85d903e7cb0c61bdacbbc67ccdd1b5e7b25a041e2609e5a538fca0"
+filename_rom_id = "EZ1G701H"
+year = 2010
+region = "USDM"
+model = "Impreza"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/EZ1GB00G-2008-USDM-Subaru-Impreza-2.5i-MT.hex"
+size = 1048576
+sha256 = "fb745dab168ce6f39dd92784d2ea20987d2515b336930ecd9551281fb57fb100"
+filename_rom_id = "EZ1GB00G"
+year = 2008
+region = "USDM"
+model = "Impreza"
+trim = "2.5i-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/EZ1GB00H-2008-USDM-Subaru-Impreza-2.5i-AT.hex"
+size = 1048576
+sha256 = "9033be9baddf49b32f0ecdae047f7b0dbc0581ac26caaa28f6fbb0e9a52f7dbf"
+filename_rom_id = "EZ1GB00H"
+year = 2008
+region = "USDM"
+model = "Impreza"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Impreza/EZ1GB10G-2010-USDM-Subaru-Impreza-2.5i-MT.hex"
+size = 1048576
+sha256 = "8609508f3646271e790f5c52ec329640931478dc3222a626182fcf13bbf08125"
+filename_rom_id = "EZ1GB10G"
+year = 2010
+region = "USDM"
+model = "Impreza"
+trim = "2.5i-MT"
+
+[[roms.files]]
+path = "USDM/Impreza/EZ1GB10H-2010-USDM-Subaru-Impreza-2.5i-AT.hex"
+size = 1048576
+sha256 = "522e122ea224dd3c5eef4aef74d30b82c6ce6f6e245fdfdaa4ce6fa1b4975b61"
+filename_rom_id = "EZ1GB10H"
+year = 2010
+region = "USDM"
+model = "Impreza"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/A2TB000N-2008-USDM-Subaru-Legacy-GT-MT.hex"
+size = 1048576
+sha256 = "2b205780fe90ad4c40475bf748a303f02663666ef1fa5c3099874d1c3f69ca68"
+filename_rom_id = "A2TB000N"
+year = 2008
+region = "USDM"
+model = "Legacy"
+trim = "GT-MT"
+
+[[roms.files]]
+path = "USDM/Legacy/A2TB001C-2008-USDM-Subaru-Legacy(Outback)-GT(XT)-AT.hex"
+size = 1048576
+sha256 = "bfb2293762a096a7a5954f3f0188464e976f3e67f6157ed0a6d600053d97cc09"
+filename_rom_id = "A2TB001C"
+year = 2008
+region = "USDM"
+model = "Legacy(Outback)"
+trim = "GT(XT)-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/A2TB001L-2008-USDM-Subaru-Legacy-GT-spec.B-MT.hex"
+size = 1048576
+sha256 = "a31c7a721dcd24c9357b3fbe7f4d8270dc01971a8de8e210264691de21aca621"
+filename_rom_id = "A2TB001L"
+year = 2008
+region = "USDM"
+model = "Legacy"
+trim = "GT-spec.B-MT"
+
+[[roms.files]]
+path = "USDM/Legacy/A2TB001N-2008-09-USDM-Subaru-Legacy(Outback)-GT(XT)-MT.hex"
+size = 1048576
+sha256 = "dc8cde033bf63de43c17a465f30ecabe4e1a41c1e7684e5603bf222e544a0bb6"
+filename_rom_id = "A2TB001N"
+year = 2008
+year_end = 2009
+region = "USDM"
+model = "Legacy(Outback)"
+trim = "GT(XT)-MT"
+
+[[roms.files]]
+path = "USDM/Legacy/A2TB002C-2009-USDM-Subaru-Legacy-GT-AT.hex"
+size = 1048576
+sha256 = "1ab5f12ffc810bfac7e0c992090204c3b09a6d0e6928d1bcbf626975c42483e9"
+filename_rom_id = "A2TB002C"
+year = 2009
+region = "USDM"
+model = "Legacy"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/A2UG000C-2007-USDM-Subaru-Legacy-GT-AT.hex"
+size = 1048576
+sha256 = "dc9e5affec5cd77f4f4c5b9716aeb91ebe3a0918c33b3269223f19b701510c49"
+filename_rom_id = "A2UG000C"
+year = 2007
+region = "USDM"
+model = "Legacy"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/A2UG000L-2007-USDM-Subaru-Legacy-GT-spec.B-MT.hex"
+size = 1048576
+sha256 = "8caaf51c7e74428657b137aff12ddd92d24ea617f4ff860c109cf240e44e1c96"
+filename_rom_id = "A2UG000L"
+year = 2007
+region = "USDM"
+model = "Legacy"
+trim = "GT-spec.B-MT"
+
+[[roms.files]]
+path = "USDM/Legacy/A2UG000N-2007-USDM-Subaru-Legacy-GT-MT.hex"
+size = 1048576
+sha256 = "1564a82567e4c541358eab828b26a6544038e14edaf4cfd45646f85b6207beb8"
+filename_rom_id = "A2UG000N"
+year = 2007
+region = "USDM"
+model = "Legacy"
+trim = "GT-MT"
+
+[[roms.files]]
+path = "USDM/Legacy/A2UI001L-2007-USDM-Subaru-Legacy-GT-spec.B-MT.hex"
+size = 1048576
+sha256 = "e12b2ff4db70f86208cb98529121a23072f1b7e703806e3eb4d8ca34eb5100dc"
+filename_rom_id = "A2UI001L"
+year = 2007
+region = "USDM"
+model = "Legacy"
+trim = "GT-spec.B-MT"
+
+[[roms.files]]
+path = "USDM/Legacy/A2WC500C-2005-USDM-Subaru-Legacy-GT-AT.hex"
+size = 1048576
+sha256 = "f20ff89b01f6133ecc32bb9f5557c3f9bd4364dd04c95041aaea97383c9f1176"
+filename_rom_id = "A2WC500C"
+year = 2005
+region = "USDM"
+model = "Legacy"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/A2WC500N-2005-USDM-Legacy-GT.hex"
+size = 1048576
+sha256 = "705077519a3a9118788d12560e8bf223ad0039d7023335d4b051a4037c107e07"
+filename_rom_id = "A2WC500N"
+year = 2005
+region = "USDM"
+model = "Legacy"
+trim = "GT"
+
+[[roms.files]]
+path = "USDM/Legacy/A2WC510C-2005-USDM-Legacy-GT.hex"
+size = 1048576
+sha256 = "77c797e8fd88b642fb1779367b4ce482e90760d251ad1cf68f533e81b49ea7dc"
+filename_rom_id = "A2WC510C"
+year = 2005
+region = "USDM"
+model = "Legacy"
+trim = "GT"
+
+[[roms.files]]
+path = "USDM/Legacy/A2WC510N-2005-USDM-Subaru-Legacy-GT-MT.hex"
+size = 1048576
+sha256 = "db8827673a2383ce0ee3182d2c33f81be39fd63c3545e77b3e6bf8476488008d"
+filename_rom_id = "A2WC510N"
+year = 2005
+region = "USDM"
+model = "Legacy"
+trim = "GT-MT"
+
+[[roms.files]]
+path = "USDM/Legacy/A2WC511N-2005-USDM-Subaru-Legacy-GT-MT.hex"
+size = 1048576
+sha256 = "44a903766ee13b32229fc8ef3b200463f082bc6517f8c79ea43f0291b4a95dd1"
+filename_rom_id = "A2WC511N"
+year = 2005
+region = "USDM"
+model = "Legacy"
+trim = "GT-MT"
+
+[[roms.files]]
+path = "USDM/Legacy/A2WC521C-2005-USDM-Legacy-GT.hex"
+size = 1048576
+sha256 = "412286a0c4e8106bf6db73a67b908108a9730f9ad41d22c4e946b147a9137461"
+filename_rom_id = "A2WC521C"
+year = 2005
+region = "USDM"
+model = "Legacy"
+trim = "GT"
+
+[[roms.files]]
+path = "USDM/Legacy/A2WC521N-2005-USDM-Legacy-GT.hex"
+size = 1048576
+sha256 = "3be88313875280ca2fd34cfbb3a858fe200c11732e73bb4701aff960e0ac6d7a"
+filename_rom_id = "A2WC521N"
+year = 2005
+region = "USDM"
+model = "Legacy"
+trim = "GT"
+
+[[roms.files]]
+path = "USDM/Legacy/A2WC522N-2005-USDM-Legacy-GT-MT.hex"
+size = 1048576
+sha256 = "27119990cf69f6b04cddef3d4244cee2c1f845ae045f656b708a466205432dab"
+filename_rom_id = "A2WC522N"
+year = 2005
+region = "USDM"
+model = "Legacy"
+trim = "GT-MT"
+
+[[roms.files]]
+path = "USDM/Legacy/A2WF200C-2006-USDM-Subaru-Legacy-GT-AT.hex"
+size = 1048576
+sha256 = "27b23bc162c4f602ec20d854cf5a1ecb46c4c7562723d562b2ed5fa59237b188"
+filename_rom_id = "A2WF200C"
+year = 2006
+region = "USDM"
+model = "Legacy"
+trim = "GT-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/A2WF200N-2006-USDM-Legacy-GT.hex"
+size = 1048576
+sha256 = "e65fe91cd0d922155b5416681162a88f2c3222c5d36ff22299c0b1d273605838"
+filename_rom_id = "A2WF200N"
+year = 2006
+region = "USDM"
+model = "Legacy"
+trim = "GT"
+
+[[roms.files]]
+path = "USDM/Legacy/AE5F301E-2010-USDM-Subaru-Legacy-GT-MT.hex"
+size = 1048576
+sha256 = "7f3125c5a8c85f803a9d151c22e7d681047407f8fd96eb29ed639c2934e37e26"
+filename_rom_id = "AE5F301E"
+year = 2010
+region = "USDM"
+model = "Legacy"
+trim = "GT-MT"
+
+[[roms.files]]
+path = "USDM/Legacy/AE5K410E-2012-USDM-Subaru-Legacy-GT-MT.hex"
+size = 1048576
+sha256 = "be13a537ae9061661dd76028ffd294e1d64fdcb027483ddb39e102cfc46be857"
+filename_rom_id = "AE5K410E"
+year = 2012
+region = "USDM"
+model = "Legacy"
+trim = "GT-MT"
+
+[[roms.files]]
+path = "USDM/Legacy/D2TB101P-2008-USDM-Subaru-Legacy-3.0R-AT.hex"
+size = 1048576
+sha256 = "432faac3fd8885a3b5d2ec98c84f34242b3b03e87c65289f926a21c95279b009"
+filename_rom_id = "D2TB101P"
+year = 2008
+region = "USDM"
+model = "Legacy"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/DE5F201B-2010-USDM-Subaru-Legacy-3.6R-AT.hex"
+size = 1048576
+sha256 = "d2ea5ef0d46274f3f198e72a0802c6da81041b38d58be7b5601ce5368eb13fe8"
+filename_rom_id = "DE5F201B"
+year = 2010
+region = "USDM"
+model = "Legacy"
+trim = "3.6R-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/DE5K800B-2012-USDM-Subaru-Legacy-3.6R-AT.hex"
+size = 1048576
+sha256 = "4640d1836507cb93ae9044d8db60f306b43d3cea8843de15f4be759ee4979616"
+filename_rom_id = "DE5K800B"
+year = 2012
+region = "USDM"
+model = "Legacy"
+trim = "3.6R-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/DE5M301C-2013-USDM-Subaru-Legacy-3.6R-AT.hex"
+size = 1048576
+sha256 = "509359a87cb3c71ed75996443406fd1b3d39c5634bdcdd3a4a00ded4311c1634"
+filename_rom_id = "DE5M301C"
+year = 2013
+region = "USDM"
+model = "Legacy"
+trim = "3.6R-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/DE5M301H-2013-USDM-Subaru-Legacy-3.6R-AT.hex"
+size = 1048784
+sha256 = "dda09110c449e45005bb87b65a7f23e89b684710895404be5801d68b090afc40"
+filename_rom_id = "DE5M301H"
+year = 2013
+region = "USDM"
+model = "Legacy"
+trim = "3.6R-AT"
+
+[roms.files.suspect]
+kind = "container"
+reason = "size 1048784 = 208 + 1048576, not a standard size: tagged-chunk container, not a raw image: chunks INFO(92) DRMI(48) MEML(36) MEMD(1048576); a 208-byte header, then the MEMD payload, a standard 1048576-byte image (1 MiB, SH7058) ending the file; not CRLF expansion (3906 bare LF, 8 CR-before-LF)"
+image_offset = 208
+image_size = 1048576
+
+[[roms.files]]
+path = "USDM/Legacy/DE5Q100C-2014-USDM-Subaru-Legacy-3.6R-AT.hex"
+size = 1048576
+sha256 = "998f99d5e326ced37a1bf33cc2edf4583dbf7434b7bfa04470c036c4a2298f44"
+filename_rom_id = "DE5Q100C"
+year = 2014
+region = "USDM"
+model = "Legacy"
+trim = "3.6R-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/E2UE101B-2007-USDM-Subaru-Legacy-2.5i-AT.hex"
+size = 1048576
+sha256 = "e24d17366ee59682e9654510a5aaff3b7591e7de74e3fc59f7272db7b9190ae4"
+filename_rom_id = "E2UE101B"
+year = 2007
+region = "USDM"
+model = "Legacy"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/E2VG204B-2006-USDM-Subaru-Legacy-2.5i-MT-AT.hex"
+size = 1048576
+sha256 = "fac98f762a90ec05cf2a55db46449d704254ca4e351207ad6cec0a55e3c1f6e8"
+filename_rom_id = "E2VG204B"
+year = 2006
+region = "USDM"
+model = "Legacy"
+trim = "2.5i-MT-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/E2VG221B-2006-USDM-Subaru-Legacy-2.5i-MT-AT.hex"
+size = 1048576
+sha256 = "d7993ee15ab7c2b63b86e00ea27b181fb3dcd66032bc9851267e08a9b53b4543"
+filename_rom_id = "E2VG221B"
+year = 2006
+region = "USDM"
+model = "Legacy"
+trim = "2.5i-MT-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/E2VL002B-2006-USDM-Subaru-Legacy-2.5i-MT-AT.hex"
+size = 1048576
+sha256 = "c5045b87a32f10691db85e66ee81669942453759942f38d6ee9781061cdd9b65"
+filename_rom_id = "E2VL002B"
+year = 2006
+region = "USDM"
+model = "Legacy"
+trim = "2.5i-MT-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/E2ZJ101B-2005-USDM-Subaru-Legacy-2.5i-MT-AT.hex"
+size = 1048576
+sha256 = "77e0669bbc0dabe2874c371f63b293aa746f9eecf7295212c03aede141cb8b00"
+filename_rom_id = "E2ZJ101B"
+year = 2005
+region = "USDM"
+model = "Legacy"
+trim = "2.5i-MT-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/E2ZJ141B-2005-USDM-Subaru-Legacy-2.5i-AT-MT.hex"
+size = 1048576
+sha256 = "0f743f9feba33dabb1666f0b826c29f9b7be71f8215fbb1e0350d36d7806e6e8"
+filename_rom_id = "E2ZJ141B"
+year = 2005
+region = "USDM"
+model = "Legacy"
+trim = "2.5i-AT-MT"
+
+[[roms.files]]
+path = "USDM/Legacy/E2ZJ173B-2005-USDM-Subaru-Legacy-2.5i-MT-AT.hex"
+size = 1048576
+sha256 = "fdc48ccb95466c38a6b17779ee5a440c8965bea26faeeda86775114f01a793c1"
+filename_rom_id = "E2ZJ173B"
+year = 2005
+region = "USDM"
+model = "Legacy"
+trim = "2.5i-MT-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/E2ZK001A-2005-USDM-Subaru-Legacy-2.5i-AT.hex"
+size = 1048576
+sha256 = "8b96c2fbf283c9ba76a0ad9701fe4bb4ec27dcf225a02d1c54c99f206e26ced0"
+filename_rom_id = "E2ZK001A"
+year = 2005
+region = "USDM"
+model = "Legacy"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/E2ZK003A-2005-USDM-Subaru-Legacy-2.5i-AT.hex"
+size = 1048576
+sha256 = "d23f7b3efd64aad87c3188b93d97a3af0362d99033974d6e022510f200087f10"
+filename_rom_id = "E2ZK003A"
+year = 2005
+region = "USDM"
+model = "Legacy"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/E6PF101A-2004-USDM-Subaru-Legacy-2.5i-MT-AT.hex"
+size = 524288
+sha256 = "2947fce7eb92261a634924f3abab4f34bcffc07be477b43ba497a0f04f5f9634"
+filename_rom_id = "E6PF101A"
+year = 2004
+region = "USDM"
+model = "Legacy"
+trim = "2.5i-MT-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/E6PF103A-2004-USDM-Subaru-Legacy-2.5i-AT-MT.hex"
+size = 524288
+sha256 = "1d258d68cb379d45199406107247188aef0bc957a2d5b50b8a56b52a401d8927"
+filename_rom_id = "E6PF103A"
+year = 2004
+region = "USDM"
+model = "Legacy"
+trim = "2.5i-AT-MT"
+
+[[roms.files]]
+path = "USDM/Legacy/EE5F200W-2010-USDM-Subaru-Legacy-2.5i-MT.hex"
+size = 1048576
+sha256 = "14bee059e26ebeee5d06e76334d6c0a45c77cc54ebcc0aa278bb806dd1da3c0f"
+filename_rom_id = "EE5F200W"
+year = 2010
+region = "USDM"
+model = "Legacy"
+trim = "2.5i-MT"
+
+[[roms.files]]
+path = "USDM/Legacy/EE5F300A-2010-USDM-Subaru-Legacy-2.5i-AT.hex"
+size = 1048576
+sha256 = "86232ec1b431907b20e96c7feabba563096296c91beaa1a68db5bff5ccfaf530"
+filename_rom_id = "EE5F300A"
+year = 2010
+region = "USDM"
+model = "Legacy"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/EE5I920T-2010-USDM-Subaru-Legacy-Elite-AT.hex"
+size = 1048576
+sha256 = "0ece0c9cc3f8a2129e3df23a0ab349272bafda4e60da6f1f96aaeda97a9104d2"
+filename_rom_id = "EE5I920T"
+year = 2010
+region = "USDM"
+model = "Legacy"
+trim = "Elite-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/EE5K412T-2012-USDM-Subaru-Legacy-2.5i-AT.hex"
+size = 1048576
+sha256 = "21a9c568ff27f9cbf84a4e49518db5201766c10aea4e4d44960353e91a802ecb"
+filename_rom_id = "EE5K412T"
+year = 2012
+region = "USDM"
+model = "Legacy"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/EE5K801W-2012-USDM-Subaru-Legacy-2.5i-MT.hex"
+size = 1048576
+sha256 = "e88f5079ceb15856eb593d17777f4047a494ff6fd6a09092b141bf2e8bb26756"
+filename_rom_id = "EE5K801W"
+year = 2012
+region = "USDM"
+model = "Legacy"
+trim = "2.5i-MT"
+
+[[roms.files]]
+path = "USDM/Legacy/EZ1D301A-2008-USDM-Legacy-2.5-PZEV.hex"
+size = 1048576
+sha256 = "1030ed9b29bcdb2ad79fc383abb9ba444dafd10cb7ad8d1c48111ebc8562a787"
+filename_rom_id = "EZ1D301A"
+year = 2008
+region = "USDM"
+model = "Legacy"
+trim = "2.5-PZEV"
+
+[[roms.files]]
+path = "USDM/Legacy/EZ1D302B-2009-USDM-Subaru-Legacy-2.5i-AT.hex"
+size = 1048576
+sha256 = "569b4938c8279537d36fd84613197def4a7e33eff3ae6b7b72daa82c66d0443f"
+filename_rom_id = "EZ1D302B"
+year = 2009
+region = "USDM"
+model = "Legacy"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/EZ1D303B-2008-USDM-Subaru-Legacy-2.5i-AT.hex"
+size = 1048576
+sha256 = "f2fc54cdb087fbcdcd4fdd9b558bdd12edc1f2b98624c357c315494ad6133c2f"
+filename_rom_id = "EZ1D303B"
+year = 2008
+region = "USDM"
+model = "Legacy"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Legacy/EZ1GD00A-2009-USDM-Subaru-Legacy-2.5i-MT.hex"
+size = 1048576
+sha256 = "d709402c50861764727d4960efc9f7a116944d7e6bdeeb930cb5072aaa649d4b"
+filename_rom_id = "EZ1GD00A"
+year = 2009
+region = "USDM"
+model = "Legacy"
+trim = "2.5i-MT"
+
+[[roms.files]]
+path = "USDM/Outback/A2WC500R-2005-USDM-Subaru-Outback-XT-AT.hex"
+size = 1048576
+sha256 = "826aa3d8150ad90817d99b70f53a7cbeef3a8a26e2760de609b2c0d2b0c3b6ee"
+filename_rom_id = "A2WC500R"
+year = 2005
+region = "USDM"
+model = "Outback"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "USDM/Outback/A2WC500S-2005-USDM-Subaru-Outback-XT-MT.hex"
+size = 1048576
+sha256 = "a8d07a6937eaf721fd601b493991c0d85124cb3c72b8aacc9b69a9d1d55aaa25"
+filename_rom_id = "A2WC500S"
+year = 2005
+region = "USDM"
+model = "Outback"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "USDM/Outback/A2WC510R-2005-USDM-Subaru-Outback-XT-AT.hex"
+size = 1048576
+sha256 = "436727271930c5cf13ec948e0416f661c6b3b2575ccdc35cfb787aafd5715e49"
+filename_rom_id = "A2WC510R"
+year = 2005
+region = "USDM"
+model = "Outback"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "USDM/Outback/A2WC510S-2005-USDM-Subaru-Outback-XT-MT.hex"
+size = 1048576
+sha256 = "c23268551cb2a1a8820525ef98a00d7032ad6989fe0b6a1e77dfd39528b9292c"
+filename_rom_id = "A2WC510S"
+year = 2005
+region = "USDM"
+model = "Outback"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "USDM/Outback/A2WC511R-2005-USDM-Outback-XT.hex"
+size = 1048576
+sha256 = "22d52a5b3de7d86562eed2f85cca772db10e0949fcedc2d61b7540b45f760218"
+filename_rom_id = "A2WC511R"
+year = 2005
+region = "USDM"
+model = "Outback"
+trim = "XT"
+
+[[roms.files]]
+path = "USDM/Outback/A2WC521R-2005-USDM-Subaru-Outback-XT-AT.hex"
+size = 1048576
+sha256 = "9bc99f4c735d962f9ba8f79e8f445af387effdfb9553ebe896445d931c12741d"
+filename_rom_id = "A2WC521R"
+year = 2005
+region = "USDM"
+model = "Outback"
+trim = "XT-AT"
+
+[[roms.files]]
+path = "USDM/Outback/A2WC522S-2005-USDM-Subaru-Outback-XT-MT.hex"
+size = 1048576
+sha256 = "f241a8e222ca18e116f63dc8ede7ae40b8d43747b071101f768c19683c78ca8f"
+filename_rom_id = "A2WC522S"
+year = 2005
+region = "USDM"
+model = "Outback"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "USDM/Outback/A2WF200R-2006-USDM-Outback-XT.hex"
+size = 1048576
+sha256 = "7478ead68c0fc5f3f46658b40d543a66940d6398e4ac66dfdf4d7587819b75b6"
+filename_rom_id = "A2WF200R"
+year = 2006
+region = "USDM"
+model = "Outback"
+trim = "XT"
+
+[[roms.files]]
+path = "USDM/Outback/A2WF200S-2006-USDM-Subaru-Outback-XT-MT.hex"
+size = 1048576
+sha256 = "8e8b0e593d91b95a10ec51cb3930d158af4fc9de58e9bd2735d301d8d70d33b5"
+filename_rom_id = "A2WF200S"
+year = 2006
+region = "USDM"
+model = "Outback"
+trim = "XT-MT"
+
+[[roms.files]]
+path = "USDM/Outback/D0XJ001P-2006-USDM-Subaru-Outback-3.0R-AT.hex"
+size = 1048576
+sha256 = "785c2cdde2a945e021b5a6d4822f38bcfb000b50156524de9d59fe7248edf0e2"
+filename_rom_id = "D0XJ001P"
+year = 2006
+region = "USDM"
+model = "Outback"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "USDM/Outback/D2ZX004B-2005-USDM-Subaru-Outback-3.0R-AT.hex"
+size = 1048576
+sha256 = "e8fbeaea3871279539d675736c08e7654d3bd16cbc9272741935c0f2bcd228d4"
+filename_rom_id = "D2ZX004B"
+year = 2005
+region = "USDM"
+model = "Outback"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "USDM/Outback/D2ZX110B-2005-USDM-Subaru-Outback-3.0R-AT.hex"
+size = 1048576
+sha256 = "8edb745db94ae289e6a9417a807417643e3e8f61402b855e4836378fb9ffc141"
+filename_rom_id = "D2ZX110B"
+year = 2005
+region = "USDM"
+model = "Outback"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "USDM/Outback/D6JM000B-2001-USDM-Subaru-Outback-3.0R-VDC-AT.hex"
+size = 163840
+sha256 = "82749def09973c1997800fa9daaf1e94419b885230a3d7f80edf45ae77c1d75a"
+filename_rom_id = "D6JM000B"
+year = 2001
+region = "USDM"
+model = "Outback"
+trim = "3.0R-VDC-AT"
+
+[[roms.files]]
+path = "USDM/Outback/DE5F810G-2011-USDM-Subaru-Outback-3.6-AT.hex"
+size = 1048576
+sha256 = "813547834b9c29639140b62bde6cdb9128da1509e4a5dbf031355f4159238093"
+filename_rom_id = "DE5F810G"
+year = 2011
+region = "USDM"
+model = "Outback"
+trim = "3.6-AT"
+
+[[roms.files]]
+path = "USDM/Outback/DE5IB40B-2011-USDM-Subaru-Outback-3.6R-AT.hex"
+size = 1048576
+sha256 = "31588b9980424a909223578d6bba809cdbc0f3e62b1d27533cd709e4ec2e499c"
+filename_rom_id = "DE5IB40B"
+year = 2011
+region = "USDM"
+model = "Outback"
+trim = "3.6R-AT"
+
+[[roms.files]]
+path = "USDM/Outback/E2UE102B-2007-USDM-Subaru-Outback-2.5i-MT.hex"
+size = 1048576
+sha256 = "188162a177c0a022c0d6083168ebfc7db71612c8be4f0684dc28eb7c13180c19"
+filename_rom_id = "E2UE102B"
+year = 2007
+region = "USDM"
+model = "Outback"
+trim = "2.5i-MT"
+
+[[roms.files]]
+path = "USDM/Outback/E2UG001B-2007-USDM-Subaru-Outback-2.5i-AT.hex"
+size = 1048576
+sha256 = "75a7880a95d8885d00befe72df0fae8338eb9327564e5b84f3104706aa629491"
+filename_rom_id = "E2UG001B"
+year = 2007
+region = "USDM"
+model = "Outback"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Outback/E2VG222B-2006-USDM-Outback-2.5i.hex"
+size = 1048576
+sha256 = "11a9febdcad70bab2c9915fbbe910c34d594d34e6076f77e1ea0390f963f864d"
+filename_rom_id = "E2VG222B"
+year = 2006
+region = "USDM"
+model = "Outback"
+trim = "2.5i"
+
+[[roms.files]]
+path = "USDM/Outback/E2ZI103A-2005-USDM-Subaru-Outback-2.5i-MT.hex"
+size = 1048576
+sha256 = "da2e9e547e2b3e8e94ba8fabb69d115d28261fe67f688fcae22237cb946ecf29"
+filename_rom_id = "E2ZI103A"
+year = 2005
+region = "USDM"
+model = "Outback"
+trim = "2.5i-MT"
+
+[[roms.files]]
+path = "USDM/Outback/E2ZJ112B-2005-USDM-Subaru-Outback-2.5i-MT-AT.hex"
+size = 1048576
+sha256 = "94517a69e4d87dac40e4d0d1750941f209fe894861410326f3d5f15e3a3ef8cd"
+filename_rom_id = "E2ZJ112B"
+year = 2005
+region = "USDM"
+model = "Outback"
+trim = "2.5i-MT-AT"
+
+[[roms.files]]
+path = "USDM/Outback/E2ZK002A-2005-USDM-Subaru-Outback-2.5i-AT.hex"
+size = 1048576
+sha256 = "0ed374729da55eae5e217ba81223c558a2412eb02316aef8cfec025527c11d35"
+filename_rom_id = "E2ZK002A"
+year = 2005
+region = "USDM"
+model = "Outback"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Outback/E6PF102A-2004-USDM-Subaru-Outback-2.5i-MT-AT.hex"
+size = 524288
+sha256 = "c8c637c42cd8083d8f52f8348fce1ea0e3f0e6f247d8830f2f5d764d02c3d7d1"
+filename_rom_id = "E6PF102A"
+year = 2004
+region = "USDM"
+model = "Outback"
+trim = "2.5i-MT-AT"
+
+[[roms.files]]
+path = "USDM/Outback/EE5IA11T-2011-USDM-Subaru-Outback-2.5i-CVT.hex"
+size = 1048576
+sha256 = "acc0f4f959227af522e272ef6c4c21b4043a046a14ebd28ad0d21fecaf080291"
+filename_rom_id = "EE5IA11T"
+year = 2011
+region = "USDM"
+model = "Outback"
+trim = "2.5i-CVT"
+
+[[roms.files]]
+path = "USDM/Outback/EE5IB20W-2011-USDM-Subaru-Outback-2.5i-MT.hex"
+size = 1048576
+sha256 = "93a1b03f759282c6324b74f8ed1e2587cf00e4bc539be9d7a2c692bd5e95333f"
+filename_rom_id = "EE5IB20W"
+year = 2011
+region = "USDM"
+model = "Outback"
+trim = "2.5i-MT"
+
+[[roms.files]]
+path = "USDM/Outback/EE5IB41T-2012-USDM-Subaru-Outback-2.5i-CVT.hex"
+size = 1048576
+sha256 = "d327806e0cee4fba634ced1ed0a7b1d6f9d4974a2d3432bc15fbf11913b38244"
+filename_rom_id = "EE5IB41T"
+year = 2012
+region = "USDM"
+model = "Outback"
+trim = "2.5i-CVT"
+
+[[roms.files]]
+path = "USDM/Outback/EZ1D105B-2008-USDM-Subaru-Outback-2.5i-AT.hex"
+size = 1048576
+sha256 = "6165f7c68e7939ea3bf3b433b0d4c0f3b7e300019e3ade47e04da484a6d3036d"
+filename_rom_id = "EZ1D105B"
+year = 2008
+region = "USDM"
+model = "Outback"
+trim = "2.5i-AT"
+
+[[roms.files]]
+path = "USDM/Tribeca/DE5F810K-2011-USDM-Subaru-Tribeca-3.6L-AT.hex"
+size = 1048576
+sha256 = "bfeda223cfcc0fd408241f99d1110c2a638bd7090676e53b05bad9577d26a516"
+filename_rom_id = "DE5F810K"
+year = 2011
+region = "USDM"
+model = "Tribeca"
+trim = "3.6L-AT"
+
+[[roms.files]]
+path = "USDM/Tribeca/DE5K411K-2012-USDM-Subaru-Tribeca-3.6-AT.hex"
+size = 1048576
+sha256 = "7d4d9c4a8029a838e42ad7c6e937c1a0c40d9ac8dd730980be3c9fbeafc41d72"
+filename_rom_id = "DE5K411K"
+year = 2012
+region = "USDM"
+model = "Tribeca"
+trim = "3.6-AT"
+
+[[roms.files]]
+path = "USDM/Tribeca/DE5L510K-2013-USDM-Subaru-Tribeca-3.0R-AT.hex"
+size = 1048576
+sha256 = "f96cd3f5413eb36341a0a08e1d8338136a4b4615deb25bbcd56eac2046f13f0d"
+filename_rom_id = "DE5L510K"
+year = 2013
+region = "USDM"
+model = "Tribeca"
+trim = "3.0R-AT"
+
+[[roms.files]]
+path = "USDM/Tribeca/DZ1E402B-2009-USDM-Subaru-Tribeca-3.6L-AT.hex"
+size = 1048576
+sha256 = "c32f2ff706504ea2153e450ff0ee90631970b9123b8922c74e52d50b374d9e30"
+filename_rom_id = "DZ1E402B"
+year = 2009
+region = "USDM"
+model = "Tribeca"
+trim = "3.6L-AT"
+
+[[roms.files]]
+path = "USDM/XV/EP5F300T-2012-USDM-Subaru-XV-2.5i-CVT.hex"
+size = 1048576
+sha256 = "4e756cee4a8ddb525afe2b4f99fa1362568a40625394307d8814990b593c20bf"
+filename_rom_id = "EP5F300T"
+year = 2012
+region = "USDM"
+model = "XV"
+trim = "2.5i-CVT"
+
+[defs]
+upstream = "https://github.com/TD-D/SubaruDefs"
+branch = "Alpha"
+commit = "0b0c0c42acea0d89ffd8b50378ae13ae32b5b43d"
+path_prefix = "RomRaider/"
+licence = "none stated (no LICENSE file; a use-at-your-own-risk disclaimer only): all rights stay with the authors; fetched and used for testing only, never vendored, published or redistributed (D-028)"
+
+[defs.logger_v370]
+file = "logger_v370.zip"
+size = 986211
+sha256 = "280d386542f6fd49e3467363a62c12c6c642c127f3651a37265bdbac127ea0fa"
+url = "https://www.romraider.com/forum/download/file.php?id=38909"
+note = "downloaded once by hand in a browser and kept in a private mirror only (the forum asks that it not be re-hosted); never downloaded by tooling; fetch-corpus verifies a supplied copy and reports when there is none"
+
+[[defs.files]]
+path = "RR_D2UH001L.xml"
+size = 676025
+sha256 = "1837fe5068fe66ad6ca7f84a929d42480e98ece267b2f7399274ec71e3d64fd8"
+
+[[defs.files]]
+path = "dyno/cars_def.dtd"
+size = 772
+sha256 = "1ccd3e826e72a27ddf7cd426f43a31bacb852c5c4b0ee98e4d86b7959c35c773"
+
+[[defs.files]]
+path = "dyno/cars_def.xml"
+size = 46476
+sha256 = "17dc6fae7361ed4bb1f9e4e396656f7a914840b8f7a744053508a5792eb6956c"
+
+[[defs.files]]
+path = "ecu/2004JDMForesterSTiMT-A2WC000E_v1.xml"
+size = 671947
+sha256 = "bcd41a56d4c7176496d4a6116e803446eae95cfe770c06913a852333fcd29db5"
+
+[[defs.files]]
+path = "ecu/2004USDMBajaXTAT-A2WC50  .xml"
+size = 706527
+sha256 = "72707b68794549ed83868682abd48c0d63ffb69ca82081fe2caa5a92a26e8e20"
+
+[[defs.files]]
+path = "ecu/2005JDMForesterSTiMT-A2WC011E_v1.xml"
+size = 673806
+sha256 = "c1a6b8e7c77d8fe1c2564faa88eb3b5fcebd20beeec7526bda125184fbe3bd5f"
+
+[[defs.files]]
+path = "ecu/2005Legacy25i-E2ZJ101B_v1.xml"
+size = 656692
+sha256 = "6efaaf5511c08ff0fb627b21323bfafde902ef40f5f85bdd9455704596a459ce"
+
+[[defs.files]]
+path = "ecu/2005Legacy25i-E2ZJ141B_v1.xml"
+size = 654688
+sha256 = "6e43a82efb076757f04cd3f48ece3d075e83970450320d4a5087c019d9956377"
+
+[[defs.files]]
+path = "ecu/2005Legacy25i-E2ZJ173B_v2.xml"
+size = 654728
+sha256 = "90261a4697c05ef4b3b16fa90afe94e9ba821d08e149ea7b8b50563a99a53817"
+
+[[defs.files]]
+path = "ecu/2005USDMBajaTurboMT-A2WC400L_v1.xml"
+size = 677599
+sha256 = "289b5f8d4c9d0de3f5aaf962382e5458d37be852d7d3aa6ebd3b5e027fa02dbd"
+
+[[defs.files]]
+path = "ecu/2006JDMLegacySpecBMT-A2UG000K.xml"
+size = 682162
+sha256 = "f4687d1edbd316cca4ed022ebc876e3c702c8322da84aed04eb4f519c6e05dca"
+
+[[defs.files]]
+path = "ecu/2006Legacy2.5i-E2VG221B_v1.xml"
+size = 677174
+sha256 = "6a0de386222859ba51e8439fea5817e0f0f99631141a4048f56c93579f4d52c7"
+
+[[defs.files]]
+path = "ecu/2006USDMLegacy2.5iMT-E2VG204B_v1.xml"
+size = 677226
+sha256 = "663628498c1ff3a5a288ea678f9e9a0343ee4e5b52d49e7175de9fa58fc8b7ab"
+
+[[defs.files]]
+path = "ecu/2007 Outback 3R AT D2UH001T.xml"
+size = 405846
+sha256 = "cfb789899f38cdbb830c9bbe235fe9a24ae2e9c6f757cdb1d1fbcd8dd9e496e2"
+
+[[defs.files]]
+path = "ecu/2007Outback25i-E2UE102B.xml"
+size = 659330
+sha256 = "12c79ae938fdc4ed0a792ec8492857a47e1c8719bd91bbc89bf6ad4427588097"
+
+[[defs.files]]
+path = "ecu/2007UsdmImpreza2.5i-E2UG002L_v1.xml"
+size = 675522
+sha256 = "23541d8d64a356f85e785c532420d0a08681538df43e6c9832eab91bbe9c8114"
+
+[[defs.files]]
+path = "ecu/2008USDMLegacy2.5PZEVMT-EZ1D301A_v1.xml"
+size = 671263
+sha256 = "4e1ff3b488cf11a3c5c040cc23a43f31a978287d38745f7b52a3cc153270f08c"
+
+[[defs.files]]
+path = "ecu/2009SADMWRXMTAZ1G400Y_v2.xml"
+size = 686703
+sha256 = "78cdafc965b5f7d37c4fed85997c5a4790d1f2d6d03204901a76dfe1b26d27c5"
+
+[[defs.files]]
+path = "ecu/2010MEDMImprezaSTi-AZ1G700J.xml"
+size = 637982
+sha256 = "e29d4caef3634d8465b2b20a7fdc6eb33ecad9d56c7c4c4064ba13df39ede054"
+
+[[defs.files]]
+path = "ecu/2010_USDM_STi_SE_AZ1G702I_v2.xml"
+size = 666955
+sha256 = "fd4afbde07be998f3a8d2a4f741fc54ad550fae6757f9788321e5e793645cc23"
+
+[[defs.files]]
+path = "ecu/2010_USDM_WRX_MT_AZ1G701V_v2.xml"
+size = 689992
+sha256 = "4ba8b43b61f7650a52cfbe68ad4edc0445b66b4e906b1ede4d2cf10871775c5d"
+
+[[defs.files]]
+path = "ecu/2011EDMForester2.0XAT-EP5D004L_v2.xml"
+size = 736476
+sha256 = "4de1443af14ae6070894f9ed9d81636c7c4e135817e4555141654b16e984970d"
+
+[[defs.files]]
+path = "ecu/2011EDMForesterXTAT-AZ1G900P.xml"
+size = 685953
+sha256 = "f22c9c52120642bbda3647eda813e1b4d15329e0223b36693620f4ef7441b06c"
+
+[[defs.files]]
+path = "ecu/2011EdmImprezaSTi-AZ1J500G_v3.xml"
+size = 663143
+sha256 = "4182d4f224ce86f31856a3be649fdb10581c2a7008b3104592939fca3a71dda0"
+
+[[defs.files]]
+path = "ecu/2011JDMImprezaSTiAT-AZ1G800F_v1.xml"
+size = 685914
+sha256 = "aa2da2d9f221b66c38b0ff68a1d23771d8ef6775eaea3377ea4a64fd1af63ef9"
+
+[[defs.files]]
+path = "ecu/2011JDMSTiAT-AZ1J500J_v3.xml"
+size = 689477
+sha256 = "dfb9596cc90e02d900ff759d9a737efe69cf43e436c0d5b7b14bf04944d45b5e"
+
+[[defs.files]]
+path = "ecu/2011SadmSTiMT-AZ1G800L.xml"
+size = 687936
+sha256 = "df79b5ab347f2e4e7e362b2aa65a75ca2b33c331529aad04c867a1a01b019515"
+
+[[defs.files]]
+path = "ecu/2011USDMSTiMTAE5IB00V_v1.xml"
+size = 693858
+sha256 = "74372a3fbd40bbdb7804fce6d2e519fedc7d12bfeb4d26195063d99f83e8f673"
+
+[[defs.files]]
+path = "ecu/2011USDMWRXMT-AE5IA10L_v1.xml"
+size = 690068
+sha256 = "fe82779982c70ac8f2f7fac5175c56ae3a6e768c7bf8a019b2a67b07d5783006"
+
+[[defs.files]]
+path = "ecu/2011_AUDM_S_Edition_5AT-AZ1J500V_Rev3.xml"
+size = 680766
+sha256 = "cfd596e123576df2b4e7da8be4b8a27cd22d60882a649b04efc8c4d7e645ca0c"
+
+[[defs.files]]
+path = "ecu/2011_WRX_ecu_defs-REV8.xml"
+size = 663128
+sha256 = "c0978653470011585a5ed87e306060e6af992913a760b11d33bff2b04f838992"
+
+[[defs.files]]
+path = "ecu/2012UsdmSTiMT-AE5K500V_v2.xml"
+size = 763631
+sha256 = "b0d55a056b0bab7998cdea772158db24877ffa61af6141b032f84e9d4ebebd58"
+
+[[defs.files]]
+path = "ecu/2012UsdmSTiMT-AE5K611V_v1.xml"
+size = 763937
+sha256 = "3cdb9f6230767f8243a558639d1e9f7feaac7647e2e74d4b2e08541167ab367c"
+
+[[defs.files]]
+path = "ecu/2012UsdmWrxMt-AE5K500L_v1.xml"
+size = 759170
+sha256 = "ba4472fc6de543c100eb760a693c2184e8d0b99d39cdba2cd444154285da1227"
+
+[[defs.files]]
+path = "ecu/2012_JDM_STi6MT-AZ1G800V.xml"
+size = 661414
+sha256 = "421301fc353ac43f11b30aa27bc01abac720ca3772ee3a6103b26853c0fe21bf"
+
+[[defs.files]]
+path = "ecu/2012_USDMForesterXTAT-AE5K411R.xml"
+size = 656855
+sha256 = "cc2611c12b5943884896be856dd51ed52992dfe12cb0140d165afb43243f2a5f"
+
+[[defs.files]]
+path = "ecu/A2WC501K.xml"
+size = 718737
+sha256 = "6e649d6273f15f3a8b7636205f9c0b48718718f51d47effafc1518c8fdec7504"
+
+[[defs.files]]
+path = "ecu/AE51B00L_RomRaider.xml"
+size = 657755
+sha256 = "2e6b4a730e842df56aa1985fe023f84eabf792b44a7d742b90f43de72ca8e170"
+
+[[defs.files]]
+path = "ecu/AE5F300B.xml"
+size = 684853
+sha256 = "79c105f8d9f33fe700a0de193698c3ba5a4b114deae5b56c78fecbf74cc8a9aa"
+
+[[defs.files]]
+path = "ecu/AE5F301C_v1a.xml"
+size = 658379
+sha256 = "8df9e4ac7be8b48de4ed3e4db0adfec9d211e08d3536a8a1dac2cbc447613f71"
+
+[[defs.files]]
+path = "ecu/AE5L500V_RR.xml"
+size = 41405
+sha256 = "e067a7b74b454cd5fd321f7f58b38435d8ca90aaf3002b58eae81445cee0e11b"
+
+[[defs.files]]
+path = "ecu/D2TB102Prr.xml"
+size = 683557
+sha256 = "c0b7e8d4fa5b0da0da152bdce961053f86990c19a6c4a577222c55a17161c3d4"
+
+[[defs.files]]
+path = "ecu/D2WD610A.xml"
+size = 648141
+sha256 = "de82d512e76b24a190932e9b17fee0a9e1b6bc8fcc38bedf4ccdf78a8e240297"
+
+[[defs.files]]
+path = "ecu/DZ1E401B.xml"
+size = 656902
+sha256 = "ea6049826d8c1c184123d707bd01a179a6abe56dbdcab1a478677d6bc8e15374"
+
+[[defs.files]]
+path = "ecu/EZ1E401Hrrrrrr.xml"
+size = 656364
+sha256 = "4ecaabdb93ca9c715aff1a14a2bf7028dddd047d866b832f6ad05f9402693029"
+
+[[defs.files]]
+path = "ecu/Exiga_RR.xml"
+size = 1403708
+sha256 = "41d70a276a0310e5c465c2889990293ed7b8d259fa305ef9e98aab55471d13c4"
+
+[[defs.files]]
+path = "ecu/Group_N_Defs_Rev_2.xml"
+size = 7088
+sha256 = "d1b8c9bee2006a3b8e59af019ced8243280f429dada954c37a09f3c2fca19240"
+
+[[defs.files]]
+path = "ecu/JZ2F401A_rom_def.xml"
+size = 1001552
+sha256 = "0c3e77f9d0479b4f317b8a3d8877f54acf14d151bce621eae1f40c7774d5979b"
+
+[[defs.files]]
+path = "ecu/ROMRAIDER-AE5I910V-v0.97.xml"
+size = 691456
+sha256 = "c6fe388f9df64994da465245161a01db5f7484be03ec3787c549942866b7874e"
+
+[[defs.files]]
+path = "ecu/RR D2UJ001T.xml"
+size = 674287
+sha256 = "3aeb7963d2e46dd348af2fdb448e9292acf6a67daa4e7721dd99d5cdacfae12c"
+
+[[defs.files]]
+path = "ecu/RR_A2TB002C.xml"
+size = 756303
+sha256 = "4e35f80afe9597b4b5f76f7d77012b0cff3a4070971a540ca8cadc85dd7fd8db"
+
+[[defs.files]]
+path = "ecu/RR_A2ZJC00A.xml"
+size = 690538
+sha256 = "42f41da3364b9469fd1ff7d79bc133ca39f01c6c9edda242cf086047bb37298a"
+
+[[defs.files]]
+path = "ecu/RR_A8DH100E.xml"
+size = 804560
+sha256 = "4dad2cf187c7357090aa4212eaa9e4d93676b6d14a78729b941816b292492542"
+
+[[defs.files]]
+path = "ecu/RR_A8DH102I.xml"
+size = 818219
+sha256 = "4ec68bfebe25de94ba654b917c56375a274981875f17cabd2025ebce7b00045c"
+
+[[defs.files]]
+path = "ecu/RR_A8DH200Y.xml"
+size = 694064
+sha256 = "c440320353be7cd98f5435141793c31c3d20d12c35da27eb53b02238b1a8b777"
+
+[[defs.files]]
+path = "ecu/RR_A8DK100Q.xml"
+size = 690386
+sha256 = "beebf6322c9a5d3a03b1c04e95ee0f76da95d8e7bae5a79ea1a795b10f7b96d5"
+
+[[defs.files]]
+path = "ecu/RR_AE5F300A.xml"
+size = 696569
+sha256 = "0863fb61163a073a358099818a79acbcb732c4b84b4f6fd7400e77ca12f73fff"
+
+[[defs.files]]
+path = "ecu/RR_AE5F301H.xml"
+size = 685975
+sha256 = "d27ce6e039806a3dd621e4eeb9da40331bea3ed7f42a1d0bbaaa65cf9d4cd221"
+
+[[defs.files]]
+path = "ecu/RR_AE5I001A.xml"
+size = 683881
+sha256 = "bfcba168122cddfd751b590aac77cfdf5822262003c2411acc8b876118c39ff5"
+
+[[defs.files]]
+path = "ecu/RR_AE5I410A.xml"
+size = 802269
+sha256 = "4e59b626f9a3fd9e91db7f7e26b3dbed0313886f8c71c50d7f3489138581784b"
+
+[[defs.files]]
+path = "ecu/RR_AE5I500F.xml"
+size = 696969
+sha256 = "67bb4a35f6a9d236caded49db60286077cf517963c9be19008b2b76082217479"
+
+[[defs.files]]
+path = "ecu/RR_AE5IB00L.xml"
+size = 690152
+sha256 = "4059296202a224adbae6c64f9c8bfafed1d4aff967a61a75fa1b7aab846b8d99"
+
+[[defs.files]]
+path = "ecu/RR_AE5IB40L.xml"
+size = 704590
+sha256 = "495e4d37f05c9be7b6718a1b2e75d52a85f9cf845a77b670cb5af0627b3e4650"
+
+[[defs.files]]
+path = "ecu/RR_AE5IB40R.xml"
+size = 704860
+sha256 = "52daa1cb6c214bd54028fb8de2f97dd17718786eabea612eeb30c790b7c1ed1e"
+
+[[defs.files]]
+path = "ecu/RR_AE5IB40V.xml"
+size = 706379
+sha256 = "e0087aeb32a23f2753354d19ab7cc6d56a8081e679058cf149d6c38d8bdc21ae"
+
+[[defs.files]]
+path = "ecu/RR_AE5K410E.xml"
+size = 826906
+sha256 = "795fd180f40f9b2d8d6811798d10fd4ffe702e56ed20b7bace70443f3d1e45b8"
+
+[[defs.files]]
+path = "ecu/RR_AE5K700V_ecuf.xml"
+size = 46292
+sha256 = "9ba842ac13e0965e51eeddbc0d02eb191ea45a3929a53469266ba9590aeed096"
+
+[[defs.files]]
+path = "ecu/RR_AE5K800L.xml"
+size = 692493
+sha256 = "0d5caf386c67f749e5cf17bdaef960dc17089c102ce0d04643f9b45057133b9d"
+
+[[defs.files]]
+path = "ecu/RR_AE5K800V.xml"
+size = 808386
+sha256 = "0afcb161cdb54181da967510ae5369cbc1a4791d85e85cbc418aab4fa6f7b63b"
+
+[[defs.files]]
+path = "ecu/RR_AE5L500L.xml"
+size = 690119
+sha256 = "13e90f4b27278524bcae238e7123b4b29ef3e39c831f69f944d8d1dff54542ed"
+
+[[defs.files]]
+path = "ecu/RR_AE5L500R.xml"
+size = 692741
+sha256 = "0516b52cb9d7c9714e672eb5b2a41f4777dac51330d9553b8c65d3619c5cbde5"
+
+[[defs.files]]
+path = "ecu/RR_AE5L600L.xml"
+size = 704557
+sha256 = "69f316e21424fac67815c880c489d4df7ba86345fb0a7e445ff5902f3f929861"
+
+[[defs.files]]
+path = "ecu/RR_AE5L700V.xml"
+size = 705755
+sha256 = "c6961541b688c707e8ec2efb1df4a8fe978f16033c38cc08cc4ce15cd10904a7"
+
+[[defs.files]]
+path = "ecu/RR_AE5M100G.xml"
+size = 752935
+sha256 = "7a822306243ee8aee9efd245b8d179b276daef0530fcae2059abc432042678ae"
+
+[[defs.files]]
+path = "ecu/RR_AE5Q100L.xml"
+size = 704689
+sha256 = "53286f31f4aa94471d21d0070cc8dacbac452cdc0964cb68a8a3d32a8c066a10"
+
+[[defs.files]]
+path = "ecu/RR_AE5Q100V.xml"
+size = 705853
+sha256 = "4092885e8bf1bc7b9ba73fdfca7272c1231922740fab7f5da99e9cea29d62408"
+
+[[defs.files]]
+path = "ecu/RR_AE5Q200L.xml"
+size = 702281
+sha256 = "2ae168356d5d2bee7bc045538a1ebfc2c0c79608c8a752a569781fa0b87f0863"
+
+[[defs.files]]
+path = "ecu/RR_AE5Q200V.xml"
+size = 705926
+sha256 = "a59088e99e67dfe4c016d72bfe219b822663d3411ab302302607a375fcf386eb"
+
+[[defs.files]]
+path = "ecu/RR_AE5R100V.xml"
+size = 705579
+sha256 = "ebc43b4e48f752d4a82035e9dffdf2fe4d5ee16e27f021a6e2cda9e2ec6333a0"
+
+[[defs.files]]
+path = "ecu/RR_AE5R101V.xml"
+size = 708370
+sha256 = "2e87aa72d48e8bcc3ddbfd17cc1ebc705062c1f52e68699ea99931062539bbb9"
+
+[[defs.files]]
+path = "ecu/RR_AE5T200V.xml"
+size = 711337
+sha256 = "aae5fafed062c1f0c3de3bee2673b696fd5b66e1b3babf908d54e9c4ed17a7c1"
+
+[[defs.files]]
+path = "ecu/RR_AE5T201V.xml"
+size = 711337
+sha256 = "41dd099551328fbbb728234ab940167d4fd1e5a51a1743b6ff556d8c0351030c"
+
+[[defs.files]]
+path = "ecu/RR_AE5W100V.xml"
+size = 731404
+sha256 = "a30120dfb6ae838ab5c3140f7f9654d0ca6d14bbac9a23113b381b117b59318a"
+
+[[defs.files]]
+path = "ecu/RR_AE5Z000V.xml"
+size = 712253
+sha256 = "773d8741a73f40a6c2a5ab515fdf4a25310519e48ba8eba4ffa301f9fbbd78b5"
+
+[[defs.files]]
+path = "ecu/RR_AE5Z321V.xml"
+size = 731083
+sha256 = "cc3068c4611be10b09919f0ff38b47f6053dda0f85d80232483b66dc4caf515d"
+
+[[defs.files]]
+path = "ecu/RR_AE5Z800A.xml"
+size = 735152
+sha256 = "dcbad5227dba4442dc7c065b2a70bb38b473613b300932a2863c404ec9a879ac"
+
+[[defs.files]]
+path = "ecu/RR_AZ1G100T.xml"
+size = 699203
+sha256 = "ca5af8bbc65346f70673ac8ce854b3f73034ce9012c79610e44d918dd5e79f6f"
+
+[[defs.files]]
+path = "ecu/RR_AZ1G104L.xml"
+size = 833649
+sha256 = "97ae981ae07cb1e04b1e332b21551dae509779dd7ad3439e30a40ab63f4fdc7a"
+
+[[defs.files]]
+path = "ecu/RR_AZ1G111T.xml"
+size = 699203
+sha256 = "ab339b39857a5e416500244cce9170b44358cec6fe6c987cb9725553b6e4dd6d"
+
+[[defs.files]]
+path = "ecu/RR_AZ1G500Z.xml"
+size = 700807
+sha256 = "d712b52cb0082cf8bacdac926de138dc1f60215e49dfcbbe1adb52f2a7a1b412"
+
+[[defs.files]]
+path = "ecu/RR_AZ1G600P.xml"
+size = 698828
+sha256 = "0afa9a523659460bdb4716346f0ff7f81121890923141bcd096cc3432ad7ef70"
+
+[[defs.files]]
+path = "ecu/RR_AZ1G601R.xml"
+size = 703294
+sha256 = "9356efafa2db76340e4d00280df1881e01e11e2e7a4db8ea02be57dfa4399cdb"
+
+[[defs.files]]
+path = "ecu/RR_AZ1G700E.xml"
+size = 798728
+sha256 = "52005c8534cef73a90ba3bde28090b81d953200eb2ad82625439863fa24680ce"
+
+[[defs.files]]
+path = "ecu/RR_AZ1G700K.xml"
+size = 680450
+sha256 = "ba178c7282408f3a409427f504ed0fd525ebd77e2140357244c1dc6fc8d31c9d"
+
+[[defs.files]]
+path = "ecu/RR_AZ1G710V.xml"
+size = 703938
+sha256 = "0a59fe781f34863c62ab54131778dd9850a1a3248557f627f713857021e4561f"
+
+[[defs.files]]
+path = "ecu/RR_AZ1G800R.xml"
+size = 698828
+sha256 = "54ce73962916375731f3477fdd8f86ea5141bb14a19648007777c43f3ceb97cc"
+
+[[defs.files]]
+path = "ecu/RR_AZ1G800S.xml"
+size = 757793
+sha256 = "6caadb1f3c78b5e25a83352e5274ce107361e5a7eebf9da14901c0dcce275350"
+
+[[defs.files]]
+path = "ecu/RR_AZ1G900O.xml"
+size = 684312
+sha256 = "7fc7ab51582fef74a35634337301e765576a3af634afda3ee15d3b1501e52914"
+
+[[defs.files]]
+path = "ecu/RR_AZ1J200N.XML"
+size = 740980
+sha256 = "7c00b4c964e14735b8a1f1a13c70aeafad5886cd454163a809e5efa44e3a07ff"
+
+[[defs.files]]
+path = "ecu/RR_AZ1J400H.xml"
+size = 698809
+sha256 = "ef35a3c81a01e619a6828f819552a734861b6e7eb3e051b126193b567f67dae9"
+
+[[defs.files]]
+path = "ecu/RR_AZ1J500L.xml"
+size = 740989
+sha256 = "69f829e3b5ab0b17c509feb4b0a3cb0db339f32467510aa03738b90ee995c695"
+
+[[defs.files]]
+path = "ecu/RR_AZ1J500T.xml"
+size = 699488
+sha256 = "6db0f0fa0eec30c0a1d2c99b347aedcc9ee9c0e2d24e84c9482e56ac06abc8ce"
+
+[[defs.files]]
+path = "ecu/RR_AZ1K000T.xml"
+size = 687348
+sha256 = "3ba77c0c400e00b196573349bbbaef2294d76e8e074073a2b750e8d7e3349482"
+
+[[defs.files]]
+path = "ecu/RR_AZ1L100C.xml"
+size = 833837
+sha256 = "36f87401f5273f1eaf675437726dbcb24aa2f45775bcc956f0f234fa8025609b"
+
+[[defs.files]]
+path = "ecu/RR_AZ1L100D.xml"
+size = 833210
+sha256 = "04f1a162f7066bb9dd479d453e8aa98b14e61876634f87551c4447fa591ddc88"
+
+[[defs.files]]
+path = "ecu/RR_AZ1L100G.xml"
+size = 835336
+sha256 = "d5621fc04646323a08997fec7410d2726005c139b7d83b8f38332aa96e680449"
+
+[[defs.files]]
+path = "ecu/RR_AZ1L100K.xml"
+size = 712547
+sha256 = "be6e26ac600af841afee8cab67045f2d4c109c313d6ba248fa98fbbec4df0258"
+
+[[defs.files]]
+path = "ecu/RR_AZ1L100T.xml"
+size = 834759
+sha256 = "c2cffed26a8171552b4426f14a821b6826165902fb2cd5aef2dcde11710e0bf2"
+
+[[defs.files]]
+path = "ecu/RR_AZ1L100X.xml"
+size = 1403641
+sha256 = "2908e58577c5d28e19e97f572c9c53731e76cc4b93bec3b0e37c2f09be28f42c"
+
+[[defs.files]]
+path = "ecu/RR_AZ1N100G.xml"
+size = 706524
+sha256 = "e9c217325c021314f8aef394907043cc446fd66b256419705d7a74a7391a3c1e"
+
+[[defs.files]]
+path = "ecu/RR_AZ1N100M.xml"
+size = 703652
+sha256 = "8f95ca681d70f325721b4457bb73b40a1d020939675cad81d0e9ed58af80e4f6"
+
+[[defs.files]]
+path = "ecu/RR_AZ1N100S.xml"
+size = 700658
+sha256 = "0552490f770017f684aa04b064c73589bd8587c8b565e9da2609362d8df0de36"
+
+[[defs.files]]
+path = "ecu/RR_AZ1P000G.xml"
+size = 706524
+sha256 = "f652ffd7ef5043da4c0aa800df30d74dade9af971b79908c87b0c8343a109c2d"
+
+[[defs.files]]
+path = "ecu/RR_AZ1P000L.xml"
+size = 702223
+sha256 = "2f8629855f1c533db73479dafbb7a5241a8399adcaa2792214508c49b7962bfc"
+
+[[defs.files]]
+path = "ecu/RR_AZ1P000M.xml"
+size = 703652
+sha256 = "13581537af214c819ec4ddf23381040306987d35927b0578f15a4749f9ca357f"
+
+[[defs.files]]
+path = "ecu/RR_AZ1P100S.xml"
+size = 703418
+sha256 = "f0b4d1712fec16b5f753576c0f82a4b9641570d7a2b2b627544fc67897c7d0fc"
+
+[[defs.files]]
+path = "ecu/RR_AZ1Q010M.xml"
+size = 702925
+sha256 = "03f862bf6537480c31076430b55704908d800fa933ee1575775f7e127cccf5c1"
+
+[[defs.files]]
+path = "ecu/RR_AZ1S000G.xml"
+size = 703542
+sha256 = "b92a14a6e9890b1ad25fcbb25e99d176691d2c9e53fcc22aa44e2b27f4385cb0"
+
+[[defs.files]]
+path = "ecu/RR_AZ1S000M.xml"
+size = 703542
+sha256 = "a7e4949566c3b5e76d6c9a0feb58d49afe1d9d417629adac07ef9326cd99612e"
+
+[[defs.files]]
+path = "ecu/RR_AZ1U000G.xml"
+size = 706554
+sha256 = "a77443647af8fb93c05c46d63198da5b130343e6f78cde3d5e4adf1709c761b8"
+
+[[defs.files]]
+path = "ecu/RR_AZ1U000L.xml"
+size = 725317
+sha256 = "2952c2e3f4f20504925e09b9e8c673b84729654ece7f9ed792c501cabaaa7673"
+
+[[defs.files]]
+path = "ecu/RR_AZ1U000M.xml"
+size = 726019
+sha256 = "206c35f59443a0f53aad3440f481930dd7949563de703d7cb4f355fc3b3b85be"
+
+[[defs.files]]
+path = "ecu/RR_Ae5z111w.XML"
+size = 712025
+sha256 = "b4fb5487cf5d24b922e1f9627106c042b52a141fc399c52551a89febac325f5e"
+
+[[defs.files]]
+path = "ecu/RR_BRZs.xml"
+size = 1757914
+sha256 = "4e6582d573672d16de64d71cf6a1ab49408ac6ccd951ba587026462082a70d1e"
+
+[[defs.files]]
+path = "ecu/RR_Brz.xml"
+size = 740039
+sha256 = "ec14faf73e9fed7cb54669b7f5936b9755cb69a4d93a235499a0b338118f2fd6"
+
+[[defs.files]]
+path = "ecu/RR_D0XJ001L.xml"
+size = 675880
+sha256 = "8a00e971161f8aca9ea628cde8b3a22e55a6fb5bb248a76e2b3021a95e04b8fd"
+
+[[defs.files]]
+path = "ecu/RR_D0XJ001P.xml"
+size = 678511
+sha256 = "5a7cb05df3967737cd8a4525a4ada8d5dadc27c3d3a2c760299e2d9204e41f7e"
+
+[[defs.files]]
+path = "ecu/RR_D0XJ002S.xml"
+size = 675610
+sha256 = "5aee70b5c31f7fa93928ce8d2aa246db8963653ccce541a021941abadb9451b7"
+
+[[defs.files]]
+path = "ecu/RR_D2PH410Q.xml"
+size = 686863
+sha256 = "30846a296682ed4d468c346d5f8870700e2ca873a1f616299e84a4daf1dfe1b0"
+
+[[defs.files]]
+path = "ecu/RR_D2SB001Q.xml"
+size = 816436
+sha256 = "07494f178a541ffebe19b8acf0324d04ab5025feb94738933a6e2c212915eee4"
+
+[[defs.files]]
+path = "ecu/RR_D2TB101P.xml"
+size = 690640
+sha256 = "5f0e8e00b49f94db7c226ba219eae15f82ff0fb39fae6ae35ed9880f724c70c8"
+
+[[defs.files]]
+path = "ecu/RR_D2UH003R.xml"
+size = 675870
+sha256 = "28fdbf1c20ae3beaf784365006382e89e4be9888696ed5392347ad2dda69347d"
+
+[[defs.files]]
+path = "ecu/RR_D2UJ003R.xml"
+size = 675644
+sha256 = "e9bd4542406569eb3a543f7ccda3ca377b89f393210bc07e49bed9e1996cb30f"
+
+[[defs.files]]
+path = "ecu/RR_D2WD701C.xml"
+size = 674233
+sha256 = "98e3401deab1a318a3ba304117c6bfc271959ed462b36d070b6562d65526cd5c"
+
+[[defs.files]]
+path = "ecu/RR_D2ZR003A.xml"
+size = 671517
+sha256 = "e9425c59b79e83dddd661e89be7840f3a2a5b36e94f1c5ce2076aff0db2aa3df"
+
+[[defs.files]]
+path = "ecu/RR_D2ZS000C.xml"
+size = 687509
+sha256 = "328ab4a9b28010e97e38e2747b30af33e466a921909c2aaa22ce4d281a053c8f"
+
+[[defs.files]]
+path = "ecu/RR_D2ZS002C.xml"
+size = 687507
+sha256 = "a8b1a254f3f838820bcf76238893d55766e335afcded7ea089c7930d36e567dc"
+
+[[defs.files]]
+path = "ecu/RR_D2ZS002D.xml"
+size = 670904
+sha256 = "39edb6b3d368202a75ee7a123f7013b522f7e24f85909079432f59769b33b028"
+
+[[defs.files]]
+path = "ecu/RR_D2ZU002A.xml"
+size = 685101
+sha256 = "9dabca0a2795fef8215a5794d1168bd791336ce29b5ab3dadc51bf9dd174ce15"
+
+[[defs.files]]
+path = "ecu/RR_D2ZX004B.xml"
+size = 687164
+sha256 = "e7f5d1f7be23ca4d4c32c83d69c8df7060e11b8dcfe8c8302248b1ff16684a73"
+
+[[defs.files]]
+path = "ecu/RR_D2ZX110B.xml"
+size = 676119
+sha256 = "25b4fbed20bcc2c74dd291aa5149316309feceece521792b1cd3d9b3b34afc85"
+
+[[defs.files]]
+path = "ecu/RR_D2ZY110H.xml"
+size = 671657
+sha256 = "7ed476ed90223eddcca9a5267155dc7c784d9b6b48fb10342b10ac259d98876f"
+
+[[defs.files]]
+path = "ecu/RR_DE5F201B.xml"
+size = 803947
+sha256 = "8dd6701ab24fafdcc5fc4d01fd9afeb941ed162258876c62e7f9d2fa04e9d785"
+
+[[defs.files]]
+path = "ecu/RR_DE5F301H.xml"
+size = 750836
+sha256 = "bf0888d2af573d65cbd2375ccf34cf00192ae46bd02693a160ebbb9ec65f6ecd"
+
+[[defs.files]]
+path = "ecu/RR_DE5F810B.xml"
+size = 753899
+sha256 = "02924fc04a47c62dff6cd896c81084e2a3f4fc1e6973584ba1d8aff4baaa8936"
+
+[[defs.files]]
+path = "ecu/RR_DE5I500M.xml"
+size = 687607
+sha256 = "7d56dbb89e49471f10d3f706c6127a4b11dcf3c3a53f0bdaceaeb8317832c8fe"
+
+[[defs.files]]
+path = "ecu/RR_DE5IB40B.xml"
+size = 806381
+sha256 = "267e2c31ec70dfa59ba792d027931ba432d5e453b52a6163ddf9289965b9b264"
+
+[[defs.files]]
+path = "ecu/RR_DE5K800B.xml"
+size = 806984
+sha256 = "4b70601f926a1308cbb7b31c60ebdc93f9ca5409e1b886c733860081b21a5e92"
+
+[[defs.files]]
+path = "ecu/RR_DE5L510K.xml"
+size = 822294
+sha256 = "92cd4bd33b1912d40c6bc007c45c7581944d9b3a77d65dc57c8e0813e7de21eb"
+
+[[defs.files]]
+path = "ecu/RR_DE5M301C.xml"
+size = 806083
+sha256 = "8231ae57ebd930a7344a5b2f82c4faf300d1be273183aab47c11f34e6efab0c6"
+
+[[defs.files]]
+path = "ecu/RR_DE5M301H.xml"
+size = 805569
+sha256 = "0e95c373d7dbd9b607ba5645c36263ef3bb415785f87ebf3cccfa7ca69dd0aca"
+
+[[defs.files]]
+path = "ecu/RR_DE5Q100C.xml"
+size = 806369
+sha256 = "57bfb85c7112b74688fcb47e82e501d2103d07bc4df542c659f18ebb4846fba0"
+
+[[defs.files]]
+path = "ecu/RR_E2SB002L.xml"
+size = 680508
+sha256 = "ebebabf7263a4f9223f30b989123ddc0f95e85fb87832960546fd12e5a297586"
+
+[[defs.files]]
+path = "ecu/RR_E2UE101B.xml"
+size = 675560
+sha256 = "bf9d3e41b7b536d4ccb2cbeaef60730c2681c337dcd53894a356129ea4fd4fee"
+
+[[defs.files]]
+path = "ecu/RR_E2UE101I.xml"
+size = 675621
+sha256 = "45e28b9b2bf7dffb3f4ed55c048c52bcfc6cd25ac334b5911731a7fdc41f6a2e"
+
+[[defs.files]]
+path = "ecu/RR_E2UG001H.xml"
+size = 675019
+sha256 = "d1269c4a6949a44b1fdf040a716a6cc5aec0001bc0ee51b1ac659b6993e42e5f"
+
+[[defs.files]]
+path = "ecu/RR_E2UG001L.xml"
+size = 675083
+sha256 = "bb78cddaecedfd23263d9137ea0e573d8fbeac33c1ea5df1681709dfef98f061"
+
+[[defs.files]]
+path = "ecu/RR_E2VG212D.xml"
+size = 806195
+sha256 = "7f39c55a4fa55f0997ce8f25f3856a387d0d91d6196292303fe5dbcd85387dde"
+
+[[defs.files]]
+path = "ecu/RR_E2VL001C.xml"
+size = 804190
+sha256 = "f1dbcc7e6915e02d1d19f5b6e4349e2b9ac3e2b03fe5e4a863385907d6a1382c"
+
+[[defs.files]]
+path = "ecu/RR_E2VL002B.xml"
+size = 806099
+sha256 = "79d8091bdd9948c875f877217d6b71567ded32fd9529e53b7c3d816340b10569"
+
+[[defs.files]]
+path = "ecu/RR_E2WD201C.xml"
+size = 674392
+sha256 = "72417f68f59cfdc5ad84c72c638995ef2262e1449a0e1d275baff347737124c2"
+
+[[defs.files]]
+path = "ecu/RR_E2ZI103A.xml"
+size = 750356
+sha256 = "4a5364d25ba4dc93a995b076fe7329f7a6476c78777b3aa3a9669a3b568091a8"
+
+[[defs.files]]
+path = "ecu/RR_E2ZK001A.xml"
+size = 751515
+sha256 = "56f288de80da6acef2777138871a03ed082128c9c12d2d87bf647737248fdfb6"
+
+[[defs.files]]
+path = "ecu/RR_E6PF101A.xml"
+size = 678918
+sha256 = "cf0a58df1f0554d1321ead1512165b22b812b52b04afdb730bf56f1ed6d9e809"
+
+[[defs.files]]
+path = "ecu/RR_E6PF103A.xml"
+size = 678916
+sha256 = "1e0bc5a0794fbc441e934bdd9230d8d006481c2538fea6bbf89da03253143d04"
+
+[[defs.files]]
+path = "ecu/RR_EA1T400W.xml"
+size = 791026
+sha256 = "9ab946f70cefd07cd20d0255d8376070377d0f37bb6ff80810e507a9d33130ad"
+
+[[defs.files]]
+path = "ecu/RR_EE5F200W.xml"
+size = 694116
+sha256 = "6178b814c835c78c76119c75b97d1d37adecd2bd85b5f82d1354384158254d75"
+
+[[defs.files]]
+path = "ecu/RR_EE5F300A.xml"
+size = 691370
+sha256 = "3b1b4b30cdec3a577b98868ea913a617349402b4d799c7bcbe2bb78dba35eaeb"
+
+[[defs.files]]
+path = "ecu/RR_EE5F300L.xml"
+size = 691295
+sha256 = "994c977248e049ee40bff269a618c8504b6352161c07f19eb427950b29769f29"
+
+[[defs.files]]
+path = "ecu/RR_EE5I910H .xml"
+size = 682866
+sha256 = "d0b3f038525214d19abda84853d0d75a7c2726c7738cdd4f415c3b2f901e9d8d"
+
+[[defs.files]]
+path = "ecu/RR_EE5IA10G.xml"
+size = 696820
+sha256 = "29157d4544d175af3a6e5d372a8a3d3372ca6e1e3ba873d20e070fa34d19a9fd"
+
+[[defs.files]]
+path = "ecu/RR_EE5IA11T.xml"
+size = 694321
+sha256 = "fbef9c6d515b1903c4aa1cca80d0d25a965f2407b403f20cef997d18e235014a"
+
+[[defs.files]]
+path = "ecu/RR_EE5IB41T.xml"
+size = 694321
+sha256 = "2e639f2075a25a54836a317228687aa46ea88b8d08d745d27d9125fd4cbcf683"
+
+[[defs.files]]
+path = "ecu/RR_EE5K801W.xml"
+size = 695139
+sha256 = "471c2bb7ebfc744ad55a30cc11fd52c9f7c0deff6afdb9b37c0fe7938899d9f9"
+
+[[defs.files]]
+path = "ecu/RR_EE5i920T.xml"
+size = 680475
+sha256 = "c8e8a621a30d060890591f2bb61cda1b1a79ac318d1d11b894169d2c60ae9044"
+
+[[defs.files]]
+path = "ecu/RR_EP5D201D.xml"
+size = 741474
+sha256 = "494779e394d2ba052033af03a195dd72afad5054c4cd32891ceeccf647a561c7"
+
+[[defs.files]]
+path = "ecu/RR_EP5D202A.xml"
+size = 690363
+sha256 = "6cb2ba40b1afe5349b68e53deefe85c583ea96ec1ee862c51ff05fbb7c51bad3"
+
+[[defs.files]]
+path = "ecu/RR_EP5D202N.xml"
+size = 677406
+sha256 = "a5cd238bfe13eeb87d6c2e62c9c2a38797a51d90c54eab51fa007bf7deed7d68"
+
+[[defs.files]]
+path = "ecu/RR_EP5D202W.xml"
+size = 687310
+sha256 = "9a5f4ce62113c0148e3968d73c5321817cf054b9332a185f2fba9ff2256d0641"
+
+[[defs.files]]
+path = "ecu/RR_EP5D202X.xml"
+size = 680371
+sha256 = "c634f1e5c258761973fdde4fc5c2d16fda7b2a0c8ce3927685e9ec6322fd3a2e"
+
+[[defs.files]]
+path = "ecu/RR_EP5D700X.xml"
+size = 680347
+sha256 = "561eec45d036f805e2128889a0088516746723c45799d16edd3535e9cb8b9798"
+
+[[defs.files]]
+path = "ecu/RR_EP5F300H.xml"
+size = 810981
+sha256 = "25c4809f37960b8e9356325f7310ec94863008cd5a67da894f2db1832d3f7279"
+
+[[defs.files]]
+path = "ecu/RR_EP5F300r.xml"
+size = 747649
+sha256 = "31f37e031f868b2c73e7bfc5fa1779f1b441e0ff4a5a06142bab99239c1c040b"
+
+[[defs.files]]
+path = "ecu/RR_EP5F300s.xml"
+size = 735649
+sha256 = "bf7fff0b7d6167860fdcbeedbbac10ad17e71d629f3dfa71908529490ccdd612"
+
+[[defs.files]]
+path = "ecu/RR_EP5F300t.xml"
+size = 733166
+sha256 = "40637b39dca2f0738a8ec045e36ae3e18f643ca1f897f1b5a430f97c5fb52e7b"
+
+[[defs.files]]
+path = "ecu/RR_EP5F301I.xml"
+size = 733463
+sha256 = "0570bc344affdc49310a831b4d4105a856ca70b05a7e06867aa400e4f20ca187"
+
+[[defs.files]]
+path = "ecu/RR_EP5F400C.xml"
+size = 745606
+sha256 = "bd40d7cd670c87929ad780ebd1aa6413454952cb8f229dccaf3ab0f8088b6604"
+
+[[defs.files]]
+path = "ecu/RR_EP5G211a.xml"
+size = 689039
+sha256 = "2be6c85ac01e012b04dee2631b54b5c9d9f5e0a87eac6899474b7b949cf9bf27"
+
+[[defs.files]]
+path = "ecu/RR_EP5G300b.xml"
+size = 706276
+sha256 = "3b472b992046c8e6c21d14acd2a51db9c7f7179482dac6e02281f7debcce7bf6"
+
+[[defs.files]]
+path = "ecu/RR_EP5G401z.xml"
+size = 674990
+sha256 = "06dfdb852b901ca4505ba68ba7fe56501a8ec68c33d632cade7382698ad35360"
+
+[[defs.files]]
+path = "ecu/RR_EP5G601B.xml"
+size = 705466
+sha256 = "1a31d406813d41463e3c9318e942ce21e16da5022c40d4e62a64678c81242c43"
+
+[[defs.files]]
+path = "ecu/RR_EP5I200F.xml"
+size = 682674
+sha256 = "8735112b9052c2c739d5f130de36418172de1f9d87da6639f9118f35cd77602f"
+
+[[defs.files]]
+path = "ecu/RR_EP5L000p.xml"
+size = 701914
+sha256 = "8952df58dfe1484e0c1dcfeca3029aedd2facb1281898f6a61582329def0b767"
+
+[[defs.files]]
+path = "ecu/RR_EP5L001G.xml"
+size = 850317
+sha256 = "1ac5c13d7679f06eae2c122645b00f13ddb46aebd6c8280eaf65eb994b623e6f"
+
+[[defs.files]]
+path = "ecu/RR_EZ1D105B.xml"
+size = 695147
+sha256 = "85847ccd335c8da667eeb38115e4700866dc5ef59334105c641eb3c83720f74c"
+
+[[defs.files]]
+path = "ecu/RR_EZ1D302A.xml"
+size = 694065
+sha256 = "4aa75a78752db83dacc3ee08791f735e7efa3032e167c644babc037aa9393760"
+
+[[defs.files]]
+path = "ecu/RR_EZ1D303B.xml"
+size = 680437
+sha256 = "dbfdaafaad35b084c32c9c47e911348346ebcbfb505dfa3ee0298c449de50bab"
+
+[[defs.files]]
+path = "ecu/RR_EZ1G108K.xml"
+size = 680814
+sha256 = "2f03d28c54531d568c848d9bb0105732a363be5454b6baa930b6fd1ab65949ff"
+
+[[defs.files]]
+path = "ecu/RR_EZ1G108N.xml"
+size = 677828
+sha256 = "79e816cc44547ffa30075cf646c245bdf760e14c1413b200f478474d7845b657"
+
+[[defs.files]]
+path = "ecu/RR_EZ1G109J.xml"
+size = 694003
+sha256 = "6995719011607ca514265d7df475be7bae2fdfad3b23f8643d969355c18497bf"
+
+[[defs.files]]
+path = "ecu/RR_EZ1G110J.xml"
+size = 694184
+sha256 = "b6606f561c10a6fca690515a1335e776447dd959ee891e5adcba596f176a1522"
+
+[[defs.files]]
+path = "ecu/RR_EZ1G601Y.xml"
+size = 681223
+sha256 = "76ba8d274bcf376cd0e80752f602f519a21b5d4f2fce9cfbd9b10e935533a252"
+
+[[defs.files]]
+path = "ecu/RR_EZ1G701H.xml"
+size = 694442
+sha256 = "ec0e0800ed00662a4b1a00cfb894f05ec1ce7775241e9f8656953545ab7d98b0"
+
+[[defs.files]]
+path = "ecu/RR_EZ1GB00G.xml"
+size = 679109
+sha256 = "17f408b2b3b906201e9b0c6e51d128aa84a315edecb28c493d7f5b00cb8e9280"
+
+[[defs.files]]
+path = "ecu/RR_EZ1GB00H.xml"
+size = 679697
+sha256 = "6a178e11cbeace3cc3f47f680514406052634cbf95b20d12384be7ff7e21bdea"
+
+[[defs.files]]
+path = "ecu/RR_EZ1GB00J.xml"
+size = 694088
+sha256 = "d299bf3c3dbb57885d3438e7c65c39a93a13a601f3eefae0c7d00488082ac8c6"
+
+[[defs.files]]
+path = "ecu/RR_EZ1GB10G.xml"
+size = 696177
+sha256 = "3e1674c22743765ccd7d2c30b559f0eab836a4ded0c43f5f25d02dbf545c02ef"
+
+[[defs.files]]
+path = "ecu/RR_EZ1GB10H.xml"
+size = 694465
+sha256 = "3605e844f27c20cdd49e274f59c101dd8e7ecf1b00a2d1c085973c6322518ff3"
+
+[[defs.files]]
+path = "ecu/RR_EZ1GB10J.xml"
+size = 694636
+sha256 = "8c83de2957840f74f1d413bd3ac70b3b3eb7228cef3ca2dcaacb2eb518a4fe29"
+
+[[defs.files]]
+path = "ecu/RR_EZ1GB10K.xml"
+size = 696178
+sha256 = "3d84b80a25777c203e2df6adc5deca5e6ee7e8804f15736870f6abd2b0de3051"
+
+[[defs.files]]
+path = "ecu/RR_EZ1GC00B.xml"
+size = 694230
+sha256 = "d41a53e302be4a7defb4c5770e6634249deed3109181712eb558b73f2e205095"
+
+[[defs.files]]
+path = "ecu/RR_EZ1GD00A.xml"
+size = 679706
+sha256 = "828aaa245441475250c38645315d97a8c3da43edfb63daacf3b0ad124f3c533d"
+
+[[defs.files]]
+path = "ecu/RR_EZ1GD00B.xml"
+size = 679698
+sha256 = "30a20819f4045e27919b12edd91adf0052ef63209472b15402817203fc0c08b5"
+
+[[defs.files]]
+path = "ecu/RR_V2_E2WD200C.xml"
+size = 674357
+sha256 = "c13452e1e43042b8b6a7a7fe738c7f672e5d331636b031f0215575ad541b3823"
+
+[[defs.files]]
+path = "ecu/RR_ZA1J700K.xml"
+size = 838612
+sha256 = "890fff6b72a12e3bccb37b7afb5fa7fa6757a941d0cb2f789579dd46a46062d0"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JA00C.xml"
+size = 839728
+sha256 = "f87919e9c1ed314ebd4891e0112e2084ab67d92bf1834eef423b2d3bdc37e0b7"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JA00G.xml"
+size = 834054
+sha256 = "5eefad75bcc820e3c4a3f40243e3fc917c1ac32842f8be03cf460e6dcfd84701"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JA01A.xml"
+size = 836971
+sha256 = "cc41c672ca9bb5101e2e024b80aff25a9c8028021728a30a0f16d2390bff7441"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JA01C.xml"
+size = 835025
+sha256 = "4cbbd85ad122885f1aee4742a77947125cea4f7d73e457c5921b81c7bbb89f93"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JA01D.xml"
+size = 841443
+sha256 = "dacd596e351cd8b7f72bdae0aac9fb97617df954d8cf8e7357c76d97fe097357"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JA01E.xml"
+size = 840489
+sha256 = "e818878d3538012c28b81e6e157fd037839ccba3b009be1103c10a20b2bd7dab"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JA01F.xml"
+size = 840961
+sha256 = "48679580375569c814cd1a115705b14350b9fd0a6e8a6e8fac3368a425bfdc0d"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JA01G.xml"
+size = 837265
+sha256 = "c3f467981ff68d5e111d3dfdedbf369efc328ba02580ee367dbdbcbad556f951"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JA01I.xml"
+size = 834049
+sha256 = "28db7927f768146b6434e6869cd64ef7c83b24ba73db6dc7f40e36fd9266d24a"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JA01J.xml"
+size = 840280
+sha256 = "31d070cd869691f0ceb34de6a009f25ec448116a3440cca4bdd9f247dcc8afa6"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JA01K.xml"
+size = 837422
+sha256 = "7f179d66f50a8872facf3a73cd633e9ac12b60df0ccb4a09412f2b27a1abe622"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JA01N.xml"
+size = 834047
+sha256 = "267daf596c08176e244aec79e49ed9e61618ce7e1b5c650a301fb81fc5509f00"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JA01O.xml"
+size = 833963
+sha256 = "b1c65c84452314e36e2e8f6683d81ec3ecee480c4cdbead03bb0e54960c20a30"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JA02A.xml"
+size = 836877
+sha256 = "201b960313647730f2eec24d65c9d8cbdfebe78ed46f340e46e7b699e9d39e8f"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JA03N.xml"
+size = 834048
+sha256 = "f734178531945ecc2bd1089dc9c057c52ce9ae608cce3e7708a504adc3d42b1f"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JB00C.xml"
+size = 836621
+sha256 = "e5e07840a929fde3ad78bec07d357b4ca7adc473b168a99e914752155da33c66"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JB01C.xml"
+size = 836618
+sha256 = "b36d7e52c73c04b0539a2832b951b1b23be73464e6f32d3d65a8cb663ce7d24a"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JB01D.xml"
+size = 836757
+sha256 = "5ae3373a9b934d342f6294f3bb74a22b7bfe8730bf33a127a3ddea417c5fa95e"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JD00C.xml"
+size = 839905
+sha256 = "fa61f919f71ec133a280e6851eff62c95007f52d2aae4b8a1bd7c9e31d24b6a0"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JD00D.xml"
+size = 839621
+sha256 = "d836a9b36da6a87c2f0dd479ea430a382702fa5714208af561eb19cf44bc200c"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JD00G.xml"
+size = 836833
+sha256 = "95784359bc9dc2e18e1b509ad592c548efe02c0e4c39d462a1fdc6d98f57eb48"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JF00C.xml"
+size = 845485
+sha256 = "aa196cb39847704d45760f746cfc683427ca170933bf500455d8f6802868ed54"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JF10G.xml"
+size = 833360
+sha256 = "d1795abfb1df49f641a69ebf4c1c8c5d74256c1128ca376a6c562b4501b8bd19"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JF20P.xml"
+size = 833438
+sha256 = "7073eec8858e6728723dcf5e5a3c3c03e700d33204177ef11685b030b00b1558"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JF20Q.xml"
+size = 831981
+sha256 = "429e3dca924b0f08225c27f4c2dde8db35386ab91d998857f5f01fb9fbf3b2c7"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JF40C.xml"
+size = 845657
+sha256 = "919c6102001aa37c15181796b58e8e93320c8dfc0e7a434464bc0c768300af53"
+
+[[defs.files]]
+path = "ecu/RR_ZA1JK00C.xml"
+size = 855039
+sha256 = "8ca06dcb6d9c42a7d0d73e0052581454b1a4748804bb2184b9b1dc7c45951f34"
+
+[[defs.files]]
+path = "ecu/adm-2011_WRX_ecu_defs-REV1.xml"
+size = 647276
+sha256 = "6660e7113db34bd67e7821a07bb699859fd5e77a081ae5be54ac50758aa85bfe"
+
+[[defs.files]]
+path = "ecu/metric/ecu_defs.xml"
+size = 7893172
+sha256 = "f8eb67521b6a63ab6a5d7bdf59c1b37d6ac193c4087832d52f1689834de85f5b"
+
+[[defs.files]]
+path = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml"
+size = 8198190
+sha256 = "0caca1be39b0108d1b7a305b700fe25da7e5a2d653cef20e1d12140f3d6b60c1"
+
+[[defs.files]]
+path = "ecu/standard/ecu_defs.xml"
+size = 8663264
+sha256 = "74bfcda108b414a0908f58554e507397fd3cb47a647c67d330564873d52e053f"
+
+[[defs.files]]
+path = "ecu/standard/ecu_defs_merpmod.xml"
+size = 8197370
+sha256 = "63f82e06d43647b4ba1ac576fed0376beeb1c6aec531fb82a49813f5f60050dd"
+
+[[defs.files]]
+path = "logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml"
+size = 2208713
+sha256 = "5b9c6db79bb690ef011f703c1c0b6bec468cb98f52cd14807748a7aeb6856f97"
+
+[[defs.files]]
+path = "logger/MerpMod/Testing/A2ZJ500F.MeRpMoD.Flash.Testing.v14.5.10.044.xml"
+size = 1303230
+sha256 = "9a8d3ba63614df825641e26785cb1ac0f48d775602da209ddf5c037c5498f151"
+
+[[defs.files]]
+path = "logger/MerpMod/Testing/A2ZJB11J.MeRpMoD.Flash.Testing.v13.5.22.2216.xml"
+size = 2205631
+sha256 = "be181fc8a5e0a5ef7f12b0b06c57801fbce27f8a5f5dc8a66cc1b972641dd0ff"
+
+[[defs.files]]
+path = "logger/MerpMod/Testing/A8DH200V.MeRpMoD.Flash.Testing.v13.7.1.2232.xml"
+size = 2228713
+sha256 = "ca943e934ba0fa6bf9c1251965f6d6a7992bb23f6f412226e9b12ba7a467339a"
+
+[[defs.files]]
+path = "logger/MerpMod/Testing/A8DH202X.MeRpMoD.Flash.Testing.v13.5.14.948.xml"
+size = 2206987
+sha256 = "709ac209a65d5d4aedbd1a458abd6721ff7dc8c8f2935fa2881731d6ffcd10f0"
+
+[[defs.files]]
+path = "logger/MerpMod/Testing/AE5K700V.MeRpMoD.Flash.Testing.v13.5.29.1419.xml"
+size = 2207132
+sha256 = "ee570e9253ef914f61c9d9d7cbd11b23ff1a8475980f65ddb3765f705bf7e2c8"
+
+[[defs.files]]
+path = "logger/MerpMod/Testing/AZ1G202G.MeRpMoD.Flash.Testing.v13.5.23.142.xml"
+size = 2206776
+sha256 = "1f42ffd76a10c5ff91f40daa09fc6e43ec38ab4c7ca2eff713db07334d75cc9a"
+
+[[defs.files]]
+path = "logger/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml"
+size = 1533684
+sha256 = "39bab6f75f97b1ad6233987e9cc20b56dc89d2d11eeb08fbaaab2838bdd27165"
+
+[[defs.files]]
+path = "logger/MerpMod/Testing/AZ1S000G.MeRpMoD.Switch.Testing.v01.50.d20.9.25.1302.xml"
+size = 1533035
+sha256 = "97c9b3b835519a004d4eb438a8eea3680a15d25438f99187ee78f7748724b8fa"
+
+[[defs.files]]
+path = "logger/MerpMod/Testing/AZ1S000G.MeRpMoD.Switch.Testing.v01.50.d20.9.25.1304.xml"
+size = 1533035
+sha256 = "520383229866d50c1e0eeb9e40564cd115aba7fa81236eedd73a51d47d0d0ca6"
+
+[[defs.files]]
+path = "logger/MerpMod/Testing/AZ1S000G.MeRpMoD.Switch.Testing.v01.50.d20.9.25.1322.xml"
+size = 1533035
+sha256 = "1eea0f74dea25486060d5fb21e2571033013afbe584936bc327b9b1a2ce2f536"
+
+[[defs.files]]
+path = "logger/MerpMod/Testing/D2WD701C.MeRpMoD.Flash.Testing.v14.4.9.1853.xml"
+size = 1309497
+sha256 = "9a12466e43c30ca998511911d0cbd894f7f4bdc8ac3062dccffea06f170b91dd"
+
+[[defs.files]]
+path = "logger/MerpMod/base.xml"
+size = 125152
+sha256 = "4f00ef015b23e7cafb520748bcd4cbdf6b21f67ed1257bb3633d69bb129e4c93"
+
+[[defs.files]]
+path = "logger/logger.dtd"
+size = 3633
+sha256 = "2eefd5a43e72bccdc6d6fe928e9851c66eaa9d7d83fee0d8e82c823ff393f1b6"
+
+[[defs.files]]
+path = "logger/logger_IMP_DE_v290.xml"
+size = 1564145
+sha256 = "f04eceb44dec155985af099b38d7d7ba91b8f593cc5c1d006a2a3401869ae9cc"
+
+[[defs.files]]
+path = "logger/logger_IMP_EN_v290.xml"
+size = 1550955
+sha256 = "db66e4e7897a404403099b84c559ba3870bb42a3e42ed4a223398e1aff56dfa1"
+
+[[defs.files]]
+path = "logger/logger_METRIC_DE_v290.xml"
+size = 1564143
+sha256 = "1cab312540a313897ec6059de6815cea4d73cc8d04cc4b736e99bb8e3e619188"
+
+[[defs.files]]
+path = "logger/logger_METRIC_EN_v290.xml"
+size = 1551547
+sha256 = "ab2a47447d10be195c70421ccd7bff72098d71bc4d17fe9ab917198c031083cc"
+
+[[defs.files]]
+path = "logger/logger_STD_DE_v290.xml"
+size = 1564145
+sha256 = "2bcf465e1aede7eb122647d1ba315859e438296235ed6e8dfba57b8758747ee9"
+
+[[defs.files]]
+path = "logger/logger_STD_EN_v290.xml"
+size = 1546866
+sha256 = "efb6b38f249495e14ea97107608ac0bdb74b48b4d319c132fe9f6fe3d9178bee"

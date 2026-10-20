@@ -28,8 +28,21 @@
 //! kept the byte order in a static shared by every open ROM
 //! (`maps/Table.java:40`), and a `static ENDIAN: OnceLock<Endian>` set by the
 //! first definition loaded would bring that bug back while passing the
-//! mutable-state rule. Such a finding is [`Kind::StaticInStatelessModule`];
+//! mutable-state rule. The expression module is another (MF-25): legacy kept
+//! parsed formulas in one global synchronized cache (`util/JEPUtil.java:44`).
+//! The layer module (C1) is a third: a merge is a pure function of its
+//! layers, so a resolved-document cache there would make one load depend on
+//! what was loaded before it. Such a finding is [`Kind::StaticInStatelessModule`];
 //! `const` items stay allowed.
+//!
+//! A stateless module also names no lock, cell, atomic or lazy/once type
+//! anywhere, in a field, a local or a `use` ([`is_sync_marker`]), and makes
+//! no `thread_local!`: its values are plain data that any number of threads
+//! share without coordinating. This is what makes "evaluation takes no
+//! lock" checkable (MF-25, US-RR-20-4): a `Mutex` field caching results
+//! inside `Expr` is still `Send + Sync`, so the type system would not catch
+//! it. Such a finding is [`Kind::SyncTypeInStatelessModule`], named by the
+//! type; a `static` already reported is not reported again for its type.
 //!
 //! Sources are parsed with `syn`, so text inside string literals and comments
 //! never matches. Exceptions live in the allowlist file
@@ -70,6 +83,14 @@ pub const STATELESS_PATHS: &[&str] = &[
     // Encoding (C3, MF-04): every encoding carries its byte order by value.
     "crates/rr-core/src/encoding.rs",
     "crates/rr-core/src/encoding/",
+    // Expr (C4, MF-25): no parser cache or other shared state; legacy kept
+    // one global synchronized cache of parsed formulas (`util/JEPUtil.java:44`).
+    "crates/rr-core/src/expr.rs",
+    "crates/rr-core/src/expr/",
+    // Layered + Resolver (C1): merging is a pure function of the layers; a
+    // cache of resolved documents belongs to the caller, not the module.
+    "crates/rr-core/src/layer.rs",
+    "crates/rr-core/src/layer/",
 ];
 
 /// Whether `path` (relative to the workspace root, `/`-separated) is under
@@ -100,6 +121,29 @@ pub fn is_state_marker(ident: &str) -> bool {
         )
 }
 
+/// Whether an identifier names interior mutability, synchronisation or
+/// lazy/once state, banned anywhere in a [stateless module](self#stateless-modules):
+/// every [`is_state_marker`], the `atomic` module, `Once`, `OnceLock`,
+/// `OnceCell`, `LazyLock`, `LazyCell`, `Lazy` and `thread_local`.
+///
+/// `Barrier` is not one: it coordinates threads and holds no data, and the
+/// encoding module's concurrency tests use it.
+#[must_use]
+pub fn is_sync_marker(ident: &str) -> bool {
+    is_state_marker(ident)
+        || matches!(
+            ident,
+            "atomic"
+                | "Once"
+                | "OnceLock"
+                | "OnceCell"
+                | "LazyLock"
+                | "LazyCell"
+                | "Lazy"
+                | "thread_local"
+        )
+}
+
 /// What kind of forbidden global a finding is.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Kind {
@@ -114,6 +158,10 @@ pub enum Kind {
     /// Any other `static` (`OnceLock`, `LazyLock`, a constant table,
     /// `lazy_static!`) in a source under [`STATELESS_PATHS`].
     StaticInStatelessModule,
+    /// A lock, cell, atomic or lazy/once type ([`is_sync_marker`]) named
+    /// anywhere in a source under [`STATELESS_PATHS`], outside a `static`
+    /// already reported.
+    SyncTypeInStatelessModule,
 }
 
 impl fmt::Display for Kind {
@@ -124,6 +172,7 @@ impl fmt::Display for Kind {
             Self::LazyStatic => "lazy_static! singleton",
             Self::ThreadLocal => "thread_local! global",
             Self::StaticInStatelessModule => "static in a stateless module",
+            Self::SyncTypeInStatelessModule => "lock or cell in a stateless module",
         })
     }
 }
@@ -165,6 +214,7 @@ pub fn scan_source(path: &str, src: &str) -> Result<Vec<Finding>> {
     let mut scanner = Scanner {
         path,
         stateless: is_stateless_path(path),
+        in_reported: 0,
         findings: Vec::new(),
     };
     scanner.visit_file(&file);
@@ -177,12 +227,19 @@ struct Scanner<'p> {
     path: &'p str,
     /// `path` is under [`STATELESS_PATHS`]: every `static` is a finding.
     stateless: bool,
+    /// Inside a `static` (or `lazy_static!` / `thread_local!`) that is
+    /// reported as a whole, so the types in it are not reported again.
+    in_reported: usize,
     findings: Vec<Finding>,
 }
 
 /// Why a static in a stateless module is flagged.
 const STATELESS_DETAIL: &str = "no `static` of any kind (OnceLock, LazyLock, tables included) \
      in a stateless module; carry the state in the value (MF-04)";
+
+/// Why a lock or cell type in a stateless module is flagged.
+const SYNC_DETAIL: &str = "no lock, cell, atomic or lazy/once type in a stateless module: \
+     its values are shared across threads without coordinating (MF-04, MF-25)";
 
 impl Scanner<'_> {
     fn push(&mut self, ident: &str, span: Span, kind: Kind, detail: String) {
@@ -225,7 +282,13 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
                 );
             }
         }
+        self.in_reported += 1;
         visit::visit_item_static(self, i);
+        self.in_reported -= 1;
+    }
+
+    fn visit_ident(&mut self, i: &'ast proc_macro2::Ident) {
+        self.flag_sync(i);
     }
 
     fn visit_macro(&mut self, m: &'ast syn::Macro) {
@@ -265,8 +328,44 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
                     (_, None) => {}
                 }
             }
+            self.in_reported += 1;
+            visit::visit_macro(self, m);
+            self.in_reported -= 1;
+        } else {
+            // `syn` leaves macro bodies as tokens: `vec![Cell::new(0)]`.
+            if self.stateless && self.in_reported == 0 {
+                for_each_ident(m.tokens.clone(), &mut |i| self.flag_sync(i));
+            }
+            visit::visit_macro(self, m);
         }
-        visit::visit_macro(self, m);
+    }
+}
+
+impl Scanner<'_> {
+    /// Reports `i` if it is an [`is_sync_marker`] in a stateless module.
+    fn flag_sync(&mut self, i: &proc_macro2::Ident) {
+        if !self.stateless || self.in_reported > 0 {
+            return;
+        }
+        let name = i.to_string();
+        if is_sync_marker(&name) {
+            self.push(
+                &name,
+                i.span(),
+                Kind::SyncTypeInStatelessModule,
+                SYNC_DETAIL.to_owned(),
+            );
+        }
+    }
+}
+
+fn for_each_ident(tokens: TokenStream, f: &mut impl FnMut(&proc_macro2::Ident)) {
+    for tt in tokens {
+        match tt {
+            TokenTree::Ident(i) => f(&i),
+            TokenTree::Group(g) => for_each_ident(g.stream(), f),
+            TokenTree::Punct(_) | TokenTree::Literal(_) => {}
+        }
     }
 }
 
@@ -658,17 +757,25 @@ mod tests {
     }
 
     #[test]
-    fn stateless_paths_cover_the_encoding_module_only() {
+    fn stateless_paths_cover_the_encoding_expr_and_layer_modules_only() {
         for p in [
             "crates/rr-core/src/encoding.rs",
             "crates/rr-core/src/encoding/codec.rs",
             "crates/rr-core/src/encoding/codec/tests.rs",
+            "crates/rr-core/src/expr.rs",
+            "crates/rr-core/src/expr/parser.rs",
+            "crates/rr-core/src/layer.rs",
+            "crates/rr-core/src/layer/list.rs",
         ] {
             assert!(is_stateless_path(p), "{p}");
         }
         for p in [
             "crates/rr-core/src/encoding_x.rs",
             "crates/rr-core/src/encodings/codec.rs",
+            "crates/rr-core/src/expression.rs",
+            "crates/rr-core/src/exprs/parser.rs",
+            "crates/rr-core/src/layers.rs",
+            "crates/rr-core/src/layered/list.rs",
             "crates/rr-core/src/diag.rs",
             "crates/rr-testkit/src/encoding_oracle.rs",
             "xtask/src/globals.rs",
@@ -715,6 +822,9 @@ thread_local! { static T: u8 = 0; }
                 ("FLAG", Kind::MutableStatic),
                 ("HITS", Kind::StaticMut),
                 ("INNER", Kind::StaticInStatelessModule),
+                // The `use` names them outside any static.
+                ("LazyLock", Kind::SyncTypeInStatelessModule),
+                ("OnceLock", Kind::SyncTypeInStatelessModule),
                 ("RE", Kind::StaticInStatelessModule),
                 ("T", Kind::ThreadLocal),
                 ("TABLE", Kind::StaticInStatelessModule),
@@ -743,6 +853,83 @@ thread_local! { static T: u8 = 0; }
             "{}",
             f[0]
         );
+    }
+
+    #[test]
+    fn a_lock_or_cell_anywhere_in_a_stateless_module_is_flagged() {
+        // MF-25: a cache behind a lock inside the formula type is still
+        // `Send + Sync`; only the source says it locks.
+        let src = "\
+use std::sync::Mutex;
+use std::sync::atomic::{AtomicU64, Ordering};
+pub struct Expr {
+    nodes: Vec<u8>,
+    cache: Mutex<Vec<(f64, f64)>>,
+}
+fn eval(e: &Expr) -> f64 {
+    let hits = std::cell::Cell::new(0);
+    let v = vec![core::cell::RefCell::new(0.0)];
+    let once: std::sync::OnceLock<u8> = std::sync::OnceLock::new();
+    let barrier = std::sync::Barrier::new(1);
+    0.0
+}
+";
+        let got = |path: &str| -> Vec<(String, usize)> {
+            scan_source(path, src)
+                .unwrap()
+                .into_iter()
+                .inspect(|f| assert_eq!(f.kind, Kind::SyncTypeInStatelessModule, "{f}"))
+                .map(|f| (f.item, f.line))
+                .collect()
+        };
+        let mut found = got("crates/rr-core/src/expr/ast.rs");
+        found.sort();
+        assert_eq!(
+            found,
+            [
+                ("AtomicU64".to_owned(), 2),
+                ("Cell".to_owned(), 8),
+                ("Mutex".to_owned(), 1),
+                ("Mutex".to_owned(), 5),
+                ("OnceLock".to_owned(), 10),
+                ("OnceLock".to_owned(), 10),
+                ("RefCell".to_owned(), 9),
+                ("atomic".to_owned(), 2),
+            ]
+        );
+        let f = &scan_source("crates/rr-core/src/expr/ast.rs", src).unwrap()[0];
+        assert!(
+            f.to_string().starts_with(
+                "crates/rr-core/src/expr/ast.rs:1: lock or cell in a stateless module `Mutex`"
+            ),
+            "{f}"
+        );
+        // Elsewhere the same source holds no global, so nothing.
+        assert_eq!(got("crates/rr-core/src/diag.rs"), []);
+    }
+
+    #[test]
+    fn sync_markers() {
+        for m in [
+            "Mutex",
+            "RwLock",
+            "Cell",
+            "RefCell",
+            "AtomicBool",
+            "atomic",
+            "Once",
+            "OnceLock",
+            "OnceCell",
+            "LazyLock",
+            "LazyCell",
+            "Lazy",
+            "thread_local",
+        ] {
+            assert!(is_sync_marker(m), "{m}");
+        }
+        for m in ["Barrier", "Arc", "Vec", "once", "Ordering", "Expr"] {
+            assert!(!is_sync_marker(m), "{m}");
+        }
     }
 
     #[test]

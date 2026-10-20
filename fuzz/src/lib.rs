@@ -15,14 +15,17 @@
 
 use std::fmt::Write as _;
 
+mod expr_target;
 pub mod replay;
+
+pub use expr_target::expr;
 
 use rr_core::capability::{AddressRange, EcuId, ScopeError};
 
 /// Every fuzz target, by name: the `[[bin]]` name in `fuzz/Cargo.toml`, the
 /// file stem in `fuzz_targets/`, and the directory under `seeds/` and
 /// `regressions/`. A regression runner iterates this list.
-pub const TARGETS: &[(&str, Target)] = &[("ecu_id", ecu_id), ("toy", toy)];
+pub const TARGETS: &[(&str, Target)] = &[("ecu_id", ecu_id), ("expr", expr), ("toy", toy)];
 
 /// A fuzz target body: runs one input, panics on a bug.
 pub type Target = fn(&[u8]);
@@ -162,6 +165,85 @@ mod tests {
                 let path = entry.unwrap().path();
                 target(&std::fs::read(&path).unwrap());
             }
+        }
+    }
+
+    /// The `expr` limit-edge inputs are what their names say: each
+    /// `seeds/expr/*-at-limit` parses within `Limits::DEFAULT`, and each
+    /// `regressions/expr/*-over-limit` (and the other pathological inputs)
+    /// is refused with that limit's error and diagnostic code, not a panic
+    /// (US-RR-20-9).
+    #[test]
+    fn expr_limit_edges_are_just_within_and_just_over() {
+        use rr_core::expr::{self, Func, ParseErrorKind as K};
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+        let read = |dir: &str, name: &str| {
+            let path = root.join(dir).join("expr").join(name);
+            let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("{path:?}: {e}"));
+            String::from_utf8(bytes).unwrap()
+        };
+        for name in [
+            "depth-at-limit",
+            "len-at-limit",
+            "literal-at-limit",
+            "nodes-at-limit",
+            "args-at-limit",
+            "stack-at-limit",
+        ] {
+            let src = read("seeds", name);
+            if let Err(e) = expr::parse(&src) {
+                panic!("seeds/expr/{name}: {e:?}");
+            }
+        }
+        let cases: [(&str, K); 11] = [
+            ("depth-over-limit", K::TooDeep { limit: 128 }),
+            ("unary-over-limit", K::TooDeep { limit: 128 }),
+            (
+                "len-over-limit",
+                K::TooLong {
+                    len: 4097,
+                    limit: 4096,
+                },
+            ),
+            (
+                "huge-literal",
+                K::TooLong {
+                    len: 60000,
+                    limit: 4096,
+                },
+            ),
+            (
+                "literal-over-limit",
+                K::LiteralTooLong {
+                    token: "a number",
+                    len: 129,
+                    limit: 128,
+                },
+            ),
+            ("nodes-over-limit", K::TooManyNodes { limit: 1024 }),
+            (
+                "args-over-limit",
+                K::TooManyArgs {
+                    func: Func::Sum,
+                    limit: 32,
+                },
+            ),
+            (
+                "deep-and-wide",
+                K::TooManyArgs {
+                    func: Func::Sum,
+                    limit: 32,
+                },
+            ),
+            ("stack-over-limit", K::StackTooDeep { limit: 32 }),
+            ("number-out-of-range", K::NumberOutOfRange),
+            ("unclosed-deep", K::TooDeep { limit: 128 }),
+        ];
+        for (name, want) in cases {
+            let src = read("regressions", name);
+            let err = expr::parse(&src).expect_err(name);
+            assert_eq!(*err.kind(), want, "regressions/expr/{name}");
+            assert_eq!(err.code(), want.code(), "regressions/expr/{name}");
         }
     }
 

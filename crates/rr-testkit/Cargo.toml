@@ -13,11 +13,21 @@ publish.workspace = true
 [dependencies]
 insta.workspace = true
 proptest.workspace = true
+# Corpus formula harvest (src/corpus/formulas.rs, US-RR-20-10): read the
+# pinned definition XML (a pull parser, no DOM), check each file against the
+# manifest's SHA-256 and identify formulas by SHA-256, never by text (D-028).
+quick-xml.workspace = true
 rr-core = { path = "../rr-core" }
+sha2.workspace = true
 # Fixture loader: TOML known-answer files with `schema = N`.
 serde.workspace = true
 thiserror.workspace = true
 toml.workspace = true
+
+[dev-dependencies]
+# Compile-fail suite (tests/suspect_compile_fail.rs, US-RR-11-2): a suspect
+# corpus image cannot be read as a raw one without matching `Image`.
+trybuild.workspace = true
 
 # `private-fixtures`: compile the private fixture tier (`RR_FIXTURES_DIR`) into
 # `private_test!`. Off by default, so public CI never touches it. Crates with

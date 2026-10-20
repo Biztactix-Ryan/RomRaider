@@ -6,6 +6,7 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 publish.workspace = true
+repository.workspace = true
 
 [[bin]]
 name = "romraider-cli"
@@ -16,3 +17,42 @@ clap.workspace = true
 
 [lints]
 workspace = true
+
+[package.metadata.dist]
+dist = true
+
+# The romraider-cli .deb (story US-RR-38, task US-RR-38-7; INFRASTRUCTURE.md
+# "Linux Release", D-022), built by cargo-deb in release.yml job `build-deb`
+# with `--no-build` from the binary of the cargo-dist tarball, so the tarball,
+# the AppImage and the .deb ship the same binary. The desktop entry and the
+# placeholder icon are the AppImage's (packaging/appimage/AppDir/), not a
+# copy. Only these assets go in: no ROMs, no fixtures (US-RR-38-8). The udev
+# rules and their postinst join when the adapter profiles that generate them
+# exist (INFRASTRUCTURE.md "Artifacts").
+# Source paths are relative to this crate; `target/release/` is cargo-deb's
+# name for the built binary.
+[package.metadata.deb]
+name = "romraider-cli"
+# The project maintainer contact published in .project/SECURITY.md.
+maintainer = "Ryan Tregea <ryan@biztactix.com.au>"
+copyright = "RomRaider-RS contributors"
+license-file = ["../../license.txt", "0"]
+extended-description = """\
+Headless command-line tool of RomRaider-RS, a Rust rewrite of RomRaider, \
+the open-source ECU ROM editor and data logger."""
+section = "utils"
+priority = "optional"
+depends = "$auto"
+assets = [
+    ["target/release/romraider-cli", "usr/bin/", "755"],
+    [
+        "../../packaging/appimage/AppDir/romraider-cli.desktop",
+        "usr/share/applications/",
+        "644",
+    ],
+    [
+        "../../packaging/appimage/AppDir/romraider-cli.svg",
+        "usr/share/icons/hicolor/scalable/apps/",
+        "644",
+    ],
+]

@@ -29,11 +29,14 @@ and marked as synthetic ([Synthetic ROMs](#synthetic-roms)).
 
 | Path | What |
 |------|------|
-| [`fixtures/kat/*.toml`](kat/) | Seed KAT fixtures, one storage type or scaling per file, named `<storage>-<endian>.toml` (`u16-be.toml`, `i24-le.toml`, `u8-be.toml`), plus `bitfield-*`, `scaling-*` and `u20-movi20.toml`. |
+| [`fixtures/kat/*.toml`](kat/) | Seed KAT fixtures, one storage type or scaling per file, named `<storage>-<endian>.toml` (`u16-be.toml`, `i24-le.toml`, `u8-be.toml`), plus `bitfield-*`, `scaling-*` and `u20-movi20.toml`; and expression fixtures, `expr-*.toml` ([`expr-jep-precedence.toml`](kat/expr-jep-precedence.toml): JEP operator precedence and `^` semantics, US-RR-20-2; [`expr-corpus.toml`](kat/expr-corpus.toml): hand-checked formulas of the definition corpus, named by hash, US-RR-20-10; [`expr-bitwise-functions.toml`](kat/expr-bitwise-functions.toml): `BitWise`, `& \| << >>` and the standard functions, which the corpus does not use). |
 | [`crates/rr-testkit/tests/data/kat/*.toml`](../crates/rr-testkit/tests/data/kat/) | Samples for rr-testkit's own schema tests: a checksum fixture, a decode fixture with an inline conversion, and one that uses a ROM and definition reference. They are not seed fixtures, but the validator checks them too. |
 | [`crates/rr-testkit/src/kat.rs`](../crates/rr-testkit/src/kat.rs) | The schema-1 types (serde model). Its module docs are the format reference. |
 | [`crates/rr-testkit/src/kat/validate.rs`](../crates/rr-testkit/src/kat/validate.rs) | The validator rules. Its module docs are the reference for every rule. |
 | [`public/synthetic/`](public/synthetic/) | Generated synthetic ROM images (`<plan>.bin`), their manifests (`<plan>.manifest.toml`) and `SHA256SUMS`. Never edit by hand: see [Synthetic ROMs](#synthetic-roms). |
+| [`corpus-manifest.toml`](corpus-manifest.toml) | Manifest of the external stock-ROM corpus (D-025): path, size, SHA-256 and file-name fields of every image, metadata only. Images that are not a raw ROM of a standard size carry a `suspect` table (kind, reason, embedded-image offset); tests consuming the corpus must branch on it. Its `[defs]` table pins the ECU-definition corpus the same way (D-028: upstream, commit, licence position, every file's path, size and SHA-256, and the `logger_v370.zip` pin), metadata only. It lists ROM IDs by design, so it lives outside `public/` and `kat/`. Never edit by hand: `cargo xtask gen-corpus-manifest --mirror <dir> --defs-mirror <dir>` regenerates it and `--check` verifies it (format in [`xtask/src/corpus_manifest.rs`](../xtask/src/corpus_manifest.rs)). |
+| [`corpus-formulas.toml`](corpus-formulas.toml) | Every distinct formula of the pinned definition corpus (US-RR-20-10, D-028): the ECU `<scaling expression\|to_byte>` and logger `<conversion expr>` attributes, deduplicated by exact text, each as its SHA-256, occurrence count, kinds and first location (corpus-relative path and positional XPath), plus counts. Metadata only, never formula text. Never edit by hand: `RR_CORPUS_DIR=<dir> cargo run -p rr-testkit --example gen-corpus-formulas` regenerates it, and the corpus-tier test `corpus_formula_metadata_is_current` (CI `corpus` job) checks it (format in [`crates/rr-testkit/src/corpus/formulas.rs`](../crates/rr-testkit/src/corpus/formulas.rs)). |
+| [`corpus-coverage.toml`](corpus-coverage.toml) | Which corpus images have a pinned ECU definition (US-RR-16-6, D-028): for every manifest image, the definition files whose `<romid>` matches its bytes (legacy RomRaider matching) with their `xmlid`s, or `no-definition`; the ROM ID read from the image; totals by region; the 2004 ADM Liberty flags. Metadata only, never definition content. Never edit by hand: `cargo xtask gen-corpus-coverage` regenerates it from a fetched corpus and `--check` verifies it (CI `corpus` job; format in [`xtask/src/corpus_coverage.rs`](../xtask/src/corpus_coverage.rs)). |
 | [`.github/workflows/fixtures.yml`](../.github/workflows/fixtures.yml) | The CI jobs that run the validator and check the synthetic ROMs on Linux and Windows. |
 
 The seed set must cover every storage type in every byte order the codec
@@ -120,8 +123,8 @@ typo cannot quietly drop a value. Here is the format in brief.
 | `title` | yes | One line saying what the fixture pins down. |
 | `notes` | no | Free text for reviewers: the formula, the edge cases, why each value is interesting. |
 | `[definition]` | for `[[decode]]` | How to read the bytes. |
-| `[input]` | yes | The bytes. |
-| `[[decode]]` or `[[checksum]]` | yes, exactly one of the two | The expected values. A fixture is one shape or the other, never both. |
+| `[input]` | for `[[decode]]` and `[[checksum]]` | The bytes. An `[[expr]]` fixture has none. |
+| `[[decode]]`, `[[checksum]]` or `[[expr]]` | yes, exactly one of the three | The expected values. A fixture is one shape, never two. |
 | `[[changelog]]` | no | One entry each time an expected value changes. See [Changing an expected value](#changing-an-expected-value). |
 
 ### `[definition]`
@@ -178,6 +181,38 @@ The validator does not check the `algorithm` name yet. No checksum algorithm
 registry exists, and no seed checksum fixture exists either; the only
 checksum fixture is the schema sample.
 
+### `[[expr]]` cases
+
+An expression fixture pins down what a formula evaluates to. It has no
+`[input]` and no `[definition]` (either is an error): the formula and `x`
+are the whole question.
+
+| Key | Meaning |
+|-----|---------|
+| `formula` | The formula, in the expression dialect of `rr_core::expr`. Only for a formula you may publish: one written for the fixture, or one from a published standard. |
+| `formula_ref` | Instead of `formula`, for a formula of the definition corpus: `{ tier = "corpus", sha256, path, xpath }`. The definitions have no licence, so their formula text is never committed (D-028): `sha256` is the SHA-256 of the formula's UTF-8 text (`printf '%s' "$formula" \| sha256sum`) and identifies it; `path` (relative to the tier root, `defs/romraider/...`) and `xpath` (the attribute's positional XPath, `/roms[1]/rom[1]/table[3]/scaling[1]/@expression`) say where it occurs. `tier` is `corpus` or `private`, never `public`. Exactly one of `formula` and `formula_ref`. |
+| `x` | The value of `x`. Defaults to 0. |
+| `params` | The value of each parameter reference of a derived logger formula, by id: `params = { P9 = 90.0, P12 = 12.0 }` binds `[P9:km/h]` and `P12`. The keys must be exactly the formula's references. Defaults to none. |
+| `value` | The expected value. `inf`, `-inf` and `nan` are allowed, for a documented non-finite result such as `1/0` or `(-8)^(1/3)`; rr-core reports those as `EvalError::NonFinite`. |
+| `tolerance` | An absolute tolerance on `value`: finite, non-negative, and only for a finite `value`. Leave it out when the value is exact; an exact case is compared bit for bit, so `-0.0` is not `+0.0`. |
+| `source` | Required. See [Sources](#sources). |
+| `note` | Optional. Say what a wrong parse would give, for example "(2 + 3) * 4 would be 20". |
+
+`crates/rr-testkit/tests/expr_kat.rs` parses and evaluates every `[[expr]]`
+case of every fixture with rr-core. A `formula_ref` case needs the corpus: its
+corpus-tier test `corpus_formula_cases_match_rr_core` harvests the fetched
+definitions (`rr_testkit::corpus::formulas`), finds the formula by its hash,
+checks that it occurs at `path` / `xpath`, and evaluates it; without
+`RR_CORPUS_DIR` it is skipped and only the fixture's shape is checked. Keep
+`formula_ref` cases in [`expr-corpus.toml`](kat/expr-corpus.toml).
+
+To write one, find the formula in the fetched corpus (any XML tool, or the
+`[[formulas]]` entries of [`corpus-formulas.toml`](corpus-formulas.toml) for
+its hash and first location), work the value out by hand, and write the
+working with the case's values substituted, as for any other hand
+calculation. Never paste the formula text into the fixture, a comment or a
+note.
+
 ### Conventions from the seed set
 
 - Start the file with a short comment saying how the values were derived and
@@ -197,7 +232,7 @@ checksum fixture is the schema sample.
 ## Sources
 
 Every expected value has `source = { kind = "...", ... }`: each `[[decode]]`
-case, and each checksum `before` and `after`. A missing source is rule
+and `[[expr]]` case, and each checksum `before` and `after`. A missing source is rule
 `missing-source`. Pick the kind that matches where the number really came
 from. If two kinds apply, use `cross-source`, or pick the stronger one and
 mention the other in `note`.
@@ -247,7 +282,10 @@ must:
 4. **arrive at the value it justifies**. For a `[[decode]]` case, the working
    must contain the expected `raw` value and, when the case has one, the
    expected `real` value. `real` matches within the case's `tolerance`, or else
-   within a relative 1e-9. For a checksum `before` or `after`, the working must
+   within a relative 1e-9. For an `[[expr]]` case, the working must contain
+   `value` the same way, or, for a value that is not finite, the word `NaN`
+   (any case) or `inf` / `infinity` (written `-inf` for `-inf`). For a
+   checksum `before` or `after`, the working must
    contain the stored checksum, either as an integer (the bytes read big- or
    little-endian) or as its bytes in hex (`00 0A`, `0x000A`);
 5. **show an intermediate value**: at least one number that is not the
@@ -318,12 +356,13 @@ expected-value change:
 
 - the `[input]` or the `[definition]` changed (the same value now claimed for
   different bytes, a different ROM, or a different encoding);
-- a base `[[decode]]` case (`offset`, `raw`, `real`, `tolerance`) or
+- a base `[[decode]]` case (`offset`, `raw`, `real`, `tolerance`),
   `[[checksum]]` case (`algorithm`, `params`, `offset`, and the `hex` and
-  `valid` of `before` and `after`) no longer has an identical case. That is, it
-  was changed or removed. A moved `offset` is a change, so swapping two
-  cases' offsets is caught;
-- the fixture switched between `[[decode]]` and `[[checksum]]`.
+  `valid` of `before` and `after`) or `[[expr]]` case (`formula`, `x`,
+  `value`, `tolerance`, compared bit for bit, so a `nan` case matches itself)
+  no longer has an identical case. That is, it was changed or removed. A
+  moved `offset` is a change, so swapping two cases' offsets is caught;
+- the fixture switched between `[[decode]]`, `[[checksum]]` and `[[expr]]`.
 
 When one of these happens, the new version must **add** a `[[changelog]]`
 entry. Without one, the validator reports `changed-without-changelog` and
@@ -475,8 +514,9 @@ published plan fails `--check`, so a real ROM cannot be hidden there.
 Every new or changed fixture is reviewed in its PR. The reviewer:
 
 1. **Recomputes each expected value independently**, from the bytes in the
-   fixture and the formula in `notes`, by hand or with a throwaway tool such as
-   a Python one-liner. Never use rr-core, rr-testkit's own code, the Java
+   fixture and the formula in `notes` (for a `formula_ref`, the formula read
+   from the fetched corpus at `path` / `xpath`), by hand or with a throwaway
+   tool such as a Python one-liner. Never use rr-core, rr-testkit's own code, the Java
    application, or the author's script. If the recomputed value differs, the
    fixture is wrong until shown otherwise.
 2. **Checks that the working is real working:** it shows the bytes, the

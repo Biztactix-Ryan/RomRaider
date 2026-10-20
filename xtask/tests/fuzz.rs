@@ -56,13 +56,19 @@ fn scratch_tree(name: &str) -> io::Result<PathBuf> {
         let text = fs::read_to_string(real.join(file))?.replace("\r\n", "\n");
         fs::write(dir.join(file), text)?;
     }
-    for sub in [
-        "fuzz/fuzz_targets",
-        "fuzz/seeds/ecu_id",
-        "fuzz/seeds/toy",
-        "fuzz/regressions/ecu_id",
-        "fuzz/regressions/toy",
-    ] {
+    // The wrappers, and every target's seeds and regressions directory.
+    let mut subs = vec!["fuzz/fuzz_targets".to_owned()];
+    for kind in ["seeds", "regressions"] {
+        for e in fs::read_dir(real.join("fuzz").join(kind))? {
+            let p = e?.path();
+            if p.is_dir()
+                && let Some(n) = p.file_name()
+            {
+                subs.push(format!("fuzz/{kind}/{}", n.to_string_lossy()));
+            }
+        }
+    }
+    for sub in &subs {
         fs::create_dir_all(dir.join(sub))?;
         for e in fs::read_dir(real.join(sub))? {
             let p = e?.path();
@@ -697,4 +703,47 @@ fn committed_regressions_are_small_and_cover_the_toy_target() {
             );
         }
     }
+}
+
+/// US-RR-20-9: the `expr` target's seeds hold every inline formula of the
+/// expression known-answer fixtures (`fixtures/kat/expr-*.toml`; not the
+/// `formula_ref` cases of `expr-corpus.toml`), byte for byte, so the
+/// fuzzer starts from the JEP precedence and `^` cases. A formula added to a
+/// fixture without its seed fails here; commit it as
+/// `fuzz/seeds/expr/kat-<n>` (plain formula text, no newline).
+#[test]
+fn expr_seeds_cover_every_kat_formula() {
+    let seeds: Vec<Vec<u8>> = fs::read_dir(root().join("fuzz/seeds/expr"))
+        .unwrap()
+        .map(|e| fs::read(e.unwrap().path()).unwrap())
+        .collect();
+    let mut formulas = Vec::new();
+    for e in fs::read_dir(root().join("fixtures/kat")).unwrap() {
+        let path = e.unwrap().path();
+        let name = path.file_name().unwrap().to_string_lossy().into_owned();
+        if !(name.starts_with("expr-") && name.ends_with(".toml")) {
+            continue;
+        }
+        let doc: toml::Value = toml::from_str(&fs::read_to_string(&path).unwrap()).unwrap();
+        for case in doc.get("expr").and_then(toml::Value::as_array).unwrap() {
+            if case.get("formula_ref").is_some() {
+                // A corpus formula (US-RR-20-10): its text has no licence and
+                // is never committed, not even as a seed (D-028).
+                continue;
+            }
+            let formula = case.get("formula").and_then(toml::Value::as_str).unwrap();
+            formulas.push((name.clone(), formula.to_owned()));
+        }
+    }
+    assert!(formulas.len() >= 50, "{} KAT formulas", formulas.len());
+    let missing: Vec<String> = formulas
+        .iter()
+        .filter(|(_, f)| !seeds.iter().any(|s| s == f.as_bytes()))
+        .map(|(file, f)| format!("{file}: {f:?}"))
+        .collect();
+    assert!(
+        missing.is_empty(),
+        "KAT formulas with no fuzz/seeds/expr/ seed:\n{}",
+        missing.join("\n")
+    );
 }

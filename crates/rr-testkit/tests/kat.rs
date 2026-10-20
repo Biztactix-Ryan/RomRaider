@@ -1,7 +1,7 @@
 //! Tests for the schema-1 KAT fixture types (`rr_testkit::kat`, US-RR-9-5).
 //!
-//! Parses a representative fixture of each shape (decode values, checksum)
-//! from `tests/data/kat/`, and proves that structurally broken fixtures —
+//! Parses a representative fixture of each shape (decode values, checksum
+//! from `tests/data/kat/`, expression inline), and proves that structurally broken fixtures —
 //! malformed hex, unknown schema, a missing `source`, a `hand-calc` without
 //! `working`, unknown keys, ambiguous `[definition]` / `[input]` — are
 //! rejected with an error that names the file and the problem.
@@ -10,8 +10,9 @@ use std::path::PathBuf;
 
 use rr_testkit::fixtures::{FixtureError, SUPPORTED_SCHEMA, Tier};
 use rr_testkit::kat::{
-    self, Bitfield, ChecksumState, Definition, DefinitionRef, Encoding, Endian, HexBytes, Input,
-    KatKind, Layout, RawValue, Snippet, SnippetFormat, Source, Storage,
+    self, Bitfield, ChecksumState, Definition, DefinitionRef, Encoding, Endian, Formula,
+    FormulaTier, HexBytes, Input, KatKind, Layout, RawValue, Snippet, SnippetFormat, Source,
+    Storage,
 };
 
 fn data(name: &str) -> PathBuf {
@@ -58,7 +59,7 @@ fn parses_decode_values_fixture() {
     assert!(kat.notes.is_some());
     assert_eq!(
         kat.input,
-        Input::Hex(HexBytes(vec![0x01, 0xF4, 0xFF, 0x38]))
+        Some(Input::Hex(HexBytes(vec![0x01, 0xF4, 0xFF, 0x38])))
     );
     let KatKind::Decode { definition, cases } = kat.kind else {
         panic!("expected a decode fixture, got {:?}", kat.kind);
@@ -111,7 +112,10 @@ fn parses_decode_values_fixture() {
 fn parses_checksum_fixture() {
     let kat = kat::load(data("checksum_sum16.toml")).unwrap().data;
     assert!(kat.changelog.is_empty());
-    assert_eq!(kat.input, Input::Hex(HexBytes(vec![1, 2, 3, 4, 0, 0])));
+    assert_eq!(
+        kat.input,
+        Some(Input::Hex(HexBytes(vec![1, 2, 3, 4, 0, 0])))
+    );
     let KatKind::Checksum { definition, cases } = kat.kind else {
         panic!("expected a checksum fixture, got {:?}", kat.kind);
     };
@@ -137,7 +141,7 @@ fn parses_checksum_fixture() {
 #[test]
 fn parses_rom_input_and_definition_reference() {
     let kat = kat::load(data("decode_rom_ref.toml")).unwrap().data;
-    let Input::Rom(rom) = &kat.input else {
+    let Some(Input::Rom(rom)) = &kat.input else {
         panic!("expected a ROM input, got {:?}", kat.input);
     };
     assert_eq!(rom.tier, Tier::Corpus);
@@ -394,11 +398,32 @@ offset = 0
 before = { hex = "00", valid = false, source = { kind = "hand-calc", working = "w" } }
 after = { hex = "00", valid = true, source = { kind = "hand-calc", working = "w" } }
 "#;
-    let cases: [(String, &str); 9] = [
+    let expr = "[[expr]]\nformula = \"1+1\"\nvalue = 2.0\nsource = { kind = \"standard\", doc = \"d\", section = \"s\" }\n";
+    let cases: [(String, &str); 14] = [
         (DECODE_HEAD.to_owned(), "has no cases"),
         (
             format!("{DECODE_HEAD}{case}{checksum}"),
-            "both [[decode]] and [[checksum]]",
+            "more than one of [[decode]], [[checksum]] and [[expr]]",
+        ),
+        (
+            format!("{DECODE_HEAD}{case}{expr}"),
+            "more than one of [[decode]], [[checksum]] and [[expr]]",
+        ),
+        (
+            format!("schema = 1\ntitle = \"t\"\n[input]\nhex = \"00\"\n{expr}"),
+            "an [[expr]] fixture has no [definition] or [input]",
+        ),
+        (
+            format!("{DECODE_HEAD}{expr}").replace("[input]\nhex = \"7F\"\n", ""),
+            "an [[expr]] fixture has no [definition] or [input]",
+        ),
+        (
+            "schema = 1\ntitle = \"t\"\nexpr = []\n".to_owned(),
+            "`expr` is empty",
+        ),
+        (
+            format!("schema = 1\ntitle = \"t\"\n{checksum}"),
+            "missing field `input`",
         ),
         (
             DECODE_HEAD.replace("title = \"t\"", "title = \"t\"\ndecode = []"),
@@ -448,6 +473,103 @@ after = { hex = "00", valid = true, source = { kind = "hand-calc", working = "w"
         let message = shape_error(&text);
         assert!(message.contains(expected), "{expected}: {message}");
     }
+}
+
+#[test]
+fn parses_an_expression_fixture() {
+    let text = r#"
+schema = 1
+title = "expr"
+
+[[expr]]
+formula = "2+3*x"
+x = 4
+value = 14
+source = { kind = "hand-calc", working = "2 + (3*4) = 2 + 12 = 14" }
+
+[[expr]]
+formula = "(-8)^(1/3)"
+value = nan
+tolerance = 0.5
+source = { kind = "standard", doc = "d", section = "s" }
+note = "n"
+"#;
+    let kat = kat::parse("expr.toml", text).unwrap().data;
+    assert_eq!(kat.input, None);
+    let KatKind::Expr { cases } = kat.kind else {
+        panic!("expected an expr fixture, got {:?}", kat.kind);
+    };
+    assert_eq!(cases.len(), 2);
+    assert_eq!(cases[0].formula, Formula::Text("2+3*x".to_owned()));
+    assert_eq!(cases[0].formula.text(), Some("2+3*x"));
+    assert!(cases[0].params.is_empty(), "params default to none");
+    assert_eq!(
+        (cases[0].x, cases[0].value, cases[0].tolerance),
+        (4.0, 14.0, None)
+    );
+    assert_eq!(cases[1].x, 0.0, "x defaults to 0");
+    assert!(cases[1].value.is_nan());
+    assert_eq!(cases[1].tolerance, Some(0.5));
+    assert_eq!(cases[1].note.as_deref(), Some("n"));
+    assert!(matches!(cases[1].source, Source::Standard { .. }));
+    let unknown = text.replace("note = \"n\"", "inputs = [1.0]");
+    assert!(shape_error(&unknown.replace("expr.toml", "bad.toml")).contains("inputs"));
+}
+
+/// US-RR-20-10: a case names a corpus formula by hash (D-028: the
+/// definitions have no licence, so their formula text is never committed),
+/// and binds parameter references by id.
+#[test]
+fn parses_an_expression_case_with_a_corpus_formula_reference() {
+    let sha = "ab".repeat(32);
+    let case = |formula: &str| {
+        format!(
+            "schema = 1\ntitle = \"t\"\n\n[[expr]]\n{formula}\nparams = {{ P9 = 90.0, P12 = -1.5 }}\nvalue = 2\n\
+             source = {{ kind = \"hand-calc\", working = \"1 + 1 = 2\" }}\n"
+        )
+    };
+    let reference = format!(
+        "formula_ref = {{ tier = \"corpus\", sha256 = \"{}\", path = \"defs/romraider/a b.xml\", xpath = \"/roms[1]/rom[1]/scaling[1]/@expression\" }}",
+        sha.to_ascii_uppercase()
+    );
+    let kat = kat::parse("ref.toml", &case(&reference)).unwrap().data;
+    let KatKind::Expr { cases } = kat.kind else {
+        panic!("expected an expr fixture, got {:?}", kat.kind);
+    };
+    let Formula::Ref(r) = &cases[0].formula else {
+        panic!("expected a reference, got {:?}", cases[0].formula);
+    };
+    assert_eq!(r.tier, FormulaTier::Corpus);
+    assert_eq!(Tier::from(r.tier), Tier::Corpus);
+    assert_eq!(r.sha256.as_str(), sha, "stored lowercase");
+    assert_eq!(r.path, std::path::Path::new("defs/romraider/a b.xml"));
+    assert_eq!(r.xpath, "/roms[1]/rom[1]/scaling[1]/@expression");
+    assert_eq!(cases[0].formula.text(), None);
+    assert_eq!(cases[0].formula.reference(), Some(r));
+    assert_eq!(cases[0].formula.to_string(), "sha256:abababababab");
+    assert_eq!(
+        cases[0]
+            .params
+            .iter()
+            .map(|(k, v)| (k.as_str(), *v))
+            .collect::<Vec<_>>(),
+        [("P12", -1.5), ("P9", 90.0)]
+    );
+
+    let both = case(&format!("formula = \"x\"\n{reference}"));
+    assert!(shape_error(&both).contains("both `formula` and `formula_ref`"));
+    assert!(shape_error(&case("")).contains("needs `formula`"));
+    let public = reference.replace("\"corpus\"", "\"public\"");
+    assert!(shape_error(&case(&public)).contains("public"));
+    let short = reference.replace(&sha.to_ascii_uppercase(), "abc");
+    assert!(shape_error(&case(&short)).contains("expected exactly 64 hex digits"));
+    let no_xpath = reference.replace(", xpath = \"/roms[1]/rom[1]/scaling[1]/@expression\"", "");
+    assert!(shape_error(&case(&no_xpath)).contains("xpath"));
+    let extra = reference.replace("tier =", "item = \"i\", tier =");
+    assert!(shape_error(&case(&extra)).contains("item"));
+    assert!(
+        shape_error(&case("formula = \"x\"").replace("P12 = -1.5", "P12 = \"a\"")).contains("P12")
+    );
 }
 
 #[test]

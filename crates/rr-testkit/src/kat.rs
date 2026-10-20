@@ -5,7 +5,9 @@
 //! (hex bytes, or a reference to a ROM file), a definition (an inline
 //! encoding, a definition-file snippet, or a reference to a definition file),
 //! and the expected answers: either decoded raw/real values or checksum state
-//! before and after a fix. **Every expected value carries a [`Source`]** that
+//! before and after a fix. A third shape, the expression fixture, has no
+//! bytes at all: each case is a formula, a value of `x` and the value the
+//! formula evaluates to. **Every expected value carries a [`Source`]** that
 //! says where the number came from; values derived from the code under test,
 //! or from the Java application, are not a source (D-024).
 //!
@@ -77,6 +79,35 @@
 //! A checksum fixture's `[definition]` is optional (the algorithm and params
 //! are its definition); a decode fixture must have one.
 //!
+//! # Expression fixture
+//!
+//! ```toml
+//! schema = 1
+//! title = "JEP precedence: * binds tighter than +"
+//!
+//! [[expr]]
+//! formula = "2 + 3*x"             # a formula in the expression dialect (rr-core::expr)
+//! x = 4.0                         # optional; the value of `x` (default 0)
+//! value = 14.0                    # expected value; `inf`, `-inf` and `nan` are allowed
+//! tolerance = 1e-15               # optional absolute tolerance on a finite `value`
+//! source = { kind = "hand-calc", working = "2 + (3*4) = 2 + 12 = 14" }
+//! note = "optional"
+//!
+//! [[expr]]                        # a formula of the definition corpus, named by hash (D-028)
+//! formula_ref = { tier = "corpus", sha256 = "<64 hex digits>", path = "defs/romraider/logger/logger_STD_EN_v290.xml", xpath = "/logger[1]/.../conversion[1]/@expr" }
+//! params = { P9 = 90.0, P12 = 12.0 }  # optional; the value of each parameter reference, by id
+//! value = 1.5
+//! source = { kind = "hand-calc", working = "..." }
+//! ```
+//!
+//! An expression fixture has no `[input]` and no `[definition]`: the formula,
+//! `x` and `params` are the whole question. A case has exactly one of
+//! `formula` (the text, inline) and `formula_ref` (a formula of the
+//! definition corpus, whose text has no licence and so is never committed:
+//! the SHA-256 of its UTF-8 text identifies it, `path` and `xpath` say where
+//! it occurs; [`crate::corpus::formulas`]). Decode and checksum fixtures must
+//! have an `[input]`. A fixture is exactly one of the three shapes.
+//!
 //! # Sources
 //!
 //! | `kind` | Fields | Meaning |
@@ -87,6 +118,7 @@
 //! | `car-trace` | `trace`, `note`? | Observed in a recorded car trace |
 //! | `cross-source` | `sources` | Agreement between independent sources (e.g. RomRaider XML vs XDF) |
 
+use std::collections::BTreeMap;
 use std::fmt;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -137,8 +169,9 @@ pub struct Kat {
     pub title: String,
     /// Optional free-text notes for reviewers.
     pub notes: Option<String>,
-    /// The bytes the cases are evaluated against.
-    pub input: Input,
+    /// The bytes the cases are evaluated against; `None` exactly for an
+    /// expression fixture, which has none.
+    pub input: Option<Input>,
     /// The definition and expected answers.
     pub kind: KatKind,
     /// Why expected values changed, oldest first (empty for a fixture whose
@@ -146,7 +179,7 @@ pub struct Kat {
     pub changelog: Vec<ChangelogEntry>,
 }
 
-/// The two fixture shapes.
+/// The three fixture shapes.
 #[derive(Debug, Clone, PartialEq)]
 pub enum KatKind {
     /// `[[decode]]` cases: bytes → raw value → real value.
@@ -163,6 +196,11 @@ pub enum KatKind {
         /// At least one case.
         cases: Vec<ChecksumCase>,
     },
+    /// `[[expr]]` cases: formula and `x` → value. No input, no definition.
+    Expr {
+        /// At least one case.
+        cases: Vec<ExprCase>,
+    },
 }
 
 #[derive(Deserialize)]
@@ -171,9 +209,10 @@ struct RawKat {
     title: String,
     notes: Option<String>,
     definition: Option<Definition>,
-    input: Input,
+    input: Option<Input>,
     decode: Option<Vec<DecodeCase>>,
     checksum: Option<Vec<ChecksumCase>>,
+    expr: Option<Vec<ExprCase>>,
     #[serde(default)]
     changelog: Vec<ChangelogEntry>,
 }
@@ -182,17 +221,18 @@ impl TryFrom<RawKat> for Kat {
     type Error = String;
 
     fn try_from(raw: RawKat) -> Result<Self, Self::Error> {
-        let kind = match (raw.decode, raw.checksum) {
-            (Some(_), Some(_)) => {
-                return Err(
-                    "fixture has both [[decode]] and [[checksum]] cases; a fixture is one shape"
-                        .to_owned(),
-                );
-            }
-            (None, None) => {
-                return Err("fixture has no cases: add [[decode]] or [[checksum]]".to_owned());
-            }
-            (Some(cases), None) => {
+        let shapes = usize::from(raw.decode.is_some())
+            + usize::from(raw.checksum.is_some())
+            + usize::from(raw.expr.is_some());
+        if shapes > 1 {
+            return Err(
+                "fixture has more than one of [[decode]], [[checksum]] and [[expr]] cases; \
+                 a fixture is one shape"
+                    .to_owned(),
+            );
+        }
+        let kind = match (raw.decode, raw.checksum, raw.expr) {
+            (Some(cases), _, _) => {
                 let Some(definition) = raw.definition else {
                     return Err(
                         "a [[decode]] fixture needs a [definition] (encoding, snippet or reference)"
@@ -204,7 +244,7 @@ impl TryFrom<RawKat> for Kat {
                 }
                 KatKind::Decode { definition, cases }
             }
-            (None, Some(cases)) => {
+            (None, Some(cases), _) => {
                 if cases.is_empty() {
                     return Err(
                         "`checksum` is empty: add at least one [[checksum]] case".to_owned()
@@ -215,7 +255,32 @@ impl TryFrom<RawKat> for Kat {
                     cases,
                 }
             }
+            (None, None, Some(cases)) => {
+                if raw.definition.is_some() || raw.input.is_some() {
+                    return Err(
+                        "an [[expr]] fixture has no [definition] or [input]: each case's \
+                         `formula` and `x` are the whole question"
+                            .to_owned(),
+                    );
+                }
+                if cases.is_empty() {
+                    return Err("`expr` is empty: add at least one [[expr]] case".to_owned());
+                }
+                KatKind::Expr { cases }
+            }
+            (None, None, None) => {
+                return Err(
+                    "fixture has no cases: add [[decode]], [[checksum]] or [[expr]]".to_owned(),
+                );
+            }
         };
+        if !matches!(kind, KatKind::Expr { .. }) && raw.input.is_none() {
+            return Err(
+                "missing field `input`: a decode or checksum fixture needs an [input] \
+                 (`hex` or `rom`)"
+                    .to_owned(),
+            );
+        }
         Ok(Self {
             title: raw.title,
             notes: raw.notes,
@@ -696,6 +761,161 @@ pub struct DecodeCase {
     pub source: Source,
     /// Optional free-text note.
     pub note: Option<String>,
+}
+
+/// One `[[expr]]` case: a formula evaluated at `x` (and, for a formula with
+/// parameter references, at `params`).
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(try_from = "RawExprCase")]
+pub struct ExprCase {
+    /// The formula: inline text (`formula = "..."`), or a formula of the
+    /// definition corpus named by its hash (`formula_ref = { .. }`).
+    pub formula: Formula,
+    /// The value of `x` (default 0).
+    pub x: f64,
+    /// The value of each parameter reference, by its id (`P9` for `[P9:km/h]`
+    /// or a bare `P9`); empty for a formula in `x` only.
+    pub params: BTreeMap<String, f64>,
+    /// The value the formula evaluates to. May be `inf`, `-inf` or `nan`
+    /// (the documented result of, say, `1/0` or `(-8)^(1/3)`).
+    pub value: f64,
+    /// Absolute tolerance on a finite `value` (exact if omitted).
+    pub tolerance: Option<f64>,
+    /// Where `value` came from. Required.
+    pub source: Source,
+    /// Optional free-text note.
+    pub note: Option<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawExprCase {
+    formula: Option<String>,
+    formula_ref: Option<FormulaRef>,
+    #[serde(default)]
+    x: f64,
+    #[serde(default)]
+    params: BTreeMap<String, f64>,
+    value: f64,
+    tolerance: Option<f64>,
+    source: Source,
+    note: Option<String>,
+}
+
+impl TryFrom<RawExprCase> for ExprCase {
+    type Error = String;
+
+    fn try_from(raw: RawExprCase) -> Result<Self, Self::Error> {
+        let formula = match (raw.formula, raw.formula_ref) {
+            (Some(text), None) => Formula::Text(text),
+            (None, Some(reference)) => Formula::Ref(reference),
+            (Some(_), Some(_)) => {
+                return Err(
+                    "[[expr]] case has both `formula` and `formula_ref`; use exactly one"
+                        .to_owned(),
+                );
+            }
+            (None, None) => {
+                return Err(
+                    "[[expr]] case needs `formula` (inline text) or `formula_ref` (a corpus formula by hash)"
+                        .to_owned(),
+                );
+            }
+        };
+        Ok(Self {
+            formula,
+            x: raw.x,
+            params: raw.params,
+            value: raw.value,
+            tolerance: raw.tolerance,
+            source: raw.source,
+            note: raw.note,
+        })
+    }
+}
+
+/// The formula of an `[[expr]]` case.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Formula {
+    /// `formula = "..."`: the text, inline. Only for formulas we may publish:
+    /// written for the fixture, or from a published standard.
+    Text(String),
+    /// `formula_ref = { .. }`: a formula of the definition corpus, which has
+    /// no licence, so its text stays in the fetched corpus (D-028) and the
+    /// fixture names it by hash.
+    Ref(FormulaRef),
+}
+
+impl Formula {
+    /// The inline text, or `None` for a reference.
+    #[must_use]
+    pub fn text(&self) -> Option<&str> {
+        match self {
+            Self::Text(text) => Some(text),
+            Self::Ref(_) => None,
+        }
+    }
+
+    /// The reference, or `None` for inline text.
+    #[must_use]
+    pub const fn reference(&self) -> Option<&FormulaRef> {
+        match self {
+            Self::Text(_) => None,
+            Self::Ref(reference) => Some(reference),
+        }
+    }
+}
+
+impl fmt::Display for Formula {
+    /// The text, or `sha256:` and the first 12 hex digits of a reference
+    /// (never the corpus text, which a fixture does not have).
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Text(text) => f.write_str(text),
+            Self::Ref(reference) => {
+                let hex = reference.sha256.as_str();
+                write!(f, "sha256:{}", hex.get(..12).unwrap_or(hex))
+            }
+        }
+    }
+}
+
+/// `formula_ref = { tier, sha256, path, xpath }`: one formula of the
+/// definition corpus (`rr_testkit::corpus::formulas`).
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FormulaRef {
+    /// The tier holding the definitions: `corpus` (the public, fetched
+    /// definition corpus) or `private`. Never `public`: a formula we may
+    /// publish goes inline as `formula`.
+    pub tier: FormulaTier,
+    /// SHA-256 of the formula's UTF-8 text: what identifies it.
+    pub sha256: Sha256,
+    /// A file it occurs in, relative to the tier root
+    /// (`defs/romraider/ecu/standard/ecu_defs.xml`).
+    pub path: PathBuf,
+    /// Where in that file: the positional XPath of the attribute
+    /// (`/roms[1]/rom[1]/table[3]/scaling[1]/@expression`).
+    pub xpath: String,
+}
+
+/// The tiers a [`FormulaRef`] may name.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum FormulaTier {
+    /// [`Tier::Corpus`].
+    Corpus,
+    /// [`Tier::Private`].
+    Private,
+}
+
+impl From<FormulaTier> for Tier {
+    fn from(tier: FormulaTier) -> Self {
+        match tier {
+            FormulaTier::Corpus => Self::Corpus,
+            FormulaTier::Private => Self::Private,
+        }
+    }
 }
 
 /// An expected raw value: an integer (covering the whole `i64` and `u64`

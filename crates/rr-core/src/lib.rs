@@ -4,3 +4,5 @@ pub mod capability;
 pub mod clock;
 pub mod diag;
 pub mod encoding;
+pub mod expr;
+pub mod layer;

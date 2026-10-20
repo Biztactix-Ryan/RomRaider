@@ -18,7 +18,22 @@ An `error` makes the owning load fail closed: the caller gets no usable value wi
 | [`ENC0007`](#enc0007) | `RAW_KIND_MISMATCH` | error | A raw value of the wrong kind for its storage type. |
 | [`ENC0008`](#enc0008) | `WHOLE_TABLE_LAYOUT` | error | One cell of a whole-table layout was decoded or encoded on its own. |
 | [`ENC0009`](#enc0009) | `SPECIAL_FLOAT_EDIT` | error | An edit was refused because a value is a NaN, infinite or subnormal float. |
+| [`EXP0001`](#exp0001) | `EXPR_SYNTAX` | error | A formula is not valid expression syntax. |
+| [`EXP0002`](#exp0002) | `EXPR_BAD_CALL` | error | A formula calls a function that does not exist, or calls one wrongly. |
+| [`EXP0003`](#exp0003) | `EXPR_TOO_COMPLEX` | error | A formula is nested too deeply to parse safely. |
+| [`EXP0004`](#exp0004) | `EXPR_TOO_LONG` | error | A formula is longer than the parser accepts. |
+| [`EXP0005`](#exp0005) | `EXPR_LITERAL_TOO_LONG` | error | A number, name or parameter reference in a formula is too long. |
+| [`EXP0006`](#exp0006) | `EXPR_TOO_MANY_NODES` | error | A formula has too many operands, operators and calls. |
+| [`EXP0007`](#exp0007) | `EXPR_TOO_MANY_ARGS` | error | A function call in a formula has too many arguments. |
+| [`EXP0008`](#exp0008) | `EXPR_STACK_TOO_DEEP` | error | A formula would need too large an evaluation stack. |
 | [`LAY0001`](#lay0001) | `INHERITANCE_CYCLE` | error | An `extends`/`base` chain loops back on itself. |
+| [`LAY0002`](#lay0002) | `UNKNOWN_BASE` | error | A document names a base that no loaded file defines. |
+| [`LAY0003`](#lay0003) | `DUPLICATE_DOCUMENT` | error | Two loaded documents have the same name. |
+| [`LAY0004`](#lay0004) | `INCONSISTENT_BASES` | error | A document's bases cannot be put in one consistent order. |
+| [`LAY0005`](#lay0005) | `LINEAGE_TOO_LARGE` | error | A document inherits from more documents than the resolver allows. |
+| [`LAY0006`](#lay0006) | `INCOMPLETE_DOCUMENT` | error | A resolved document lacks required fields. |
+| [`LAY0007`](#lay0007) | `UNKNOWN_DOCUMENT` | error | A document was asked for by a name that no loaded file defines. |
+| [`LAY0008`](#lay0008) | `SHADOWED_NAME` | warning | A local document has the same name as one in an enclosing scope. |
 
 ## DEF: Definitions
 
@@ -136,6 +151,104 @@ float, and special floats were not explicitly allowed (PROJECT.md
 EC-07). Such values are decoded and displayed exactly as stored;
 nothing is written unless the user explicitly allows editing them.
 
+## EXP: Expressions
+
+Formulas in scalings, logger conversions and derived parameters (C4, `rr-core::expr`): text that does not parse.
+
+### EXP0001
+
+`EXPR_SYNTAX` · severity `error` · since 0.1.0
+
+A formula is not valid expression syntax.
+
+The formula has a character or token where none can be (an
+unbalanced parenthesis, two operands with no operator between them, a
+`=`, a malformed `[id:unit]` reference, a number too large for a
+double). The scaling or parameter that owns it is not loaded: legacy
+reported such formulas only when a cell was first drawn.
+
+### EXP0002
+
+`EXPR_BAD_CALL` · severity `error` · since 0.1.0
+
+A formula calls a function that does not exist, or calls one wrongly.
+
+The name is not a supported function (names are case-sensitive:
+`BitWise`, `sqrt`), is `rand` or `str`, which formulas may not use, is
+used without an argument list, or is given the wrong number of
+arguments; or `BitWise` is given a literal operation that is not 1 to
+7. The scaling or parameter that owns the formula is not loaded.
+
+### EXP0003
+
+`EXPR_TOO_COMPLEX` · severity `error` · since 0.1.0
+
+A formula is nested too deeply to parse safely.
+
+Parentheses, prefix operators, `^` chains, right operands or call
+arguments are nested deeper than the parser's depth limit (128 levels
+by default; real formulas nest under 10). Parsing stops at the level
+past the limit, which the diagnostic points at. The scaling or
+parameter that owns the formula is not loaded.
+
+### EXP0004
+
+`EXPR_TOO_LONG` · severity `error` · since 0.1.0
+
+A formula is longer than the parser accepts.
+
+The formula text is over the length limit (4096 bytes by default;
+real formulas are under 100). It is refused before it is read. The
+scaling or parameter that owns the formula is not loaded.
+
+### EXP0005
+
+`EXPR_LITERAL_TOO_LONG` · severity `error` · since 0.1.0
+
+A number, name or parameter reference in a formula is too long.
+
+One literal token (a number such as `4.8828125e-4`, a name such as
+`P12`, or a whole `[id:unit]` reference) is over the literal length
+limit (128 bytes by default). The diagnostic points at the token. The
+scaling or parameter that owns the formula is not loaded.
+
+### EXP0006
+
+`EXPR_TOO_MANY_NODES` · severity `error` · since 0.1.0
+
+A formula has too many operands, operators and calls.
+
+Its parsed tree would have more nodes than the node limit (1024 by
+default; real formulas have under 30): one per number, `x`,
+reference, operator and call. The diagnostic points at the token
+that would have been one too many. The scaling or parameter that owns
+the formula is not loaded.
+
+### EXP0007
+
+`EXPR_TOO_MANY_ARGS` · severity `error` · since 0.1.0
+
+A function call in a formula has too many arguments.
+
+A call is given more than the argument limit (32 by default; `sum`
+takes any number of arguments, every other function at most 4). The
+diagnostic points at the first argument too many. The scaling or parameter that owns
+the formula is not loaded.
+
+### EXP0008
+
+`EXPR_STACK_TOO_DEEP` · severity `error` · since 0.1.0
+
+A formula would need too large an evaluation stack.
+
+Evaluating it would hold more intermediate values at once than the
+evaluation stack limit (32 by default, the size evaluation keeps on
+the native stack; real formulas need under 6). Values pile up in
+right-nested operators (`1+(2+(3+...))`) and in calls with many
+arguments. The diagnostic points at the operand that would have been
+one value too many. The scaling or parameter that owns the formula
+is not loaded.
+
 ## LAY: Layering
 
 Layered documents and the resolver (C1, `rr-core::layer`): `extends`/`base` chains, overrides and omits.
@@ -148,7 +261,103 @@ An `extends`/`base` chain loops back on itself.
 
 Following the inheritance chain from a document reaches the same
 document again. The document is not resolved; the provenance points
-at the reference that closes the loop.
+at the reference that closes the loop. A document whose `base` is
+its own name is not a loop: it extends the definition of that name
+in an enclosing scope (`LAY0002` if there is none).
+
+### LAY0002
+
+`UNKNOWN_BASE` · severity `error` · since 0.1.0
+
+A document names a base that no loaded file defines.
+
+The `base`/`extends` reference names a document that is in none of
+the loaded files, or only in a local scope the reference cannot see
+(MF-16: a name local to one table is not visible from the ROM, from
+another table, or globally); the message then names the scopes where
+it is defined. A document whose `base` is its own name extends the
+definition of that name in an enclosing scope, and gets this error
+when no enclosing scope has one (a ROM definition whose `base` is
+its own `xmlid`). The document, and everything inheriting from it, is
+not resolved; the provenance points at the document with the
+reference.
+
+### LAY0003
+
+`DUPLICATE_DOCUMENT` · severity `error` · since 0.1.0
+
+Two loaded documents have the same name.
+
+Names are global across every loaded file, so a second document with
+a name already defined (in the same file or another one) would make
+every reference to that name ambiguous. The first document loaded is
+kept and the second is ignored; the provenance points at the ignored
+one and the message names where the kept one is. Legacy silently used
+whichever matching definition it found first.
+
+### LAY0004
+
+`INCONSISTENT_BASES` · severity `error` · since 0.1.0
+
+A document's bases cannot be put in one consistent order.
+
+The document names several bases whose own inheritance orders some
+documents both ways (for example one base puts `A` above `B` and
+another `B` above `A`), or names one base twice. The document is not
+resolved: picking an order arbitrarily would decide silently which
+value wins.
+
+### LAY0005
+
+`LINEAGE_TOO_LARGE` · severity `error` · since 0.1.0
+
+A document inherits from more documents than the resolver allows.
+
+Its inheritance would hold more than 255 documents besides itself
+(real definitions inherit from a handful). The document is not
+resolved; the limit bounds the work an untrusted definition pack can
+demand.
+
+### LAY0006
+
+`INCOMPLETE_DOCUMENT` · severity `error` · since 0.1.0
+
+A resolved document lacks required fields.
+
+After applying every layer it inherits from, the document still has
+required fields that no layer sets, or that a layer omits. The
+message names each missing field by path. The document is not used:
+a missing value is never filled with a default.
+
+### LAY0007
+
+`UNKNOWN_DOCUMENT` · severity `error` · since 0.1.0
+
+A document was asked for by a name that no loaded file defines.
+
+Something outside the definitions (a ROM image's identifier, a
+command-line argument, a setting) names a document that none of the
+loaded files has. The provenance points at where the name was asked
+for.
+
+### LAY0008
+
+`SHADOWED_NAME` · severity `warning` · since 0.1.0
+
+A local document has the same name as one in an enclosing scope.
+
+A document defined inside a scope (a table-local scaling inside its
+table, inside its ROM) has the id of a document in a scope enclosing
+it (the ROM, or global). Inside its scope, a `base` naming that id
+now means the local document; outside, the outer one, which is
+unchanged. Both are loaded. Legacy had one flat namespace in which a
+later definition with the name replaced the earlier one for every
+lookup after it, so a pack relying on that resolves differently
+here; the provenance points at the local document and the message
+names where the shadowed one is. A local document whose `base` is
+its own name extends the outer one rather than hiding it, and is not
+warned about. Two documents with one name in the same scope are
+`LAY0003` instead.
 
 ## Deprecated codes
 

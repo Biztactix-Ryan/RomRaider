@@ -1,0 +1,20 @@
+---
+source: crates/rr-testkit/tests/layer_explain_provenance.rs
+expression: field
+---
+tables["Fuel Map"].storage = I16
+  set to I16 at defs/A2WC522N.xml:9:5 [layer A2WC522N]
+  overrides:
+    set to U16 at defs/16BITBASE.xml:5:3 [layer 16BITBASE]
+    set to U32 at defs/32BITBASE.xml:2:1 [layer 32BITBASE]
+
+tables["Fuel Map"].address = 4352
+  set to 4352 at user/A2WC522N.toml:1:1 [layer user]
+  overrides:
+    set to 256 at defs/32BITBASE.xml:2:1 [layer 32BITBASE]
+
+tables["Fuel Map"].scaling.units: no value
+  removed (tables["Fuel Map"].scaling omitted) at user/A2WC522N.toml:1:1 [layer user]
+  overrides:
+    set to "kPa" (tables["Fuel Map"].scaling replaced) at defs/16BITBASE.xml:5:3 [layer 16BITBASE]
+    set to "ms" at defs/32BITBASE.xml:2:1 [layer 32BITBASE]

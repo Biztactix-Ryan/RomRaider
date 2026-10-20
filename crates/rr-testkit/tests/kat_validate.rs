@@ -1080,3 +1080,148 @@ fn command_line_exit_status_follows_the_violations() {
         assert!(stderr.contains("validate-fixtures: error:"), "{stderr}");
     }
 }
+
+// ---------------------------------------------------------------------------
+// Expression fixtures (`[[expr]]`, US-RR-20-2)
+// ---------------------------------------------------------------------------
+
+fn expr(formula: &str, value: &str, extra: &str, working: &str) -> String {
+    format!(
+        "schema = 1\ntitle = \"expr\"\n\n[[expr]]\nformula = {formula:?}\nvalue = {value}\n{extra}\
+         source = {{ kind = \"hand-calc\", working = {working:?} }}\n"
+    )
+}
+
+#[test]
+fn expr_cases_follow_the_working_rule() {
+    assert_eq!(
+        check(&expr("2+3*4", "14.0", "", "2 + (3*4) = 2 + 12 = 14")),
+        vec![]
+    );
+    let message = one(
+        &check(&expr("2+3*4", "14.0", "", "(2 + 3)*4 = 5*4 = 20")),
+        Rule::HandCalcWorking,
+    );
+    assert!(message.contains("[[expr]] #1 (`2+3*4`)"), "{message}");
+    assert!(message.contains("expected value 14"), "{message}");
+    one(
+        &check(&expr("14", "14.0", "", "14 = 14")),
+        Rule::HandCalcWorking,
+    );
+
+    // A value that is not finite is named by word, with the sign of an infinity.
+    let nan = "-8 < 0 and 1/3 = 0.333 is not an integer, so (-8)^(1/3) = NaN";
+    assert_eq!(check(&expr("(-8)^(1/3)", "nan", "", nan)), vec![]);
+    let no_word = "-8 < 0 and 1/3 = 0.333 is not an integer";
+    one(
+        &check(&expr("(-8)^(1/3)", "nan", "", no_word)),
+        Rule::HandCalcWorking,
+    );
+    let banana = "-8 < 0 and 1/3 = 0.333: nanana";
+    one(
+        &check(&expr("(-8)^(1/3)", "nan", "", banana)),
+        Rule::HandCalcWorking,
+    );
+    assert_eq!(
+        check(&expr("1/0", "inf", "", "1/0 = 1 / +0 = +inf")),
+        vec![]
+    );
+    assert_eq!(
+        check(&expr("-1/0", "-inf", "", "-1/0 = (-1) / +0 = -Infinity")),
+        vec![]
+    );
+    one(
+        &check(&expr("-1/0", "-inf", "", "-1/0 = (-1) / 0 = inf")),
+        Rule::HandCalcWorking,
+    );
+    one(
+        &check(&expr("1/0", "inf", "", "1/0 = 1 / 0 = -inf")),
+        Rule::HandCalcWorking,
+    );
+
+    // Every expected value needs a source.
+    let missing = "schema = 1\ntitle = \"e\"\n[[expr]]\nformula = \"1+1\"\nvalue = 2.0\n";
+    let message = one(&check(missing), Rule::MissingSource);
+    assert!(message.contains("[[expr]] #1 (`1+1`)"), "{message}");
+}
+
+#[test]
+fn expr_tolerance_is_finite_and_only_for_a_finite_value() {
+    let sqrt2 = "1.41421356237 * 1.41421356237 = 2.0000000000; so 2^0.5 = 1.4142135623730951";
+    let tolerance = |t: &str| format!("tolerance = {t}\n");
+    assert_eq!(
+        check(&expr(
+            "2^0.5",
+            "1.4142135623730951",
+            &tolerance("1e-15"),
+            sqrt2
+        )),
+        vec![]
+    );
+    one(
+        &check(&expr(
+            "2^0.5",
+            "1.4142135623730951",
+            &tolerance("-1.0"),
+            sqrt2,
+        )),
+        Rule::Tolerance,
+    );
+    // An infinite tolerance also swallows every number of the working.
+    let infinite = check(&expr(
+        "2^0.5",
+        "1.4142135623730951",
+        &tolerance("inf"),
+        sqrt2,
+    ));
+    assert!(
+        infinite.iter().any(|v| v.rule == Rule::Tolerance),
+        "{infinite:#?}"
+    );
+    let message = one(
+        &check(&expr(
+            "1/0",
+            "inf",
+            &tolerance("0.5"),
+            "1/0 = 1 / +0 = +inf",
+        )),
+        Rule::Tolerance,
+    );
+    assert!(message.contains("finite `value`"), "{message}");
+}
+
+#[test]
+fn changed_expr_value_needs_a_changelog_and_nan_matches_itself() {
+    let base = format!(
+        "{}\n[[expr]]\nformula = \"(-8)^(1/3)\"\nvalue = nan\n\
+         source = {{ kind = \"standard\", doc = \"d\", section = \"s\" }}\n",
+        expr("2+3*4", "14.0", "", "2 + (3*4) = 2 + 12 = 14")
+    );
+    // Same cases, reordered and with a reworded source: not a change.
+    let reordered = "schema = 1\ntitle = \"expr\"\n\n[[expr]]\nformula = \"(-8)^(1/3)\"\nvalue = nan\n\
+         source = { kind = \"standard\", doc = \"d2\", section = \"s\" }\n\n[[expr]]\n\
+         formula = \"2+3*4\"\nvalue = 14.0\n\
+         source = { kind = \"hand-calc\", working = \"2 + 12 = 14\" }\n";
+    assert_eq!(against(&base, reordered), vec![]);
+
+    for head in [
+        base.replace("value = 14.0", "value = 20.0")
+            .replace("2 + (3*4) = 2 + 12 = 14", "(2 + 3)*4 = 5*4 = 20"),
+        base.replace("formula = \"2+3*4\"", "formula = \"2+3*5\"")
+            .replace("value = 14.0", "value = 17.0")
+            .replace("2 + (3*4) = 2 + 12 = 14", "2 + (3*5) = 2 + 15 = 17"),
+        base.replace("value = 14.0", "x = 1.0\nvalue = 14.0"),
+        base.replace("value = nan", "value = inf"),
+    ] {
+        let message = one(&against(&base, &head), Rule::ChangedWithoutChangelog);
+        assert!(message.contains("was changed or removed"), "{message}");
+        assert_eq!(against(&base, &format!("{head}{CHANGELOG}")), vec![]);
+    }
+
+    let decode_head = format!("{DECODE_HEAD}{GOOD_CASE}");
+    let message = one(&against(&decode_head, &base), Rule::ChangedWithoutChangelog);
+    assert!(
+        message.contains("switched between [[decode]], [[checksum]] and [[expr]]"),
+        "{message}"
+    );
+}

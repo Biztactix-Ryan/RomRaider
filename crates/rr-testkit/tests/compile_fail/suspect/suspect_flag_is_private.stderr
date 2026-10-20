@@ -1,0 +1,5 @@
+error[E0616]: field `suspect` of struct `RomFile` is private
+ --> tests/compile_fail/suspect/suspect_flag_is_private.rs:6:10
+  |
+6 |     file.suspect.is_some()
+  |          ^^^^^^^ private field

@@ -1,0 +1,14 @@
+---
+source: crates/rr-testkit/tests/layer_explain_provenance.rs
+expression: nested
+---
+tables["Fuel Map"].scaling: omitted
+  omitted at user/A2WC522N.toml:1:1 [layer user]
+  modified at defs/A2WC522N.xml:9:5 [layer A2WC522N]
+  replaced at defs/16BITBASE.xml:5:3 [layer 16BITBASE]
+  added at defs/32BITBASE.xml:2:1 [layer 32BITBASE]
+
+tables["Timing"]: present
+  restored at defs/A2WC522N.xml:9:5 [layer A2WC522N]
+  omitted at defs/16BITBASE.xml:5:3 [layer 16BITBASE]
+  added at defs/32BITBASE.xml:2:1 [layer 32BITBASE]

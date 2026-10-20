@@ -68,6 +68,13 @@ pub const DOMAINS: &[Domain] = &[
                       cannot be encoded or decoded.",
     },
     Domain {
+        prefix: "EXP",
+        title: "Expressions",
+        description: "Formulas in scalings, logger conversions and derived \
+                      parameters (C4, `rr-core::expr`): text that does not \
+                      parse.",
+    },
+    Domain {
         prefix: "LAY",
         title: "Layering",
         description: "Layered documents and the resolver (C1, \
@@ -231,12 +238,157 @@ registry! {
     /// nothing is written unless the user explicitly allows editing them.
     SPECIAL_FLOAT_EDIT = "ENC0009", Error, since "0.1.0";
 
+    /// A formula is not valid expression syntax.
+    ///
+    /// The formula has a character or token where none can be (an
+    /// unbalanced parenthesis, two operands with no operator between them, a
+    /// `=`, a malformed `[id:unit]` reference, a number too large for a
+    /// double). The scaling or parameter that owns it is not loaded: legacy
+    /// reported such formulas only when a cell was first drawn.
+    EXPR_SYNTAX = "EXP0001", Error, since "0.1.0";
+
+    /// A formula calls a function that does not exist, or calls one wrongly.
+    ///
+    /// The name is not a supported function (names are case-sensitive:
+    /// `BitWise`, `sqrt`), is `rand` or `str`, which formulas may not use, is
+    /// used without an argument list, or is given the wrong number of
+    /// arguments; or `BitWise` is given a literal operation that is not 1 to
+    /// 7. The scaling or parameter that owns the formula is not loaded.
+    EXPR_BAD_CALL = "EXP0002", Error, since "0.1.0";
+
+    /// A formula is nested too deeply to parse safely.
+    ///
+    /// Parentheses, prefix operators, `^` chains, right operands or call
+    /// arguments are nested deeper than the parser's depth limit (128 levels
+    /// by default; real formulas nest under 10). Parsing stops at the level
+    /// past the limit, which the diagnostic points at. The scaling or
+    /// parameter that owns the formula is not loaded.
+    EXPR_TOO_COMPLEX = "EXP0003", Error, since "0.1.0";
+
+    /// A formula is longer than the parser accepts.
+    ///
+    /// The formula text is over the length limit (4096 bytes by default;
+    /// real formulas are under 100). It is refused before it is read. The
+    /// scaling or parameter that owns the formula is not loaded.
+    EXPR_TOO_LONG = "EXP0004", Error, since "0.1.0";
+
+    /// A number, name or parameter reference in a formula is too long.
+    ///
+    /// One literal token (a number such as `4.8828125e-4`, a name such as
+    /// `P12`, or a whole `[id:unit]` reference) is over the literal length
+    /// limit (128 bytes by default). The diagnostic points at the token. The
+    /// scaling or parameter that owns the formula is not loaded.
+    EXPR_LITERAL_TOO_LONG = "EXP0005", Error, since "0.1.0";
+
+    /// A formula has too many operands, operators and calls.
+    ///
+    /// Its parsed tree would have more nodes than the node limit (1024 by
+    /// default; real formulas have under 30): one per number, `x`,
+    /// reference, operator and call. The diagnostic points at the token
+    /// that would have been one too many. The scaling or parameter that owns
+    /// the formula is not loaded.
+    EXPR_TOO_MANY_NODES = "EXP0006", Error, since "0.1.0";
+
+    /// A function call in a formula has too many arguments.
+    ///
+    /// A call is given more than the argument limit (32 by default; `sum`
+    /// takes any number of arguments, every other function at most 4). The
+    /// diagnostic points at the first argument too many. The scaling or parameter that owns
+    /// the formula is not loaded.
+    EXPR_TOO_MANY_ARGS = "EXP0007", Error, since "0.1.0";
+
+    /// A formula would need too large an evaluation stack.
+    ///
+    /// Evaluating it would hold more intermediate values at once than the
+    /// evaluation stack limit (32 by default, the size evaluation keeps on
+    /// the native stack; real formulas need under 6). Values pile up in
+    /// right-nested operators (`1+(2+(3+...))`) and in calls with many
+    /// arguments. The diagnostic points at the operand that would have been
+    /// one value too many. The scaling or parameter that owns the formula
+    /// is not loaded.
+    EXPR_STACK_TOO_DEEP = "EXP0008", Error, since "0.1.0";
+
     /// An `extends`/`base` chain loops back on itself.
     ///
     /// Following the inheritance chain from a document reaches the same
     /// document again. The document is not resolved; the provenance points
-    /// at the reference that closes the loop.
+    /// at the reference that closes the loop. A document whose `base` is
+    /// its own name is not a loop: it extends the definition of that name
+    /// in an enclosing scope (`LAY0002` if there is none).
     INHERITANCE_CYCLE = "LAY0001", Error, since "0.1.0";
+
+    /// A document names a base that no loaded file defines.
+    ///
+    /// The `base`/`extends` reference names a document that is in none of
+    /// the loaded files, or only in a local scope the reference cannot see
+    /// (MF-16: a name local to one table is not visible from the ROM, from
+    /// another table, or globally); the message then names the scopes where
+    /// it is defined. A document whose `base` is its own name extends the
+    /// definition of that name in an enclosing scope, and gets this error
+    /// when no enclosing scope has one (a ROM definition whose `base` is
+    /// its own `xmlid`). The document, and everything inheriting from it, is
+    /// not resolved; the provenance points at the document with the
+    /// reference.
+    UNKNOWN_BASE = "LAY0002", Error, since "0.1.0";
+
+    /// Two loaded documents have the same name.
+    ///
+    /// Names are global across every loaded file, so a second document with
+    /// a name already defined (in the same file or another one) would make
+    /// every reference to that name ambiguous. The first document loaded is
+    /// kept and the second is ignored; the provenance points at the ignored
+    /// one and the message names where the kept one is. Legacy silently used
+    /// whichever matching definition it found first.
+    DUPLICATE_DOCUMENT = "LAY0003", Error, since "0.1.0";
+
+    /// A document's bases cannot be put in one consistent order.
+    ///
+    /// The document names several bases whose own inheritance orders some
+    /// documents both ways (for example one base puts `A` above `B` and
+    /// another `B` above `A`), or names one base twice. The document is not
+    /// resolved: picking an order arbitrarily would decide silently which
+    /// value wins.
+    INCONSISTENT_BASES = "LAY0004", Error, since "0.1.0";
+
+    /// A document inherits from more documents than the resolver allows.
+    ///
+    /// Its inheritance would hold more than 255 documents besides itself
+    /// (real definitions inherit from a handful). The document is not
+    /// resolved; the limit bounds the work an untrusted definition pack can
+    /// demand.
+    LINEAGE_TOO_LARGE = "LAY0005", Error, since "0.1.0";
+
+    /// A resolved document lacks required fields.
+    ///
+    /// After applying every layer it inherits from, the document still has
+    /// required fields that no layer sets, or that a layer omits. The
+    /// message names each missing field by path. The document is not used:
+    /// a missing value is never filled with a default.
+    INCOMPLETE_DOCUMENT = "LAY0006", Error, since "0.1.0";
+
+    /// A document was asked for by a name that no loaded file defines.
+    ///
+    /// Something outside the definitions (a ROM image's identifier, a
+    /// command-line argument, a setting) names a document that none of the
+    /// loaded files has. The provenance points at where the name was asked
+    /// for.
+    UNKNOWN_DOCUMENT = "LAY0007", Error, since "0.1.0";
+
+    /// A local document has the same name as one in an enclosing scope.
+    ///
+    /// A document defined inside a scope (a table-local scaling inside its
+    /// table, inside its ROM) has the id of a document in a scope enclosing
+    /// it (the ROM, or global). Inside its scope, a `base` naming that id
+    /// now means the local document; outside, the outer one, which is
+    /// unchanged. Both are loaded. Legacy had one flat namespace in which a
+    /// later definition with the name replaced the earlier one for every
+    /// lookup after it, so a pack relying on that resolves differently
+    /// here; the provenance points at the local document and the message
+    /// names where the shadowed one is. A local document whose `base` is
+    /// its own name extends the outer one rather than hiding it, and is not
+    /// warned about. Two documents with one name in the same scope are
+    /// `LAY0003` instead.
+    SHADOWED_NAME = "LAY0008", Warning, since "0.1.0";
 }
 
 /// Retired codes, which may never be reused. Empty until a code is retired.
@@ -538,6 +690,21 @@ mod tests {
         ("ENC0008", "WHOLE_TABLE_LAYOUT"),
         ("ENC0009", "SPECIAL_FLOAT_EDIT"),
         ("LAY0001", "INHERITANCE_CYCLE"),
+        ("EXP0001", "EXPR_SYNTAX"),
+        ("EXP0002", "EXPR_BAD_CALL"),
+        ("EXP0003", "EXPR_TOO_COMPLEX"),
+        ("EXP0004", "EXPR_TOO_LONG"),
+        ("EXP0005", "EXPR_LITERAL_TOO_LONG"),
+        ("EXP0006", "EXPR_TOO_MANY_NODES"),
+        ("EXP0007", "EXPR_TOO_MANY_ARGS"),
+        ("EXP0008", "EXPR_STACK_TOO_DEEP"),
+        ("LAY0002", "UNKNOWN_BASE"),
+        ("LAY0003", "DUPLICATE_DOCUMENT"),
+        ("LAY0004", "INCONSISTENT_BASES"),
+        ("LAY0005", "LINEAGE_TOO_LARGE"),
+        ("LAY0006", "INCOMPLETE_DOCUMENT"),
+        ("LAY0007", "UNKNOWN_DOCUMENT"),
+        ("LAY0008", "SHADOWED_NAME"),
     ];
 
     /// A break of the stability rules against the published ledger.
@@ -701,6 +868,17 @@ mod tests {
         assert_eq!(WHOLE_TABLE_LAYOUT.as_str(), "ENC0008");
         assert_eq!(SPECIAL_FLOAT_EDIT.as_str(), "ENC0009");
         assert_eq!(INHERITANCE_CYCLE.as_str(), "LAY0001");
+        assert_eq!(UNKNOWN_BASE.as_str(), "LAY0002");
+        assert_eq!(DUPLICATE_DOCUMENT.as_str(), "LAY0003");
+        assert_eq!(INCONSISTENT_BASES.as_str(), "LAY0004");
+        assert_eq!(LINEAGE_TOO_LARGE.as_str(), "LAY0005");
+        assert_eq!(INCOMPLETE_DOCUMENT.as_str(), "LAY0006");
+        assert_eq!(UNKNOWN_DOCUMENT.as_str(), "LAY0007");
+        assert_eq!(SHADOWED_NAME.as_str(), "LAY0008");
+        assert_eq!(
+            lookup(SHADOWED_NAME).map(|r| r.severity),
+            Some(Severity::Warning)
+        );
         let row = lookup(UNSUPPORTED_STORAGE_TYPE).unwrap();
         assert_eq!(row.name, "UNSUPPORTED_STORAGE_TYPE");
         assert_eq!(row.severity, Severity::Error);

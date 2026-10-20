@@ -1,0 +1,1 @@
+log(x)+ln(x)+exp(1)+pow(x,2)+sqrt(abs(x))+mod(x,3)+sum(x,1,2,3)+binom(5,2)

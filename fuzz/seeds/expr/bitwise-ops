@@ -1,0 +1,1 @@
+BitWise(24,x,1)+BitWise(1,x,4)-BitWise(0,x,7)+BitWise(3,x,6)

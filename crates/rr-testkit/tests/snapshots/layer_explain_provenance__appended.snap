@@ -1,0 +1,10 @@
+---
+source: crates/rr-testkit/tests/layer_explain_provenance.rs
+expression: appended
+---
+notes = ["16-bit", "A2WC522N fix", "user"]
+  appended ["user"] at user/A2WC522N.toml:1:1 [layer user]
+  appended ["A2WC522N fix"] at defs/A2WC522N.xml:9:5 [layer A2WC522N]
+  replaced with ["16-bit"] at defs/16BITBASE.xml:5:3 [layer 16BITBASE]
+  dropped:
+    appended ["32-bit base"] at defs/32BITBASE.xml:2:1 [layer 32BITBASE]

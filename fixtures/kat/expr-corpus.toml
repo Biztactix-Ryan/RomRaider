@@ -1,0 +1,705 @@
+# Formulas of the pinned definition corpus, hand-checked (US-RR-20-10).
+#
+# Every value was derived by hand from the formula, read from the fetched corpus at
+# `path` / `xpath`, with the case's `x` and `params` substituted (the `working`). They
+# were cross-checked independently with Python (each formula rewritten as a Python
+# expression, math.fmod for %, IEEE division by zero), never with rr-core or rr-testkit
+# code and never with Java (D-024). An exact case is exact because every step is exact
+# in binary floating point (a scale that is a binary fraction such as 45/128, or an
+# integer result); every other case has a tolerance.
+#
+# Consumed by crates/rr-testkit/tests/expr_kat.rs: `corpus_formula_cases_match_rr_core`
+# (corpus tier, RR_CORPUS_DIR) harvests the corpus, finds each formula by its SHA-256,
+# checks that it occurs at `path` / `xpath`, parses it with rr_core::expr::parse and
+# evaluates it; `corpus_fixture_names_its_formulas_by_hash_only` checks this file
+# without the corpus.
+schema = 1
+title = "Formulas harvested from the pinned ECU and v290 logger definitions: hand-checked known answers"
+notes = """
+WHAT THIS PINS. RomRaider definitions carry formulas as XML attributes: ECU scalings \
+<scaling expression="..."> (raw to real) and <scaling to_byte="..."> (real to raw), and \
+logger <conversion expr="...">, which are either conversions in x or derived parameters over \
+[id:unit] and bare id references. rr-core::expr must evaluate the corpus's own formulas as \
+JEP did (rr-core/src/expr.rs, rr-core/src/expr/eval.rs "Numeric semantics"); the JEP grammar \
+and operator semantics are pinned separately in expr-jep-precedence.toml.
+
+WHY THERE IS NO FORMULA TEXT HERE. The definitions have no licence, so committed fixtures \
+hold metadata only (D-028 in .project/DECISIONS.md). Each case names its formula with \
+formula_ref: the SHA-256 of the formula's UTF-8 text (printf '%s' "$formula" | sha256sum), \
+the corpus-relative file and the positional XPath of the attribute where it first occurs \
+(xmllint --xpath 'string(<xpath>)' "$RR_CORPUS_DIR/<path>" prints it). \
+fixtures/corpus-formulas.toml lists every distinct corpus formula the same way. The working \
+substitutes the case's values into the formula, as any hand check must.
+
+THE SPREAD. The pinned corpus (TD-D/SubaruDefs at 0b0c0c42, the ECU definitions and the \
+v290 logger definitions) has 730 distinct formulas: linear scalings with binary-fraction and \
+decimal scales, their to_byte inverses, offsets, division by x, unary minus, exponent \
+literals (4.8828125e-4, 1.0e2), +- and *- operand prefixes, % and if(...), and derived \
+parameters. It has no ^, no BitWise and no function other than if, so those are pinned by \
+expr-jep-precedence.toml and expr-bitwise-functions.toml instead.
+
+HOW A CASE IS CHECKED. Exact cases (no tolerance) compare bit for bit, so -0.0 and +0.0 \
+differ (-x at 0 is -0.0, 0-x is +0.0). inf and -inf are IEEE 754 division by a signed zero, \
+which rr-core reports as EvalError::NonFinite carrying the infinity. % is the remainder with \
+the dividend's sign (JLS 15.17.3, as JEP computed it). if(c, a, b) is a when c > 0, else b; \
+a comparison is 1 or 0 (JEP 2.x documentation, Operators: "Boolean expressions are evaluated \
+to be either 1 or 0"). params binds each reference by its id; the unit only selects which \
+conversion of that parameter a logger would feed in.
+"""
+
+# --------------------------------------------------------------------------------------
+# A. ECU scalings: <scaling expression> (raw to real) and <scaling to_byte> (real to raw).
+#    Some of these formulas also occur as logger conversions.
+# --------------------------------------------------------------------------------------
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[1]/table[2]/scaling[1]/@expression" }
+x = 1234.0
+value = 1234.0
+source = { kind = "hand-calc", working = "the formula is x itself: 1234 * 1 = 1234" }
+note = "identity scaling, the most common formula in the corpus"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "3b1762d48cbbcbc16ae239d52034ba38acf5a7a90f7e226a5ae3b200ff2660ec", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[12]/table[1]/scaling[1]/@expression" }
+x = 100.0
+value = 212.0
+tolerance = 1e-09
+source = { kind = "hand-calc", working = "(100*1.8)+32 = 180 + 32 = 212" }
+note = "degC to degF; 1.8 is not a binary fraction, hence the tolerance"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "3b1762d48cbbcbc16ae239d52034ba38acf5a7a90f7e226a5ae3b200ff2660ec", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[12]/table[1]/scaling[1]/@expression" }
+x = -40.0
+value = -40.0
+tolerance = 1e-09
+source = { kind = "hand-calc", working = "(-40*1.8)+32 = -72 + 32 = -40" }
+note = "the crossover point of the two temperature scales"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "e2387bfdfecfac8b7669a776717a87a5e6c35bd45c8594dcd4407d8363a43814", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[12]/table[1]/scaling[1]/@to_byte" }
+x = 212.0
+value = 100.0
+tolerance = 1e-09
+source = { kind = "hand-calc", working = "(212-32)/1.8 = 180/1.8 = 100" }
+note = "degF to degC, the to_byte of the line above"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "82efe7f783262ecebc52ce13c7d9c040160201d095f3589294051d26f7297a9b", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[298]/scaling[1]/@expression" }
+x = 128.0
+value = 25.0
+source = { kind = "hand-calc", working = ".3515625 = 45/128, so (128*0.3515625)-20 = 45 - 20 = 25" }
+note = "exact: 0.3515625 is a binary fraction"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "82efe7f783262ecebc52ce13c7d9c040160201d095f3589294051d26f7297a9b", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[298]/scaling[1]/@expression" }
+value = -20.0
+source = { kind = "hand-calc", working = "(0*0.3515625)-20 = 0 - 20 = -20" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "072b2bef8d3a77648fd8a717ebc35011a0309991f9dd3605e6388d36c555c91f", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[298]/scaling[1]/@to_byte" }
+x = 25.0
+value = 128.0
+source = { kind = "hand-calc", working = "(25+20)/0.3515625 = 45/(45/128) = 45*128/45 = 128" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "8611377cd216e03fd394ec79ccc68608e4511037c0b011e2f5486db4e6840140", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[12]/scaling[1]/@expression" }
+x = 200.0
+value = 56.25
+source = { kind = "hand-calc", working = ".78125 = 25/32, so (200*0.78125)-100 = 156.25 - 100 = 56.25" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "94f4849a500ce6c62933e85ae9e2caa4b6b8fbaa55254c3f5560efaa1905cce9", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[12]/scaling[1]/@to_byte" }
+x = 56.25
+value = 200.0
+source = { kind = "hand-calc", working = "(56.25+100)/0.78125 = 156.25*32/25 = 5000/25 = 200" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "eec1f37b6c2309c65f3198202bad8d3cb185aacc5a302139161786227b8659a4", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[19]/table[1]/scaling[1]/@expression" }
+x = 1000.0
+value = 19.33677
+tolerance = 1e-09
+source = { kind = "hand-calc", working = "1000*0.01933677 = 19.33677" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "af4035389a284ceb3eddad01cae360cd31cc919adebfeb316d52979598f422ec", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[1]/scaling[1]/@to_byte" }
+x = 19.33677
+value = 1760.0
+tolerance = 1e-09
+source = { kind = "hand-calc", working = "(19.33677/0.01933677)+760 = 1000 + 760 = 1760" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "cf0e4514b5d8697afe0d91c7c2a257bc1bcac98ce35e8e9681a046de274336a2", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[1]/table[1]/scaling[1]/@expression" }
+x = 84.0
+value = 100.0
+tolerance = 1e-09
+source = { kind = "hand-calc", working = "84/0.84 = 8400/84 = 100" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "6d057ca905e327afc1f2c7e163425d7f0b08928fa827d76a0fe3e82fd539df10", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[1]/table[1]/scaling[1]/@to_byte" }
+x = 100.0
+value = 84.0
+tolerance = 1e-09
+source = { kind = "hand-calc", working = "100*0.84 = 84" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "6dacca1d09004108c03bc7acb326a391fff195c470d1b1a417df1a9ba33ae548", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[32]/scaling[1]/@expression" }
+x = 256.0
+value = 1.0
+source = { kind = "hand-calc", working = ".00390625 = 1/256, so 256*0.00390625 = 256/256 = 1" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "e1c33a33a081e683fd2b4f1adc007fab0823cc4a49ca968f9cf00e3211be78a8", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[196]/scaling[1]/@expression" }
+x = 125.0
+value = 1.0
+tolerance = 1e-12
+source = { kind = "hand-calc", working = "125*0.008 = 125*8/1000 = 1000/1000 = 1" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "d761d5536e885ed1e1e4d316e3c0bca9ce4a7c6a44b560134bd03b25e558e13d", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[196]/scaling[1]/@to_byte" }
+x = 1.0
+value = 125.0
+tolerance = 1e-09
+source = { kind = "hand-calc", working = "1/0.008 = 1000/8 = 125" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "c88b330db294a5ed6d904df788afedf3e7103f7c114053854127777f6215ad5f", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[153]/scaling[1]/@expression" }
+x = 250.0
+value = 1.0
+tolerance = 1e-12
+source = { kind = "hand-calc", working = "250*0.004 = 250*4/1000 = 1000/1000 = 1" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "fd1f613298b57c68b9724955064134bb4f0a8bcd18c20d9f1676c14680b472fd", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[113]/scaling[1]/@expression" }
+x = 256.0
+value = 7.35
+source = { kind = "hand-calc", working = "14.7/(1 + 256*0.00390625) = 14.7/(1 + 1) = 14.7/2 = 7.35" }
+note = "exact: halving the double nearest 14.7 gives the double nearest 7.35; * binds tighter than +"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "400a9737a7125a0287ff6e035f612d6c284911058e83d3383c37dbef244b5a8e", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[113]/scaling[1]/@to_byte" }
+x = 7.35
+value = 256.0
+source = { kind = "hand-calc", working = "(14.7/7.35 - 1)/0.00390625 = (2 - 1)*256 = 256" }
+note = "exact: the double nearest 14.7 is twice the double nearest 7.35"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "09d324971a3a694cb3eb58128a9b904ef09eb8c607c8fc3c4a9032409ca1f56a", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[520]/scaling[1]/@expression" }
+x = 512.0
+value = 100.0
+source = { kind = "hand-calc", working = ".1953125 = 25/128, so 512*25/128 = 4*25 = 100" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "895d24b1edca827623c667256e79f4b5569fcf75c26d7cb4149d5d19d29ac584", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[520]/scaling[1]/@to_byte" }
+x = 100.0
+value = 512.0
+source = { kind = "hand-calc", working = "100/0.1953125 = 100*128/25 = 512" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "b7d46eb35d69acf8c17d449fb9d126e786d1a973510173317542676e357d2a33", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[439]/scaling[1]/@expression" }
+x = 8192.0
+value = 45.0
+source = { kind = "hand-calc", working = ".0054931640625 = 45/8192, so 8192*45/8192 = 45" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "fbf6b37e4aff7b7bd162488a29520d33f7525217c75c006727a75ec5662c56e9", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[439]/scaling[1]/@to_byte" }
+x = 45.0
+value = 8192.0
+source = { kind = "hand-calc", working = "45/0.0054931640625 = 45*8192/45 = 8192" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "93bc3b5e24d4631eed61b73e36cd7c6d5be84b00df06985c53dc167fc905f668", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[284]/scaling[1]/@expression" }
+x = 128.0
+value = 0.0
+source = { kind = "hand-calc", working = ".390625 = 25/64, so (128*0.390625)-50 = 50 - 50 = +0.0" }
+note = "an exact zero; 50 - 50 is +0.0"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "e716cbd89b10cd83b510156b897e2fa9e72ed8e1f12f5e36b147f2aae0150dd4", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[284]/scaling[1]/@to_byte" }
+value = 128.0
+source = { kind = "hand-calc", working = "(0+50)/0.390625 = 50*64/25 = 128" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "380ad3907c70f35a97a20a692953ff02ecf860b23057924e15c0d2b9a787a587", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[239]/scaling[1]/@expression" }
+x = 16384.0
+value = 100.0
+source = { kind = "hand-calc", working = ".01220703125 = 100/8192, so (16384*0.01220703125)-100 = 200 - 100 = 100" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "59bebb38a198b11caa86b28d07518d12e79cf62264aa93a9d14a47fcfe130570", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[239]/scaling[1]/@to_byte" }
+x = 100.0
+value = 16384.0
+source = { kind = "hand-calc", working = "(100+100)/0.01220703125 = 200*8192/100 = 16384" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "e29dc20bbc6d396d8207d1190d46a37d742e20550341455b3d5849d5c34b59c8", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[24]/scaling[1]/@expression" }
+x = 64.0
+value = -1.0
+source = { kind = "hand-calc", working = ".015625 = 1/64, so (64*0.015625)-2 = 1 - 2 = -1" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "f9b8772346c4f0d0351be6c95dcbee463e1aaf1652ff67e9cb68f09f3501c380", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[24]/scaling[1]/@to_byte" }
+x = -1.0
+value = 64.0
+source = { kind = "hand-calc", working = "(-1+2)/0.015625 = 1*64 = 64" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "ffdda33079354c75dbb012bc789269de183f1db459d87b1328a388138016b078", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[182]/scaling[1]/@expression" }
+x = 256.0
+value = 1.0
+source = { kind = "hand-calc", working = ".0078125 = 1/128, so (256*0.0078125)-1 = 2 - 1 = 1" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "bdd34a5dd6f1fccfcdaa51310db848ec5cfd3a2b3bdb077819c60c8b949375d2", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[182]/scaling[1]/@to_byte" }
+value = 128.0
+source = { kind = "hand-calc", working = "(0+1)/0.0078125 = 1*128 = 128" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "19296c7a7873d8c39436ce6be15f4708369164aeb245334d6e9b471d493f9fab", path = "defs/romraider/ecu/RR_A8DH100E.xml", xpath = "/roms[1]/rom[2]/table[952]/scaling[1]/@expression" }
+x = 2048.0
+value = 1.0
+source = { kind = "hand-calc", working = "4.8828125e-4 = 1/2048, so 2048*4.8828125e-4 = 2048/2048 = 1" }
+note = "an exponent literal"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "e45a3e9e0adced158bdeb4dff584def56ddc1d74ad86a615cf43a4ef6357dff8", path = "defs/romraider/ecu/RR_A8DH100E.xml", xpath = "/roms[1]/rom[2]/table[952]/scaling[1]/@to_byte" }
+x = 0.5
+value = 1024.0
+source = { kind = "hand-calc", working = "0.5/4.8828125e-4 = 0.5*2048 = 1024" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "06b5d148277bc141da23f8897738789a344e07c3aaa549d7dae4be5193df4c80", path = "defs/romraider/ecu/RR_A8DH100E.xml", xpath = "/roms[1]/rom[2]/table[998]/scaling[1]/@expression" }
+x = 32768.0
+value = -8.192e-08
+tolerance = 1e-12
+source = { kind = "hand-calc", working = "32768*0.00305175781 = 32768*(0.0030517578125 - 0.0000000000025) = 100 - 0.00000008192 = 99.99999991808; 99.99999991808 - 100 = -8.192e-8" }
+note = "the constant is 100/32768 cut to 9 significant digits, so full scale misses 100 by 8.192e-8"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "d1f65bd9ce137496791dc90b18a147b034580ab2adde690b5d237b4b03770392", path = "defs/romraider/ecu/RR_A8DH100E.xml", xpath = "/roms[1]/rom[2]/table[998]/scaling[1]/@to_byte" }
+x = -100.0
+value = 0.0
+source = { kind = "hand-calc", working = "(-100+1.0e2)/0.00305175781 = 0/0.00305175781 = +0.0" }
+note = "exponent literals on both sides"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "cd8e6197e6687b99c395e7cd911bec0c0c49c24341e34926c6d7b123d9db8412", path = "defs/romraider/ecu/JZ2F401A_rom_def.xml", xpath = "/roms[1]/rom[1]/table[26]/scaling[1]/@expression" }
+x = 100.0
+value = 60.0
+source = { kind = "hand-calc", working = "100*1.0 + (-40) = 100 - 40 = 60" }
+note = "`+-`: the right operand of + carries a prefix minus"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "8a678ac251478199eb5303d936bb13665cdda7776142d099b47bf5bbba57fa98", path = "defs/romraider/ecu/2007 Outback 3R AT D2UH001T.xml", xpath = "/roms[1]/rom[1]/table[220]/scaling[1]/@expression" }
+x = 2.0
+value = -3.0
+source = { kind = "hand-calc", working = "2*(-1.0) + (-1.0) = -2 - 1 = -3" }
+note = "`*-` and `+-`"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "13039847d49cb915368465b1d3e3a5e07ccda4ea75826744f901da9f5b06805d", path = "defs/romraider/ecu/2007 Outback 3R AT D2UH001T.xml", xpath = "/roms[1]/rom[1]/table[4]/scaling[1]/@expression" }
+x = -0.0
+value = 0.0
+source = { kind = "hand-calc", working = "-0.0*1.0 + 0.0 = -0.0 + 0.0 = +0.0" }
+note = "IEEE 754: the sum of opposite-signed zeros is +0 when rounding to nearest, so the sign of zero is lost"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "19d35769eadc6f59ff0a1d6fc10c8e3b4871e856989bbbb0e02f3b0765eaa3d6", path = "defs/romraider/ecu/2007 Outback 3R AT D2UH001T.xml", xpath = "/roms[1]/rom[1]/table[4]/scaling[1]/@to_byte" }
+x = -0.0
+value = -0.0
+source = { kind = "hand-calc", working = "(-0.0 - 0.0)/1.0 = -0.0/1.0 = -0.0" }
+note = "IEEE 754: -0 - +0 = -0, and -0/1 = -0"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "a420962426d711880258b007d6767792992f6700fa93f127dafe1f7333e50466", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[409]/scaling[1]/@expression" }
+value = -0.0
+source = { kind = "hand-calc", working = "-(0) = -1*0 = -0.0" }
+note = "negation flips the sign bit, so it gives -0.0 (0-x gives +0.0)"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "a420962426d711880258b007d6767792992f6700fa93f127dafe1f7333e50466", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[409]/scaling[1]/@expression" }
+x = 5.0
+value = -5.0
+source = { kind = "hand-calc", working = "-(5) = -1*5 = -5" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "4d4d37b4ee85c245083d7a2badd39f34a5def30d04593be9898fea9530fcffac", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[130]/scaling[1]/@expression" }
+x = 10000.0
+value = 5.10695887
+tolerance = 1e-09
+source = { kind = "hand-calc", working = "(-10000*0.000224304213)+7.350001 = -2.24304213 + 7.350001 = 5.10695887" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "04fea2bcea64b3ce75a7a4c742f87c818d242dd798acaf182d3e41481ba72df3", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[130]/scaling[1]/@to_byte" }
+x = 7.350001
+value = -0.0
+source = { kind = "hand-calc", working = "(7.350001-7.350001)/(-0.000224304213) = 0/(-0.000224304213) = -0.0" }
+note = "a divisor with a prefix minus; +0 over a negative number is -0.0"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "04fea2bcea64b3ce75a7a4c742f87c818d242dd798acaf182d3e41481ba72df3", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[130]/scaling[1]/@to_byte" }
+x = 5.10695887
+value = 10000.0
+tolerance = 1e-09
+source = { kind = "hand-calc", working = "(5.10695887-7.350001)/(-0.000224304213) = -2.24304213/(-0.000224304213) = 10000" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "e182da85c48e5a9269c059a9fb0b56009e9a2a45c767e158b4a1d5ecbdadd138", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[123]/scaling[1]/@expression" }
+value = -7.35
+source = { kind = "hand-calc", working = "(0*0.000224304213)-7.35 = 0 - 7.35 = -7.35" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "5fd2b3af1f452d18215d3e94fbfe115cde2455e229a6def671a3abe2d4eacd70", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[516]/scaling[1]/@expression" }
+x = 1000.0
+value = 96.5606
+tolerance = 1e-12
+source = { kind = "hand-calc", working = "96560.6/1000 = 96.5606" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "5fd2b3af1f452d18215d3e94fbfe115cde2455e229a6def671a3abe2d4eacd70", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[516]/scaling[1]/@expression" }
+value = inf
+source = { kind = "hand-calc", working = "96560.6/0 = +inf (IEEE 754: a positive number over +0)" }
+note = "rr-core reports a non-finite result as EvalError::NonFinite(inf)"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "514eeb3f6abb023793397b176d09a4cb765da144669502af918815489bfa20c8", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[180]/scaling[1]/@expression" }
+x = 1000.0
+value = 2707.09
+tolerance = 1e-09
+source = { kind = "hand-calc", working = "2707090/1000 = 2707.09" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "5dc69deba218a4be01d54c768627bed20aecebd456699f357fa0fbdbcf56240e", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[181]/scaling[1]/@expression" }
+x = 1000.0
+value = 1804.727
+tolerance = 1e-09
+source = { kind = "hand-calc", working = "1804727/1000 = 1804.727" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "f901cc716a3946e1ab5cdcb825bedbc5611b286751d258045a5626892129b9f3", path = "defs/romraider/ecu/RR_A8DH100E.xml", xpath = "/roms[1]/rom[2]/table[182]/scaling[1]/@expression" }
+x = 1000.0
+value = 60.0
+source = { kind = "hand-calc", working = "60000/1000 = 60" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "f946ea593960239ada5a206b163cead59a319d9a56f2f6e4127f5857f1d8172b", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[275]/scaling[1]/@expression" }
+x = 0.5
+value = 50.0
+source = { kind = "hand-calc", working = "0.5*100 = 50" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "de45027a920c8aece7f8a76c7822c7052504f682997db8c29cdd6d96480e3ebe", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[275]/scaling[1]/@to_byte" }
+x = 50.0
+value = 0.5
+source = { kind = "hand-calc", working = "50/100 = 0.5" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "c36bc158b334e9c6d8d349666d054df84e16fd391626b48ed91465f1a254811f", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[400]/scaling[1]/@expression" }
+x = 100.0
+value = -12.0
+tolerance = 1e-12
+source = { kind = "hand-calc", working = "100*(-0.12) = -12" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "8d74a472a3843f08d13f7738fc3653db1970789e04c91eddba3c2761400007da", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[399]/scaling[1]/@expression" }
+x = -50.0
+value = 6.0
+tolerance = 1e-12
+source = { kind = "hand-calc", working = "-50*(-0.12) = 6" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "2b3ce16a75c997aa73d79422ba367d5e48043d6b130ec66a8fe4e7d3f58eeea8", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[289]/scaling[1]/@expression" }
+x = 16384.0
+value = 1.00000006144
+tolerance = 1e-12
+source = { kind = "hand-calc", working = "16384*0.00006103516 = 16384*(0.00006103515625 + 0.00000000000375) = 1 + 0.00000006144 = 1.00000006144" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "d1eb069f69be30c44b70d6e900c886a9d9dc1e466ec57ad0a64fb5d00bb79d42", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[186]/scaling[1]/@expression" }
+x = 32768.0
+value = 6.144e-08
+tolerance = 1e-15
+source = { kind = "hand-calc", working = "32768*0.00003051758 - 1 = 32768*(0.000030517578125 + 0.000000000001875) - 1 = 1 + 0.00000006144 - 1 = 6.144e-8" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "5700b45fda3f9cf800cf1b552289d6cc7c498e6e69896cbe8b89fb94411ab0b4", path = "defs/romraider/RR_D2UH001L.xml", xpath = "/roms[1]/rom[2]/table[16]/scaling[1]/@expression" }
+x = 100.0
+value = 62.1
+tolerance = 1e-09
+source = { kind = "hand-calc", working = "100*0.621 = 62.1" }
+
+# --------------------------------------------------------------------------------------
+# B. Logger conversions in x (<conversion expr>): scaling, division by x, %, if(...).
+# --------------------------------------------------------------------------------------
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "48251266a471763f187bcf9ddb5e2be83dc46d0a2df8fea39cb56d5d52d0e42c", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/parameters[1]/parameter[7]/conversions[1]/conversion[4]/@expr" }
+x = 12.5
+value = 125.0
+source = { kind = "hand-calc", working = "12.5*10 = 125" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "dedaf1379e61eaacada69acd9d6278818b157988c609e6a7e46119f0621458f1", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/parameters[1]/parameter[1]/conversions[1]/conversion[1]/@expr" }
+x = 51.0
+value = 20.0
+source = { kind = "hand-calc", working = "(51*100)/255 = 5100/255 = 20" }
+note = "left-associative: 51*(100/255) is the same value here only up to rounding"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "17217dfe353257d440839ab519253657c101ac0e2f289a023515e09135276b78", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/parameters[1]/parameter[208]/conversions[1]/conversion[2]/@expr" }
+x = 28.0
+value = -0.5
+source = { kind = "hand-calc", working = "(28-128)/200 = -100/200 = -0.5" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "e7f16d90c3d74cc0cf2293db6d9e9ca63e4493c864189b2f640f84ab7668a6a1", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/parameters[1]/parameter[208]/conversions[1]/conversion[1]/@expr" }
+x = 100.0
+value = -140.0
+source = { kind = "hand-calc", working = "(100-128)*5 = -28*5 = -140" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "9b0ad4ceb473880523388123915a371cdfd7a1fdfdba7fb1df6023c80fcd0204", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/parameters[1]/parameter[18]/conversions[1]/conversion[1]/@expr" }
+x = 25.0
+value = 0.5
+source = { kind = "hand-calc", working = "25/50 = 0.5" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "c2afb59ae5d1d9d88676089e3948c7b2aa809e20c1415d49301b1f1b1acc42f9", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/parameters[1]/parameter[2]/conversions[1]/conversion[1]/@expr" }
+x = 140.0
+value = 212.0
+source = { kind = "hand-calc", working = "32 + (9*(140-40))/5 = 32 + 900/5 = 32 + 180 = 212" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "b3f6699ce28e6362af79782e1f119f01544dd0de709cae530be8d803aaa82621", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/parameters[1]/parameter[58]/conversions[1]/conversion[1]/@expr" }
+x = 128.0
+value = 14.7
+source = { kind = "hand-calc", working = "(128/128)*14.7 = 1*14.7 = 14.7" }
+note = "left-associative: 128/(128*14.7) would be 0.068"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "35f0203ffab3ff271a2fbcf97d56aa54f82a20206c47d3c6e1e9d60a95f915db", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/parameters[1]/parameter[3]/conversions[1]/conversion[1]/@expr" }
+x = 192.0
+value = 50.0
+source = { kind = "hand-calc", working = "((192-128)*100)/128 = (64*100)/128 = 6400/128 = 50" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "a53919ae5a2be6bddf0c25a7a03a5e8f6282246f356366f840b97aa9f7beee52", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/parameters[1]/parameter[9]/conversions[1]/conversion[1]/@expr" }
+x = 100.0
+value = 62.1371192
+tolerance = 1e-09
+source = { kind = "hand-calc", working = "100*0.621371192 = 62.1371192" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "0b7211bd7da570b04ea123e371eaff8c9e9141e00654f2f75434ebf264960ce7", path = "defs/romraider/logger/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xpath = "/logger[1]/protocols[1]/protocol[2]/parameters[1]/parameter[89]/conversions[1]/conversion[1]/@expr" }
+x = 27008.0
+value = 1.0
+source = { kind = "hand-calc", working = "(27008-26880)/128 = 128/128 = 1" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "c5ca91dbf4c16fe626ac2598e8971f07f20c07743a6f08fe94e93758be398707", path = "defs/romraider/logger/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xpath = "/logger[1]/protocols[1]/protocol[2]/parameters[1]/parameter[60]/conversions[1]/conversion[2]/@expr" }
+x = 500.0
+value = 10.0
+tolerance = 1e-12
+source = { kind = "hand-calc", working = "(500*0.1)-40 = 50 - 40 = 10" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "6a5b80451866dc9ace93886f7a5eea984de4da70779c5a135acc2ccd5689c311", path = "defs/romraider/logger/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xpath = "/logger[1]/protocols[1]/protocol[2]/parameters[1]/parameter[60]/conversions[1]/conversion[1]/@expr" }
+x = 900.0
+value = 122.0
+tolerance = 1e-09
+source = { kind = "hand-calc", working = "32 + (9*(900*0.1 - 40))/5 = 32 + (9*(90 - 40))/5 = 32 + 450/5 = 32 + 90 = 122" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "077bb92e736b11a7d27abf1dce8454e2761e2b4404bec9a2b90a809a1fb12122", path = "defs/romraider/logger/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xpath = "/logger[1]/protocols[1]/protocol[2]/parameters[1]/parameter[15]/conversions[1]/conversion[1]/@expr" }
+x = 128.0
+value = 0.0
+source = { kind = "hand-calc", working = "(128/2)-64 = 64 - 64 = +0.0" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "eb06d0aae39fcf30e41d7bd8946280dfa07fc82a909e00af735f678da73345a2", path = "defs/romraider/logger/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xpath = "/logger[1]/protocols[1]/protocol[2]/parameters[1]/parameter[79]/conversions[1]/conversion[1]/@expr" }
+x = 255.0
+value = 0.185
+tolerance = 1e-12
+source = { kind = "hand-calc", working = "((255*0.005)*37)/255 = (1.275*37)/255 = 47.175/255 = 0.185" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "cf2ae21ad027cb223b1127d958ef449267df336eb23d226db07fd748aa4dc69f", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/ecuparams[1]/ecuparam[91]/conversions[1]/conversion[3]/@expr" }
+x = 4.0
+value = 0.25
+source = { kind = "hand-calc", working = "1/4 = 0.25" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "cf2ae21ad027cb223b1127d958ef449267df336eb23d226db07fd748aa4dc69f", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/ecuparams[1]/ecuparam[91]/conversions[1]/conversion[3]/@expr" }
+value = inf
+source = { kind = "hand-calc", working = "1/0 = +inf (IEEE 754: a positive number over +0)" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "4440e98510b5c2baf1a2691105d3b5ca41b4769f7c920a9974dd6c6965b3faca", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/ecuparams[1]/ecuparam[123]/conversions[1]/conversion[2]/@expr" }
+x = -0.0
+value = -inf
+source = { kind = "hand-calc", working = "14.7/(-0.0) = -inf (IEEE 754: a positive number over -0)" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "a605d20342220cc4c21f749ae885804c46cac31088e6e54df99f9efec8d176ce", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/ecuparams[1]/ecuparam[84]/conversions[1]/conversion[2]/@expr" }
+x = -1.0
+value = inf
+source = { kind = "hand-calc", working = "1/(1 + (-1)) = 1/0 = +inf" }
+note = "-1 + 1 is +0.0, so the result is +inf, not -inf"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "a605d20342220cc4c21f749ae885804c46cac31088e6e54df99f9efec8d176ce", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/ecuparams[1]/ecuparam[84]/conversions[1]/conversion[2]/@expr" }
+x = 1.0
+value = 0.5
+source = { kind = "hand-calc", working = "1/(1 + 1) = 1/2 = 0.5" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "f83aee7581826433f9d7cd95744c7d51b98748964c97d77f4a89aae3daa65b1e", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/parameters[1]/parameter[239]/conversions[1]/conversion[1]/@expr" }
+value = 0.0
+source = { kind = "hand-calc", working = "0 - 0 = 0 + (-1)*0 = +0.0 (x - x is +0.0 for any finite x when rounding to nearest)" }
+note = "unlike -x, which gives -0.0 at x = 0"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "6115e33ed3efaefb83fe4f2d91fb651a7c4e3f3b3aefe9de97b6afd4b44bca57", path = "defs/romraider/logger/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xpath = "/logger[1]/protocols[1]/protocol[2]/parameters[1]/parameter[4]/conversions[1]/conversion[1]/@expr" }
+x = 1000.0
+value = 232.0
+source = { kind = "hand-calc", working = "1000 % 256 = 1000 - 3*256 = 1000 - 768 = 232" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "6115e33ed3efaefb83fe4f2d91fb651a7c4e3f3b3aefe9de97b6afd4b44bca57", path = "defs/romraider/logger/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xpath = "/logger[1]/protocols[1]/protocol[2]/parameters[1]/parameter[4]/conversions[1]/conversion[1]/@expr" }
+x = -1.0
+value = -1.0
+source = { kind = "hand-calc", working = "(-1) % 256 = -1 - 0*256 = -1" }
+note = "the remainder takes the sign of the dividend (truncated division); a floored modulo would give 255"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "8a76ee36480f17d8fa04f9ad0ce85181cff9da6c8d5048acafc0855e7200d158", path = "defs/romraider/logger/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xpath = "/logger[1]/protocols[1]/protocol[2]/parameters[1]/parameter[21]/conversions[1]/conversion[2]/@expr" }
+x = 511.0
+value = 0.0
+source = { kind = "hand-calc", working = "511 % 256 = 511 - 256 = 255; 255 == 255 is 1 > 0, so the value is the second argument, 0" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "8a76ee36480f17d8fa04f9ad0ce85181cff9da6c8d5048acafc0855e7200d158", path = "defs/romraider/logger/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xpath = "/logger[1]/protocols[1]/protocol[2]/parameters[1]/parameter[21]/conversions[1]/conversion[2]/@expr" }
+x = 448.0
+value = 50.0
+source = { kind = "hand-calc", working = "448 % 256 = 448 - 256 = 192; 192 == 255 is 0, so ((192-128)*100)/128 = 6400/128 = 50" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "bdc60375132ecbc39b09af5469b54e2ebf179f3cc5705f1c52f77b73cb8e26bd", path = "defs/romraider/logger/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xpath = "/logger[1]/protocols[1]/protocol[2]/parameters[1]/parameter[52]/conversions[1]/conversion[3]/@expr" }
+value = -128.0
+source = { kind = "hand-calc", working = "0 < 2147483647 is 1, so ((0+2147483648) % 65536)/255 - 128 = (2147483648 - 32768*65536)/255 - 128 = 0/255 - 128 = -128" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "bdc60375132ecbc39b09af5469b54e2ebf179f3cc5705f1c52f77b73cb8e26bd", path = "defs/romraider/logger/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xpath = "/logger[1]/protocols[1]/protocol[2]/parameters[1]/parameter[52]/conversions[1]/conversion[3]/@expr" }
+x = 4294967295.0
+value = 129.0
+source = { kind = "hand-calc", working = "4294967295 < 2147483647 is 0, so (4294967295 % 65536)/255 - 128 = (4294967295 - 65535*65536)/255 - 128 = 65535/255 - 128 = 257 - 128 = 129" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "e3455bf892ec591e85b3ec6c44d5b02f9ce8dd37545ed537f86071132c075856", path = "defs/romraider/logger/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xpath = "/logger[1]/protocols[1]/protocol[2]/parameters[1]/parameter[36]/conversions[1]/conversion[3]/@expr" }
+x = -2147467264.0
+value = 2.0
+source = { kind = "hand-calc", working = "-2147467264 < 2147483647 is 1, so ((-2147467264+2147483648) % 65536)/8192 = (16384 % 65536)/8192 = 16384/8192 = 2" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "178c7455e9d43c6e6462a9757dddf1cf8338551a39af52210e1e2f5c1dfd4c3e", path = "defs/romraider/logger/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xpath = "/logger[1]/protocols[1]/protocol[2]/parameters[1]/parameter[36]/conversions[1]/conversion[1]/@expr" }
+x = -65536.0
+value = 1.999969482421875
+source = { kind = "hand-calc", working = "65536 + (-65536)/65536 = 65536 - 1 = 65535; 65535 > 32767 is 1, so 65535/32768 = 2 - 1/32768 = 1.999969482421875" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "178c7455e9d43c6e6462a9757dddf1cf8338551a39af52210e1e2f5c1dfd4c3e", path = "defs/romraider/logger/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xpath = "/logger[1]/protocols[1]/protocol[2]/parameters[1]/parameter[36]/conversions[1]/conversion[1]/@expr" }
+x = -2621440000.0
+value = -1.220703125
+source = { kind = "hand-calc", working = "-2621440000/65536 = -40000; 65536 - 40000 = 25536; 25536 > 32767 is 0, so (-2621440000/65536)/32768 = -40000/32768 = -1.220703125" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "53d89119d4ab0b8d78ce1a4801c3e82190168780385ec632ee914568e1124b9c", path = "defs/romraider/logger/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xpath = "/logger[1]/protocols[1]/protocol[2]/parameters[1]/parameter[36]/conversions[1]/conversion[2]/@expr" }
+value = 29.28
+source = { kind = "hand-calc", working = "65536 + 0/65536 = 65536; 65536 > 32767 is 1, so (65536/32768)*14.64 = 2*14.64 = 29.28" }
+note = "exact: doubling the double nearest 14.64 gives the double nearest 29.28"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "7cdf845293c9bf15e30b09381d93c13f6ce12d1ae057aa168fefa8c3df9f1196", path = "defs/romraider/logger/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xpath = "/logger[1]/protocols[1]/protocol[2]/parameters[1]/parameter[2]/conversions[1]/conversion[1]/@expr" }
+value = 128.0
+source = { kind = "hand-calc", working = "256 + 0/16777216 = 256; 256 > 127 is 1, so 256 - 128 = 128" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "7cdf845293c9bf15e30b09381d93c13f6ce12d1ae057aa168fefa8c3df9f1196", path = "defs/romraider/logger/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xpath = "/logger[1]/protocols[1]/protocol[2]/parameters[1]/parameter[2]/conversions[1]/conversion[1]/@expr" }
+x = -3355443200.0
+value = -200.0
+source = { kind = "hand-calc", working = "-3355443200/16777216 = -200; 256 - 200 = 56; 56 > 127 is 0, so the value is -3355443200/16777216 = -200" }
+
+# --------------------------------------------------------------------------------------
+# C. Logger derived parameters: <conversion expr> over [id:unit] and bare id references,
+#    bound by id through `params`.
+# --------------------------------------------------------------------------------------
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "8e801dad8471651c59234de04974110c93cd736f9e32f9e3cb9bda3e64306639", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/parameters[1]/parameter[202]/conversions[1]/conversion[1]/@expr" }
+params = { P7 = 20.5, P24 = 14.5 }
+value = 6.0
+source = { kind = "hand-calc", working = "20.5 - 14.5 = 6" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "55c40866294bb36aef0e1de940389118f9b4f1ccce2a7e5d68918d4090535323", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/parameters[1]/parameter[202]/conversions[1]/conversion[2]/@expr" }
+params = { P7 = 1.25, P24 = 1.0 }
+value = 0.25
+source = { kind = "hand-calc", working = "1.25 - 1.0 = 0.25" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "86dbe40778842c4a80f99bf5567e9232699a7376638c4bdd3d0b38d647a3a2b3", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/parameters[1]/parameter[200]/conversions[1]/conversion[1]/@expr" }
+params = { P12 = 50.0, P8 = 3000.0 }
+value = 1.0
+source = { kind = "hand-calc", working = "(50*60)/3000 = 3000/3000 = 1" }
+note = "bare references"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "c10a7eef19bce60ff691ce99b56f6e6c1e2610fa155e998737c27d5b54a60a15", path = "defs/romraider/logger/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/parameters[1]/parameter[201]/conversions[1]/conversion[1]/@expr" }
+params = { P8 = 3000.0, P21 = 4.0 }
+value = 10.0
+source = { kind = "hand-calc", working = "(3000*4)/1200 = 12000/1200 = 10" }
+note = "a bare and a [id:unit] reference"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "affc93e35258b3dcc3f21c3a7b77ab191eb15bf2e7c9535468e6f4ee9cc2cfd8", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/parameters[1]/parameter[203]/conversions[1]/conversion[3]/@expr" }
+params = { P9 = 7200.0, P12 = 1522.0, P58 = 1.0 }
+value = 1.0
+source = { kind = "hand-calc", working = "(7200/3600)/((1522/1)/761) = 2/(1522/761) = 2/2 = 1" }
+note = "a unit with a slash, km/h"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "b59640017bafc974ecea4453d5866c3ad570959e4c9b414798af6eeeb791843a", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/parameters[1]/parameter[230]/conversions[1]/conversion[1]/@expr" }
+params = { P156 = 2.0, P31 = 15.0 }
+value = 1.67
+source = { kind = "hand-calc", working = "(2*(835 - 0.7*(15-15)))/1000 = (2*(835 - 0))/1000 = 1670/1000 = 1.67" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "57b0cf95396b977f221e47a04f30164be3e770b216fa766e7db3a03f9e3311e0", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/parameters[1]/parameter[231]/conversions[1]/conversion[1]/@expr" }
+params = { P229 = 2777.77, P8 = 6000.0 }
+value = 100.0
+tolerance = 1e-09
+source = { kind = "hand-calc", working = "2777.77/(2777.77/(6000/60)) = 2777.77/(2777.77/100) = 2777.77/27.7777 = 100" }
+note = "a non-ASCII unit, µs"
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "e3d4be4990f23124b4ec5a7a0a4b1edb68f4d6b992102e41e9eb06f8762496d4", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/parameters[1]/parameter[237]/conversions[1]/conversion[1]/@expr" }
+params = { P160 = 3.0, P7 = 1.5 }
+value = 2.0
+source = { kind = "hand-calc", working = "3/1.5 = 2" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "40ac50817d27f2ebc25482474b7202955f1cc16bb3fe6514a537c26bad672751", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/parameters[1]/parameter[242]/conversions[1]/conversion[1]/@expr" }
+params = { P200 = 28.97, P11 = 26.85, P7 = 8.314472 }
+value = 30000.0
+tolerance = 1e-08
+source = { kind = "hand-calc", working = "(28.97*2*8.314472*(26.85+273.15))/(8.314472*2.0*28.97)*100 = (28.97*2*8.314472*300)/(8.314472*2*28.97)*100 = 300*100 = 30000" }
+
+[[expr]]
+formula_ref = { tier = "corpus", sha256 = "7ba3209ef904ff22181b2650dde5b510f5a2459fa9d147fa1291bce7fd4f7292", path = "defs/romraider/logger/MerpMod/Testing/A2UJ000J.MeRpMoD.Flash.Testing.v13.6.20.25.xml", xpath = "/logger[1]/protocols[1]/protocol[1]/parameters[1]/parameter[203]/conversions[1]/conversion[2]/@expr" }
+params = { P9 = 36.0, P12 = 7.61, P58 = 1.0 }
+value = 100.0
+tolerance = 1e-09
+source = { kind = "hand-calc", working = "(3600/36)*((7.61/1)/761)*100 = 100*0.01*100 = 100" }
+
+[[changelog]]
+date = 2026-10-21
+reason = "initial values"

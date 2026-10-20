@@ -1,0 +1,756 @@
+# JEP operator precedence, associativity and ^ semantics (US-RR-20-2).
+#
+# Every value was derived by hand: the parse from the JEP 2.x grammar (quoted in
+# each `standard` source), then the arithmetic. They were cross-checked
+# independently with Python (an explicitly parenthesised expression per case,
+# math.fmod for %, math.pow for ^), never with rr-core or rr-testkit code and
+# never with Java (D-024).
+#
+# Consumed by crates/rr-testkit/tests/expr_kat.rs, which parses every formula
+# with rr_core::expr::parse and evaluates it at `x`.
+schema = 1
+title = "JEP 2.x operator precedence, associativity, ^, % and boolean results, plus rr-core's native & | << >>"
+notes = """
+WHAT THIS PINS. RomRaider formulas were JEP 2.x expressions (legacy/lib/common/jep.jar, the \
+org.nfunk.jep package, class files dated 2006-03-11; legacy builds each parser with \
+addStandardFunctions() and reads the result with getValue(), util/JEPUtil.java:50 and :59). \
+rr-core::expr must read them the way JEP did.
+
+SOURCES (JEP documentation, Singular Systems, (c) 2006; archived copies, the live pages are \
+gone). The snapshots closest to the jar's date were chosen:
+* Grammar: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html \
+"This grammar was generated from the Parser.jj file using the jjdoc utility from JavaCC. \
+Operators are ordered from lowest to highest precedence (from top to bottom)." The productions, \
+top to bottom: OrExpression (<OR>), AndExpression (<AND>), EqualExpression (<NE> <EQ>), \
+RelationalExpression (<LT> <GT> <LE> <GE>), AdditiveExpression (<PLUS> <MINUS>), \
+MultiplicativeExpression (<MUL> <DOT> <CROSS> <DIV> <MOD>, and the implicit-multiplication \
+alternative), UnaryExpression ::= ( <PLUS> UnaryExpression ) | ( <MINUS> UnaryExpression ) | \
+( <NOT> UnaryExpression ) | PowerExpression, and PowerExpression ::= UnaryExpressionNotPlusMinus \
+( ( <POWER> UnaryExpression ) )?. Every binary level is "X ( op X )*", so left-associative; ^ \
+takes a whole UnaryExpression on its right, so it is right-associative and its exponent may \
+carry a prefix (2^-2), while its base may not (-2^2 is -(2^2)). The 2006-02-05 snapshot \
+(web.archive.org/web/20060205040755/...) has the same productions; so does the 2008 snapshot \
+that rr-core/src/expr.rs cites.
+* Operators: https://web.archive.org/web/20060621030056/http://www.singularsys.com/jep/doc/html/operators.html \
+"Built in operators": "Boolean expressions are evaluated to be either 1 or 0 (true or false \
+respectively)." Its table lists, top to bottom, Power ^, Boolean Not !, Unary Plus/Minus, \
+Modulus %, Division /, Multiplication *, Addition/Subtraction, <= >=, < >, != ==, &&, ||, and \
+says "Refer to the grammar for detailed information about operator precedence"; the grammar is \
+the authority (the table splits levels the grammar merges, such as * and /).
+* Functions: https://web.archive.org/web/20060621030023/http://www.singularsys.com/jep/doc/html/functions.html \
+"Functions added with addStandardFunctions()": Modulus, "mod(x,y) = x % y".
+
+The documentation does not give numeric rules for ^ and %; JEP computes them with the platform's \
+Math.pow and floating-point remainder (rr-core/src/expr/eval.rs "Numeric semantics" cites the \
+jep.jar classes). Groups D and E are therefore hand calculations from those rules:
+* ^: the Math.pow specification, docs.oracle.com/javase/8/docs/api/java/lang/Math.html#pow-double-double- \
+("If the second argument is positive or negative zero, then the result is 1.0"; for a finite \
+negative base, "if the second argument is finite and not an integer, then the result is NaN"; \
+"If both arguments are integers, then the result is exactly equal to the mathematical result \
+... if that result can in fact be represented exactly"; "The computed result must be within 1 \
+ulp of the exact result"). JEP itself turns a negative base with a non-integer exponent into a \
+complex number, which getValue() returns as NaN: the same value.
+* %: the language specification's remainder rule, docs.oracle.com/javase/specs/jls/se8/html/jls-15.html#jls-15.17.3 \
+("the sign of the result equals the sign of the dividend"; "If the dividend is an infinity, or \
+the divisor is a zero, or both, the result is NaN"; "If the dividend is a zero and the divisor \
+is finite, the result equals the dividend"; otherwise r = n - (d * q) with q the quotient \
+truncated toward zero).
+
+Group N is NOT JEP: JEP has no & | << >> (its ^ is power). They are rr-core's own extension \
+(US-RR-20, D-008 in .project/DECISIONS.md), specified in rr-core/src/expr.rs "Precedence" \
+(shifts just below + -, & tighter than |, both tighter than the comparisons) and \
+rr-core/src/expr/eval.rs "Integer operations" (operands to Java int toward zero, shift distance \
+mod 32). Those sections are the source; the values are hand calculations from them.
+
+HOW A CASE IS CHECKED. The formula must parse; evaluated at `x` it must give `value`:
+* exact cases (no `tolerance`) compare bit for bit, so -0.0 and +0.0 differ;
+* `tolerance` (absolute) is given only where Math.pow allows 1 ulp of error: a non-integer \
+exponent. Every such value is below 4 in magnitude, where 1 ulp is at most 4.5e-16, so the tolerance is 1e-15;
+* a value of nan, inf or -inf is what JEP returns; rr-core reports a final non-finite value as \
+EvalError::NonFinite carrying it (rr-core/src/expr/eval.rs "Non-finite results"), so the test \
+expects Err(NonFinite(v)) with v NaN, or the same infinity.
+"""
+
+
+# --------------------------------------------------------------------------------------
+# A. Precedence ladder (JEP Grammar): every adjacent pair of levels, both ways where the
+#    arithmetic tells them apart, a few non-adjacent pairs, and the whole ladder at once.
+# --------------------------------------------------------------------------------------
+
+[[expr]]
+formula = "1 || 0 && 0"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "OrExpression ::= AndExpression ( ( <OR> AndExpression ) )*; AndExpression ::= EqualExpression ( ( <AND> EqualExpression ) )*. && binds tighter than ||: 1 || (0 && 0) = 1 || 0 = 1" }
+note = "(1 || 0) && 0 would be 0"
+
+[[expr]]
+formula = "0 && 0 || 1"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "OrExpression ::= AndExpression ( ( <OR> AndExpression ) )*; AndExpression ::= EqualExpression ( ( <AND> EqualExpression ) )*. && binds tighter than ||: (0 && 0) || 1 = 0 || 1 = 1" }
+note = "0 && (0 || 1) would be 0"
+
+[[expr]]
+formula = "0 == 0 && 0"
+value = 0.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "AndExpression ::= EqualExpression ( ( <AND> EqualExpression ) )*; EqualExpression ::= RelationalExpression ( ( <NE> RelationalExpression ) | ( <EQ> RelationalExpression ) )*. == binds tighter than &&: (0 == 0) && 0 = 1 && 0 = 0" }
+note = "0 == (0 && 0) would be 1"
+
+[[expr]]
+formula = "3 < 2 == 0"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "EqualExpression ::= RelationalExpression ( ( <NE> RelationalExpression ) | ( <EQ> RelationalExpression ) )*; RelationalExpression ::= AdditiveExpression ( ( <LT> AdditiveExpression ) | ( <GT> AdditiveExpression ) | ( <LE> AdditiveExpression ) | ( <GE> AdditiveExpression ) )*. < binds tighter than ==: (3 < 2) == 0 = 0 == 0 = 1" }
+note = "3 < (2 == 0) would be 0"
+
+[[expr]]
+formula = "0 == 1 < 2"
+value = 0.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "EqualExpression ::= RelationalExpression ( ( <NE> RelationalExpression ) | ( <EQ> RelationalExpression ) )*; RelationalExpression ::= AdditiveExpression ( ( <LT> AdditiveExpression ) | ( <GT> AdditiveExpression ) | ( <LE> AdditiveExpression ) | ( <GE> AdditiveExpression ) )*. < binds tighter than ==: 0 == (1 < 2) = 0 == 1 = 0" }
+note = "(0 == 1) < 2 would be 1"
+
+[[expr]]
+formula = "3 > 2 != 1"
+value = 0.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "EqualExpression ::= RelationalExpression ( ( <NE> RelationalExpression ) | ( <EQ> RelationalExpression ) )*; RelationalExpression ::= AdditiveExpression ( ( <LT> AdditiveExpression ) | ( <GT> AdditiveExpression ) | ( <LE> AdditiveExpression ) | ( <GE> AdditiveExpression ) )*. > binds tighter than !=: (3 > 2) != 1 = 1 != 1 = 0" }
+note = "3 > (2 != 1) would be 1"
+
+[[expr]]
+formula = "2 + 3 > 4"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "RelationalExpression ::= AdditiveExpression ( ( <LT> AdditiveExpression ) | ( <GT> AdditiveExpression ) | ( <LE> AdditiveExpression ) | ( <GE> AdditiveExpression ) )*; AdditiveExpression ::= MultiplicativeExpression ( ( <PLUS> MultiplicativeExpression ) | ( <MINUS> MultiplicativeExpression ) )*. + binds tighter than >: (2 + 3) > 4 = 5 > 4 = 1" }
+note = "2 + (3 > 4) would be 2"
+
+[[expr]]
+formula = "1 + 1 < 1"
+value = 0.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "RelationalExpression ::= AdditiveExpression ( ( <LT> AdditiveExpression ) | ( <GT> AdditiveExpression ) | ( <LE> AdditiveExpression ) | ( <GE> AdditiveExpression ) )*; AdditiveExpression ::= MultiplicativeExpression ( ( <PLUS> MultiplicativeExpression ) | ( <MINUS> MultiplicativeExpression ) )*. + binds tighter than <: (1 + 1) < 1 = 2 < 1 = 0" }
+note = "1 + (1 < 1) would be 1"
+
+[[expr]]
+formula = "1 + 1 <= 2"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "RelationalExpression ::= AdditiveExpression ( ( <LT> AdditiveExpression ) | ( <GT> AdditiveExpression ) | ( <LE> AdditiveExpression ) | ( <GE> AdditiveExpression ) )*; AdditiveExpression ::= MultiplicativeExpression ( ( <PLUS> MultiplicativeExpression ) | ( <MINUS> MultiplicativeExpression ) )*. + binds tighter than <=: (1 + 1) <= 2 = 2 <= 2 = 1" }
+note = "1 + (1 <= 2) would be 2"
+
+[[expr]]
+formula = "3 >= 1 + 3"
+value = 0.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "RelationalExpression ::= AdditiveExpression ( ( <LT> AdditiveExpression ) | ( <GT> AdditiveExpression ) | ( <LE> AdditiveExpression ) | ( <GE> AdditiveExpression ) )*; AdditiveExpression ::= MultiplicativeExpression ( ( <PLUS> MultiplicativeExpression ) | ( <MINUS> MultiplicativeExpression ) )*. + binds tighter than >=: 3 >= (1 + 3) = 3 >= 4 = 0" }
+note = "(3 >= 1) + 3 would be 4"
+
+[[expr]]
+formula = "2 + 3 * 4"
+value = 14.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "AdditiveExpression ::= MultiplicativeExpression ( ( <PLUS> MultiplicativeExpression ) | ( <MINUS> MultiplicativeExpression ) )*; MultiplicativeExpression ::= UnaryExpression ( ( PowerExpression ) | ( <MUL> UnaryExpression ) | ( <DOT> UnaryExpression ) | ( <CROSS> UnaryExpression ) | ( <DIV> UnaryExpression ) | ( <MOD> UnaryExpression ) )*. * binds tighter than +: 2 + (3 * 4) = 2 + 12 = 14" }
+note = "(2 + 3) * 4 would be 20"
+
+[[expr]]
+formula = "2 * 3 + 4"
+value = 10.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "AdditiveExpression ::= MultiplicativeExpression ( ( <PLUS> MultiplicativeExpression ) | ( <MINUS> MultiplicativeExpression ) )*; MultiplicativeExpression ::= UnaryExpression ( ( PowerExpression ) | ( <MUL> UnaryExpression ) | ( <DOT> UnaryExpression ) | ( <CROSS> UnaryExpression ) | ( <DIV> UnaryExpression ) | ( <MOD> UnaryExpression ) )*. * binds tighter than +: (2 * 3) + 4 = 6 + 4 = 10" }
+note = "2 * (3 + 4) would be 14"
+
+[[expr]]
+formula = "8 - 6 / 2"
+value = 5.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "AdditiveExpression ::= MultiplicativeExpression ( ( <PLUS> MultiplicativeExpression ) | ( <MINUS> MultiplicativeExpression ) )*; MultiplicativeExpression ::= UnaryExpression ( ( PowerExpression ) | ( <MUL> UnaryExpression ) | ( <DOT> UnaryExpression ) | ( <CROSS> UnaryExpression ) | ( <DIV> UnaryExpression ) | ( <MOD> UnaryExpression ) )*. / binds tighter than -: 8 - (6 / 2) = 8 - 3 = 5" }
+note = "(8 - 6) / 2 would be 1"
+
+[[expr]]
+formula = "7 - 5 % 3"
+value = 5.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "AdditiveExpression ::= MultiplicativeExpression ( ( <PLUS> MultiplicativeExpression ) | ( <MINUS> MultiplicativeExpression ) )*; MultiplicativeExpression ::= UnaryExpression ( ( PowerExpression ) | ( <MUL> UnaryExpression ) | ( <DOT> UnaryExpression ) | ( <CROSS> UnaryExpression ) | ( <DIV> UnaryExpression ) | ( <MOD> UnaryExpression ) )*. % binds tighter than -: 7 - (5 % 3) = 7 - 2 = 5" }
+note = "(7 - 5) % 3 would be 2"
+
+[[expr]]
+formula = "!0 * 5"
+value = 5.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "MultiplicativeExpression ::= UnaryExpression ( ( PowerExpression ) | ( <MUL> UnaryExpression ) | ( <DOT> UnaryExpression ) | ( <CROSS> UnaryExpression ) | ( <DIV> UnaryExpression ) | ( <MOD> UnaryExpression ) )*; UnaryExpression ::= ( <PLUS> UnaryExpression ) | ( <MINUS> UnaryExpression ) | ( <NOT> UnaryExpression ) | PowerExpression. prefix ! binds tighter than *: (!0) * 5 = 1 * 5 = 5" }
+note = "!(0 * 5) would be 1"
+
+[[expr]]
+formula = "-2 + 3"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "AdditiveExpression ::= MultiplicativeExpression ( ( <PLUS> MultiplicativeExpression ) | ( <MINUS> MultiplicativeExpression ) )*; MultiplicativeExpression ::= UnaryExpression ( ( PowerExpression ) | ( <MUL> UnaryExpression ) | ( <DOT> UnaryExpression ) | ( <CROSS> UnaryExpression ) | ( <DIV> UnaryExpression ) | ( <MOD> UnaryExpression ) )*; UnaryExpression ::= ( <PLUS> UnaryExpression ) | ( <MINUS> UnaryExpression ) | ( <NOT> UnaryExpression ) | PowerExpression. prefix - binds tighter than +: (-2) + 3 = 1" }
+note = "-(2 + 3) would be -5"
+
+[[expr]]
+formula = "!1 + 1"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "AdditiveExpression ::= MultiplicativeExpression ( ( <PLUS> MultiplicativeExpression ) | ( <MINUS> MultiplicativeExpression ) )*; MultiplicativeExpression ::= UnaryExpression ( ( PowerExpression ) | ( <MUL> UnaryExpression ) | ( <DOT> UnaryExpression ) | ( <CROSS> UnaryExpression ) | ( <DIV> UnaryExpression ) | ( <MOD> UnaryExpression ) )*; UnaryExpression ::= ( <PLUS> UnaryExpression ) | ( <MINUS> UnaryExpression ) | ( <NOT> UnaryExpression ) | PowerExpression. prefix ! binds tighter than +: (!1) + 1 = 0 + 1 = 1" }
+note = "!(1 + 1) would be 0"
+
+[[expr]]
+formula = "-2^2"
+value = -4.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "UnaryExpression ::= ( <PLUS> UnaryExpression ) | ( <MINUS> UnaryExpression ) | ( <NOT> UnaryExpression ) | PowerExpression; PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?. ^ binds tighter than prefix -: -(2^2) = -(2*2) = -4" }
+note = "(-2)^2 would be 4"
+
+[[expr]]
+formula = "-x^2"
+x = 3.0
+value = -9.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "UnaryExpression ::= ( <PLUS> UnaryExpression ) | ( <MINUS> UnaryExpression ) | ( <NOT> UnaryExpression ) | PowerExpression; PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?. ^ binds tighter than prefix -: with x = 3, -(x^2) = -(3*3) = -9" }
+note = "(-x)^2 would be 9"
+
+[[expr]]
+formula = "!1^0"
+value = 0.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "UnaryExpression ::= ( <PLUS> UnaryExpression ) | ( <MINUS> UnaryExpression ) | ( <NOT> UnaryExpression ) | PowerExpression; PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?. ^ binds tighter than prefix !: !(1^0) = !(1) = 0, as 1^0 = 1" }
+note = "(!1)^0 = 0^0 would be 1"
+
+[[expr]]
+formula = "3 == 1 + 2"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "EqualExpression ::= RelationalExpression ( ( <NE> RelationalExpression ) | ( <EQ> RelationalExpression ) )*; RelationalExpression ::= AdditiveExpression ( ( <LT> AdditiveExpression ) | ( <GT> AdditiveExpression ) | ( <LE> AdditiveExpression ) | ( <GE> AdditiveExpression ) )*; RelationalExpression ::= AdditiveExpression ( ( <LT> AdditiveExpression ) | ( <GT> AdditiveExpression ) | ( <LE> AdditiveExpression ) | ( <GE> AdditiveExpression ) )*; AdditiveExpression ::= MultiplicativeExpression ( ( <PLUS> MultiplicativeExpression ) | ( <MINUS> MultiplicativeExpression ) )*. + binds tighter than ==: 3 == (1 + 2) = 3 == 3 = 1" }
+note = "(3 == 1) + 2 would be 2"
+
+[[expr]]
+formula = "0 && 1 + 1"
+value = 0.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "AndExpression ::= EqualExpression ( ( <AND> EqualExpression ) )*; EqualExpression ::= RelationalExpression ( ( <NE> RelationalExpression ) | ( <EQ> RelationalExpression ) )*; RelationalExpression ::= AdditiveExpression ( ( <LT> AdditiveExpression ) | ( <GT> AdditiveExpression ) | ( <LE> AdditiveExpression ) | ( <GE> AdditiveExpression ) )*; AdditiveExpression ::= MultiplicativeExpression ( ( <PLUS> MultiplicativeExpression ) | ( <MINUS> MultiplicativeExpression ) )*. + binds tighter than &&: 0 && (1 + 1) = 0 && 2 = 0" }
+note = "(0 && 1) + 1 would be 1"
+
+[[expr]]
+formula = "2 * 3 > 5"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "RelationalExpression ::= AdditiveExpression ( ( <LT> AdditiveExpression ) | ( <GT> AdditiveExpression ) | ( <LE> AdditiveExpression ) | ( <GE> AdditiveExpression ) )*; AdditiveExpression ::= MultiplicativeExpression ( ( <PLUS> MultiplicativeExpression ) | ( <MINUS> MultiplicativeExpression ) )*; AdditiveExpression ::= MultiplicativeExpression ( ( <PLUS> MultiplicativeExpression ) | ( <MINUS> MultiplicativeExpression ) )*; MultiplicativeExpression ::= UnaryExpression ( ( PowerExpression ) | ( <MUL> UnaryExpression ) | ( <DOT> UnaryExpression ) | ( <CROSS> UnaryExpression ) | ( <DIV> UnaryExpression ) | ( <MOD> UnaryExpression ) )*. * binds tighter than >: (2 * 3) > 5 = 6 > 5 = 1" }
+note = "2 * (3 > 5) would be 0"
+
+[[expr]]
+formula = "2^3 * 2"
+value = 16.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "MultiplicativeExpression ::= UnaryExpression ( ( PowerExpression ) | ( <MUL> UnaryExpression ) | ( <DOT> UnaryExpression ) | ( <CROSS> UnaryExpression ) | ( <DIV> UnaryExpression ) | ( <MOD> UnaryExpression ) )*; UnaryExpression ::= ( <PLUS> UnaryExpression ) | ( <MINUS> UnaryExpression ) | ( <NOT> UnaryExpression ) | PowerExpression; PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?. ^ binds tighter than *: (2^3) * 2 = 8 * 2 = 16" }
+note = "2^(3 * 2) would be 64"
+
+[[expr]]
+formula = "2 * 3^2"
+value = 18.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "MultiplicativeExpression ::= UnaryExpression ( ( PowerExpression ) | ( <MUL> UnaryExpression ) | ( <DOT> UnaryExpression ) | ( <CROSS> UnaryExpression ) | ( <DIV> UnaryExpression ) | ( <MOD> UnaryExpression ) )*; UnaryExpression ::= ( <PLUS> UnaryExpression ) | ( <MINUS> UnaryExpression ) | ( <NOT> UnaryExpression ) | PowerExpression; PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?. ^ binds tighter than *: 2 * (3^2) = 2 * 9 = 18" }
+note = "(2 * 3)^2 would be 36"
+
+[[expr]]
+formula = "1 + 2^2"
+value = 5.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "AdditiveExpression ::= MultiplicativeExpression ( ( <PLUS> MultiplicativeExpression ) | ( <MINUS> MultiplicativeExpression ) )*; MultiplicativeExpression ::= UnaryExpression ( ( PowerExpression ) | ( <MUL> UnaryExpression ) | ( <DOT> UnaryExpression ) | ( <CROSS> UnaryExpression ) | ( <DIV> UnaryExpression ) | ( <MOD> UnaryExpression ) )*; PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?. ^ binds tighter than +: 1 + (2^2) = 1 + 4 = 5" }
+note = "(1 + 2)^2 would be 9"
+
+[[expr]]
+formula = "!1 || 1"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "OrExpression ::= AndExpression ( ( <OR> AndExpression ) )*; AndExpression ::= EqualExpression ( ( <AND> EqualExpression ) )*; UnaryExpression ::= ( <PLUS> UnaryExpression ) | ( <MINUS> UnaryExpression ) | ( <NOT> UnaryExpression ) | PowerExpression. prefix ! binds tighter than ||: (!1) || 1 = 0 || 1 = 1" }
+note = "!(1 || 1) would be 0"
+
+[[expr]]
+formula = "-1 < 0"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "RelationalExpression ::= AdditiveExpression ( ( <LT> AdditiveExpression ) | ( <GT> AdditiveExpression ) | ( <LE> AdditiveExpression ) | ( <GE> AdditiveExpression ) )*; AdditiveExpression ::= MultiplicativeExpression ( ( <PLUS> MultiplicativeExpression ) | ( <MINUS> MultiplicativeExpression ) )*; UnaryExpression ::= ( <PLUS> UnaryExpression ) | ( <MINUS> UnaryExpression ) | ( <NOT> UnaryExpression ) | PowerExpression. prefix - binds tighter than <: (-1) < 0 = 1, -1 being less than 0" }
+note = "-(1 < 0) would be -0.0"
+
+[[expr]]
+formula = "0 || 1 + 2 * 3^2 > 18 && -1 < 0 == 1"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "the whole ladder, OrExpression ::= AndExpression ( ( <OR> AndExpression ) )* (lowest) down to PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )? (highest). 0 || ((((1 + (2 * (3^2))) > 18) && (((-1) < 0) == 1))): 3^2 = 9, 2 * 9 = 18, 1 + 18 = 19, 19 > 18 = 1; (-1) < 0 = 1, 1 == 1 = 1; 1 && 1 = 1; 0 || 1 = 1" }
+
+# --------------------------------------------------------------------------------------
+# B. Associativity (JEP Grammar): left for + - * / % == != < > <= >= && ||, right for ^.
+# --------------------------------------------------------------------------------------
+
+[[expr]]
+formula = "10 - 4 - 3"
+value = 3.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "AdditiveExpression ::= MultiplicativeExpression ( ( <PLUS> MultiplicativeExpression ) | ( <MINUS> MultiplicativeExpression ) )*, read left to right. (10 - 4) - 3 = 6 - 3 = 3" }
+note = "10 - (4 - 3) would be 9"
+
+[[expr]]
+formula = "10 - 4 + 3"
+value = 9.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "AdditiveExpression ::= MultiplicativeExpression ( ( <PLUS> MultiplicativeExpression ) | ( <MINUS> MultiplicativeExpression ) )*, read left to right. (10 - 4) + 3 = 6 + 3 = 9" }
+note = "10 - (4 + 3) would be 3"
+
+[[expr]]
+formula = "1e16 + 1 + 1"
+value = 1.0e+16
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "AdditiveExpression ::= MultiplicativeExpression ( ( <PLUS> MultiplicativeExpression ) | ( <MINUS> MultiplicativeExpression ) )*, read left to right. (1e16 + 1) + 1: doubles near 1e16 are 2 apart (2^53 < 1e16 < 2^54), so 1e16 + 1 is a tie that rounds to even, 1e16; again + 1 = 1e16" }
+note = "1e16 + (1 + 1) would be 10000000000000002: + is not associative in doubles"
+
+[[expr]]
+formula = "8 / 4 / 2"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "MultiplicativeExpression ::= UnaryExpression ( ( PowerExpression ) | ( <MUL> UnaryExpression ) | ( <DOT> UnaryExpression ) | ( <CROSS> UnaryExpression ) | ( <DIV> UnaryExpression ) | ( <MOD> UnaryExpression ) )*, read left to right. (8 / 4) / 2 = 2 / 2 = 1" }
+note = "8 / (4 / 2) would be 4"
+
+[[expr]]
+formula = "8 / 2 * 4"
+value = 16.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "MultiplicativeExpression ::= UnaryExpression ( ( PowerExpression ) | ( <MUL> UnaryExpression ) | ( <DOT> UnaryExpression ) | ( <CROSS> UnaryExpression ) | ( <DIV> UnaryExpression ) | ( <MOD> UnaryExpression ) )*, read left to right. (8 / 2) * 4 = 4 * 4 = 16" }
+note = "8 / (2 * 4) would be 1"
+
+[[expr]]
+formula = "2 * 7 % 4"
+value = 2.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "MultiplicativeExpression ::= UnaryExpression ( ( PowerExpression ) | ( <MUL> UnaryExpression ) | ( <DOT> UnaryExpression ) | ( <CROSS> UnaryExpression ) | ( <DIV> UnaryExpression ) | ( <MOD> UnaryExpression ) )*, read left to right. (2 * 7) % 4 = 14 % 4 = 2" }
+note = "2 * (7 % 4) would be 6"
+
+[[expr]]
+formula = "9 % 4 * 2"
+value = 2.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "MultiplicativeExpression ::= UnaryExpression ( ( PowerExpression ) | ( <MUL> UnaryExpression ) | ( <DOT> UnaryExpression ) | ( <CROSS> UnaryExpression ) | ( <DIV> UnaryExpression ) | ( <MOD> UnaryExpression ) )*, read left to right. (9 % 4) * 2 = 1 * 2 = 2" }
+note = "9 % (4 * 2) would be 1"
+
+[[expr]]
+formula = "7 % 5 % 3"
+value = 2.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "MultiplicativeExpression ::= UnaryExpression ( ( PowerExpression ) | ( <MUL> UnaryExpression ) | ( <DOT> UnaryExpression ) | ( <CROSS> UnaryExpression ) | ( <DIV> UnaryExpression ) | ( <MOD> UnaryExpression ) )*, read left to right. (7 % 5) % 3 = 2 % 3 = 2" }
+note = "7 % (5 % 3) would be 1"
+
+[[expr]]
+formula = "1e308 * 10 * 0.1"
+value = inf
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "MultiplicativeExpression ::= UnaryExpression ( ( PowerExpression ) | ( <MUL> UnaryExpression ) | ( <DOT> UnaryExpression ) | ( <CROSS> UnaryExpression ) | ( <DIV> UnaryExpression ) | ( <MOD> UnaryExpression ) )*, read left to right. (1e308 * 10) * 0.1: 1e308 * 10 = 1e309 overflows the largest double (about 1.8e308) to +inf, and +inf * 0.1 = +inf" }
+note = "1e308 * (10 * 0.1) would be 1e308 (10 * 0.1 rounds to 1.0); the final +inf is EvalError::NonFinite"
+
+[[expr]]
+formula = "2 == 2 == 1"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "EqualExpression ::= RelationalExpression ( ( <NE> RelationalExpression ) | ( <EQ> RelationalExpression ) )*, read left to right. (2 == 2) == 1 = 1 == 1 = 1" }
+note = "2 == (2 == 1) would be 0"
+
+[[expr]]
+formula = "3 != 1 != 1"
+value = 0.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "EqualExpression ::= RelationalExpression ( ( <NE> RelationalExpression ) | ( <EQ> RelationalExpression ) )*, read left to right. (3 != 1) != 1 = 1 != 1 = 0" }
+note = "3 != (1 != 1) would be 1"
+
+[[expr]]
+formula = "3 > 2 > 1"
+value = 0.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "RelationalExpression ::= AdditiveExpression ( ( <LT> AdditiveExpression ) | ( <GT> AdditiveExpression ) | ( <LE> AdditiveExpression ) | ( <GE> AdditiveExpression ) )*, read left to right. (3 > 2) > 1 = 1 > 1 = 0" }
+note = "3 > (2 > 1) would be 1"
+
+[[expr]]
+formula = "1 < 3 < 2"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "RelationalExpression ::= AdditiveExpression ( ( <LT> AdditiveExpression ) | ( <GT> AdditiveExpression ) | ( <LE> AdditiveExpression ) | ( <GE> AdditiveExpression ) )*, read left to right. (1 < 3) < 2 = 1 < 2 = 1" }
+note = "1 < (3 < 2) would be 0"
+
+[[expr]]
+formula = "2 >= 2 <= 0"
+value = 0.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "RelationalExpression ::= AdditiveExpression ( ( <LT> AdditiveExpression ) | ( <GT> AdditiveExpression ) | ( <LE> AdditiveExpression ) | ( <GE> AdditiveExpression ) )*, read left to right. (2 >= 2) <= 0 = 1 <= 0 = 0" }
+note = "2 >= (2 <= 0) would be 1"
+
+[[expr]]
+formula = "1 && 1 && 0"
+value = 0.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "AndExpression ::= EqualExpression ( ( <AND> EqualExpression ) )*. (1 && 1) && 0 = 1 && 0 = 0" }
+
+[[expr]]
+formula = "0 || 0 || 1"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "OrExpression ::= AndExpression ( ( <OR> AndExpression ) )*. (0 || 0) || 1 = 0 || 1 = 1" }
+
+[[expr]]
+formula = "2^3^2"
+value = 512.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?: the right operand is a whole UnaryExpression, so ^ is right-associative. 2^(3^2) = 2^9 = 512" }
+note = "(2^3)^2 would be 64"
+
+[[expr]]
+formula = "2^2^3"
+value = 256.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?: the right operand is a whole UnaryExpression, so ^ is right-associative. 2^(2^3) = 2^8 = 256" }
+note = "(2^2)^3 would be 64"
+
+[[expr]]
+formula = "(2^3)^2"
+value = 64.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?; UnaryExpressionNotPlusMinus ::= AnyConstant | ( Function | Variable ) | <LRND> Expression <RRND> | ListExpression. parentheses group the left power first: (2^3)^2 = 8^2 = 64" }
+
+[[expr]]
+formula = "2^-1^2"
+value = 0.5
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?; UnaryExpression ::= ( <PLUS> UnaryExpression ) | ( <MINUS> UnaryExpression ) | ( <NOT> UnaryExpression ) | PowerExpression. the right operand of ^ is the UnaryExpression -1^2 = -(1^2) = -1, so 2^-1 = 1/2 = 0.5" }
+note = "(2^-1)^2 would be 0.25 and 2^((-1)^2) would be 2"
+
+# --------------------------------------------------------------------------------------
+# C. ^ against prefix minus, on both sides of ^ (JEP Grammar: PowerExpression).
+# --------------------------------------------------------------------------------------
+
+[[expr]]
+formula = "2^-2"
+value = 0.25
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?; UnaryExpression ::= ( <PLUS> UnaryExpression ) | ( <MINUS> UnaryExpression ) | ( <NOT> UnaryExpression ) | PowerExpression. the exponent may carry a prefix: 2^(-2) = 1/(2*2) = 0.25" }
+
+[[expr]]
+formula = "-2^-2"
+value = -0.25
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "UnaryExpression ::= ( <PLUS> UnaryExpression ) | ( <MINUS> UnaryExpression ) | ( <NOT> UnaryExpression ) | PowerExpression; PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?. -(2^(-2)) = -(1/4) = -0.25" }
+note = "(-2)^-2 would be 0.25"
+
+[[expr]]
+formula = "(-2)^2"
+value = 4.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?; UnaryExpressionNotPlusMinus ::= AnyConstant | ( Function | Variable ) | <LRND> Expression <RRND> | ListExpression. a parenthesised negative base: (-2)^2 = (-2)*(-2) = 4" }
+
+[[expr]]
+formula = "(-2)^3"
+value = -8.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?; UnaryExpressionNotPlusMinus ::= AnyConstant | ( Function | Variable ) | <LRND> Expression <RRND> | ListExpression. (-2)^3 = (-2)*(-2)*(-2) = -8" }
+
+[[expr]]
+formula = "(-2)^-2"
+value = 0.25
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?. (-2)^(-2) = 1/((-2)*(-2)) = 1/4 = 0.25" }
+
+[[expr]]
+formula = "(-2)^-1"
+value = -0.5
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?. (-2)^(-1) = 1/(-2) = -0.5" }
+
+[[expr]]
+formula = "-(2)^2"
+value = -4.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "UnaryExpression ::= ( <PLUS> UnaryExpression ) | ( <MINUS> UnaryExpression ) | ( <NOT> UnaryExpression ) | PowerExpression; PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?. the prefix minus applies to the PowerExpression (2)^2: -((2)^2) = -(2*2) = -4" }
+
+[[expr]]
+formula = "--2^2"
+value = 4.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "UnaryExpression ::= ( <PLUS> UnaryExpression ) | ( <MINUS> UnaryExpression ) | ( <NOT> UnaryExpression ) | PowerExpression; PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?. prefixes nest, then apply to the power: -(-(2^2)) = -(-4) = 4" }
+
+[[expr]]
+formula = "2 - -2"
+value = 4.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "AdditiveExpression ::= MultiplicativeExpression ( ( <PLUS> MultiplicativeExpression ) | ( <MINUS> MultiplicativeExpression ) )*; MultiplicativeExpression ::= UnaryExpression ( ( PowerExpression ) | ( <MUL> UnaryExpression ) | ( <DOT> UnaryExpression ) | ( <CROSS> UnaryExpression ) | ( <DIV> UnaryExpression ) | ( <MOD> UnaryExpression ) )*; UnaryExpression ::= ( <PLUS> UnaryExpression ) | ( <MINUS> UnaryExpression ) | ( <NOT> UnaryExpression ) | PowerExpression. the right operand of binary - is the UnaryExpression -2: 2 - (-2) = 2 + 2 = 4" }
+
+[[expr]]
+formula = "x^2"
+x = -3.0
+value = 9.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?; UnaryExpressionNotPlusMinus ::= AnyConstant | ( Function | Variable ) | <LRND> Expression <RRND> | ListExpression. the base x is a Variable, not a prefix minus: with x = -3, (-3)^2 = (-3)*(-3) = 9" }
+note = "contrast -3^2 = -9"
+
+[[expr]]
+formula = "-3^2"
+value = -9.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "UnaryExpression ::= ( <PLUS> UnaryExpression ) | ( <MINUS> UnaryExpression ) | ( <NOT> UnaryExpression ) | PowerExpression; PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?. -(3^2) = -(3*3) = -9" }
+note = "contrast x^2 with x = -3, which is 9"
+
+[[expr]]
+formula = "2^x"
+x = -3.0
+value = 0.125
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "PowerExpression ::= UnaryExpressionNotPlusMinus ( ( <POWER> UnaryExpression ) )?. with x = -3: 2^(-3) = 1/(2*2*2) = 0.125" }
+
+# --------------------------------------------------------------------------------------
+# D. ^ values: Math.pow, with JEP's rule that a negative base to a non-integer power is
+#    complex (NaN through getValue). Hand-calc; the rules are cited in the notes.
+# --------------------------------------------------------------------------------------
+
+[[expr]]
+formula = "2^10"
+value = 1024.0
+source = { kind = "hand-calc", working = "both arguments are integers and 2^10 = 2*2*2*2*2*2*2*2*2*2 = 1024 is exact, so Math.pow gives exactly 1024" }
+
+[[expr]]
+formula = "0^0"
+value = 1.0
+source = { kind = "hand-calc", working = "an exponent of zero gives 1.0 whatever the base: 0^0 = 1, by the first Math.pow special case (x^0 = 1)" }
+
+[[expr]]
+formula = "(-0.5)^2"
+value = 0.25
+source = { kind = "hand-calc", working = "negative base, even integer exponent: |-0.5|^2 = 0.5*0.5 = 0.25" }
+
+[[expr]]
+formula = "0^-1"
+value = inf
+source = { kind = "hand-calc", working = "positive zero to a negative power is +inf (Math.pow special case): 0^-1 = 1/0 = +inf" }
+note = "EvalError::NonFinite(+inf)"
+
+[[expr]]
+formula = "2^0.5"
+value = 1.4142135623730951
+tolerance = 1.0e-15
+source = { kind = "hand-calc", working = "2^0.5 = sqrt(2); 1.4142135623730951 * 1.4142135623730951 = 2.0000000000000004, the nearest double to sqrt(2)" }
+
+[[expr]]
+formula = "4^0.5"
+value = 2.0
+tolerance = 1.0e-15
+source = { kind = "hand-calc", working = "4^0.5 = sqrt(4) = 2, since 2*2 = 4" }
+
+[[expr]]
+formula = "-x^0.5"
+x = 4.0
+value = -2.0
+tolerance = 1.0e-15
+source = { kind = "hand-calc", working = "with x = 4: -(4^0.5) = -(sqrt 4) = -(2) = -2, since 2*2 = 4 (^ before prefix -)" }
+
+[[expr]]
+formula = "0.25^-0.5"
+value = 2.0
+tolerance = 1.0e-15
+source = { kind = "hand-calc", working = "0.25^-0.5 = 1/sqrt(0.25) = 1/0.5 = 2" }
+
+[[expr]]
+formula = "8^(1/3)"
+value = 2.0
+tolerance = 1.0e-15
+source = { kind = "hand-calc", working = "1/3 = 0.3333333333333333 (just under one third); 8^(1/3) = cube root of 8 = 2, since 2*2*2 = 8 (the shortfall moves the result by under 1e-16)" }
+
+[[expr]]
+formula = "(-8)^(1/3)"
+value = nan
+source = { kind = "hand-calc", working = "base -8 < 0 and exponent 1/3 = 0.3333 is not an integer, so (-8)^(1/3) has no real value: NaN (JEP: a complex result, which getValue returns as NaN)" }
+note = "EvalError::NonFinite(NaN); the real cube root -2 is not what JEP or Math.pow give"
+
+[[expr]]
+formula = "(-2)^0.5"
+value = nan
+source = { kind = "hand-calc", working = "base -2 < 0 and exponent 0.5 = 1/2 is not an integer: (-2)^0.5 = sqrt(-2) is not real, NaN" }
+note = "EvalError::NonFinite(NaN)"
+
+[[expr]]
+formula = "x^1.5"
+x = -4.0
+value = nan
+source = { kind = "hand-calc", working = "with x = -4: base -4 < 0 and exponent 1.5 = 3/2 is not an integer, so (-4)^1.5 is not real: NaN" }
+note = "EvalError::NonFinite(NaN)"
+
+# --------------------------------------------------------------------------------------
+# E. % is Java's floating-point remainder: the sign of the dividend (hand-calc from the
+#    rule cited in the notes; the JEP Functions page says mod(x,y) = x % y).
+# --------------------------------------------------------------------------------------
+
+[[expr]]
+formula = "7 % 3"
+value = 1.0
+source = { kind = "hand-calc", working = "q = trunc(7/3) = trunc(2.33) = 2; r = 7 - 3*2 = 7 - 6 = 1" }
+
+[[expr]]
+formula = "-7 % 3"
+value = -1.0
+source = { kind = "hand-calc", working = "prefix - binds tighter than %, so (-7) % 3: q = trunc(-7/3) = trunc(-2.33) = -2; r = -7 - 3*(-2) = -7 + 6 = -1 (sign of the dividend)" }
+note = "a floored modulo (Python, Excel MOD) would give 2"
+
+[[expr]]
+formula = "7 % -3"
+value = 1.0
+source = { kind = "hand-calc", working = "q = trunc(7/(-3)) = trunc(-2.33) = -2; r = 7 - (-3)*(-2) = 7 - 6 = 1 (sign of the dividend)" }
+note = "a floored modulo would give -2"
+
+[[expr]]
+formula = "-7 % -3"
+value = -1.0
+source = { kind = "hand-calc", working = "q = trunc((-7)/(-3)) = trunc(2.33) = 2; r = -7 - (-3)*2 = -7 + 6 = -1" }
+
+[[expr]]
+formula = "5.5 % 2"
+value = 1.5
+source = { kind = "hand-calc", working = "q = trunc(5.5/2) = trunc(2.75) = 2; r = 5.5 - 2*2 = 5.5 - 4 = 1.5" }
+
+[[expr]]
+formula = "x % 4"
+x = 10.75
+value = 2.75
+source = { kind = "hand-calc", working = "with x = 10.75: q = trunc(10.75/4) = trunc(2.6875) = 2; r = 10.75 - 4*2 = 10.75 - 8 = 2.75" }
+
+[[expr]]
+formula = "-4 % 2"
+value = -0.0
+source = { kind = "hand-calc", working = "q = trunc(-4/2) = -2; r = -4 - 2*(-2) = -4 + 4 = -0.0: a zero result keeps the sign of the dividend" }
+note = "exact cases compare bits, so +0.0 here fails"
+
+[[expr]]
+formula = "0 % 5"
+value = 0.0
+source = { kind = "hand-calc", working = "a zero dividend with a finite divisor is the dividend: 0 % 5 = 0 - 5*0 = 0" }
+
+[[expr]]
+formula = "7 % 0"
+value = nan
+source = { kind = "hand-calc", working = "a zero divisor gives NaN: 7 % 0 = 7 - 0*q has no q, so NaN" }
+note = "EvalError::NonFinite(NaN)"
+
+[[expr]]
+formula = "mod(-7, 3)"
+value = -1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Functions page: https://web.archive.org/web/20060621030023/http://www.singularsys.com/jep/doc/html/functions.html", section = "Functions added with addStandardFunctions(): Modulus, \"mod(x,y) = x % y\"; so mod(-7, 3) = -7 % 3 = -7 - 3*(-2) = -1" }
+
+# --------------------------------------------------------------------------------------
+# F. Comparison and logical results are 1 or 0 (JEP Operators); prefix !.
+# --------------------------------------------------------------------------------------
+
+[[expr]]
+formula = "3 > 2"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Operators page: https://web.archive.org/web/20060621030056/http://www.singularsys.com/jep/doc/html/operators.html", section = "Built in operators: \"Boolean expressions are evaluated to be either 1 or 0 (true or false respectively).\". 3 > 2 is true, so 1 (3 - 2 = 1 > 0)" }
+
+[[expr]]
+formula = "2 > 3"
+value = 0.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Operators page: https://web.archive.org/web/20060621030056/http://www.singularsys.com/jep/doc/html/operators.html", section = "Built in operators: \"Boolean expressions are evaluated to be either 1 or 0 (true or false respectively).\". 2 > 3 is false, so 0 (2 - 3 = -1 < 0)" }
+
+[[expr]]
+formula = "2 >= 2"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Operators page: https://web.archive.org/web/20060621030056/http://www.singularsys.com/jep/doc/html/operators.html", section = "Built in operators: \"Boolean expressions are evaluated to be either 1 or 0 (true or false respectively).\". 2 >= 2 is true, so 1 (2 - 2 = 0)" }
+
+[[expr]]
+formula = "2 <= 1"
+value = 0.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Operators page: https://web.archive.org/web/20060621030056/http://www.singularsys.com/jep/doc/html/operators.html", section = "Built in operators: \"Boolean expressions are evaluated to be either 1 or 0 (true or false respectively).\". 2 <= 1 is false, so 0 (2 - 1 = 1 > 0)" }
+
+[[expr]]
+formula = "1 < 2"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Operators page: https://web.archive.org/web/20060621030056/http://www.singularsys.com/jep/doc/html/operators.html", section = "Built in operators: \"Boolean expressions are evaluated to be either 1 or 0 (true or false respectively).\". 1 < 2 is true, so 1 (1 - 2 = -1 < 0)" }
+
+[[expr]]
+formula = "x == 1.5"
+x = 1.5
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Operators page: https://web.archive.org/web/20060621030056/http://www.singularsys.com/jep/doc/html/operators.html", section = "Built in operators: \"Boolean expressions are evaluated to be either 1 or 0 (true or false respectively).\". with x = 1.5, 1.5 == 1.5 is true, so 1 (1.5 - 1.5 = 0)" }
+
+[[expr]]
+formula = "1 != 1"
+value = 0.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Operators page: https://web.archive.org/web/20060621030056/http://www.singularsys.com/jep/doc/html/operators.html", section = "Built in operators: \"Boolean expressions are evaluated to be either 1 or 0 (true or false respectively).\". 1 != 1 is false, so 0 (1 - 1 = 0)" }
+
+[[expr]]
+formula = "1 && 1"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Operators page: https://web.archive.org/web/20060621030056/http://www.singularsys.com/jep/doc/html/operators.html", section = "Built in operators: \"Boolean expressions are evaluated to be either 1 or 0 (true or false respectively).\". 1 && 1 is true, so 1" }
+
+[[expr]]
+formula = "1 && 0"
+value = 0.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Operators page: https://web.archive.org/web/20060621030056/http://www.singularsys.com/jep/doc/html/operators.html", section = "Built in operators: \"Boolean expressions are evaluated to be either 1 or 0 (true or false respectively).\". 1 && 0 is false, so 0" }
+
+[[expr]]
+formula = "0 || 1"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Operators page: https://web.archive.org/web/20060621030056/http://www.singularsys.com/jep/doc/html/operators.html", section = "Built in operators: \"Boolean expressions are evaluated to be either 1 or 0 (true or false respectively).\". 0 || 1 is true, so 1" }
+
+[[expr]]
+formula = "0 || 0"
+value = 0.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Operators page: https://web.archive.org/web/20060621030056/http://www.singularsys.com/jep/doc/html/operators.html", section = "Built in operators: \"Boolean expressions are evaluated to be either 1 or 0 (true or false respectively).\". 0 || 0 is false, so 0" }
+
+[[expr]]
+formula = "!0"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Operators page: https://web.archive.org/web/20060621030056/http://www.singularsys.com/jep/doc/html/operators.html", section = "Built in operators: \"Boolean expressions are evaluated to be either 1 or 0 (true or false respectively).\" Boolean Not, !. !0 is true, so 1" }
+
+[[expr]]
+formula = "!1"
+value = 0.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Operators page: https://web.archive.org/web/20060621030056/http://www.singularsys.com/jep/doc/html/operators.html", section = "Built in operators: \"Boolean expressions are evaluated to be either 1 or 0 (true or false respectively).\" Boolean Not, !. !1 is false, so 0" }
+
+[[expr]]
+formula = "!x"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Operators page: https://web.archive.org/web/20060621030056/http://www.singularsys.com/jep/doc/html/operators.html", section = "Built in operators: \"Boolean expressions are evaluated to be either 1 or 0 (true or false respectively).\" Boolean Not, !. with x = 0, !0 is true, so 1" }
+
+[[expr]]
+formula = "!!1"
+value = 1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "UnaryExpression ::= ( <PLUS> UnaryExpression ) | ( <MINUS> UnaryExpression ) | ( <NOT> UnaryExpression ) | PowerExpression. prefixes nest: !(!1) = !(0) = 1" }
+
+[[expr]]
+formula = "-!0"
+value = -1.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Grammar page: https://web.archive.org/web/20060621025658/http://www.singularsys.com/jep/doc/html/grammar.html", section = "UnaryExpression ::= ( <PLUS> UnaryExpression ) | ( <MINUS> UnaryExpression ) | ( <NOT> UnaryExpression ) | PowerExpression. -(!0) = -(1) = -1" }
+
+[[expr]]
+formula = "(1 < 2) + (2 < 3) + (3 < 1)"
+value = 2.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Operators page: https://web.archive.org/web/20060621030056/http://www.singularsys.com/jep/doc/html/operators.html", section = "Built in operators: \"Boolean expressions are evaluated to be either 1 or 0 (true or false respectively).\". a comparison is the number 1 or 0, so it adds: (1) + (1) + (0) = 2" }
+
+[[expr]]
+formula = "(x > 100) * 50 + 10"
+x = 150.0
+value = 60.0
+source = { kind = "standard", doc = "JEP 2.x documentation (Singular Systems, 2006), Operators page: https://web.archive.org/web/20060621030056/http://www.singularsys.com/jep/doc/html/operators.html", section = "Built in operators: \"Boolean expressions are evaluated to be either 1 or 0 (true or false respectively).\". with x = 150, (150 > 100) = 1, so 1 * 50 + 10 = 60" }
+
+# --------------------------------------------------------------------------------------
+# N. NOT JEP: rr-core's native & | << >> (US-RR-20 / D-008). JEP has no such operators;
+#    the source for these is our own decision, rr-core/src/expr.rs "Precedence" and
+#    rr-core/src/expr/eval.rs "Integer operations". Hand-calc.
+# --------------------------------------------------------------------------------------
+
+[[expr]]
+formula = "6 | 1 & 3"
+value = 7.0
+source = { kind = "hand-calc", working = "& binds tighter than |: 6 | (1 & 3) = 6 | 1 = 0b110 | 0b001 = 0b111 = 7" }
+note = "(6 | 1) & 3 would be 3"
+
+[[expr]]
+formula = "12 & 1 << 2"
+value = 4.0
+source = { kind = "hand-calc", working = "<< binds tighter than &: 12 & (1 << 2) = 12 & 4 = 0b1100 & 0b0100 = 4" }
+note = "(12 & 1) << 2 would be 0"
+
+[[expr]]
+formula = "1 << 2 + 1"
+value = 8.0
+source = { kind = "hand-calc", working = "+ binds tighter than <<: 1 << (2 + 1) = 1 << 3 = 8" }
+note = "(1 << 2) + 1 would be 5"
+
+[[expr]]
+formula = "x >> 8 + 1"
+x = 1024.0
+value = 2.0
+source = { kind = "hand-calc", working = "+ binds tighter than >>: with x = 1024, 1024 >> (8 + 1) = 1024 >> 9 = 1024/512 = 2" }
+note = "(x >> 8) + 1 would be 5"
+
+[[expr]]
+formula = "x & 4 == 4"
+x = 6.0
+value = 1.0
+source = { kind = "hand-calc", working = "& binds tighter than ==, unlike C: with x = 6, (6 & 4) == 4 = 4 == 4 = 1" }
+note = "C's 6 & (4 == 4) would be 0"
+
+[[expr]]
+formula = "1 | 2 < 3"
+value = 0.0
+source = { kind = "hand-calc", working = "| binds tighter than <: (1 | 2) < 3 = 3 < 3 = 0" }
+note = "1 | (2 < 3) would be 1"
+
+[[expr]]
+formula = "x & 255 | 256"
+x = 4660.0
+value = 308.0
+source = { kind = "hand-calc", working = "with x = 4660 = 0x1234: (0x1234 & 0xFF) | 0x100 = 0x34 | 0x100 = 52 + 256 = 308" }
+note = "4660 & (255 | 256) would be 52"
+
+[[expr]]
+formula = "256 >> 2 >> 1"
+value = 32.0
+source = { kind = "hand-calc", working = "shifts are left-associative: (256 >> 2) >> 1 = 64 >> 1 = 32" }
+note = "256 >> (2 >> 1) would be 128"
+
+[[expr]]
+formula = "1 << 1 << 2"
+value = 8.0
+source = { kind = "hand-calc", working = "(1 << 1) << 2 = 2 << 2 = 8" }
+note = "1 << (1 << 2) would be 16"
+
+[[expr]]
+formula = "-1 >> 1"
+value = -1.0
+source = { kind = "hand-calc", working = "prefix - binds tighter than >>, and >> on an int is arithmetic: (-1) >> 1 = 0xFFFFFFFF >> 1 (sign-filled) = -1" }
+
+[[expr]]
+formula = "5.9 & 3"
+value = 1.0
+source = { kind = "hand-calc", working = "operands go to int toward zero first: 5.9 -> 5; 5 & 3 = 0b101 & 0b011 = 0b001 = 1" }
+
+[[expr]]
+formula = "1 << 32"
+value = 1.0
+source = { kind = "hand-calc", working = "an int shift uses the low five bits of its distance: 32 & 31 = 0, so 1 << 0 = 1" }
+
+[[changelog]]
+date = 2026-10-20
+reason = "initial values"

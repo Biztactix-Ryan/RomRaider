@@ -1,0 +1,244 @@
+# BitWise, rr-core's native bit operators and the standard functions (US-RR-20-10).
+#
+# The pinned definition corpus uses none of these (expr-corpus.toml: its only function is
+# if, and it has no BitWise and no ^), so these formulas were written for this fixture
+# and may be committed. Every value was derived by hand from the rules cited in `notes`
+# and cross-checked independently with Python (int() truncation and & | ^ << >> on
+# 32-bit two's complement values, math.sqrt, math.log, math.atan2), never with rr-core
+# or rr-testkit code and never with Java (D-024).
+#
+# Consumed by crates/rr-testkit/tests/expr_kat.rs, which parses every formula with
+# rr_core::expr::parse and evaluates it at `x`.
+schema = 1
+title = "BitWise(mask, value, op) and & | << >>, if with four arguments, and the standard functions"
+notes = """
+BITWISE. RomRaider registers BitWise(mask, variable, operation) with JEP for scalings \
+(legacy util/JEPUtil.java:51). Its semantics are legacy util/BitWise.java:31-38 and :86-104: \
+mask and variable are each converted to a 32-bit int with Double.intValue() (truncation \
+toward zero, NaN to 0, values beyond the int range saturated to -2147483648 / 2147483647: \
+the Java Language Specification, 5.1.3), then op 1 is variable & mask, 2 is variable | mask, \
+3 is variable ^ mask (exclusive or), 4 is variable << mask, 5 is variable >> mask (sign \
+extending), 6 is variable >>> mask (zero filling) and 7 is ~variable (the mask is ignored); \
+a shift uses only the low five bits of its distance (Java Language Specification, 15.19), so \
+a distance of 33 shifts by 1. The result is that int as a double. rr-core's native \
+x & m, x | m, x << m and x >> m are the same operations as BitWise(m, x, 1), (m, x, 2), \
+(m, x, 4) and (m, x, 5) (rr-core/src/expr/eval.rs "Integer operations", D-008); they are \
+not JEP, whose ^ is power.
+
+FUNCTIONS. The names are those JEP's addStandardFunctions() registers (JEP 2.x \
+documentation, Functions: \
+https://web.archive.org/web/20060621030023/http://www.singularsys.com/jep/doc/html/functions.html). \
+Values: sqrt is IEEE 754 squareRoot, correctly rounded, so sqrt(2.25) is exactly 1.5; abs, \
+sum and pow on small integers are exact; exp(0), ln(1), sin(0), cos(0), sinh(0), cosh(0) and \
+tanh(0) are exact from their definitions (e^0 = 1, ln 1 = 0, (e^0 - e^-0)/2 = 0, \
+(e^0 + e^-0)/2 = 1); log is base 10, computed by JEP as ln(a)/ln(10), so log(1000) is 3 only \
+within rounding; atan2(1, 1) is pi/4 within rounding; sqrt of a negative number is NaN (JEP \
+makes it complex, which getValue() returns as NaN). if(c, a, b, d) is a when c > 0, b when \
+c < 0 and d when c is 0 (JEP 2.x documentation, Functions, "If": "if(cond, trueval, \
+falseval, [zeroval])").
+
+HOW A CASE IS CHECKED. Exact cases compare bit for bit; a tolerance (1e-15) only where the \
+value is a rounded transcendental; nan is reported by rr-core as EvalError::NonFinite(NaN).
+"""
+
+# --------------------------------------------------------------------------------------
+# A. BitWise(mask, x, op), every operation code
+# --------------------------------------------------------------------------------------
+
+[[expr]]
+formula = "BitWise(24, x, 1)"
+x = 255.0
+value = 24.0
+source = { kind = "hand-calc", working = "255 & 24 = 0b11111111 & 0b00011000 = 0b00011000 = 16 + 8 = 24" }
+note = "the example in the BitWise documentation; the mask comes first"
+
+[[expr]]
+formula = "BitWise(24, x, 2)"
+x = 1.0
+value = 25.0
+source = { kind = "hand-calc", working = "1 | 24 = 0b00001 | 0b11000 = 0b11001 = 16 + 8 + 1 = 25" }
+
+[[expr]]
+formula = "BitWise(255, x, 3)"
+x = 170.0
+value = 85.0
+source = { kind = "hand-calc", working = "170 ^ 255 (exclusive or) = 0b10101010 ^ 0b11111111 = 0b01010101 = 64 + 16 + 4 + 1 = 85" }
+
+[[expr]]
+formula = "BitWise(4, x, 4)"
+x = 1.0
+value = 16.0
+source = { kind = "hand-calc", working = "1 << 4 = 1 * 2^4 = 16" }
+
+[[expr]]
+formula = "BitWise(4, x, 5)"
+x = -256.0
+value = -16.0
+source = { kind = "hand-calc", working = "-256 >> 4 = -256 / 2^4 = -256 / 16 = -16 (sign extending; exact, so no rounding toward minus infinity applies)" }
+
+[[expr]]
+formula = "BitWise(28, x, 6)"
+x = -1.0
+value = 15.0
+source = { kind = "hand-calc", working = "-1 is 0xFFFFFFFF; 0xFFFFFFFF >>> 28 = 0xF = 8 + 4 + 2 + 1 = 15 (zero filling)" }
+note = "a sign-extending shift would give -1"
+
+[[expr]]
+formula = "BitWise(0, x, 7)"
+x = 0.0
+value = -1.0
+source = { kind = "hand-calc", working = "~0 = 0xFFFFFFFF = 0 - 1 = -1 (two's complement)" }
+note = "op 7 ignores the mask"
+
+[[expr]]
+formula = "BitWise(1, x, 1)"
+x = 3.9
+value = 1.0
+source = { kind = "hand-calc", working = "3.9 truncates toward zero to 3; 3 & 1 = 0b11 & 0b01 = 1" }
+note = "rounding to nearest would give 4 & 1 = 0"
+
+[[expr]]
+formula = "BitWise(1, x, 1)"
+x = 4294967296.0
+value = 1.0
+source = { kind = "hand-calc", working = "4294967296 = 2^32 > 2147483647 saturates to 2147483647 = 0x7FFFFFFF; 0x7FFFFFFF & 1 = 1" }
+note = "wrapping modulo 2^32 would read 0, and 0 & 1 = 0"
+
+[[expr]]
+formula = "BitWise(31, x, 5)"
+x = 4294967295.0
+value = 0.0
+source = { kind = "hand-calc", working = "4294967295 saturates to 2147483647 = 0x7FFFFFFF, whose sign bit is 0; 0x7FFFFFFF >> 31 = 2147483647 / 2^31, truncated = 0" }
+note = "wrapping modulo 2^32 would read -1, and -1 >> 31 = -1"
+
+[[expr]]
+formula = "BitWise(33, x, 4)"
+x = 1.0
+value = 2.0
+source = { kind = "hand-calc", working = "the distance 33 uses its low five bits: 33 & 31 = 1; 1 << 1 = 1 * 2 = 2" }
+note = "shifting by 33 bits of a 64-bit value would give 8589934592"
+
+# --------------------------------------------------------------------------------------
+# B. The native operators, the same operations as BitWise
+# --------------------------------------------------------------------------------------
+
+[[expr]]
+formula = "x & 15"
+x = 4660.0
+value = 4.0
+source = { kind = "hand-calc", working = "4660 = 0x1234; 0x1234 & 0xF = 0x4 = 4" }
+
+[[expr]]
+formula = "x | 1"
+x = 4660.0
+value = 4661.0
+source = { kind = "hand-calc", working = "0x1234 | 0x1 = 0x1235 = 4660 + 1 = 4661" }
+
+[[expr]]
+formula = "x << 2"
+x = 4660.0
+value = 18640.0
+source = { kind = "hand-calc", working = "0x1234 << 2 = 4660 * 4 = 18640" }
+
+[[expr]]
+formula = "x >> 1"
+x = -3.0
+value = -2.0
+source = { kind = "hand-calc", working = "-3 = 0xFFFFFFFD; >> 1 sign extending = 0xFFFFFFFE = -2 (floor(-3 / 2) = floor(-1.5) = -2)" }
+note = "truncating division would give -1"
+
+[[expr]]
+formula = "(x >> 8) & 255"
+x = 4660.0
+value = 18.0
+source = { kind = "hand-calc", working = "0x1234 >> 8 = 0x12; 0x12 & 0xFF = 0x12 = 16 + 2 = 18" }
+note = "the high byte of a 16-bit value"
+
+# --------------------------------------------------------------------------------------
+# C. Standard functions and the four-argument if
+# --------------------------------------------------------------------------------------
+
+[[expr]]
+formula = "sqrt(x)"
+x = 2.25
+value = 1.5
+source = { kind = "hand-calc", working = "sqrt(2.25) = 1.5, since 1.5 * 1.5 = 2.25 (exact in binary: 2.25 = 9/4)" }
+
+[[expr]]
+formula = "sqrt(x)"
+x = -1.0
+value = nan
+source = { kind = "hand-calc", working = "(-1) * (-1) = 1 and 1 * 1 = 1: no real number squares to -1, so sqrt(-1) = NaN" }
+
+[[expr]]
+formula = "abs(x - 10)"
+x = 7.5
+value = 2.5
+source = { kind = "hand-calc", working = "abs(7.5 - 10) = abs(-2.5) = 2.5" }
+
+[[expr]]
+formula = "pow(x, 10)"
+x = 2.0
+value = 1024.0
+source = { kind = "hand-calc", working = "pow(2, 10) = 2^10 = 32 * 32 = 1024" }
+
+[[expr]]
+formula = "sum(x, 2, 3)"
+x = 1.0
+value = 6.0
+source = { kind = "hand-calc", working = "sum(1, 2, 3) = 1 + (2 + 3) = 1 + 5 = 6" }
+
+[[expr]]
+formula = "exp(x) + ln(1)"
+x = 0.0
+value = 1.0
+source = { kind = "hand-calc", working = "e^0 + ln(1) = 1 + 0 = 1" }
+
+[[expr]]
+formula = "log(x)"
+x = 1000.0
+value = 3.0
+tolerance = 1e-15
+source = { kind = "hand-calc", working = "log10(1000) = 3 since 10^3 = 10 * 10 * 10 = 1000; JEP computes ln(1000)/ln(10), so only within rounding" }
+
+[[expr]]
+formula = "sin(x) + cos(x)"
+x = 0.0
+value = 1.0
+source = { kind = "hand-calc", working = "sin(0) + cos(0) = 0 + 1 = 1" }
+
+[[expr]]
+formula = "atan2(1, x)"
+x = 1.0
+value = 0.7853981633974483
+tolerance = 1e-15
+source = { kind = "hand-calc", working = "atan2(1, 1) = pi/4 = 3.141592653589793/4 = 0.7853981633974483" }
+
+[[expr]]
+formula = "sinh(x) + cosh(x) + tanh(x)"
+x = 0.0
+value = 1.0
+source = { kind = "hand-calc", working = "(e^0 - e^-0)/2 + (e^0 + e^-0)/2 + 0/2 = 0 + 2/2 + 0 = 1" }
+
+[[expr]]
+formula = "if(x, 10, 20, 30)"
+x = -1.0
+value = 20.0
+source = { kind = "hand-calc", working = "c = 0 - 1 = -1 < 0, so the third argument: if(-1, 10, 20, 30) = 20" }
+
+[[expr]]
+formula = "if(x, 10, 20, 30)"
+x = 0.0
+value = 30.0
+source = { kind = "hand-calc", working = "c = 1 - 1 = 0, neither > 0 nor < 0, so the fourth argument: if(0, 10, 20, 30) = 30" }
+note = "the three-argument if would give 20"
+
+[[expr]]
+formula = "if(x, 10, 20, 30)"
+x = 0.5
+value = 10.0
+source = { kind = "hand-calc", working = "c = 1/2 = 0.5 > 0, so the second argument: if(0.5, 10, 20, 30) = 10" }
+
+[[changelog]]
+date = 2026-10-21
+reason = "initial values"

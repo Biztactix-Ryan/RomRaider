@@ -24,6 +24,7 @@ edition = "2024"
 rust-version = "1.97"
 license = "GPL-2.0-or-later"
 publish = false
+repository = "https://github.com/Biztactix-Ryan/RomRaider"
 
 [workspace.lints.rust]
 unsafe_op_in_unsafe_fn = "deny"
@@ -75,6 +76,17 @@ toml = "1.1"
 # gen-synthetic: SHA-256 of the committed synthetic ROMs (fixtures/public/synthetic/SHA256SUMS,
 # checkable with `sha256sum -c` on Linux and Windows).
 sha2 = "0.10"
+# check-release-artifacts: read the release tarball (tar + gzip), the .deb's
+# data.tar.{gz,xz,zst} and the AppImage's zstd/gzip/xz squashfs payload, all
+# in pure Rust so the check and its tests run on every CI target.
+flate2 = "1.1"
+lzma-rs = "0.3"
+# >= 0.9.1: 0.9.0 lets one crafted block decompress without bound (RustSec).
+ruzstd = "0.9.1"
+tar = { version = "0.4", default-features = false }
+# gen-corpus-coverage: read the `<romid>` of every pinned ECU definition
+# (xtask/src/corpus_coverage.rs); a minimal pull parser, no DOM.
+quick-xml = "0.41"
 # Test-only edges (taken via rr-testkit, itself dev-dependency only).
 insta = { version = "1.43", features = ["yaml", "redactions", "filters"] }
 proptest = "1.6"
@@ -82,3 +94,8 @@ proptest = "1.6"
 trybuild = "1.0"
 # Per-crate error enums (ARCHITECTURE.md "Errors").
 thiserror = "2.0"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"

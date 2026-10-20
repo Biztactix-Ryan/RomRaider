@@ -28,5 +28,11 @@ serde.workspace = true
 # directly for the same reason as proptest: rr-testkit depends on rr-core.
 insta.workspace = true
 
+# Evaluation throughput and thread scaling (US-RR-20-4, MF-25): a plain
+# std-only benchmark, compiled in CI by clippy --all-targets, never run there.
+[[bench]]
+name = "expr_eval"
+harness = false
+
 [lints]
 workspace = true

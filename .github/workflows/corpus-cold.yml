@@ -1,0 +1,133 @@
+# Weekly cold fetch of the external stock-ROM corpus (story US-RR-11, task
+# US-RR-11-4; D-025; INFRASTRUCTURE.md "Stock-ROM corpus in CI").
+#
+# ci.yml job `corpus` restores the corpus from the Actions cache keyed by
+# the manifest's hash, so once that cache is warm every run there is a warm
+# hit, and only a manifest change (a new key) fetches cold again. The
+# cold-fetch time budget would then go unchecked for as long as the manifest
+# stays put, while the upstream, GitHub's network or fetch-corpus itself
+# could get slower. This workflow measures a cold fetch once a week against
+# the same budget.
+#
+# Job `cold-fetch` builds xtask, points RR_CORPUS_DIR at a directory under
+# runner.temp that it first removes (fresh on every run, outside the
+# workspace, so fetch-corpus accepts it, and never the cached ci.yml path),
+# and runs ci.yml's timed fetch step script unchanged (same timeout-minutes
+# and BUDGET_SECONDS; xtask/tests/corpus_ci_config.rs keeps the two copies
+# identical), told there was no cache hit. There is no actions/cache step:
+# nothing is restored, so every byte comes from upstream, and nothing is
+# saved. The step logs cold/warm and the elapsed time to the job log
+# (`::notice`) and the step summary, and fails over budget; the next step
+# fails unless the fetch really was cold. fetch-corpus only fetches from the
+# public upstream named in the manifest (no secrets, no writes to it); this
+# workflow has `contents: read` and nothing else.
+#
+# Not a required status check: it runs on the schedule and on demand, not on
+# pull requests. A failing run shows on the Actions page and in GitHub's
+# notification for a failed scheduled run.
+#
+# GitHub fires `schedule` only for the workflow file on the repository's
+# default branch (see mutants.yml's header): while `master` is the default
+# branch and this file lives only on `rust-rewrite`, start it by hand once it
+# is registered on the default branch (`gh workflow run corpus-cold.yml
+# --ref rust-rewrite`).
+
+name: Corpus cold fetch
+
+on:
+  schedule:
+    # Weekly, Wednesdays 04:29 UTC.
+    - cron: "29 4 * * 3"
+  workflow_dispatch:
+
+# One cold fetch per ref at a time; a scheduled run is not cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  RUST_BACKTRACE: "1"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  cold-fetch:
+    name: stock-ROM corpus cold fetch (no cache)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install toolchain
+        run: rustup toolchain install --no-self-update && rustup show
+      # Build cache only (target/); the corpus is never cached here.
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: corpus-cold
+          save-if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rust-rewrite' }}
+      # Built before the timed step, so its time is the fetch, not the build.
+      - name: Build xtask
+        run: cargo build -p xtask --locked
+      - name: Fresh corpus directory
+        run: |
+          dir="$RUNNER_TEMP/rr-corpus-cold"
+          rm -rf "$dir"
+          echo "RR_CORPUS_DIR=$dir" >> "$GITHUB_ENV"
+      # The script is ci.yml's `corpus` job's fetch step, byte for byte.
+      - name: cargo xtask fetch-corpus
+        id: fetch
+        timeout-minutes: 5
+        env:
+          CACHE_HIT: "false"
+          BUDGET_SECONDS: "300"
+        run: |
+          log="$RUNNER_TEMP/fetch-corpus.log"
+          start=${EPOCHREALTIME/[.,]/}
+          cargo xtask fetch-corpus 2>&1 | tee "$log"
+          ms=$(( (${EPOCHREALTIME/[.,]/} - start) / 1000 ))
+          secs=$(printf '%d.%03d' $((ms / 1000)) $((ms % 1000)))
+          hit=false
+          if [ "$CACHE_HIT" = true ]; then hit=true; fi
+          if grep -q '^fetch-corpus: ok: fetched ' "$log"; then
+            fetch=cold
+            if [ "$hit" = true ]; then fetch="cold (restored cache did not verify)"; fi
+          elif grep -q '^fetch-corpus: ok: .*; nothing fetched$' "$log"; then
+            fetch="warm (verified, nothing fetched)"
+          else
+            echo "::error::fetch-corpus printed no ok line"
+            exit 1
+          fi
+          line="cache-hit=$hit; fetch: $fetch; ${secs}s (budget ${BUDGET_SECONDS}s)"
+          echo "::notice title=stock-ROM corpus::$line"
+          {
+            echo "### Stock-ROM corpus"
+            echo
+            echo "| cache hit | fetch | elapsed | budget |"
+            echo "|---|---|---|---|"
+            echo "| $hit | $fetch | ${secs}s | ${BUDGET_SECONDS}s |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "cache-hit=$hit"
+            echo "fetch=${fetch%% *}"
+            echo "seconds=$secs"
+          } >> "$GITHUB_OUTPUT"
+          if [ "$ms" -gt $((BUDGET_SECONDS * 1000)) ]; then
+            echo "::error::fetch-corpus took ${secs}s, over the ${BUDGET_SECONDS}s budget"
+            exit 1
+          fi
+      - name: The fetch was cold
+        env:
+          FETCH: ${{ steps.fetch.outputs.fetch }}
+          SECONDS_TAKEN: ${{ steps.fetch.outputs.seconds }}
+        run: |
+          if [ "$FETCH" != cold ]; then
+            echo "::error::expected a cold fetch into a fresh directory, got '${FETCH}'"
+            exit 1
+          fi
+          echo "Cold fetch of the whole corpus: ${SECONDS_TAKEN}s"

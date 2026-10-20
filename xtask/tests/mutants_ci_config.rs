@@ -12,6 +12,13 @@
 //! * `.cargo/mutants.toml` gates every module named by PROJECT.md T7 and the
 //!   story ([`REQUIRED_GLOBS`]), only under `crates/<gated crate>/src/`,
 //!   gates the self-test's module path, and runs tests with nextest;
+//! * every non-test source file of the expr module (the evaluator
+//!   `expr/eval.rs` and the parser it evaluates) is selected by an
+//!   `examine_globs` entry and by no exclusion, so the zero-survivor result
+//!   of story US-RR-20 (task US-RR-20-5) holds on every run; likewise every
+//!   non-test source file of the layer module (the resolver
+//!   `layer/resolve.rs`, the merge policies and `explain`), for story
+//!   US-RR-22 (task US-RR-22-6);
 //! * the workflow runs on `pull_request` (every base branch, with no
 //!   trigger-level `paths:` filter, so the required check `mutants-ok`
 //!   reports on every pull request: task US-RR-4-8), on a weekly `schedule`
@@ -210,6 +217,199 @@ fn config_problems(src: &str) -> Vec<String> {
             problems.push(format!(
                 "`{key}` is set: it changes which tests or mutants the gate runs"
             ));
+        }
+    }
+    problems
+}
+
+/// A module whose zero-survivor result is a story criterion, so every
+/// non-test source file of it must be gated with no exclusion
+/// ([`module_problems`]).
+struct GatedModule {
+    /// Short name used in messages ("expr").
+    name: &'static str,
+    /// The module's root file, e.g. `crates/rr-core/src/expr.rs`.
+    root: &'static str,
+    /// The module's directory, walked recursively.
+    dir: &'static str,
+    /// A file [`module_files`] must find, so the check cannot pass
+    /// vacuously on a renamed module, and what it is ("evaluator").
+    anchor: &'static str,
+    anchor_role: &'static str,
+    /// Lower-case substrings that mark an `exclude_re` / `skip_calls` entry
+    /// as naming the module.
+    keywords: &'static [&'static str],
+}
+
+/// The expr module (story US-RR-20, criterion "cargo-mutants reports zero
+/// surviving mutants in the evaluator"; task US-RR-20-5). The whole module
+/// is gated, not only `expr/eval.rs`: the evaluator walks the AST the parser
+/// builds, and a surviving mutant in the parser, lexer or limits changes
+/// what is evaluated.
+const EXPR: GatedModule = GatedModule {
+    name: "expr",
+    root: "crates/rr-core/src/expr.rs",
+    dir: "crates/rr-core/src/expr",
+    anchor: "crates/rr-core/src/expr/eval.rs",
+    anchor_role: "evaluator",
+    keywords: &["expr", "eval"],
+};
+
+/// The layer module (story US-RR-22, criterion "cargo-mutants reports zero
+/// surviving mutants in the resolver"; task US-RR-22-6). The whole module is
+/// gated, not only `layer/resolve.rs`: the resolver's result is the merge of
+/// the lineage it computes, so a surviving mutant in `Layered`, the merge
+/// policies (`field.rs`, `list.rs`) or `explain.rs` changes what a resolved
+/// definition says. The keywords cover the module and its main types.
+const LAYER: GatedModule = GatedModule {
+    name: "layer",
+    root: "crates/rr-core/src/layer.rs",
+    dir: "crates/rr-core/src/layer",
+    anchor: "crates/rr-core/src/layer/resolve.rs",
+    anchor_role: "resolver",
+    keywords: &[
+        "layer", "resolv", "lineage", "registry", "explain", "merge", "field", "nested", "keyed",
+        "appended",
+    ],
+};
+
+/// Every non-test source file of module `m`, as repository-relative paths
+/// with `/` separators. `tests.rs` files are `#[cfg(test)]` modules, which
+/// cargo-mutants never mutates.
+fn module_files(m: &GatedModule) -> Vec<String> {
+    fn walk(root: &Path, rel: &str, out: &mut Vec<String>) {
+        let Ok(entries) = fs::read_dir(root.join(rel)) else {
+            return;
+        };
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            let child = format!("{rel}/{name}");
+            if entry.path().is_dir() {
+                walk(root, &child, out);
+            } else if name.ends_with(".rs") && name != "tests.rs" {
+                out.push(child);
+            }
+        }
+    }
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+    let mut out = Vec::new();
+    if root.join(m.root).is_file() {
+        out.push(m.root.to_owned());
+    }
+    walk(&root, m.dir, &mut out);
+    out.sort();
+    out
+}
+
+/// Whether glob `pat` matches `path` in full: `**` matches any run of
+/// characters, `*` any run without `/`, `?` one character other than `/`.
+/// `None` when `pat` uses syntax this matcher does not model (`[`, `{`,
+/// `\`), so a caller can fail closed.
+fn glob_matches(pat: &str, path: &str) -> Option<bool> {
+    fn go(p: &[u8], s: &[u8]) -> bool {
+        match p {
+            [] => s.is_empty(),
+            [b'*', b'*', rest @ ..] => {
+                let rest = rest.strip_prefix(b"/").unwrap_or(rest);
+                (0..=s.len()).any(|i| go(rest, &s[i..]))
+            }
+            [b'*', rest @ ..] => (0..=s.len())
+                .take_while(|&i| i == 0 || s[i - 1] != b'/')
+                .any(|i| go(rest, &s[i..])),
+            [b'?', rest @ ..] => matches!(s, [c, tail @ ..] if *c != b'/' && go(rest, tail)),
+            [c, rest @ ..] => matches!(s, [d, tail @ ..] if d == c && go(rest, tail)),
+        }
+    }
+    if pat.contains(['[', '{', '\\']) {
+        return None;
+    }
+    Some(go(pat.as_bytes(), path.as_bytes()))
+}
+
+/// Whether glob `pat` selects `path` the way cargo-mutants' `--file` /
+/// `exclude_globs` do, read conservatively: a glob with a `/` matches the
+/// path or one of its ancestor directories; one without matches any path
+/// component. `None` when the matcher cannot tell.
+fn glob_selects(pat: &str, path: &str) -> Option<bool> {
+    let candidates: Vec<&str> = if pat.contains('/') {
+        path.match_indices('/')
+            .map(|(i, _)| &path[..i])
+            .chain([path])
+            .collect()
+    } else {
+        path.split('/').collect()
+    };
+    let mut hit = false;
+    for c in candidates {
+        hit |= glob_matches(pat, c)?;
+    }
+    Some(hit)
+}
+
+/// Every way `src` (`.cargo/mutants.toml`) fails to gate module `m`'s
+/// source files `files` with zero exclusions: each must be selected by an
+/// `examine_globs` entry, and no `exclude_globs` entry may select it. An
+/// `exclude_re` or `skip_calls` entry containing one of `m.keywords` is
+/// rejected too (mutant names start with the file path, and the workspace
+/// has no regex crate to evaluate the pattern).
+fn module_problems(m: &GatedModule, src: &str, files: &[String]) -> Vec<String> {
+    let table: toml::Table = match src.parse() {
+        Ok(t) => t,
+        Err(e) => return vec![format!(".cargo/mutants.toml does not parse: {e}")],
+    };
+    let list = |key: &str| -> Vec<String> {
+        table
+            .get(key)
+            .and_then(toml::Value::as_array)
+            .map(|a| {
+                a.iter()
+                    .filter_map(toml::Value::as_str)
+                    .map(str::to_owned)
+                    .collect()
+            })
+            .unwrap_or_default()
+    };
+    let mut problems = Vec::new();
+    let GatedModule {
+        name,
+        anchor,
+        anchor_role,
+        ..
+    } = m;
+    if !files.iter().any(|f| f == anchor) {
+        problems.push(format!(
+            "the {name} {anchor_role} `{anchor}` is missing: the module moved, so update this check"
+        ));
+    }
+    let examine = list("examine_globs");
+    for f in files {
+        if !examine.iter().any(|g| glob_selects(g, f) == Some(true)) {
+            problems.push(format!(
+                "{name} file `{f}` is not gated: no `examine_globs` entry selects it"
+            ));
+        }
+    }
+    for g in list("exclude_globs") {
+        for f in files {
+            match glob_selects(&g, f) {
+                Some(false) => {}
+                Some(true) => problems.push(format!(
+                    "`exclude_globs` entry `{g}` excludes {name} file `{f}`"
+                )),
+                None => problems.push(format!(
+                    "`exclude_globs` entry `{g}` uses syntax this check cannot match against `{f}`"
+                )),
+            }
+        }
+    }
+    for key in ["exclude_re", "skip_calls"] {
+        for e in list(key) {
+            let lower = e.to_ascii_lowercase();
+            if m.keywords.iter().any(|k| lower.contains(k)) {
+                problems.push(format!(
+                    "`{key}` entry `{e}` names the {name} module or its {anchor_role}"
+                ));
+            }
         }
     }
     problems
@@ -534,6 +734,201 @@ fn mutants_config_gates_the_safety_modules() {
         problems.is_empty(),
         ".cargo/mutants.toml violates US-RR-4-6:\n{}",
         problems.join("\n")
+    );
+}
+
+/// US-RR-20-5: the expr module, evaluator included, is gated with no
+/// exclusion, so its zero-survivor result is enforced by every run.
+#[test]
+fn mutants_config_gates_the_whole_expr_module_without_exclusions() {
+    let files = module_files(&EXPR);
+    let problems = module_problems(&EXPR, &mutants_toml(), &files);
+    assert!(
+        problems.is_empty(),
+        ".cargo/mutants.toml does not gate the expr evaluator (US-RR-20-5), files {files:?}:\n{}",
+        problems.join("\n")
+    );
+}
+
+#[test]
+fn expr_check_rejects_ungated_or_excluded_evaluator() {
+    let src = mutants_toml();
+    let files = module_files(&EXPR);
+    let m = |edit: &dyn Fn(&str) -> String| {
+        let changed = edit(&src);
+        assert_ne!(changed, src, "mutation did not apply");
+        module_problems(&EXPR, &changed, &files)
+    };
+    assert_flags(
+        &m(&|s| s.replacen("    \"crates/rr-core/src/expr/**\",\n", "", 1)),
+        "expr file `crates/rr-core/src/expr/eval.rs` is not gated",
+    );
+    assert_flags(
+        &m(&|s| s.replacen("    \"crates/rr-core/src/expr.rs\",\n", "", 1)),
+        "expr file `crates/rr-core/src/expr.rs` is not gated",
+    );
+    for glob in [
+        "crates/rr-core/src/expr/eval.rs",
+        "eval.rs",
+        "crates/rr-core/src/expr",
+        "crates/rr-core/**",
+        "**/*.rs",
+        "e?al.rs",
+    ] {
+        assert_flags(
+            &m(&|s| {
+                s.replacen(
+                    "exclude_globs = []",
+                    &format!("exclude_globs = [\"{glob}\"]"),
+                    1,
+                )
+            }),
+            &format!("`exclude_globs` entry `{glob}` excludes expr file"),
+        );
+    }
+    assert_flags(
+        &m(&|s| s.replacen("exclude_globs = []", "exclude_globs = [\"[e]val.rs\"]", 1)),
+        "uses syntax this check cannot match",
+    );
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "exclude_re = [\n",
+                "exclude_re = [\n    \"replace Evaluator::\",\n",
+                1,
+            )
+        }),
+        "`exclude_re` entry `replace Evaluator::` names the expr module",
+    );
+    assert_flags(
+        &m(&|s| format!("{s}skip_calls = [\"eval_call\"]\n")),
+        "`skip_calls` entry `eval_call` names",
+    );
+    assert_flags(
+        &module_problems(&EXPR, &src, &[]),
+        "the expr evaluator `crates/rr-core/src/expr/eval.rs` is missing",
+    );
+    // Unrelated exclusions stay allowed.
+    assert!(
+        m(&|s| s.replacen(
+            "exclude_globs = []",
+            "exclude_globs = [\"crates/rr-core/src/diag/**\"]",
+            1
+        ))
+        .is_empty()
+    );
+    assert_eq!(glob_matches("a/**/b.rs", "a/b.rs"), Some(true));
+    assert_eq!(glob_matches("a/*.rs", "a/b/c.rs"), Some(false));
+}
+
+/// US-RR-22-6: the layer module, resolver included, is gated with no
+/// exclusion, so its zero-survivor result is enforced by every run.
+#[test]
+fn mutants_config_gates_the_whole_layer_module_without_exclusions() {
+    let files = module_files(&LAYER);
+    for f in [
+        "layer.rs",
+        "layer/field.rs",
+        "layer/list.rs",
+        "layer/explain.rs",
+    ] {
+        let f = format!("crates/rr-core/src/{f}");
+        assert!(
+            files.contains(&f),
+            "{f} not found by module_files: {files:?}"
+        );
+    }
+    let problems = module_problems(&LAYER, &mutants_toml(), &files);
+    assert!(
+        problems.is_empty(),
+        ".cargo/mutants.toml does not gate the layer resolver (US-RR-22-6), files {files:?}:\n{}",
+        problems.join("\n")
+    );
+}
+
+#[test]
+fn layer_check_rejects_ungated_or_excluded_resolver() {
+    let src = mutants_toml();
+    let files = module_files(&LAYER);
+    let m = |edit: &dyn Fn(&str) -> String| {
+        let changed = edit(&src);
+        assert_ne!(changed, src, "mutation did not apply");
+        module_problems(&LAYER, &changed, &files)
+    };
+    assert_flags(
+        &m(&|s| s.replacen("    \"crates/rr-core/src/layer/**\",\n", "", 1)),
+        "layer file `crates/rr-core/src/layer/resolve.rs` is not gated",
+    );
+    assert_flags(
+        &m(&|s| s.replacen("    \"crates/rr-core/src/layer.rs\",\n", "", 1)),
+        "layer file `crates/rr-core/src/layer.rs` is not gated",
+    );
+    for (glob, file) in [
+        ("crates/rr-core/src/layer/resolve.rs", "layer/resolve.rs"),
+        ("resolve.rs", "layer/resolve.rs"),
+        ("crates/rr-core/src/layer", "layer/field.rs"),
+        ("crates/rr-core/src/layer.rs", "layer.rs"),
+        ("crates/rr-core/**", "layer/explain.rs"),
+        ("**/list.rs", "layer/list.rs"),
+        ("r?solve.rs", "layer/resolve.rs"),
+    ] {
+        assert_flags(
+            &m(&|s| {
+                s.replacen(
+                    "exclude_globs = []",
+                    &format!("exclude_globs = [\"{glob}\"]"),
+                    1,
+                )
+            }),
+            &format!(
+                "`exclude_globs` entry `{glob}` excludes layer file `crates/rr-core/src/{file}`"
+            ),
+        );
+    }
+    assert_flags(
+        &m(&|s| {
+            s.replacen(
+                "exclude_globs = []",
+                "exclude_globs = [\"[r]esolve.rs\"]",
+                1,
+            )
+        }),
+        "uses syntax this check cannot match",
+    );
+    for entry in [
+        "replace Resolver::lineage",
+        "crates/rr-core/src/layer/",
+        "replace <impl Merge for Keyed",
+        "replace Registry::insert",
+    ] {
+        assert_flags(
+            &m(&|s| {
+                s.replacen(
+                    "exclude_re = [\n",
+                    &format!("exclude_re = [\n    \"{entry}\",\n"),
+                    1,
+                )
+            }),
+            &format!("`exclude_re` entry `{entry}` names the layer module or its resolver"),
+        );
+    }
+    assert_flags(
+        &m(&|s| format!("{s}skip_calls = [\"merge_from\"]\n")),
+        "`skip_calls` entry `merge_from` names",
+    );
+    assert_flags(
+        &module_problems(&LAYER, &src, &[]),
+        "the layer resolver `crates/rr-core/src/layer/resolve.rs` is missing",
+    );
+    // Unrelated exclusions (the committed `replace authority::mint_`, or one
+    // in another module) stay allowed.
+    assert!(
+        m(&|s| s.replacen(
+            "exclude_globs = []",
+            "exclude_globs = [\"crates/rr-core/src/diag/**\"]",
+            1
+        ))
+        .is_empty()
     );
 }
 

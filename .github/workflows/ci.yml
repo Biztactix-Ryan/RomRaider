@@ -12,6 +12,10 @@ on:
   pull_request:
     branches: ["**"]
   workflow_dispatch:
+  # release.yml runs this whole workflow as its `ci` job, so nothing is
+  # released unless every gate here (t6 and ci-ok included) passed on the
+  # commit being released.
+  workflow_call:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -172,9 +176,10 @@ jobs:
         run: cargo xtask deny-selftest
 
   # T6 safety-invariant suite (PROJECT.md Testing Strategy: must pass,
-  # release-blocking; story US-RR-7). Release-blocking: release.yml (not yet
-  # written) must not build or publish unless this job passed, i.e. it must
-  # `needs:` this job or gate on `ci-ok` for the tagged commit.
+  # release-blocking; story US-RR-7). Release-blocking: release.yml must not
+  # build or publish unless this job passed. It runs this workflow as its `ci`
+  # job (`workflow_call`) and every build job `needs:` that job
+  # (xtask/tests/t6_ci_config.rs).
   #
   # Selection convention (CONTRIBUTING.md, Safety review process): T6 tests
   # live in test binaries named `t6_*.rs` or in test functions/modules named
@@ -336,10 +341,143 @@ jobs:
       - name: cargo xtask fuzz replay
         run: cargo xtask fuzz replay
 
+  # External stock-ROM corpus (story US-RR-11, task US-RR-11-8; D-025;
+  # INFRASTRUCTURE.md "Stock-ROM corpus in CI"). `cargo xtask fetch-corpus`
+  # downloads the ~500 images from the public upstream at the manifest's
+  # pinned commit (no secrets, so fork pull requests work) and verifies every
+  # size and SHA-256 against fixtures/corpus-manifest.toml.
+  #
+  # RR_CORPUS_DIR is the developer default, $HOME/.cache/romraider-rs/corpus:
+  # outside the workspace (fetch-corpus refuses a directory inside the repo),
+  # identical to a local run, and on a persistent self-hosted runner it keeps
+  # a warm corpus between jobs even without the cache (runner.temp is wiped).
+  #
+  # The cache key is the manifest's hash: a new manifest is a new corpus, and
+  # nothing else changes it. No restore-keys: a corpus for another manifest
+  # never verifies, so fetch-corpus would refetch it all anyway. On a hit,
+  # fetch-corpus verifies the restored tree and fetches nothing; a tree that
+  # does not verify is refetched. A miss is saved right after the verified
+  # fetch (not at job end, so a later failing step still leaves a warm cache),
+  # and never on a hit, so a cache entry only ever holds a verified corpus.
+  # ~411 MB on disk, far below the 10 GB repository cache limit.
+  #
+  # Time budget: a cold fetch (cache miss) must finish within 5 minutes, the
+  # fetch step's timeout-minutes, which BUDGET_SECONDS repeats for the log
+  # (xtask/tests/corpus_ci_config.rs keeps them equal). The step logs the
+  # elapsed time, the cache hit and whether it fetched to the job log and the
+  # step summary. The corpus-tier tests (US-RR-11-1, US-RR-11-2) belong in
+  # this job, after the fetch, with RR_CORPUS_DIR set; the job runs only on
+  # Linux, as those tests are target-independent.
+  #
+  # US-RR-11-1: after the cache is saved, `--verify-only` must report all
+  # CORPUS_IMAGES (501, D-025; spelled out here so a truncated manifest
+  # cannot pass) at their manifest size and SHA-256, and every corpus-tier
+  # test (`*::requires_RR_CORPUS_DIR`) runs against the fetched corpus. They
+  # can never be skipped here: RR_CORPUS_DIR is set, so they are built as
+  # plain tests, and `--run-ignored all` would force-run (and so fail, via
+  # require_tier / NotFetched) any that were not; `--no-tests=fail` fails an
+  # empty filter.
+  #
+  # US-RR-16-6: then `cargo xtask gen-corpus-coverage --check` fails unless
+  # the committed coverage report is byte-identical to one generated from
+  # the fetched corpus and definitions.
+  corpus:
+    name: stock-ROM corpus (fetch-corpus)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install toolchain
+        run: rustup toolchain install --no-self-update && rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: corpus
+          save-if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rust-rewrite' }}
+      # Built before the timed step, so its time is the fetch, not the build.
+      - name: Build xtask
+        run: cargo build -p xtask --locked
+      - name: Corpus directory
+        run: echo "RR_CORPUS_DIR=$HOME/.cache/romraider-rs/corpus" >> "$GITHUB_ENV"
+      - name: Restore corpus cache
+        id: corpus-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.RR_CORPUS_DIR }}
+          key: rr-corpus-v1-${{ runner.os }}-${{ hashFiles('fixtures/corpus-manifest.toml') }}
+      - name: cargo xtask fetch-corpus
+        id: fetch
+        timeout-minutes: 5
+        env:
+          CACHE_HIT: ${{ steps.corpus-cache.outputs.cache-hit }}
+          BUDGET_SECONDS: "300"
+        run: |
+          log="$RUNNER_TEMP/fetch-corpus.log"
+          start=${EPOCHREALTIME/[.,]/}
+          cargo xtask fetch-corpus 2>&1 | tee "$log"
+          ms=$(( (${EPOCHREALTIME/[.,]/} - start) / 1000 ))
+          secs=$(printf '%d.%03d' $((ms / 1000)) $((ms % 1000)))
+          hit=false
+          if [ "$CACHE_HIT" = true ]; then hit=true; fi
+          if grep -q '^fetch-corpus: ok: fetched ' "$log"; then
+            fetch=cold
+            if [ "$hit" = true ]; then fetch="cold (restored cache did not verify)"; fi
+          elif grep -q '^fetch-corpus: ok: .*; nothing fetched$' "$log"; then
+            fetch="warm (verified, nothing fetched)"
+          else
+            echo "::error::fetch-corpus printed no ok line"
+            exit 1
+          fi
+          line="cache-hit=$hit; fetch: $fetch; ${secs}s (budget ${BUDGET_SECONDS}s)"
+          echo "::notice title=stock-ROM corpus::$line"
+          {
+            echo "### Stock-ROM corpus"
+            echo
+            echo "| cache hit | fetch | elapsed | budget |"
+            echo "|---|---|---|---|"
+            echo "| $hit | $fetch | ${secs}s | ${BUDGET_SECONDS}s |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "cache-hit=$hit"
+            echo "fetch=${fetch%% *}"
+            echo "seconds=$secs"
+          } >> "$GITHUB_OUTPUT"
+          if [ "$ms" -gt $((BUDGET_SECONDS * 1000)) ]; then
+            echo "::error::fetch-corpus took ${secs}s, over the ${BUDGET_SECONDS}s budget"
+            exit 1
+          fi
+      - name: Save corpus cache
+        if: steps.corpus-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.RR_CORPUS_DIR }}
+          key: ${{ steps.corpus-cache.outputs.cache-primary-key }}
+      - name: Verify all corpus images
+        env:
+          CORPUS_IMAGES: "501"
+        run: |
+          log="$RUNNER_TEMP/verify-corpus.log"
+          cargo xtask fetch-corpus --verify-only 2>&1 | tee "$log"
+          if ! grep -q "^fetch-corpus: ok: ${CORPUS_IMAGES}/${CORPUS_IMAGES} image(s), " "$log"; then
+            echo "::error::the corpus did not verify as ${CORPUS_IMAGES}/${CORPUS_IMAGES} images"
+            exit 1
+          fi
+      # US-RR-16-6: fixtures/corpus-coverage.toml (every corpus image with
+      # the pinned ECU definitions matching its bytes, or "no definition";
+      # D-028) must be exactly what this fetched corpus gives. Plain --check:
+      # it reads RR_CORPUS_DIR and the committed manifest, hash-checks every
+      # file it reads, and writes nothing.
+      - name: Corpus coverage report
+        run: cargo xtask gen-corpus-coverage --check
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+      - name: Corpus-tier tests (cargo nextest)
+        run: cargo nextest run --workspace --locked --run-ignored all --no-tests=fail -E 'test(/::requires_RR_CORPUS_DIR$/)'
+
   ci-ok:
     name: ci-ok
     if: always()
-    needs: [fmt, clippy, test, deny, t6, snapshots, faketime, fuzz-regressions]
+    needs: [fmt, clippy, test, deny, t6, snapshots, faketime, corpus, fuzz-regressions]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:

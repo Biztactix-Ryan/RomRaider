@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=RomRaider CLI
+GenericName=ECU ROM tool
+Comment=Headless RomRaider-RS command-line tool
+Exec=romraider-cli
+Icon=romraider-cli
+Terminal=true
+NoDisplay=true
+Categories=Utility;

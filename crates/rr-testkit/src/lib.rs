@@ -13,6 +13,13 @@
 //! * [`fixtures`] — three-tier fixture loader (public / `RR_CORPUS_DIR` /
 //!   `RR_FIXTURES_DIR`), `schema = N` checks, and the
 //!   [`corpus_test!`] / [`private_test!`] skip-reporting macros.
+//! * [`corpus`] — read-only loader for the external stock-ROM corpus
+//!   (`RR_CORPUS_DIR`, `fixtures/corpus-manifest.toml`): refuses a directory
+//!   inside the repository working tree, reports "not fetched" distinctly,
+//!   and makes callers handle suspect images explicitly. Its
+//!   [`corpus::location`] submodule is shared, as source, with
+//!   `cargo xtask fetch-corpus`; [`corpus::formulas`] harvests every formula
+//!   of the pinned definition corpus at test time (never committed, D-028).
 //! * [`kat`] — the schema-1 known-answer fixture types (decode-values and
 //!   checksum fixtures, per-value [`kat::Source`], changelog), their loader, and
 //!   the validator [`kat::validate`] (`cargo xtask validate-fixtures`).
@@ -33,6 +40,7 @@
 //!   threads through virtual time deterministically and asserts elapsed time.
 
 pub mod clock;
+pub mod corpus;
 pub mod encoding_oracle;
 pub mod fixtures;
 pub mod kat;

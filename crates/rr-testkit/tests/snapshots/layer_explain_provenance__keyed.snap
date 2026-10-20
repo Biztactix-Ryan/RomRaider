@@ -1,0 +1,27 @@
+---
+source: crates/rr-testkit/tests/layer_explain_provenance.rs
+expression: keyed
+---
+tables: 4 entries
+  ["Fuel Map"]: present
+    modified at user/A2WC522N.toml:1:1 [layer user]
+    modified at defs/A2WC522N.xml:9:5 [layer A2WC522N]
+    modified at defs/16BITBASE.xml:5:3 [layer 16BITBASE]
+    added at defs/32BITBASE.xml:2:1 [layer 32BITBASE]
+  ["Timing"]: present
+    restored at defs/A2WC522N.xml:9:5 [layer A2WC522N]
+    omitted at defs/16BITBASE.xml:5:3 [layer 16BITBASE]
+    added at defs/32BITBASE.xml:2:1 [layer 32BITBASE]
+  ["Boost Target"]: present
+    added at defs/32BITBASE.xml:2:1 [layer 32BITBASE]
+  ["Idle Speed"]: present
+    added at defs/A2WC522N.xml:9:5 [layer A2WC522N]
+
+tables["Fuel Map"].axes: 3 entries
+  ["X"]: present
+    added at defs/32BITBASE.xml:2:1 [layer 32BITBASE]
+  ["Y"]: omitted
+    omitted at defs/A2WC522N.xml:9:5 [layer A2WC522N]
+    added at defs/32BITBASE.xml:2:1 [layer 32BITBASE]
+  ["Z"]: present
+    added at defs/A2WC522N.xml:9:5 [layer A2WC522N]

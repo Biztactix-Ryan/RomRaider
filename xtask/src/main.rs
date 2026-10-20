@@ -7,9 +7,10 @@ use anyhow::{Context as _, Result};
 use clap::{Parser, Subcommand};
 use xtask::deps::{DepGraph, check};
 use xtask::{
-    codeowners, coverage_gate, deny_selftest, diagnostics_doc, fixtures_selftest, fuzz, fuzz_issue,
-    gates_selftest, gen_synthetic, globals, lint_selftest, mutants_exclusions, mutants_scope,
-    mutants_selftest, reference_isolation, validate_fixtures, writes,
+    codeowners, corpus_coverage, corpus_manifest, coverage_gate, deny_selftest, diagnostics_doc,
+    fetch_corpus, fixtures_selftest, fuzz, fuzz_issue, gates_selftest, gen_synthetic, globals,
+    lint_selftest, mutants_exclusions, mutants_scope, mutants_selftest, reference_isolation,
+    release_artifacts, validate_fixtures, writes,
 };
 
 #[derive(Parser)]
@@ -153,6 +154,86 @@ enum Cmd {
         #[arg(long)]
         dir: Option<PathBuf>,
     },
+    /// Regenerate fixtures/corpus-manifest.toml (path, size, SHA-256 and
+    /// file-name fields of every stock-ROM corpus image, D-025, and path,
+    /// size and SHA-256 of every pinned ECU-definition file plus the logger
+    /// package pin, D-028) from local mirrors of both upstreams, which must
+    /// agree with each mirror's SHA256SUMS; with --check, write nothing and
+    /// fail unless the committed file is byte-identical (US-RR-11-6,
+    /// US-RR-16-5; format and mirror layouts in xtask/src/corpus_manifest.rs).
+    GenCorpusManifest {
+        /// Only check; never write.
+        #[arg(long)]
+        check: bool,
+        /// Mirror directory holding `roms/` (a checkout of upstream at the
+        /// pin) and `SHA256SUMS` (defaults to $RR_CORPUS_MIRROR).
+        #[arg(long)]
+        mirror: Option<PathBuf>,
+        /// Definitions mirror directory holding `mirror.git/` (a bare mirror
+        /// of the definitions upstream) and `SHA256SUMS` (defaults to
+        /// $RR_DEFS_MIRROR).
+        #[arg(long)]
+        defs_mirror: Option<PathBuf>,
+        /// Manifest to write or check (defaults to fixtures/corpus-manifest.toml).
+        #[arg(long)]
+        manifest: Option<PathBuf>,
+    },
+    /// Regenerate fixtures/corpus-coverage.toml: for every manifest image,
+    /// the pinned ECU definitions whose <romid> matches its bytes (legacy
+    /// RomRaider matching) or "no definition", with the ROM ID read from the
+    /// image and the 2004 ADM Liberty flags; metadata only (D-028). Reads a
+    /// fetched corpus, every file hash-checked against the manifest; with
+    /// --check, write nothing and fail unless the committed file is
+    /// byte-identical (US-RR-16-6; details in xtask/src/corpus_coverage.rs).
+    GenCorpusCoverage {
+        /// Only check; never write.
+        #[arg(long)]
+        check: bool,
+        /// Corpus directory (defaults to $RR_CORPUS_DIR, else
+        /// ~/.cache/romraider-rs/corpus; %LOCALAPPDATA% on Windows).
+        #[arg(long)]
+        dir: Option<PathBuf>,
+        /// Manifest of the corpus (defaults to fixtures/corpus-manifest.toml).
+        #[arg(long)]
+        manifest: Option<PathBuf>,
+        /// Report to write or check (defaults to fixtures/corpus-coverage.toml).
+        #[arg(long)]
+        coverage: Option<PathBuf>,
+    },
+    /// Download the external stock-ROM corpus (D-025) and the pinned ECU
+    /// definitions (D-028) at the manifest's pinned commits into
+    /// RR_CORPUS_DIR (outside the repo) and verify every file's size and
+    /// SHA-256 against fixtures/corpus-manifest.toml; a complete, verified
+    /// cache is reused with no network I/O, a bad one is replaced, and any
+    /// mismatch from the source fails listing every bad path. The logger
+    /// package (logger_v370.zip) is never downloaded: a supplied copy is
+    /// verified, and its absence is reported (US-RR-11-5, US-RR-16-5;
+    /// details in xtask/src/fetch_corpus.rs).
+    FetchCorpus {
+        /// Git URL or local repository path to fetch from (defaults to
+        /// $RR_CORPUS_SOURCE, else the manifest's `[roms] upstream`).
+        #[arg(long)]
+        source: Option<String>,
+        /// Git URL or local repository path to fetch the definitions from
+        /// (defaults to $RR_DEFS_SOURCE, else the manifest's
+        /// `[defs] upstream`).
+        #[arg(long)]
+        defs_source: Option<String>,
+        /// A copy of the logger package to verify, e.g. in a private mirror
+        /// (defaults to $RR_LOGGER_ZIP, else <corpus>/defs/logger_v370.zip).
+        #[arg(long)]
+        logger_zip: Option<PathBuf>,
+        /// Corpus directory (defaults to $RR_CORPUS_DIR, else
+        /// ~/.cache/romraider-rs/corpus; %LOCALAPPDATA% on Windows).
+        #[arg(long)]
+        dir: Option<PathBuf>,
+        /// Manifest to verify against (defaults to fixtures/corpus-manifest.toml).
+        #[arg(long)]
+        manifest: Option<PathBuf>,
+        /// Only verify the existing cache; never fetch or write.
+        #[arg(long)]
+        verify_only: bool,
+    },
     /// Fail when a gated crate's line coverage in an lcov report (from
     /// `cargo llvm-cov nextest --lcov`) is below --min percent, or below its
     /// coverage in --base-lcov (US-RR-4-5; rules in xtask/src/coverage_gate.rs).
@@ -212,6 +293,16 @@ enum Cmd {
         /// Workspace root whose mutants.toml is tested (defaults to this workspace).
         #[arg(long)]
         root: Option<PathBuf>,
+    },
+    /// Fail if any release asset in <dir> holds a ROM image or fixture data
+    /// (US-RR-38-8): opens the tarball, the .deb (control.tar and data.tar)
+    /// and the AppImage's SquashFS payload and checks every entry for
+    /// fixture paths, ROM extensions, ROM sizes and files off the release
+    /// allow-list; any other file in <dir> fails too. Run by release.yml
+    /// `publish` before uploading (rules in xtask/src/release_artifacts.rs).
+    CheckReleaseArtifacts {
+        /// Directory of release assets (release.yml: `assets`).
+        dir: PathBuf,
     },
     /// Fuzz targets in fuzz/ (cargo-fuzz, nightly), always run with the
     /// per-input time and memory limits from fuzz/Cargo.toml
@@ -540,6 +631,386 @@ fn gen_synthetic_main(check: bool, dir: Option<PathBuf>) -> Result<ExitCode> {
     Ok(ExitCode::FAILURE)
 }
 
+fn gen_corpus_manifest_main(
+    check: bool,
+    mirror: Option<PathBuf>,
+    defs_mirror: Option<PathBuf>,
+    manifest: Option<PathBuf>,
+) -> Result<ExitCode> {
+    const TAG: &str = "gen-corpus-manifest";
+    let root = workspace_root();
+    let root = root.canonicalize().unwrap_or(root);
+    let path = manifest.unwrap_or_else(|| root.join(corpus_manifest::COMMITTED_PATH));
+    let mirror = corpus_manifest::mirror_dir(mirror)?;
+    corpus_manifest::require_roms_checkout(&mirror)?;
+    let defs_mirror = corpus_manifest::defs_mirror_dir(defs_mirror)?;
+    corpus_manifest::require_defs_mirror(&defs_mirror)?;
+    let generated = corpus_manifest::generate(&mirror, &defs_mirror)?;
+    let files = &generated.manifest.roms.files;
+    let total: u64 = files.iter().map(|f| f.size).sum();
+    println!(
+        "{TAG}: {} image(s), {total} bytes, from {} at {}; all agree with {}",
+        files.len(),
+        mirror.display(),
+        generated.manifest.roms.commit,
+        corpus_manifest::MIRROR_SUMS_FILE
+    );
+    if let Some(defs) = &generated.manifest.defs {
+        let total: u64 = defs.files.iter().map(|f| f.size).sum();
+        let spaced = defs.files.iter().filter(|f| f.path.contains(' ')).count();
+        println!(
+            "{TAG}: {} definition file(s), {total} bytes ({spaced} with a space in the path), `{}` of {} at {}; all agree with {}",
+            defs.files.len(),
+            defs.path_prefix,
+            defs_mirror.display(),
+            defs.commit,
+            corpus_manifest::MIRROR_SUMS_FILE
+        );
+    }
+    let suspects: Vec<_> = generated.manifest.roms.suspect_files().collect();
+    println!(
+        "{TAG}: {} suspect image(s) (not a raw image of a standard size):",
+        suspects.len()
+    );
+    for (f, s) in &suspects {
+        println!("{TAG}:   {} [{:?}]: {}", f.path, s.kind, s.reason);
+    }
+    let duplicates = corpus_manifest::duplicate_hashes(&generated.manifest);
+    if !duplicates.is_empty() {
+        println!(
+            "{TAG}: {} set(s) of paths with identical bytes (not suspect):",
+            duplicates.len()
+        );
+        for paths in &duplicates {
+            println!("{TAG}:   {}", paths.join(" = "));
+        }
+    }
+    if !generated.issues.is_empty() {
+        eprintln!(
+            "{TAG}: {} file name(s) did not fully parse; their unparsed fields are left out:",
+            generated.issues.len()
+        );
+        for i in &generated.issues {
+            eprintln!("{TAG}:   {}: {}", i.path, i.reason);
+        }
+    }
+    if !check {
+        let old = std::fs::read(&path).ok();
+        if old.as_deref() == Some(generated.text.as_bytes()) {
+            println!("{TAG}: unchanged ({})", path.display());
+        } else {
+            std::fs::write(&path, &generated.text)
+                .with_context(|| format!("writing {}", path.display()))?;
+            println!("{TAG}: wrote {}", path.display());
+        }
+        return Ok(ExitCode::SUCCESS);
+    }
+    let problems = match std::fs::read_to_string(&path) {
+        Ok(committed) => corpus_manifest::compare_committed(&generated, &committed),
+        Err(e) => vec![format!("cannot read {}: {e}", path.display())],
+    };
+    if problems.is_empty() {
+        println!(
+            "{TAG}: ok ({} is byte-identical to a fresh generation)",
+            path.display()
+        );
+        return Ok(ExitCode::SUCCESS);
+    }
+    for p in &problems {
+        eprintln!("{TAG}: {p}");
+    }
+    eprintln!(
+        "{TAG}: {} problem(s) in {}; run `cargo xtask {TAG} --mirror <dir> --defs-mirror <dir>` and commit the result",
+        problems.len(),
+        path.display()
+    );
+    Ok(ExitCode::FAILURE)
+}
+
+fn gen_corpus_coverage_main(
+    check: bool,
+    dir: Option<PathBuf>,
+    manifest: Option<PathBuf>,
+    coverage: Option<PathBuf>,
+) -> Result<ExitCode> {
+    const TAG: &str = "gen-corpus-coverage";
+    let root = workspace_root();
+    let root = root.canonicalize().unwrap_or(root);
+    let manifest_path = manifest.unwrap_or_else(|| root.join(corpus_manifest::COMMITTED_PATH));
+    let path = coverage.unwrap_or_else(|| root.join(corpus_coverage::COMMITTED_PATH));
+    let text = std::fs::read_to_string(&manifest_path)
+        .with_context(|| format!("reading {}", manifest_path.display()))?;
+    let m = corpus_manifest::Manifest::from_toml(&text)
+        .with_context(|| format!("in {}", manifest_path.display()))?;
+    let dir = fetch_corpus::corpus_dir(dir)?;
+    let generated = corpus_coverage::generate(&dir, &m)?;
+    let c = &generated.coverage;
+    let s = &c.summary;
+    println!(
+        "{TAG}: {} image(s) in {}: {} matched, {} unresolved base, {} no definition ({} suspect, classified); by file-name ID {} have a definition",
+        s.images,
+        dir.display(),
+        s.matched,
+        s.unresolved_base,
+        s.no_definition,
+        s.suspect,
+        s.filename_id_has_definition
+    );
+    for r in &s.regions {
+        println!(
+            "{TAG}:   {}: {}/{} matched ({} by file-name ID)",
+            r.region
+                .as_deref()
+                .unwrap_or("(no region in the file name)"),
+            r.matched,
+            r.images,
+            r.filename_id_has_definition
+        );
+    }
+    let l = &c.liberty_2004_adm;
+    println!(
+        "{TAG}: 2004 ADM Liberty: {}/{} matched; turbo {:?}, NA H6 {:?}, NA 4-cyl {:?}; NA 4-cyl definitions {:?}",
+        l.matched, l.images, l.turbo, l.na_h6, l.na_4cyl, l.definitions_na_4cyl
+    );
+    if !check {
+        let old = std::fs::read(&path).ok();
+        if old.as_deref() == Some(generated.text.as_bytes()) {
+            println!("{TAG}: unchanged ({})", path.display());
+        } else {
+            std::fs::write(&path, &generated.text)
+                .with_context(|| format!("writing {}", path.display()))?;
+            println!("{TAG}: wrote {}", path.display());
+        }
+        return Ok(ExitCode::SUCCESS);
+    }
+    let problems = match std::fs::read_to_string(&path) {
+        Ok(committed) => corpus_coverage::compare_committed(&generated, &committed),
+        Err(e) => vec![format!("cannot read {}: {e}", path.display())],
+    };
+    if problems.is_empty() {
+        println!(
+            "{TAG}: ok ({} is byte-identical to a fresh generation)",
+            path.display()
+        );
+        return Ok(ExitCode::SUCCESS);
+    }
+    for p in &problems {
+        eprintln!("{TAG}: {p}");
+    }
+    eprintln!(
+        "{TAG}: {} problem(s) in {}; run `cargo xtask {TAG}` against a fetched corpus and commit the result",
+        problems.len(),
+        path.display()
+    );
+    Ok(ExitCode::FAILURE)
+}
+
+/// Where fetch-corpus takes each part of the corpus from (CLI overrides).
+struct FetchSources {
+    roms: Option<String>,
+    defs: Option<String>,
+    logger_zip: Option<PathBuf>,
+}
+
+fn fetch_corpus_main(
+    sources: FetchSources,
+    dir: Option<PathBuf>,
+    manifest: Option<PathBuf>,
+    verify_only: bool,
+) -> Result<ExitCode> {
+    use rr_core::clock::{Clock as _, RealClock};
+    const TAG: &str = "fetch-corpus";
+    let clock = RealClock::new();
+    let start = clock.now();
+    let root = workspace_root();
+    let root = root.canonicalize().unwrap_or(root);
+    let path = manifest.unwrap_or_else(|| root.join(corpus_manifest::COMMITTED_PATH));
+    let text =
+        std::fs::read_to_string(&path).with_context(|| format!("reading {}", path.display()))?;
+    let m = corpus_manifest::Manifest::from_toml(&text)
+        .with_context(|| format!("in {}", path.display()))?;
+    let dir = fetch_corpus::corpus_dir(dir)?;
+    let total = m.roms.files.len();
+    let summary = |v: &fetch_corpus::Verified| {
+        format!(
+            "{}/{total} image(s), {} bytes, verified against {} ({:.1}s)",
+            v.ok,
+            v.bytes,
+            path.display(),
+            (clock.now() - start).as_secs_f64()
+        )
+    };
+    let defs_summary = |v: &fetch_corpus::Verified, total: usize| {
+        format!(
+            "{}/{total} definition file(s), {} bytes, verified against {} ({:.1}s)",
+            v.ok,
+            v.bytes,
+            path.display(),
+            (clock.now() - start).as_secs_f64()
+        )
+    };
+    let logger_zip = fetch_corpus::logger_source(sources.logger_zip);
+    // The logger package (D-028): verified when there is a copy, reported
+    // when there is none; a copy that does not match is an error.
+    let check_logger = |defs: &corpus_manifest::DefsCorpus| -> Result<()> {
+        let logger = &defs.logger_v370;
+        match fetch_corpus::check_logger(&dir, logger, logger_zip.as_deref(), &root)? {
+            fetch_corpus::LoggerStatus::Verified { path } => println!(
+                "{TAG}: logger v370: ok: {} matches the pin ({} bytes, sha256 {})",
+                path.display(),
+                logger.size,
+                logger.sha256
+            ),
+            fetch_corpus::LoggerStatus::Absent { looked } => eprintln!(
+                "{TAG}: logger v370: not present: no {} and no --logger-zip / {}. It is never downloaded (D-028): put the hand-downloaded copy there or point {} at the private mirror's copy. The public tier uses the v290 logger definitions in the pinned tree; v370-only checks skip",
+                looked.display(),
+                fetch_corpus::LOGGER_ZIP_ENV,
+                fetch_corpus::LOGGER_ZIP_ENV
+            ),
+        }
+        Ok(())
+    };
+
+    if verify_only {
+        fetch_corpus::check_outside_repo(&dir, &root)?;
+        let mut failed = false;
+        let v = fetch_corpus::verify(&dir, &m)?;
+        if v.problems.is_empty() {
+            println!("{TAG}: ok: {} in {}", summary(&v), dir.display());
+        } else {
+            failed = true;
+            eprintln!(
+                "{TAG}: {}",
+                fetch_corpus::listing(
+                    &format!(
+                        "{} does not match the manifest ({} problem(s)); run `cargo xtask {TAG}` to repair it:",
+                        dir.display(),
+                        v.problems.len()
+                    ),
+                    &v.problems
+                )
+            );
+        }
+        if let Some(defs) = &m.defs {
+            let defs_dir = fetch_corpus::defs_dir(&dir);
+            if !defs_dir.is_dir() {
+                failed = true;
+                eprintln!(
+                    "{TAG}: defs: {} is missing; run `cargo xtask {TAG}` to fetch the definitions",
+                    defs_dir.display()
+                );
+            } else {
+                let v = fetch_corpus::verify_defs(&dir, defs)?;
+                if v.problems.is_empty() {
+                    println!(
+                        "{TAG}: defs: ok: {} in {}",
+                        defs_summary(&v, defs.files.len()),
+                        defs_dir.display()
+                    );
+                } else {
+                    failed = true;
+                    eprintln!(
+                        "{TAG}: defs: {}",
+                        fetch_corpus::listing(
+                            &format!(
+                                "{} does not match the manifest ({} problem(s)); run `cargo xtask {TAG}` to repair it:",
+                                defs_dir.display(),
+                                v.problems.len()
+                            ),
+                            &v.problems
+                        )
+                    );
+                }
+            }
+            if let Err(e) = check_logger(defs) {
+                failed = true;
+                eprintln!("{TAG}: logger v370: {e:#}");
+            }
+        }
+        return Ok(if failed {
+            ExitCode::FAILURE
+        } else {
+            ExitCode::SUCCESS
+        });
+    }
+
+    let source = fetch_corpus::source(sources.roms, &m);
+    match fetch_corpus::fetch(&dir, &m, &source, &root)? {
+        fetch_corpus::Outcome::AlreadyVerified(v) => println!(
+            "{TAG}: ok: {} already in {}; nothing fetched",
+            summary(&v),
+            dir.display()
+        ),
+        fetch_corpus::Outcome::Fetched {
+            verified,
+            replaced,
+            skipped,
+        } => {
+            if !replaced.is_empty() {
+                eprintln!(
+                    "{TAG}: {}",
+                    fetch_corpus::listing(
+                        &format!(
+                            "the cache in {} did not verify ({} problem(s)) and was replaced:",
+                            dir.display(),
+                            replaced.len()
+                        ),
+                        &replaced
+                    )
+                );
+            }
+            println!(
+                "{TAG}: ok: fetched {source} at {}; {} into {} ({skipped} file(s) not in the manifest skipped)",
+                m.roms.commit,
+                summary(&verified),
+                dir.display()
+            );
+        }
+    }
+
+    let Some(defs) = &m.defs else {
+        return Ok(ExitCode::SUCCESS);
+    };
+    let defs_source = fetch_corpus::defs_source(sources.defs, defs);
+    let defs_dir = fetch_corpus::defs_dir(&dir);
+    let total = defs.files.len();
+    match fetch_corpus::fetch_defs(&dir, defs, &defs_source, &root)? {
+        fetch_corpus::Outcome::AlreadyVerified(v) => println!(
+            "{TAG}: defs: ok: {} already in {}; nothing fetched",
+            defs_summary(&v, total),
+            defs_dir.display()
+        ),
+        fetch_corpus::Outcome::Fetched {
+            verified,
+            replaced,
+            skipped,
+        } => {
+            if !replaced.is_empty() {
+                eprintln!(
+                    "{TAG}: defs: {}",
+                    fetch_corpus::listing(
+                        &format!(
+                            "the definitions in {} did not verify ({} problem(s)) and were replaced:",
+                            defs_dir.display(),
+                            replaced.len()
+                        ),
+                        &replaced
+                    )
+                );
+            }
+            println!(
+                "{TAG}: defs: ok: fetched `{}` of {defs_source} at {}; {} into {} ({skipped} file(s) not in the manifest skipped)",
+                defs.path_prefix,
+                defs.commit,
+                defs_summary(&verified, total),
+                defs_dir.display()
+            );
+        }
+    }
+    check_logger(defs)?;
+    Ok(ExitCode::SUCCESS)
+}
+
 fn main() -> Result<ExitCode> {
     match Cli::parse().cmd {
         Cmd::Fuzz { cmd } => fuzz_main(cmd),
@@ -830,6 +1301,57 @@ fn main() -> Result<ExitCode> {
             })
         }
         Cmd::GenSynthetic { check, dir } => gen_synthetic_main(check, dir),
+        Cmd::GenCorpusManifest {
+            check,
+            mirror,
+            defs_mirror,
+            manifest,
+        } => gen_corpus_manifest_main(check, mirror, defs_mirror, manifest),
+        Cmd::GenCorpusCoverage {
+            check,
+            dir,
+            manifest,
+            coverage,
+        } => gen_corpus_coverage_main(check, dir, manifest, coverage),
+        Cmd::FetchCorpus {
+            source,
+            defs_source,
+            logger_zip,
+            dir,
+            manifest,
+            verify_only,
+        } => fetch_corpus_main(
+            FetchSources {
+                roms: source,
+                defs: defs_source,
+                logger_zip,
+            },
+            dir,
+            manifest,
+            verify_only,
+        ),
+        Cmd::CheckReleaseArtifacts { dir } => {
+            let report = release_artifacts::check_dir(&dir)?;
+            for (name, entries) in &report.assets {
+                println!("check-release-artifacts: {name}: {entries} entries inspected");
+            }
+            if report.problems.is_empty() {
+                println!(
+                    "check-release-artifacts: ok ({} asset(s) in {}: no ROM images, no fixture data, nothing off the allow-list)",
+                    report.assets.len(),
+                    dir.display()
+                );
+                return Ok(ExitCode::SUCCESS);
+            }
+            for p in &report.problems {
+                eprintln!("check-release-artifacts: {p}");
+            }
+            eprintln!(
+                "check-release-artifacts: {} problem(s); nothing may be published",
+                report.problems.len()
+            );
+            Ok(ExitCode::FAILURE)
+        }
         Cmd::CoverageGate {
             lcov,
             base_lcov,

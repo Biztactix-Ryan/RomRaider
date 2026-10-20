@@ -9,19 +9,19 @@
 //! Every fixture file must first load with [`crate::kat::parse`] (schema,
 //! shape, unknown keys, hex, ...). On top of that, each violation below is
 //! reported with the file, the case (`[[decode]] #2 (offset 2)`,
-//! `` [[checksum]] #1 `after` ``, `[[changelog]] #1`; cases count from 1) and
-//! a rule code:
+//! `` [[checksum]] #1 `after` ``, `` [[expr]] #3 (`2+3*4`) ``,
+//! `[[changelog]] #1`; cases count from 1) and a rule code:
 //!
 //! | Rule | Rejected when |
 //! |------|---------------|
 //! | `load` | The file does not load as a schema-1 fixture. |
-//! | `missing-source` | An expected value (a `[[decode]]` case, or a `[[checksum]]` case's `before` / `after`) has no `source`. |
+//! | `missing-source` | An expected value (a `[[decode]]` or `[[expr]]` case, or a `[[checksum]]` case's `before` / `after`) has no `source`. |
 //! | `hand-calc-working` | A `hand-calc` source has no `working`, or its `working` breaks the rule below. |
 //! | `empty-source` | A `standard` source has an empty `doc` or `section`; a `stock-rom` an empty `rom`; a `car-trace` an empty `trace`. |
 //! | `cross-source` | A `cross-source` source cites fewer than two distinct, non-empty sources. |
 //! | `forbidden-source` | A source cites Java (the word `java`, any case): values taken from the Java application, or from the code under test, are not a source (D-024). |
 //! | `real-without-conversion` | A case has `real` but its inline `[definition]` has no `[definition.conversion]`. |
-//! | `tolerance` | `tolerance` is negative or not finite, or is given without `real`. |
+//! | `tolerance` | `tolerance` is negative or not finite, or is given without `real` (decode) or with a `value` that is not finite (expr). |
 //! | `offset-out-of-range` | With `hex` input: a decode cell (inline `encoding`, default layout) or a stored checksum does not fit inside the input. |
 //! | `checksum-width` | A checksum case's `before.hex` and `after.hex` differ in length. |
 //! | `changelog-reason` | A `[[changelog]]` entry has an empty `reason`. |
@@ -45,12 +45,15 @@
 //! 4. arrive at the value it justifies: for a `[[decode]]` case it must
 //!    contain the expected `raw` value and, when the case has one, the
 //!    expected `real` value (within the case's `tolerance`, else exactly up to
-//!    rounding of 1e-9 relative); for a checksum `before` / `after` it must
-//!    contain the stored checksum, either as an integer (bytes read big- or
-//!    little-endian) or as its bytes in hex (`00 0A`, `0x000A`);
+//!    rounding of 1e-9 relative); for an `[[expr]]` case, the expected
+//!    `value` the same way, or for a value that is not finite the word `NaN`
+//!    (any case) or `inf` / `infinity` (preceded by `-` for `-inf`); for a
+//!    checksum `before` / `after` it must contain the stored checksum, either
+//!    as an integer (bytes read big- or little-endian) or as its bytes in hex
+//!    (`00 0A`, `0x000A`);
 //! 5. show an intermediate value: at least one number that is not the
-//!    result (not the expected `raw` / `real`, or not the stored checksum read
-//!    big- or little-endian; `0x01F4` *is* 500).
+//!    result (not the expected `raw` / `real` / `value`, or not the stored
+//!    checksum read big- or little-endian; `0x01F4` *is* 500).
 //!
 //! So `"500"` (no equation), `"x = 500"` (one number),
 //! `"raw = 500, real = 50.0"` and `"0x01F4 = 500 = 50.0"` (no formula),
@@ -72,13 +75,16 @@
 //! * the `[input]` or the `[definition]` (the same answer to a different
 //!   question is a different expected value: new input bytes, a different
 //!   ROM reference or encoding);
-//! * a base `[[decode]]` case (its `offset`, `raw`, `real`, `tolerance`) or
+//! * a base `[[decode]]` case (its `offset`, `raw`, `real`, `tolerance`),
 //!   `[[checksum]]` case (`algorithm`, `params`, `offset`, `before` / `after`
-//!   `hex` and `valid`) has no identical case in the new version, i.e. it was
+//!   `hex` and `valid`) or `[[expr]]` case (`formula` or `formula_ref`, `x`,
+//!   `params`, `value`, `tolerance`, compared bit for bit so a `nan` matches
+//!   itself) has no
+//!   identical case in the new version, i.e. it was
 //!   changed or removed (a moved `offset` is a change, so swapping two
 //!   cases' offsets is caught). Cases are matched as a multiset, so adding
 //!   or reordering cases is not a change;
-//! * the fixture switched between decode and checksum cases.
+//! * the fixture switched between decode, checksum and expr cases.
 //!
 //! Sources, notes and titles may change freely. When expected values changed,
 //! the new version must **add** a `[[changelog]]` entry, else
@@ -105,8 +111,8 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use super::{
-    ChangelogEntry, ChecksumCase, ChecksumState, DecodeCase, Definition, HexBytes, Input, Kat,
-    KatKind, Layout, RawValue, Source, Storage,
+    ChangelogEntry, ChecksumCase, ChecksumState, DecodeCase, Definition, ExprCase, Formula,
+    HexBytes, Input, Kat, KatKind, Layout, RawValue, Source, Storage,
 };
 
 /// The rule a [`Violation`] breaks (see the module docs for each).
@@ -401,6 +407,10 @@ fn checksum_location(index: usize, state: &str) -> String {
     format!("[[checksum]] #{} `{state}`", index + 1)
 }
 
+fn expr_location(index: usize, formula: &dyn fmt::Display) -> String {
+    format!("[[expr]] #{} (`{formula}`)", index + 1)
+}
+
 // ---------------------------------------------------------------------------
 // Raw (pre-load) checks
 // ---------------------------------------------------------------------------
@@ -439,6 +449,19 @@ fn raw_source_checks(path: &Path, table: &toml::Table, out: &mut Vec<Violation>)
             }
         }
     }
+    for (index, case) in cases("expr").into_iter().enumerate() {
+        let reference = case
+            .get("formula_ref")
+            .and_then(|r| r.get("sha256"))
+            .and_then(toml::Value::as_str)
+            .map(|sha| format!("sha256:{}", sha.get(..12).unwrap_or(sha)));
+        let location = match (case.get("formula").and_then(toml::Value::as_str), reference) {
+            (Some(formula), _) => expr_location(index, &formula),
+            (None, Some(reference)) => expr_location(index, &reference),
+            (None, None) => format!("[[expr]] #{}", index + 1),
+        };
+        raw_source(path, &location, case.get("source"), out);
+    }
 }
 
 fn raw_source(path: &Path, location: &str, source: Option<&toml::Value>, out: &mut Vec<Violation>) {
@@ -475,12 +498,13 @@ fn raw_source(path: &Path, location: &str, source: Option<&toml::Value>, out: &m
 enum Expected<'a> {
     Decode(&'a DecodeCase),
     Checksum(&'a ChecksumState),
+    Expr(&'a ExprCase),
 }
 
 fn check_fixture(path: &Path, kat: &Kat, out: &mut Vec<Violation>) {
     let input = match &kat.input {
-        Input::Hex(bytes) => Some(bytes.as_bytes().len()),
-        Input::Rom(_) => None,
+        Some(Input::Hex(bytes)) => Some(bytes.as_bytes().len()),
+        Some(Input::Rom(_)) | None => None,
     };
     match &kat.kind {
         KatKind::Decode { definition, cases } => {
@@ -503,6 +527,13 @@ fn check_fixture(path: &Path, kat: &Kat, out: &mut Vec<Violation>) {
                     );
                 }
                 check_checksum_case(path, index, input, case, out);
+            }
+        }
+        KatKind::Expr { cases } => {
+            for (index, case) in cases.iter().enumerate() {
+                let location = expr_location(index, &case.formula);
+                check_source(path, &location, &case.source, &Expected::Expr(case), out);
+                check_expr_case(path, &location, case, out);
             }
         }
     }
@@ -576,6 +607,27 @@ fn check_decode_case(
                 case.offset
             ),
         );
+    }
+}
+
+fn check_expr_case(path: &Path, location: &str, case: &ExprCase, out: &mut Vec<Violation>) {
+    if let Some(tolerance) = case.tolerance {
+        let message = if !tolerance.is_finite() || tolerance < 0.0 {
+            format!("`tolerance` must be a finite, non-negative number, got {tolerance}")
+        } else if !case.value.is_finite() {
+            format!(
+                "`tolerance` applies to a finite `value`, but this case expects {}",
+                case.value
+            )
+        } else {
+            return;
+        };
+        out.push(Violation::new(
+            path,
+            Some(location),
+            Rule::Tolerance,
+            message,
+        ));
     }
 }
 
@@ -786,6 +838,19 @@ fn check_working(working: &str, expected: &Expected<'_>) -> Result<(), String> {
                 ));
             }
         }
+        Expected::Expr(case) => {
+            let found = if case.value.is_finite() {
+                mentions_float(&numbers, case.value, case.tolerance.unwrap_or(0.0))
+            } else {
+                mentions_non_finite(working, case.value)
+            };
+            if !found {
+                return Err(format!(
+                    "`hand-calc` working {working:?} does not arrive at the expected value {}",
+                    case.value
+                ));
+            }
+        }
     }
     if numbers.iter().all(|&n| is_result(n, expected)) {
         return Err(format!(
@@ -810,6 +875,10 @@ fn is_result(n: Num, expected: &Expected<'_>) -> bool {
             raw || case
                 .real
                 .is_some_and(|real| mentions_float(&one, real, case.tolerance.unwrap_or(0.0)))
+        }
+        Expected::Expr(case) => {
+            case.value.is_finite()
+                && mentions_float(&one, case.value, case.tolerance.unwrap_or(0.0))
         }
         Expected::Checksum(state) => {
             let bytes = state.hex.as_bytes();
@@ -923,6 +992,30 @@ fn mentions_float(numbers: &[Num], expected: f64, tolerance: f64) -> bool {
     numbers
         .iter()
         .any(|n| (n.as_f64() - expected).abs() <= slack)
+}
+
+/// Whether `working` names the non-finite `value`: the word `nan` (any case)
+/// for NaN; `inf` or `infinity` for an infinity, preceded by `-` exactly when
+/// it is negative.
+fn mentions_non_finite(working: &str, value: f64) -> bool {
+    let lower = working.to_lowercase();
+    let bytes = lower.as_bytes();
+    let words = |word: &'static str| {
+        lower.match_indices(word).filter_map(move |(at, _)| {
+            let before = at.checked_sub(1).map(|i| bytes[i]);
+            let after = bytes.get(at + word.len()).copied();
+            (!before.is_some_and(|b| b.is_ascii_alphanumeric())
+                && !after.is_some_and(|b| b.is_ascii_alphanumeric()))
+            .then_some(before)
+        })
+    };
+    if value.is_nan() {
+        return words("nan").next().is_some();
+    }
+    let negative = value < 0.0;
+    words("inf")
+        .chain(words("infinity"))
+        .any(|before| (before == Some(b'-')) == negative)
 }
 
 fn mentions_checksum(working: &str, numbers: &[Num], hex: &HexBytes) -> bool {
@@ -1053,6 +1146,24 @@ type ChecksumKey<'a> = (
     bool,
 );
 
+/// The expected-value part of an expr case, floats by their bits so that a
+/// `nan` case matches itself.
+type ExprKey<'a> = (&'a Formula, u64, Vec<(&'a str, u64)>, u64, Option<u64>);
+
+/// The [`ExprKey`] of `case`.
+fn expr_key(case: &ExprCase) -> ExprKey<'_> {
+    (
+        &case.formula,
+        case.x.to_bits(),
+        case.params
+            .iter()
+            .map(|(id, v)| (id.as_str(), v.to_bits()))
+            .collect(),
+        case.value.to_bits(),
+        case.tolerance.map(f64::to_bits),
+    )
+}
+
 fn checksum_key(case: &ChecksumCase) -> ChecksumKey<'_> {
     (
         &case.algorithm,
@@ -1146,8 +1257,22 @@ pub fn check_change(path: &Path, base_label: &str, base: &Kat, head: &Kat) -> Op
                 ));
             }
         }
-        _ => changes
-            .push("the fixture switched between [[decode]] and [[checksum]] cases".to_owned()),
+        (KatKind::Expr { cases: base_cases }, KatKind::Expr { cases: head_cases }) => {
+            let base_keys: Vec<_> = base_cases.iter().map(expr_key).collect();
+            let head_keys: Vec<_> = head_cases.iter().map(expr_key).collect();
+            for index in unmatched(&base_keys, &head_keys) {
+                let case = &base_cases[index];
+                changes.push(format!(
+                    "{} (x = {}, value = {}) was changed or removed",
+                    expr_location(index, &case.formula),
+                    case.x,
+                    case.value
+                ));
+            }
+        }
+        _ => changes.push(
+            "the fixture switched between [[decode]], [[checksum]] and [[expr]] cases".to_owned(),
+        ),
     }
     if changes.is_empty() {
         return None;

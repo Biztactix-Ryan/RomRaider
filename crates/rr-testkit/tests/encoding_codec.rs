@@ -119,7 +119,7 @@ fn seed_cases() -> Vec<SeedCase> {
         let Definition::Inline { encoding, .. } = definition else {
             panic!("{name}: seed decode fixtures use an inline encoding; this test cannot run it");
         };
-        let Input::Hex(hex) = fixture.data.input else {
+        let Some(Input::Hex(hex)) = fixture.data.input else {
             panic!("{name}: seed decode fixtures use hex input; this test cannot run it");
         };
         assert_eq!(

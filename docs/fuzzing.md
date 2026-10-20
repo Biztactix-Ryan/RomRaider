@@ -22,6 +22,14 @@ fuzz/                        cargo-fuzz crate `rr-fuzz` (its own workspace, nigh
   artifacts/<name>/          crash / timeout / oom inputs libFuzzer saved: git-ignored
 ```
 
+Targets (`cargo xtask fuzz list`):
+
+| Target   | Under test | Input | Seeds |
+|----------|------------|-------|-------|
+| `ecu_id` | `rr_core::capability` ECU ids and address ranges (the template) | raw bytes | hand-picked |
+| `expr`   | `rr_core::expr`: parse within default, tightened and raised `Limits`, print back, evaluate through `eval` and `eval_with` (US-RR-20-9) | formula text, then optionally `NUL`, a limit-scale byte and little-endian `f64`s for `x` and the parameters (`fuzz/src/expr_target.rs`) | every formula of `fixtures/kat/expr-*.toml` (`kat-*`, kept in sync by `xtask/tests/fuzz.rs`) plus formulas at each parser limit (`*-at-limit`); `regressions/expr/` holds inputs just over each limit |
+| `toy`    | nothing: planted bugs for `cargo xtask fuzz selftest` | length-prefixed records | hand-picked |
+
 `fuzz/` is **not** part of the root workspace (root `Cargo.toml` has
 `exclude = ["fuzz"]`, and `fuzz/Cargo.toml` declares its own `[workspace]` and
 `Cargo.lock`). Stable `cargo build/clippy/nextest --workspace` never builds it,

@@ -16,10 +16,13 @@
 //!   fails when any needed job failed, was cancelled or was skipped.
 //!
 //! "Release-blocking" here means: `t6` is part of `ci-ok`, the single
-//! required status check (ci.yml header). `release.yml` does not exist yet;
-//! when it is written it must `needs:` `t6` or gate on `ci-ok` for the tagged
-//! commit (ci.yml comment on the `t6` job), and this file should then grow a
-//! matching assertion.
+//! required status check (ci.yml header), and nothing is released without it:
+//! `release.yml` runs ci.yml as its job `ci` (`uses:
+//! ./.github/workflows/ci.yml`, ci.yml `on: workflow_call`), and every other
+//! release job except `plan` needs `ci`, directly or through another job
+//! ([`release_problems`], US-RR-38-5). Within the job that publishes, the
+//! release artifact content check (`check-release-artifacts`, US-RR-38-8) is
+//! the last gate: every step that runs `gh release` comes after it.
 //!
 //! ci.yml is read with the std-only [`Workflow`] reader shared with the other
 //! ci-config guards (`common/workflow.rs`). Anything it cannot find is
@@ -289,5 +292,189 @@ fn t6_ci_needs_reader_handles_block_and_scalar_lists() {
     assert_eq!(
         Workflow::parse(multiline).job(GATE_JOB).map(Job::needs),
         Some(vec!["fmt".to_owned(), "t6".to_owned()])
+    );
+}
+
+// --- Nothing is released without the gate (release.yml, US-RR-38-5) ---------
+
+/// The release.yml job that runs the whole of ci.yml.
+const RELEASE_CI_JOB: &str = "ci";
+
+/// Release jobs allowed to run before the gate: deciding what to build only.
+/// They build and publish nothing.
+const PRE_GATE_JOBS: &[&str] = &["plan"];
+
+/// Whether `from` needs `target` in `wf`, directly or through other jobs.
+fn needs_transitively(wf: &Workflow<'_>, from: &str, target: &str) -> bool {
+    let mut seen: Vec<String> = Vec::new();
+    let mut todo = vec![from.to_owned()];
+    while let Some(id) = todo.pop() {
+        let Some(job) = wf.job(&id) else { continue };
+        for need in job.needs() {
+            if need == target {
+                return true;
+            }
+            if !seen.contains(&need) {
+                seen.push(need.clone());
+                todo.push(need);
+            }
+        }
+    }
+    false
+}
+
+/// Every way `release` (release.yml) with `ci` (ci.yml) lets a release job
+/// build or publish without the full ci.yml gate (`t6` and `ci-ok`
+/// included) having passed on the commit; empty when it cannot.
+fn release_problems(release: &str, ci: &str) -> Vec<String> {
+    let mut problems = Vec::new();
+    if key_at_any(Workflow::parse(ci).on_block(), "workflow_call").is_none() {
+        problems
+            .push("ci.yml has no `workflow_call` trigger, so release.yml cannot run it".to_owned());
+    }
+    let wf = Workflow::parse(release);
+    match wf.job(RELEASE_CI_JOB) {
+        None => problems.push(format!("release.yml has no `{RELEASE_CI_JOB}` job")),
+        Some(job) => {
+            if job.value_at("uses", 4).as_deref() != Some("./.github/workflows/ci.yml") {
+                problems.push(format!(
+                    "release.yml `{RELEASE_CI_JOB}` does not `uses: ./.github/workflows/ci.yml`"
+                ));
+            }
+        }
+    }
+    let gated: Vec<&Job<'_>> = wf
+        .jobs
+        .iter()
+        .filter(|j| j.id != RELEASE_CI_JOB && !PRE_GATE_JOBS.contains(&j.id))
+        .collect();
+    if gated.is_empty() {
+        problems.push("release.yml has no build or publish jobs".to_owned());
+    }
+    for job in gated {
+        let id = job.id;
+        if !needs_transitively(&wf, id, RELEASE_CI_JOB) {
+            problems.push(format!(
+                "release.yml job `{id}` does not need `{RELEASE_CI_JOB}`, so it can run without the CI gate"
+            ));
+        }
+        // US-RR-38-8: nothing is published before the content check.
+        let steps = job.steps();
+        let check = steps.iter().position(|st| {
+            st.run_scripts()
+                .iter()
+                .any(|s| s.contains("check-release-artifacts"))
+        });
+        for (i, st) in steps.iter().enumerate() {
+            let publishes = st.run_scripts().iter().any(|s| s.contains("gh release"));
+            if publishes && check.is_none_or(|c| c > i) {
+                problems.push(format!(
+                    "release.yml job `{id}` step `{}` runs `gh release` before (or without) the release artifact content check",
+                    st.id
+                ));
+            }
+        }
+        for line in job.lines.iter().filter(|l| indent(l) == 4) {
+            let l = line.trim();
+            // A job-level always()/failure()/cancelled() condition runs the
+            // job even when `ci` failed.
+            if l.starts_with("if:")
+                && ["always()", "failure()", "cancelled()"]
+                    .iter()
+                    .any(|f| l.contains(f))
+            {
+                problems.push(format!(
+                    "release.yml job `{id}` runs past a failed gate (`{l}`)"
+                ));
+            }
+            if l.starts_with("continue-on-error") {
+                problems.push(format!("release.yml job `{id}` uses `{l}`"));
+            }
+        }
+    }
+    problems
+}
+
+/// US-RR-7-4 / US-RR-38-5: every release.yml build and publish job needs the
+/// job that runs ci.yml.
+#[test]
+fn t6_release_needs_the_ci_gate() {
+    let problems = release_problems(&workflow::workflow_yml("release.yml"), &ci_yml());
+    assert!(
+        problems.is_empty(),
+        ".github/workflows/release.yml can release without the T6 gate:\n{}",
+        problems.join("\n")
+    );
+}
+
+/// Each release-gating assertion bites on a mutated copy of the real files.
+#[test]
+fn t6_release_check_rejects_ungated_jobs() {
+    let release = workflow::workflow_yml("release.yml");
+    let ci = ci_yml();
+    let on_release = |from: &str, to: &str| {
+        let changed = release.replacen(from, to, 1);
+        assert_ne!(changed, release, "mutation {from:?} did not apply");
+        release_problems(&changed, &ci)
+    };
+    assert_flags(
+        &release_problems(&release, &ci.replacen("  workflow_call:\n", "", 1)),
+        "no `workflow_call` trigger",
+    );
+    // build-cli loses `ci`: it, and publish through it, are ungated.
+    let p = on_release("    needs: [plan, ci]\n", "    needs: [plan]\n");
+    assert_flags(&p, "job `build-cli` does not need `ci`");
+    assert_flags(&p, "job `publish` does not need `ci`");
+    // build-appimage loses build-cli and so the gate (publish keeps it
+    // through build-cli).
+    assert_flags(
+        &on_release("    needs: [plan, build-cli]\n", "    needs: [plan]\n"),
+        "job `build-appimage` does not need `ci`",
+    );
+    // So does build-deb (US-RR-38-7).
+    assert_flags(
+        &on_release(
+            "    needs: [plan, build-cli]\n    runs-on: ubuntu-22.04\n    timeout-minutes: 20\n",
+            "    needs: [plan]\n    runs-on: ubuntu-22.04\n    timeout-minutes: 20\n",
+        ),
+        "job `build-deb` does not need `ci`",
+    );
+    assert_flags(
+        &on_release(
+            "uses: ./.github/workflows/ci.yml",
+            "uses: ./.github/workflows/fuzz.yml",
+        ),
+        "does not `uses: ./.github/workflows/ci.yml`",
+    );
+    assert_flags(&on_release("\n  ci:\n", "\n  gate:\n"), "has no `ci` job");
+    assert_flags(
+        &on_release(
+            "    needs: [plan, build-cli, build-appimage, test-appimage, build-deb, test-deb]\n",
+            "    needs: [plan, build-cli, build-appimage, test-appimage, build-deb, test-deb]\n    if: always()\n",
+        ),
+        "job `publish` runs past a failed gate",
+    );
+    assert_flags(
+        &on_release(
+            "    needs: [plan, build-cli, build-appimage, test-appimage, build-deb, test-deb]\n",
+            "    needs: [plan, build-cli, build-appimage, test-appimage, build-deb, test-deb]\n    continue-on-error: true\n",
+        ),
+        "job `publish` uses `continue-on-error",
+    );
+    // The content check removed from `publish` (US-RR-38-8).
+    assert_flags(
+        &on_release(
+            "        run: cargo run --locked --package xtask -- check-release-artifacts assets\n",
+            "        run: ls assets\n",
+        ),
+        "step `Publish GitHub Release` runs `gh release` before (or without) the release artifact content check",
+    );
+    // A new artifact job (.deb, ...) added without the gate.
+    assert_flags(
+        &on_release(
+            "\n  publish:\n",
+            "\n  deb:\n    needs: [plan]\n    runs-on: ubuntu-22.04\n\n  publish:\n",
+        ),
+        "job `deb` does not need `ci`",
     );
 }
