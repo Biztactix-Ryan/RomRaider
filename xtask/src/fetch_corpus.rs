@@ -922,6 +922,22 @@ fn run(mut cmd: Command, what: &str) -> Result<Vec<u8>> {
     Ok(out.stdout)
 }
 
+/// A [`resolve`]d local path as git takes it for a repository. On Windows
+/// the path is canonical, so verbatim (`\\?\C:\...`), which git reads as a
+/// UNC path to host `?`; the plain form names the same directory.
+fn git_path(path: PathBuf) -> OsString {
+    #[cfg(windows)]
+    if let Some(s) = path.to_str() {
+        if let Some(unc) = s.strip_prefix(r"\\?\UNC\") {
+            return format!(r"\\{unc}").into();
+        }
+        if let Some(disk) = s.strip_prefix(r"\\?\") {
+            return disk.into();
+        }
+    }
+    path.into_os_string()
+}
+
 /// One blob in a git tree.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct TreeBlob {
@@ -966,7 +982,7 @@ fn extract(
     // A local path is resolved here: git runs with another directory as its
     // repository, and the source may be relative to ours.
     let source_arg: OsString = if Path::new(source).exists() {
-        resolve(Path::new(source))?.into_os_string()
+        git_path(resolve(Path::new(source))?)
     } else {
         source.into()
     };

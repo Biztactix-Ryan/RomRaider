@@ -571,12 +571,19 @@ fn failures_shrink_to_small_cases() {
         Ok(())
     });
     let stack = stack.map(|s| s.layers().map(|(_, t)| Table::clone(t)).collect::<Vec<_>>());
+    // One layer setting only a signed storage. Which signed storage it
+    // shrinks to depends on the target's pointer width (I8 on 64-bit, U20
+    // on i686), so only signedness is pinned.
+    let [table] = stack.as_deref().unwrap_or_default() else {
+        panic!("not shrunk to one layer: {stack:?}");
+    };
+    assert!(signed(table), "{table:?}");
     assert_eq!(
-        stack,
-        Some(vec![Table {
-            storage: Field::Set(Storage::I8),
-            ..Table::default()
-        }])
+        Table {
+            storage: Field::Unset,
+            ..table.clone()
+        },
+        Table::default()
     );
 
     // A cyclic family shrinks to two documents naming each other.
