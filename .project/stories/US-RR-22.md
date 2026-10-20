@@ -16,7 +16,7 @@ epic_id: EPIC-RR-3
 id: US-RR-22
 points: 8
 priority: must
-status: active
+status: done
 tags:
 - m0
 - core

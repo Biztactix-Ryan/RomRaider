@@ -17,15 +17,15 @@
 | [US-RR-10-6](tasks/US-RR-10-6.md) | Implement synthetic ROM generator with value plans | ✅ done | 5 |  | claude | US-RR-10-5 | [US-RR-10](stories/US-RR-10.md) |
 | [US-RR-10-7](tasks/US-RR-10-7.md) | Add xtask gen-synthetic with cross-platform hash check | ✅ done | 2 |  | claude | US-RR-10-6 | [US-RR-10](stories/US-RR-10.md) |
 | [US-RR-10-8](tasks/US-RR-10-8.md) | Add isolation rule for the reference codec | ✅ done | 1 |  | claude | — | [US-RR-10](stories/US-RR-10.md) |
-| [US-RR-11-1](tasks/US-RR-11-1.md) | Test: fetch-corpus verifies all 501 files against the committed manifest and fails loudly on any hash or size mismatch | ⚪ todo | 1 |  | — | US-RR-11-5, US-RR-11-6 | [US-RR-11](stories/US-RR-11.md) |
-| [US-RR-11-2](tasks/US-RR-11-2.md) | Test: Images with non-power-of-two or non-standard sizes are marked suspect in the manifest with a reason, and tests ... | ⚪ todo | 1 |  | — | US-RR-11-7 | [US-RR-11](stories/US-RR-11.md) |
-| [US-RR-11-3](tasks/US-RR-11-3.md) | Test: No ROM bytes are ever written inside the repository working tree (test asserts RR_CORPUS_DIR is outside the repo) | ⚪ todo | 1 |  | — | US-RR-11-9 | [US-RR-11](stories/US-RR-11.md) |
-| [US-RR-11-4](tasks/US-RR-11-4.md) | Test: CI caches the corpus keyed by manifest hash and a cold fetch completes within the CI time budget | ⚪ todo | 2 |  | — | US-RR-11-8 | [US-RR-11](stories/US-RR-11.md) |
-| [US-RR-11-5](tasks/US-RR-11-5.md) | Implement xtask fetch-corpus | ⚪ todo | 3 |  | — | — | [US-RR-11](stories/US-RR-11.md) |
-| [US-RR-11-6](tasks/US-RR-11-6.md) | Generate corpus-manifest.toml from the local mirror | ⚪ todo | 2 |  | — | — | [US-RR-11](stories/US-RR-11.md) |
-| [US-RR-11-7](tasks/US-RR-11-7.md) | Implement suspect-image classification | ⚪ todo | 2 |  | — | US-RR-11-6 | [US-RR-11](stories/US-RR-11.md) |
-| [US-RR-11-8](tasks/US-RR-11-8.md) | Add CI corpus cache keyed by manifest hash | ⚪ todo | 1 |  | — | US-RR-11-5 | [US-RR-11](stories/US-RR-11.md) |
-| [US-RR-11-9](tasks/US-RR-11-9.md) | Enforce RR_CORPUS_DIR outside the repo | ⚪ todo | 1 |  | — | US-RR-11-5 | [US-RR-11](stories/US-RR-11.md) |
+| [US-RR-11-1](tasks/US-RR-11-1.md) | Test: fetch-corpus verifies all 501 files against the committed manifest and fails loudly on any hash or size mismatch | ✅ done | 1 |  | claude | US-RR-11-5, US-RR-11-6 | [US-RR-11](stories/US-RR-11.md) |
+| [US-RR-11-2](tasks/US-RR-11-2.md) | Test: Images with non-power-of-two or non-standard sizes are marked suspect in the manifest with a reason, and tests ... | ✅ done | 1 |  | claude | US-RR-11-7 | [US-RR-11](stories/US-RR-11.md) |
+| [US-RR-11-3](tasks/US-RR-11-3.md) | Test: No ROM bytes are ever written inside the repository working tree (test asserts RR_CORPUS_DIR is outside the repo) | ✅ done | 1 |  | claude | US-RR-11-9 | [US-RR-11](stories/US-RR-11.md) |
+| [US-RR-11-4](tasks/US-RR-11-4.md) | Test: CI caches the corpus keyed by manifest hash and a cold fetch completes within the CI time budget | ✅ done | 2 |  | claude | US-RR-11-8 | [US-RR-11](stories/US-RR-11.md) |
+| [US-RR-11-5](tasks/US-RR-11-5.md) | Implement xtask fetch-corpus | ✅ done | 3 |  | claude | — | [US-RR-11](stories/US-RR-11.md) |
+| [US-RR-11-6](tasks/US-RR-11-6.md) | Generate corpus-manifest.toml from the local mirror | ✅ done | 2 |  | claude | — | [US-RR-11](stories/US-RR-11.md) |
+| [US-RR-11-7](tasks/US-RR-11-7.md) | Implement suspect-image classification | ✅ done | 2 |  | claude | US-RR-11-6 | [US-RR-11](stories/US-RR-11.md) |
+| [US-RR-11-8](tasks/US-RR-11-8.md) | Add CI corpus cache keyed by manifest hash | ✅ done | 1 |  | claude | US-RR-11-5 | [US-RR-11](stories/US-RR-11.md) |
+| [US-RR-11-9](tasks/US-RR-11-9.md) | Enforce RR_CORPUS_DIR outside the repo | ✅ done | 1 |  | claude | US-RR-11-5 | [US-RR-11](stories/US-RR-11.md) |
 | [US-RR-12-1](tasks/US-RR-12-1.md) | Test: Every area listed has a docs/legacy page with legacy/ file:line references for each described behaviour | ⚪ todo | — |  | — | US-RR-12-5, US-RR-12-6, US-RR-12-7, US-RR-12-8, US-RR-12-9 | [US-RR-12](stories/US-RR-12.md) |
 | [US-RR-12-2](tasks/US-RR-12-2.md) | Test: Each page ends with a fixtures-to-write list, and each listed fixture becomes a tracked task or KAT file | ⚪ todo | — |  | — | US-RR-12-5, US-RR-12-6, US-RR-12-7, US-RR-12-8, US-RR-12-9 | [US-RR-12](stories/US-RR-12.md) |
 | [US-RR-12-3](tasks/US-RR-12-3.md) | Test: Behaviours that are bugs are cross-referenced to an MF ledger entry rather than described as intended | ⚪ todo | — |  | — | US-RR-12-5, US-RR-12-6, US-RR-12-7, US-RR-12-8, US-RR-12-9 | [US-RR-12](stories/US-RR-12.md) |
@@ -55,12 +55,12 @@
 | [US-RR-15-3](tasks/US-RR-15-3.md) | Test: Unmatched tables in either source are reported, not silently skipped | ⚪ todo | — |  | — | US-RR-15-5 | [US-RR-15](stories/US-RR-15.md) |
 | [US-RR-15-4](tasks/US-RR-15-4.md) | Implement cross-source agreement harness | ⚪ todo | 3 |  | — | — | [US-RR-15](stories/US-RR-15.md) |
 | [US-RR-15-5](tasks/US-RR-15-5.md) | Report unmatched tables and per-cell diffs | ⚪ todo | 2 |  | — | US-RR-15-4 | [US-RR-15](stories/US-RR-15.md) |
-| [US-RR-16-1](tasks/US-RR-16-1.md) | Test: The definition source, its licence and the pinned version are recorded in DECISIONS.md and the manifest | ⚪ todo | 1 |  | — | US-RR-16-4 | [US-RR-16](stories/US-RR-16.md) |
-| [US-RR-16-2](tasks/US-RR-16-2.md) | Test: fetch-corpus fetches and hash-verifies the definitions alongside the ROMs, and a local mirror exists | ⚪ todo | 1 |  | — | US-RR-16-5 | [US-RR-16](stories/US-RR-16.md) |
-| [US-RR-16-3](tasks/US-RR-16-3.md) | Test: A coverage report lists every corpus ROM ID with its matching definition or 'no definition', committed as a fix... | ⚪ todo | 1 |  | — | US-RR-16-6 | [US-RR-16](stories/US-RR-16.md) |
-| [US-RR-16-4](tasks/US-RR-16-4.md) | Identify and select the authoritative RomRaider definition source | ⚪ todo | 2 |  | — | — | [US-RR-16](stories/US-RR-16.md) |
-| [US-RR-16-5](tasks/US-RR-16-5.md) | Mirror and pin definitions; extend fetch-corpus and manifest | ⚪ todo | 2 |  | — | US-RR-16-4, US-RR-11-5 | [US-RR-16](stories/US-RR-16.md) |
-| [US-RR-16-6](tasks/US-RR-16-6.md) | Generate ROM-ID coverage report | ⚪ todo | 3 |  | — | US-RR-16-5, US-RR-11-6 | [US-RR-16](stories/US-RR-16.md) |
+| [US-RR-16-1](tasks/US-RR-16-1.md) | Test: The definition source, its licence and the pinned version are recorded in DECISIONS.md and the manifest | ✅ done | 1 |  | claude | US-RR-16-4 | [US-RR-16](stories/US-RR-16.md) |
+| [US-RR-16-2](tasks/US-RR-16-2.md) | Test: fetch-corpus fetches and hash-verifies the definitions alongside the ROMs, and a local mirror exists | ✅ done | 1 |  | claude | US-RR-16-5 | [US-RR-16](stories/US-RR-16.md) |
+| [US-RR-16-3](tasks/US-RR-16-3.md) | Test: A coverage report lists every corpus ROM ID with its matching definition or 'no definition', committed as a fix... | ✅ done | 1 |  | claude | US-RR-16-6 | [US-RR-16](stories/US-RR-16.md) |
+| [US-RR-16-4](tasks/US-RR-16-4.md) | Identify and select the authoritative RomRaider definition source | ✅ done | 2 |  | claude | — | [US-RR-16](stories/US-RR-16.md) |
+| [US-RR-16-5](tasks/US-RR-16-5.md) | Mirror and pin definitions; extend fetch-corpus and manifest | ✅ done | 2 |  | claude | US-RR-16-4, US-RR-11-5 | [US-RR-16](stories/US-RR-16.md) |
+| [US-RR-16-6](tasks/US-RR-16-6.md) | Generate ROM-ID coverage report | ✅ done | 3 |  | claude | US-RR-16-5, US-RR-11-6 | [US-RR-16](stories/US-RR-16.md) |
 | [US-RR-17-1](tasks/US-RR-17-1.md) | Test: Diagnostic codes are unique and stable - a test fails if a code is reused or removed without a deprecation entry | ✅ done | 1 |  | claude | US-RR-17-6 | [US-RR-17](stories/US-RR-17.md) |
 | [US-RR-17-2](tasks/US-RR-17-2.md) | Test: Provenance renders as file:line:col for text sources and as an offset for binary sources, with snapshot tests | ✅ done | 1 |  | claude | US-RR-17-4 | [US-RR-17](stories/US-RR-17.md) |
 | [US-RR-17-3](tasks/US-RR-17-3.md) | Test: Severity Error diagnostics make the owning load fail closed (the caller cannot get a usable T without explicitl... | ✅ done | 1 |  | claude | US-RR-17-5 | [US-RR-17](stories/US-RR-17.md) |
@@ -94,33 +94,33 @@
 | [US-RR-2-6](tasks/US-RR-2-6.md) | Add cargo-deny configuration | ✅ done | 2 |  | claude | US-RR-1-5 | [US-RR-2](stories/US-RR-2.md) |
 | [US-RR-2-7](tasks/US-RR-2-7.md) | Add insta pending-snapshot check and i686 target setup | ✅ done | 2 |  | claude | US-RR-2-5 | [US-RR-2](stories/US-RR-2.md) |
 | [US-RR-2-8](tasks/US-RR-2-8.md) | Enable branch protection requiring CI checks | ✅ done | 1 |  | — | US-RR-2-5 | [US-RR-2](stories/US-RR-2.md) |
-| [US-RR-20-1](tasks/US-RR-20-1.md) | Test: Every distinct formula in the pinned ECU and logger definition corpora parses, and a sample of at least 50 has ... | ⚪ todo | 2 |  | — | US-RR-20-10 | [US-RR-20](stories/US-RR-20.md) |
-| [US-RR-20-10](tasks/US-RR-20-10.md) | Harvest corpus formulas into a KAT set | ⚪ todo | 3 |  | — | US-RR-20-7, US-RR-16-5 | [US-RR-20](stories/US-RR-20.md) |
-| [US-RR-20-2](tasks/US-RR-20-2.md) | Test: JEP operator precedence and ^ semantics match documented JEP behaviour via KAT fixtures citing the JEP document... | ⚪ todo | 1 |  | — | US-RR-20-7 | [US-RR-20](stories/US-RR-20.md) |
-| [US-RR-20-3](tasks/US-RR-20-3.md) | Test: The expr fuzz target runs nightly with no panics, hangs or unbounded allocation; depth and size limits produce ... | ⚪ todo | 2 |  | — | US-RR-20-8, US-RR-20-9 | [US-RR-20](stories/US-RR-20.md) |
-| [US-RR-20-4](tasks/US-RR-20-4.md) | Test: Evaluation of a parsed AST performs no allocation and no locking (benchmark + test), fixing the global synchron... | ⚪ todo | 2 |  | — | US-RR-20-7 | [US-RR-20](stories/US-RR-20.md) |
-| [US-RR-20-5](tasks/US-RR-20-5.md) | Test: cargo-mutants reports zero surviving mutants in the evaluator | ⚪ todo | 2 |  | — | US-RR-20-7 | [US-RR-20](stories/US-RR-20.md) |
-| [US-RR-20-6](tasks/US-RR-20-6.md) | Implement expression lexer and Pratt parser | ⚪ todo | 5 |  | — | — | [US-RR-20](stories/US-RR-20.md) |
-| [US-RR-20-7](tasks/US-RR-20-7.md) | Implement AST evaluator with standard functions | ⚪ todo | 3 |  | — | US-RR-20-6 | [US-RR-20](stories/US-RR-20.md) |
-| [US-RR-20-8](tasks/US-RR-20-8.md) | Enforce parser limits with diagnostics | ⚪ todo | 2 |  | — | US-RR-20-6 | [US-RR-20](stories/US-RR-20.md) |
-| [US-RR-20-9](tasks/US-RR-20-9.md) | Add expr fuzz target | ⚪ todo | 1 |  | — | US-RR-20-6 | [US-RR-20](stories/US-RR-20.md) |
+| [US-RR-20-1](tasks/US-RR-20-1.md) | Test: Every distinct formula in the pinned ECU and logger definition corpora parses, and a sample of at least 50 has ... | ✅ done | 2 |  | claude | US-RR-20-10 | [US-RR-20](stories/US-RR-20.md) |
+| [US-RR-20-10](tasks/US-RR-20-10.md) | Harvest corpus formulas into a KAT set | ✅ done | 3 |  | claude | US-RR-20-7, US-RR-16-5 | [US-RR-20](stories/US-RR-20.md) |
+| [US-RR-20-2](tasks/US-RR-20-2.md) | Test: JEP operator precedence and ^ semantics match documented JEP behaviour via KAT fixtures citing the JEP document... | ✅ done | 1 |  | claude | US-RR-20-7 | [US-RR-20](stories/US-RR-20.md) |
+| [US-RR-20-3](tasks/US-RR-20-3.md) | Test: The expr fuzz target runs nightly with no panics, hangs or unbounded allocation; depth and size limits produce ... | ✅ done | 2 |  | claude | US-RR-20-8, US-RR-20-9 | [US-RR-20](stories/US-RR-20.md) |
+| [US-RR-20-4](tasks/US-RR-20-4.md) | Test: Evaluation of a parsed AST performs no allocation and no locking (benchmark + test), fixing the global synchron... | ✅ done | 2 |  | claude | US-RR-20-7 | [US-RR-20](stories/US-RR-20.md) |
+| [US-RR-20-5](tasks/US-RR-20-5.md) | Test: cargo-mutants reports zero surviving mutants in the evaluator | ✅ done | 2 |  | claude | US-RR-20-7 | [US-RR-20](stories/US-RR-20.md) |
+| [US-RR-20-6](tasks/US-RR-20-6.md) | Implement expression lexer and Pratt parser | ✅ done | 5 |  | claude | — | [US-RR-20](stories/US-RR-20.md) |
+| [US-RR-20-7](tasks/US-RR-20-7.md) | Implement AST evaluator with standard functions | ✅ done | 3 |  | claude | US-RR-20-6 | [US-RR-20](stories/US-RR-20.md) |
+| [US-RR-20-8](tasks/US-RR-20-8.md) | Enforce parser limits with diagnostics | ✅ done | 2 |  | claude | US-RR-20-6 | [US-RR-20](stories/US-RR-20.md) |
+| [US-RR-20-9](tasks/US-RR-20-9.md) | Add expr fuzz target | ✅ done | 1 |  | claude | US-RR-20-6 | [US-RR-20](stories/US-RR-20.md) |
 | [US-RR-21-1](tasks/US-RR-21-1.md) | Test: Every conversion factor has a KAT fixture citing an SI/NIST or equivalent reference (e.g. km per mile = 1.60934... | ⚪ todo | — |  | — | US-RR-21-4 | [US-RR-21](stories/US-RR-21.md) |
 | [US-RR-21-2](tasks/US-RR-21-2.md) | Test: Property test: converting A->B->A round-trips within floating tolerance for every unit pair in the same dimension | ⚪ todo | — |  | — | US-RR-21-4 | [US-RR-21](stories/US-RR-21.md) |
 | [US-RR-21-3](tasks/US-RR-21-3.md) | Test: Every unit string appearing in the pinned logger and ECU definition corpora resolves to a registry unit or prod... | ⚪ todo | — |  | — | US-RR-21-5 | [US-RR-21](stories/US-RR-21.md) |
 | [US-RR-21-4](tasks/US-RR-21-4.md) | Implement unit registry and conversions | ⚪ todo | 3 |  | — | — | [US-RR-21](stories/US-RR-21.md) |
 | [US-RR-21-5](tasks/US-RR-21-5.md) | Map legacy unit strings and AFR/lambda fuel conversions | ⚪ todo | 2 |  | — | US-RR-21-4 | [US-RR-21](stories/US-RR-21.md) |
-| [US-RR-22-1](tasks/US-RR-22-1.md) | Test: Property tests: resolution is deterministic and idempotent; overriding a field in a child always wins over the ... | ⚪ todo | 1 |  | — | US-RR-22-8, US-RR-22-12 | [US-RR-22](stories/US-RR-22.md) |
-| [US-RR-22-10](tasks/US-RR-22-10.md) | Scoped namespaces | ⚪ todo | 2 |  | — | US-RR-22-8 | [US-RR-22](stories/US-RR-22.md) |
-| [US-RR-22-11](tasks/US-RR-22-11.md) | Per-field provenance and explain() | ⚪ todo | 3 |  | — | US-RR-22-8 | [US-RR-22](stories/US-RR-22.md) |
-| [US-RR-22-12](tasks/US-RR-22-12.md) | Add layer-stack proptest strategies | ⚪ todo | 2 |  | — | US-RR-22-7 | [US-RR-22](stories/US-RR-22.md) |
-| [US-RR-22-2](tasks/US-RR-22-2.md) | Test: Omitting one item in the middle of a list removes only that item and keeps all later items (MF-07) | ⚪ todo | 1 |  | — | US-RR-22-8 | [US-RR-22](stories/US-RR-22.md) |
-| [US-RR-22-3](tasks/US-RR-22-3.md) | Test: A cycle across files produces an Error diagnostic naming the full cycle path - never a stack overflow (MF-17); ... | ⚪ todo | 1 |  | — | US-RR-22-9 | [US-RR-22](stories/US-RR-22.md) |
-| [US-RR-22-4](tasks/US-RR-22-4.md) | Test: A name defined in a local scope is not visible as a global base (MF-16) | ⚪ todo | 1 |  | — | US-RR-22-10 | [US-RR-22](stories/US-RR-22.md) |
-| [US-RR-22-5](tasks/US-RR-22-5.md) | Test: explain(field) reports the winning layer and the overridden values with provenance | ⚪ todo | 1 |  | — | US-RR-22-11 | [US-RR-22](stories/US-RR-22.md) |
-| [US-RR-22-6](tasks/US-RR-22-6.md) | Test: cargo-mutants reports zero surviving mutants in the resolver | ⚪ todo | 2 |  | — | US-RR-22-8, US-RR-22-9, US-RR-22-10, US-RR-22-11 | [US-RR-22](stories/US-RR-22.md) |
-| [US-RR-22-7](tasks/US-RR-22-7.md) | Define Layered<T>, layer metadata and merge semantics | ⚪ todo | 3 |  | — | — | [US-RR-22](stories/US-RR-22.md) |
-| [US-RR-22-8](tasks/US-RR-22-8.md) | Implement resolver: base chains, override, append, omit | ⚪ todo | 5 |  | — | US-RR-22-7 | [US-RR-22](stories/US-RR-22.md) |
-| [US-RR-22-9](tasks/US-RR-22-9.md) | Cross-file references and cycle detection | ⚪ todo | 3 |  | — | US-RR-22-8 | [US-RR-22](stories/US-RR-22.md) |
+| [US-RR-22-1](tasks/US-RR-22-1.md) | Test: Property tests: resolution is deterministic and idempotent; overriding a field in a child always wins over the ... | ✅ done | 1 |  | claude | US-RR-22-8, US-RR-22-12 | [US-RR-22](stories/US-RR-22.md) |
+| [US-RR-22-10](tasks/US-RR-22-10.md) | Scoped namespaces | ✅ done | 2 |  | claude | US-RR-22-8 | [US-RR-22](stories/US-RR-22.md) |
+| [US-RR-22-11](tasks/US-RR-22-11.md) | Per-field provenance and explain() | ✅ done | 3 |  | claude | US-RR-22-8 | [US-RR-22](stories/US-RR-22.md) |
+| [US-RR-22-12](tasks/US-RR-22-12.md) | Add layer-stack proptest strategies | ✅ done | 2 |  | claude | US-RR-22-7 | [US-RR-22](stories/US-RR-22.md) |
+| [US-RR-22-2](tasks/US-RR-22-2.md) | Test: Omitting one item in the middle of a list removes only that item and keeps all later items (MF-07) | ✅ done | 1 |  | claude | US-RR-22-8 | [US-RR-22](stories/US-RR-22.md) |
+| [US-RR-22-3](tasks/US-RR-22-3.md) | Test: A cycle across files produces an Error diagnostic naming the full cycle path - never a stack overflow (MF-17); ... | ✅ done | 1 |  | claude | US-RR-22-9 | [US-RR-22](stories/US-RR-22.md) |
+| [US-RR-22-4](tasks/US-RR-22-4.md) | Test: A name defined in a local scope is not visible as a global base (MF-16) | ✅ done | 1 |  | claude | US-RR-22-10 | [US-RR-22](stories/US-RR-22.md) |
+| [US-RR-22-5](tasks/US-RR-22-5.md) | Test: explain(field) reports the winning layer and the overridden values with provenance | ✅ done | 1 |  | claude | US-RR-22-11 | [US-RR-22](stories/US-RR-22.md) |
+| [US-RR-22-6](tasks/US-RR-22-6.md) | Test: cargo-mutants reports zero surviving mutants in the resolver | ✅ done | 2 |  | claude | US-RR-22-8, US-RR-22-9, US-RR-22-10, US-RR-22-11 | [US-RR-22](stories/US-RR-22.md) |
+| [US-RR-22-7](tasks/US-RR-22-7.md) | Define Layered<T>, layer metadata and merge semantics | ✅ done | 3 |  | claude | — | [US-RR-22](stories/US-RR-22.md) |
+| [US-RR-22-8](tasks/US-RR-22-8.md) | Implement resolver: base chains, override, append, omit | ✅ done | 5 |  | claude | US-RR-22-7 | [US-RR-22](stories/US-RR-22.md) |
+| [US-RR-22-9](tasks/US-RR-22-9.md) | Cross-file references and cycle detection | ✅ done | 3 |  | claude | US-RR-22-8 | [US-RR-22](stories/US-RR-22.md) |
 | [US-RR-23-1](tasks/US-RR-23-1.md) | Test: Property test: a byte pattern compiled from a concrete byte string with random wildcards matches that string an... | ⚪ todo | — |  | — | US-RR-23-4 | [US-RR-23](stories/US-RR-23.md) |
 | [US-RR-23-2](tasks/US-RR-23-2.md) | Test: Pattern text parsing is fuzzed with no panics; malformed patterns produce diagnostics | ⚪ todo | — |  | — | US-RR-23-5 | [US-RR-23](stories/US-RR-23.md) |
 | [US-RR-23-3](tasks/US-RR-23-3.md) | Test: Matching at an offset past the end of the input returns no-match, never panics | ⚪ todo | — |  | — | US-RR-23-4 | [US-RR-23](stories/US-RR-23.md) |
@@ -264,14 +264,14 @@
 | [US-RR-37-7](tasks/US-RR-37-7.md) | Implement K-line echo strip and verify | ⚪ todo | 2 |  | — | US-RR-37-6 | [US-RR-37](stories/US-RR-37.md) |
 | [US-RR-37-8](tasks/US-RR-37-8.md) | Implement break signalling | ⚪ todo | 1 |  | — | US-RR-37-6 | [US-RR-37](stories/US-RR-37.md) |
 | [US-RR-37-9](tasks/US-RR-37-9.md) | Implement stable-ID discovery and reconnect | ⚪ todo | 3 |  | — | US-RR-37-6 | [US-RR-37](stories/US-RR-37.md) |
-| [US-RR-38-1](tasks/US-RR-38-1.md) | Test: The nightly workflow publishes a pre-release with tarball, AppImage, .deb and SHA256SUMS | ⚪ todo | 2 |  | — | US-RR-38-5, US-RR-38-6, US-RR-38-7 | [US-RR-38](stories/US-RR-38.md) |
-| [US-RR-38-2](tasks/US-RR-38-2.md) | Test: A CI job installs the .deb in a clean Ubuntu container and runs romraider-cli --version successfully | ⚪ todo | 1 |  | — | US-RR-38-7 | [US-RR-38](stories/US-RR-38.md) |
-| [US-RR-38-3](tasks/US-RR-38-3.md) | Test: The AppImage runs romraider-cli --version on a clean Ubuntu 22.04 container | ⚪ todo | 1 |  | — | US-RR-38-6 | [US-RR-38](stories/US-RR-38.md) |
-| [US-RR-38-4](tasks/US-RR-38-4.md) | Test: Release artifacts never contain ROM images or fixture data (artifact content check) | ⚪ todo | 1 |  | — | US-RR-38-8 | [US-RR-38](stories/US-RR-38.md) |
-| [US-RR-38-5](tasks/US-RR-38-5.md) | Add release.yml with cargo-dist nightly and tarball | ⚪ todo | 3 |  | — | — | [US-RR-38](stories/US-RR-38.md) |
-| [US-RR-38-6](tasks/US-RR-38-6.md) | Add AppImage recipe and build step | ⚪ todo | 2 |  | — | US-RR-38-5 | [US-RR-38](stories/US-RR-38.md) |
-| [US-RR-38-7](tasks/US-RR-38-7.md) | Add cargo-deb packaging | ⚪ todo | 2 |  | — | US-RR-38-5 | [US-RR-38](stories/US-RR-38.md) |
-| [US-RR-38-8](tasks/US-RR-38-8.md) | Add release artifact content check | ⚪ todo | 1 |  | — | US-RR-38-5 | [US-RR-38](stories/US-RR-38.md) |
+| [US-RR-38-1](tasks/US-RR-38-1.md) | Test: The nightly workflow publishes a pre-release with tarball, AppImage, .deb and SHA256SUMS | 🔍 review | 2 |  | — | US-RR-38-5, US-RR-38-6, US-RR-38-7 | [US-RR-38](stories/US-RR-38.md) |
+| [US-RR-38-2](tasks/US-RR-38-2.md) | Test: A CI job installs the .deb in a clean Ubuntu container and runs romraider-cli --version successfully | ✅ done | 1 |  | claude | US-RR-38-7 | [US-RR-38](stories/US-RR-38.md) |
+| [US-RR-38-3](tasks/US-RR-38-3.md) | Test: The AppImage runs romraider-cli --version on a clean Ubuntu 22.04 container | ✅ done | 1 |  | claude | US-RR-38-6 | [US-RR-38](stories/US-RR-38.md) |
+| [US-RR-38-4](tasks/US-RR-38-4.md) | Test: Release artifacts never contain ROM images or fixture data (artifact content check) | ✅ done | 1 |  | claude | US-RR-38-8 | [US-RR-38](stories/US-RR-38.md) |
+| [US-RR-38-5](tasks/US-RR-38-5.md) | Add release.yml with cargo-dist nightly and tarball | ✅ done | 3 |  | claude | — | [US-RR-38](stories/US-RR-38.md) |
+| [US-RR-38-6](tasks/US-RR-38-6.md) | Add AppImage recipe and build step | ✅ done | 2 |  | claude | US-RR-38-5 | [US-RR-38](stories/US-RR-38.md) |
+| [US-RR-38-7](tasks/US-RR-38-7.md) | Add cargo-deb packaging | ✅ done | 2 |  | claude | US-RR-38-5 | [US-RR-38](stories/US-RR-38.md) |
+| [US-RR-38-8](tasks/US-RR-38-8.md) | Add release artifact content check | ✅ done | 1 |  | claude | US-RR-38-5 | [US-RR-38](stories/US-RR-38.md) |
 | [US-RR-39-1](tasks/US-RR-39-1.md) | Test: Each listed inheritance case has a KAT fixture with a stated hand-calc source and passes | ⚪ todo | — |  | — | US-RR-39-4 | [US-RR-39](stories/US-RR-39.md) |
 | [US-RR-39-2](tasks/US-RR-39-2.md) | Test: Resolved-tree snapshots for 20 real corpus definitions are committed with a review note and any change requires... | ⚪ todo | — |  | — | US-RR-39-5 | [US-RR-39](stories/US-RR-39.md) |
 | [US-RR-39-3](tasks/US-RR-39-3.md) | Test: Each MF entry listed is referenced from the fixture that proves it, and the ledger links back to the fixture | ⚪ todo | — |  | — | US-RR-39-6 | [US-RR-39](stories/US-RR-39.md) |

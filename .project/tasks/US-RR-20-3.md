@@ -1,6 +1,6 @@
 ---
 archived: false
-assignee: null
+assignee: claude
 claimed_at: null
 claimed_by_run: null
 created: '2026-10-19'
@@ -9,7 +9,7 @@ depends_on:
 - US-RR-20-9
 id: US-RR-20-3
 points: 2
-status: todo
+status: done
 story_id: US-RR-20
 tags: []
 title: 'Test: The expr fuzz target runs nightly with no panics, hangs or unbounded

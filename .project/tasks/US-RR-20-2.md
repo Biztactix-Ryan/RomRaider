@@ -1,6 +1,6 @@
 ---
 archived: false
-assignee: null
+assignee: claude
 claimed_at: null
 claimed_by_run: null
 created: '2026-10-19'
@@ -8,7 +8,7 @@ depends_on:
 - US-RR-20-7
 id: US-RR-20-2
 points: 1
-status: todo
+status: done
 story_id: US-RR-20
 tags: []
 title: 'Test: JEP operator precedence and ^ semantics match documented JEP behaviour

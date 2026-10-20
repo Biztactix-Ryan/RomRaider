@@ -1,6 +1,6 @@
 ---
 archived: false
-assignee: null
+assignee: claude
 claimed_at: null
 claimed_by_run: null
 created: '2026-10-19'
@@ -8,7 +8,7 @@ depends_on:
 - US-RR-11-9
 id: US-RR-11-3
 points: 1
-status: todo
+status: done
 story_id: US-RR-11
 tags: []
 title: 'Test: No ROM bytes are ever written inside the repository working tree (test

@@ -15,7 +15,7 @@ epic_id: EPIC-RR-2
 id: US-RR-11
 points: 5
 priority: must
-status: active
+status: done
 tags:
 - m0
 - testing

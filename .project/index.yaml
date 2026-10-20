@@ -110,7 +110,7 @@ entries:
 - id: US-RR-11
   title: 'External stock-ROM corpus: fetch, manifest, suspect classification'
   type: story
-  status: active
+  status: done
   archived: false
   points: 5
   story_id: null
@@ -155,7 +155,7 @@ entries:
 - id: US-RR-16
   title: 'ECU-definition corpus: source, pin, manifest'
   type: story
-  status: active
+  status: done
   archived: false
   points: 3
   story_id: null
@@ -200,7 +200,7 @@ entries:
 - id: US-RR-20
   title: 'Expr parser (C4a): JEP-compatible, parsed once'
   type: story
-  status: active
+  status: done
   archived: false
   points: 8
   story_id: null
@@ -218,7 +218,7 @@ entries:
 - id: US-RR-22
   title: 'Layered + Resolver (C1): one inheritance engine'
   type: story
-  status: active
+  status: done
   archived: false
   points: 8
   story_id: null
@@ -938,7 +938,7 @@ entries:
   title: 'Test: fetch-corpus verifies all 501 files against the committed manifest
     and fails loudly on any hash or size mismatch'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-11
@@ -948,7 +948,7 @@ entries:
   title: 'Test: Images with non-power-of-two or non-standard sizes are marked suspect
     in the manifest with a reason, and tests ...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-11
@@ -958,7 +958,7 @@ entries:
   title: 'Test: No ROM bytes are ever written inside the repository working tree (test
     asserts RR_CORPUS_DIR is outside the repo)'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-11
@@ -968,7 +968,7 @@ entries:
   title: 'Test: CI caches the corpus keyed by manifest hash and a cold fetch completes
     within the CI time budget'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-11
@@ -977,7 +977,7 @@ entries:
 - id: US-RR-11-5
   title: Implement xtask fetch-corpus
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-11
@@ -986,7 +986,7 @@ entries:
 - id: US-RR-11-6
   title: Generate corpus-manifest.toml from the local mirror
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-11
@@ -995,7 +995,7 @@ entries:
 - id: US-RR-11-7
   title: Implement suspect-image classification
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-11
@@ -1004,7 +1004,7 @@ entries:
 - id: US-RR-11-8
   title: Add CI corpus cache keyed by manifest hash
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-11
@@ -1013,7 +1013,7 @@ entries:
 - id: US-RR-11-9
   title: Enforce RR_CORPUS_DIR outside the repo
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-11
@@ -1297,7 +1297,7 @@ entries:
   title: 'Test: The definition source, its licence and the pinned version are recorded
     in DECISIONS.md and the manifest'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-16
@@ -1307,7 +1307,7 @@ entries:
   title: 'Test: fetch-corpus fetches and hash-verifies the definitions alongside the
     ROMs, and a local mirror exists'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-16
@@ -1317,7 +1317,7 @@ entries:
   title: 'Test: A coverage report lists every corpus ROM ID with its matching definition
     or ''no definition'', committed as a fix...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-16
@@ -1326,7 +1326,7 @@ entries:
 - id: US-RR-16-4
   title: Identify and select the authoritative RomRaider definition source
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-16
@@ -1335,7 +1335,7 @@ entries:
 - id: US-RR-16-5
   title: Mirror and pin definitions; extend fetch-corpus and manifest
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-16
@@ -1344,7 +1344,7 @@ entries:
 - id: US-RR-16-6
   title: Generate ROM-ID coverage report
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-16
@@ -1665,7 +1665,7 @@ entries:
   title: 'Test: Every distinct formula in the pinned ECU and logger definition corpora
     parses, and a sample of at least 50 has ...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-20
@@ -1674,7 +1674,7 @@ entries:
 - id: US-RR-20-10
   title: Harvest corpus formulas into a KAT set
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-20
@@ -1684,7 +1684,7 @@ entries:
   title: 'Test: JEP operator precedence and ^ semantics match documented JEP behaviour
     via KAT fixtures citing the JEP document...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-20
@@ -1694,7 +1694,7 @@ entries:
   title: 'Test: The expr fuzz target runs nightly with no panics, hangs or unbounded
     allocation; depth and size limits produce ...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-20
@@ -1704,7 +1704,7 @@ entries:
   title: 'Test: Evaluation of a parsed AST performs no allocation and no locking (benchmark
     + test), fixing the global synchron...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-20
@@ -1713,7 +1713,7 @@ entries:
 - id: US-RR-20-5
   title: 'Test: cargo-mutants reports zero surviving mutants in the evaluator'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-20
@@ -1722,7 +1722,7 @@ entries:
 - id: US-RR-20-6
   title: Implement expression lexer and Pratt parser
   type: task
-  status: todo
+  status: done
   archived: false
   points: 5
   story_id: US-RR-20
@@ -1731,7 +1731,7 @@ entries:
 - id: US-RR-20-7
   title: Implement AST evaluator with standard functions
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-20
@@ -1740,7 +1740,7 @@ entries:
 - id: US-RR-20-8
   title: Enforce parser limits with diagnostics
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-20
@@ -1749,7 +1749,7 @@ entries:
 - id: US-RR-20-9
   title: Add expr fuzz target
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-20
@@ -1807,7 +1807,7 @@ entries:
   title: 'Test: Property tests: resolution is deterministic and idempotent; overriding
     a field in a child always wins over the ...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-22
@@ -1816,7 +1816,7 @@ entries:
 - id: US-RR-22-10
   title: Scoped namespaces
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-22
@@ -1825,7 +1825,7 @@ entries:
 - id: US-RR-22-11
   title: Per-field provenance and explain()
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-22
@@ -1834,7 +1834,7 @@ entries:
 - id: US-RR-22-12
   title: Add layer-stack proptest strategies
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-22
@@ -1844,7 +1844,7 @@ entries:
   title: 'Test: Omitting one item in the middle of a list removes only that item and
     keeps all later items (MF-07)'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-22
@@ -1854,7 +1854,7 @@ entries:
   title: 'Test: A cycle across files produces an Error diagnostic naming the full
     cycle path - never a stack overflow (MF-17); ...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-22
@@ -1863,7 +1863,7 @@ entries:
 - id: US-RR-22-4
   title: 'Test: A name defined in a local scope is not visible as a global base (MF-16)'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-22
@@ -1873,7 +1873,7 @@ entries:
   title: 'Test: explain(field) reports the winning layer and the overridden values
     with provenance'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-22
@@ -1882,7 +1882,7 @@ entries:
 - id: US-RR-22-6
   title: 'Test: cargo-mutants reports zero surviving mutants in the resolver'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-22
@@ -1891,7 +1891,7 @@ entries:
 - id: US-RR-22-7
   title: Define Layered<T>, layer metadata and merge semantics
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-22
@@ -1900,7 +1900,7 @@ entries:
 - id: US-RR-22-8
   title: 'Implement resolver: base chains, override, append, omit'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 5
   story_id: US-RR-22
@@ -1909,7 +1909,7 @@ entries:
 - id: US-RR-22-9
   title: Cross-file references and cycle detection
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-22
@@ -3266,7 +3266,7 @@ entries:
   title: 'Test: The nightly workflow publishes a pre-release with tarball, AppImage,
     .deb and SHA256SUMS'
   type: task
-  status: todo
+  status: review
   archived: false
   points: 2
   story_id: US-RR-38
@@ -3276,7 +3276,7 @@ entries:
   title: 'Test: A CI job installs the .deb in a clean Ubuntu container and runs romraider-cli
     --version successfully'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-38
@@ -3286,7 +3286,7 @@ entries:
   title: 'Test: The AppImage runs romraider-cli --version on a clean Ubuntu 22.04
     container'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-38
@@ -3296,7 +3296,7 @@ entries:
   title: 'Test: Release artifacts never contain ROM images or fixture data (artifact
     content check)'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-38
@@ -3305,7 +3305,7 @@ entries:
 - id: US-RR-38-5
   title: Add release.yml with cargo-dist nightly and tarball
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-38
@@ -3314,7 +3314,7 @@ entries:
 - id: US-RR-38-6
   title: Add AppImage recipe and build step
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-38
@@ -3323,7 +3323,7 @@ entries:
 - id: US-RR-38-7
   title: Add cargo-deb packaging
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-38
@@ -3332,7 +3332,7 @@ entries:
 - id: US-RR-38-8
   title: Add release artifact content check
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-38
@@ -6491,7 +6491,7 @@ entries:
   epic_id: null
   tags: []
 total_points: 1315
-completed_points: 244
+completed_points: 351
 story_count: 78
 task_count: 604
 epic_count: 10

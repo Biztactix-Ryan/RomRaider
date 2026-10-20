@@ -1,6 +1,6 @@
 ---
 archived: false
-assignee: null
+assignee: claude
 claimed_at: null
 claimed_by_run: null
 created: '2026-10-19'
@@ -8,7 +8,7 @@ depends_on:
 - US-RR-11-8
 id: US-RR-11-4
 points: 2
-status: todo
+status: done
 story_id: US-RR-11
 tags: []
 title: 'Test: CI caches the corpus keyed by manifest hash and a cold fetch completes
