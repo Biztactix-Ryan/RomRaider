@@ -157,8 +157,12 @@ fn kat_formulas() -> Vec<&'static str> {
         .lines()
         .filter_map(|l| l.strip_prefix("formula = \"")?.strip_suffix('"'))
         .collect();
-    // As many as `[[expr]]` cases, none needing a TOML escape.
-    assert_eq!(formulas.len(), KAT.matches("\n[[expr]]\n").count());
+    // As many as `[[expr]]` cases, none needing a TOML escape. Counted by
+    // line, so a CRLF checkout (Windows) counts the same.
+    assert_eq!(
+        formulas.len(),
+        KAT.lines().filter(|l| *l == "[[expr]]").count()
+    );
     assert!(formulas.len() >= 100, "{} KAT formulas", formulas.len());
     assert!(formulas.iter().all(|f| !f.contains(['\\', '"'])));
     formulas
