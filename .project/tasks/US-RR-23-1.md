@@ -1,6 +1,6 @@
 ---
 archived: false
-assignee: null
+assignee: claude
 claimed_at: null
 claimed_by_run: null
 created: '2026-10-19'
@@ -8,7 +8,7 @@ depends_on:
 - US-RR-23-4
 id: US-RR-23-1
 points: 1
-status: todo
+status: done
 story_id: US-RR-23
 tags: []
 title: 'Test: Property test: a byte pattern compiled from a concrete byte string with

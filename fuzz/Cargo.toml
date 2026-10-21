@@ -66,6 +66,13 @@ doc = false
 bench = false
 
 [[bin]]
+name = "pattern"
+path = "fuzz_targets/pattern.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "toy"
 path = "fuzz_targets/toy.rs"
 test = false

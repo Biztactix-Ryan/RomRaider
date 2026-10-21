@@ -28,6 +28,7 @@ Targets (`cargo xtask fuzz list`):
 |----------|------------|-------|-------|
 | `ecu_id` | `rr_core::capability` ECU ids and address ranges (the template) | raw bytes | hand-picked |
 | `expr`   | `rr_core::expr`: parse within default, tightened and raised `Limits`, print back, evaluate through `eval` and `eval_with` (US-RR-20-9) | formula text, then optionally `NUL`, a limit-scale byte and little-endian `f64`s for `x` and the parameters (`fuzz/src/expr_target.rs`) | every formula of `fixtures/kat/expr-*.toml` (`kat-*`, kept in sync by `xtask/tests/fuzz.rs`) plus formulas at each parser limit (`*-at-limit`); `regressions/expr/` holds inputs just over each limit |
+| `pattern` | `rr_core::pattern`: parse byte pattern text (`@0x2 80 F0 ?? 01`), print back, match at the pattern's offset, at bases up to `usize::MAX` and by `find` (US-RR-23-5) | pattern text, then optionally `NUL` and the bytes to match (`fuzz/src/pattern_target.rs`) | hand-picked: each text form, matches and past-the-end, and malformed text of each kind |
 | `toy`    | nothing: planted bugs for `cargo xtask fuzz selftest` | length-prefixed records | hand-picked |
 
 `fuzz/` is **not** part of the root workspace (root `Cargo.toml` has

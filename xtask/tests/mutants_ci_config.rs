@@ -157,6 +157,8 @@ const REQUIRED_GLOBS: &[&str] = &[
     "crates/rr-core/src/conversion/**",
     "crates/rr-core/src/layer.rs",
     "crates/rr-core/src/layer/**",
+    "crates/rr-core/src/pattern.rs",
+    "crates/rr-core/src/pattern/**",
     "crates/rr-rom/src/journal.rs",
     "crates/rr-rom/src/journal/**",
     "crates/rr-rom/src/checksum.rs",

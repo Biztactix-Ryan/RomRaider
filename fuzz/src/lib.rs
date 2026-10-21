@@ -16,16 +16,23 @@
 use std::fmt::Write as _;
 
 mod expr_target;
+mod pattern_target;
 pub mod replay;
 
 pub use expr_target::expr;
+pub use pattern_target::pattern;
 
 use rr_core::capability::{AddressRange, EcuId, ScopeError};
 
 /// Every fuzz target, by name: the `[[bin]]` name in `fuzz/Cargo.toml`, the
 /// file stem in `fuzz_targets/`, and the directory under `seeds/` and
 /// `regressions/`. A regression runner iterates this list.
-pub const TARGETS: &[(&str, Target)] = &[("ecu_id", ecu_id), ("expr", expr), ("toy", toy)];
+pub const TARGETS: &[(&str, Target)] = &[
+    ("ecu_id", ecu_id),
+    ("expr", expr),
+    ("pattern", pattern),
+    ("toy", toy),
+];
 
 /// A fuzz target body: runs one input, panics on a bug.
 pub type Target = fn(&[u8]);

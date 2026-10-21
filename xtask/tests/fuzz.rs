@@ -216,7 +216,7 @@ fn check_rejects_half_wired_targets() {
     assert!(has(&problems(&dir), "extra.rs: no [[bin]]"));
 
     let dir = scratch_tree("no-registry").unwrap();
-    edit(&dir.join("fuzz/src/lib.rs"), "(\"ecu_id\", ecu_id), ", "").unwrap();
+    edit(&dir.join("fuzz/src/lib.rs"), "(\"ecu_id\", ecu_id),", "").unwrap();
     assert!(has(&problems(&dir), "TARGETS has no (\"ecu_id\", ecu_id)"));
 
     let dir = scratch_tree("no-seeds").unwrap();
@@ -638,8 +638,8 @@ fn check_requires_a_regressions_directory_per_target() {
     fs::write(dir.join("fuzz/fuzz_targets/extra.rs"), "").unwrap();
     edit(
         &dir.join("fuzz/src/lib.rs"),
-        "(\"toy\", toy)]",
-        "(\"toy\", toy), (\"extra\", extra)]",
+        "(\"toy\", toy),",
+        "(\"toy\", toy), (\"extra\", extra),",
     )
     .unwrap();
     fs::create_dir_all(dir.join("fuzz/seeds/extra")).unwrap();

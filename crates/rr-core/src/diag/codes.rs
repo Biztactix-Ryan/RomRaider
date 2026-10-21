@@ -81,6 +81,13 @@ pub const DOMAINS: &[Domain] = &[
                       `rr-core::layer`): `extends`/`base` chains, overrides \
                       and omits.",
     },
+    Domain {
+        prefix: "PAT",
+        title: "Patterns",
+        description: "Byte patterns for ROM identification, frame sync \
+                      headers and response validation (C2, \
+                      `rr-core::pattern`): pattern text that does not parse.",
+    },
 ];
 
 /// One registered, active diagnostic code.
@@ -389,6 +396,33 @@ registry! {
     /// warned about. Two documents with one name in the same scope are
     /// `LAY0003` instead.
     SHADOWED_NAME = "LAY0008", Warning, since "0.1.0";
+
+    /// A byte pattern's text is not valid pattern syntax.
+    ///
+    /// The text (for example `80 F0 ?? 01`) has a character that is not a
+    /// hex digit, `?`, `/`, `@`, space or tab; a byte with one digit
+    /// (`80 F`); a `0x` with no digits after it; a `/` mask that is not two
+    /// hex digits, follows a `?` wildcard, or leaves bits of its byte
+    /// unchecked (`41/0F`); or no bytes at all. The definition or profile
+    /// that owns the pattern is not used: a pattern guessed from malformed
+    /// text could match the wrong ROM or frame.
+    PATTERN_SYNTAX = "PAT0001", Error, since "0.1.0";
+
+    /// A byte pattern's text or the pattern itself is longer than the parser accepts.
+    ///
+    /// The text is over the length limit (4096 bytes; real patterns are
+    /// under 100), and is refused before it is read; or it gives more than
+    /// 512 bytes of pattern (real patterns are under 32). The definition or
+    /// profile that owns the pattern is not used.
+    PATTERN_TOO_LONG = "PAT0002", Error, since "0.1.0";
+
+    /// A byte pattern's `@` offset is malformed, misplaced or out of range.
+    ///
+    /// The `@` is not followed by decimal digits or `0x` and hex digits,
+    /// comes after the bytes or twice, or gives an offset at which the
+    /// pattern would end past the largest address. The definition or
+    /// profile that owns the pattern is not used.
+    PATTERN_BAD_OFFSET = "PAT0003", Error, since "0.1.0";
 }
 
 /// Retired codes, which may never be reused. Empty until a code is retired.
@@ -705,6 +739,9 @@ mod tests {
         ("LAY0006", "INCOMPLETE_DOCUMENT"),
         ("LAY0007", "UNKNOWN_DOCUMENT"),
         ("LAY0008", "SHADOWED_NAME"),
+        ("PAT0001", "PATTERN_SYNTAX"),
+        ("PAT0002", "PATTERN_TOO_LONG"),
+        ("PAT0003", "PATTERN_BAD_OFFSET"),
     ];
 
     /// A break of the stability rules against the published ledger.

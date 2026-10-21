@@ -12,13 +12,13 @@ epic_id: EPIC-RR-3
 id: US-RR-23
 points: 3
 priority: must
-status: backlog
+status: done
 tags:
 - m0
 - core
 - concepts
 title: 'Pattern (C2): one matcher'
-updated: '2026-10-19'
+updated: '2026-10-21'
 ---
 
 As a developer, I want one compiled pattern matcher reused for ROM identification, ECU-ID profile selection, quirk conditions, frame sync headers, response validation and CSV header detection, so that matching logic exists once and is tested once.

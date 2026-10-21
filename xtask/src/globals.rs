@@ -32,8 +32,10 @@
 //! parsed formulas in one global synchronized cache (`util/JEPUtil.java:44`).
 //! The layer module (C1) is a third: a merge is a pure function of its
 //! layers, so a resolved-document cache there would make one load depend on
-//! what was loaded before it. Such a finding is [`Kind::StaticInStatelessModule`];
-//! `const` items stay allowed.
+//! what was loaded before it. The pattern module (C2) is another: a
+//! compiled pattern is plain data, and a cache of compiled patterns keyed by
+//! text would be shared state between unrelated loads. Such a finding is
+//! [`Kind::StaticInStatelessModule`]; `const` items stay allowed.
 //!
 //! A stateless module also names no lock, cell, atomic or lazy/once type
 //! anywhere, in a field, a local or a `use` ([`is_sync_marker`]), and makes
@@ -91,6 +93,10 @@ pub const STATELESS_PATHS: &[&str] = &[
     // cache of resolved documents belongs to the caller, not the module.
     "crates/rr-core/src/layer.rs",
     "crates/rr-core/src/layer/",
+    // Pattern (C2): a compiled pattern is plain data, matched without a
+    // cache; a per-text cache of compiled patterns belongs to the caller.
+    "crates/rr-core/src/pattern.rs",
+    "crates/rr-core/src/pattern/",
 ];
 
 /// Whether `path` (relative to the workspace root, `/`-separated) is under
@@ -757,7 +763,7 @@ mod tests {
     }
 
     #[test]
-    fn stateless_paths_cover_the_encoding_expr_and_layer_modules_only() {
+    fn stateless_paths_cover_the_encoding_expr_layer_and_pattern_modules_only() {
         for p in [
             "crates/rr-core/src/encoding.rs",
             "crates/rr-core/src/encoding/codec.rs",
@@ -766,6 +772,9 @@ mod tests {
             "crates/rr-core/src/expr/parser.rs",
             "crates/rr-core/src/layer.rs",
             "crates/rr-core/src/layer/list.rs",
+            "crates/rr-core/src/pattern.rs",
+            "crates/rr-core/src/pattern/parse.rs",
+            "crates/rr-core/src/pattern/parse/tests.rs",
         ] {
             assert!(is_stateless_path(p), "{p}");
         }
@@ -776,6 +785,8 @@ mod tests {
             "crates/rr-core/src/exprs/parser.rs",
             "crates/rr-core/src/layers.rs",
             "crates/rr-core/src/layered/list.rs",
+            "crates/rr-core/src/patterns.rs",
+            "crates/rr-core/src/pattern_x/bytes.rs",
             "crates/rr-core/src/diag.rs",
             "crates/rr-testkit/src/encoding_oracle.rs",
             "xtask/src/globals.rs",

@@ -34,6 +34,9 @@ An `error` makes the owning load fail closed: the caller gets no usable value wi
 | [`LAY0006`](#lay0006) | `INCOMPLETE_DOCUMENT` | error | A resolved document lacks required fields. |
 | [`LAY0007`](#lay0007) | `UNKNOWN_DOCUMENT` | error | A document was asked for by a name that no loaded file defines. |
 | [`LAY0008`](#lay0008) | `SHADOWED_NAME` | warning | A local document has the same name as one in an enclosing scope. |
+| [`PAT0001`](#pat0001) | `PATTERN_SYNTAX` | error | A byte pattern's text is not valid pattern syntax. |
+| [`PAT0002`](#pat0002) | `PATTERN_TOO_LONG` | error | A byte pattern's text or the pattern itself is longer than the parser accepts. |
+| [`PAT0003`](#pat0003) | `PATTERN_BAD_OFFSET` | error | A byte pattern's `@` offset is malformed, misplaced or out of range. |
 
 ## DEF: Definitions
 
@@ -358,6 +361,46 @@ names where the shadowed one is. A local document whose `base` is
 its own name extends the outer one rather than hiding it, and is not
 warned about. Two documents with one name in the same scope are
 `LAY0003` instead.
+
+## PAT: Patterns
+
+Byte patterns for ROM identification, frame sync headers and response validation (C2, `rr-core::pattern`): pattern text that does not parse.
+
+### PAT0001
+
+`PATTERN_SYNTAX` · severity `error` · since 0.1.0
+
+A byte pattern's text is not valid pattern syntax.
+
+The text (for example `80 F0 ?? 01`) has a character that is not a
+hex digit, `?`, `/`, `@`, space or tab; a byte with one digit
+(`80 F`); a `0x` with no digits after it; a `/` mask that is not two
+hex digits, follows a `?` wildcard, or leaves bits of its byte
+unchecked (`41/0F`); or no bytes at all. The definition or profile
+that owns the pattern is not used: a pattern guessed from malformed
+text could match the wrong ROM or frame.
+
+### PAT0002
+
+`PATTERN_TOO_LONG` · severity `error` · since 0.1.0
+
+A byte pattern's text or the pattern itself is longer than the parser accepts.
+
+The text is over the length limit (4096 bytes; real patterns are
+under 100), and is refused before it is read; or it gives more than
+512 bytes of pattern (real patterns are under 32). The definition or
+profile that owns the pattern is not used.
+
+### PAT0003
+
+`PATTERN_BAD_OFFSET` · severity `error` · since 0.1.0
+
+A byte pattern's `@` offset is malformed, misplaced or out of range.
+
+The `@` is not followed by decimal digits or `0x` and hex digits,
+comes after the bytes or twice, or gives an offset at which the
+pattern would end past the largest address. The definition or
+profile that owns the pattern is not used.
 
 ## Deprecated codes
 
