@@ -165,7 +165,7 @@ Newest first. Each entry has a Title, Date, Status, Context, Decision and Conseq
 - **Date:** 2026-10-19
 - **Status:** Accepted; amended by D-025 (external public corpus, fetched rather than committed)
 - **Context:** ECU firmware is manufacturer-copyrighted, but testing needs real ROMs.
-- **Decision:** Public CI uses synthetic ROMs generated from definitions. Real ROMs and car traces live in a private corpus (`RR_FIXTURES_DIR`, location TBD). Pre-commit and CI checks block binaries over 64 KB or known ROM IDs in `fixtures/public`.
+- **Decision:** Public CI uses synthetic ROMs generated from definitions. Real ROMs and car traces live in a private corpus (`RR_FIXTURES_DIR`; location `~/RomRaider-private`, outside the repo, backed up with Ryan's home-directory backup: decision, Ryan, 2026-10-20). Pre-commit and CI checks block binaries over 64 KB or known ROM IDs in `fixtures/public`.
 - **Consequences:** Two fixture tiers. Full differential coverage only runs where the private corpus is mounted, so a self-hosted runner is needed for it in CI.
 
 ## D-016: Licence GPL-2.0-or-later

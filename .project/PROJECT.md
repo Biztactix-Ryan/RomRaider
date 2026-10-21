@@ -40,7 +40,7 @@ See ARCHITECTURE.md for the concept catalogue (C1–C16) and the crate map. This
 | `fixtures/corpus-manifest.toml` | Pinned manifest of the external stock-ROM and definition corpora: path, size, SHA-256, ROM ID. The ROMs themselves are never committed. |
 | `fixtures/kat` | Hand-authored known-answer fixtures (TOML), each expected value with a stated source |
 | `fixtures/public` | Committed synthetic ROMs, definitions, traces and golden outputs (no proprietary firmware) |
-| `fixtures/private` | Git-ignored. Real ROMs and traces, path set by `RR_FIXTURES_DIR` |
+| `~/RomRaider-private` (outside the repo) | Private fixture corpus: real ROMs and traces, path set by `RR_FIXTURES_DIR`. Never inside the working tree; the loader refuses one that is. |
 | `legacy/` | Original Java RomRaider: read-only reference, never built or run by the project |
 
 ### Data Flow
@@ -111,7 +111,7 @@ Dropped Java dependencies:
 ```
 cargo xtask fetch-corpus              # fetch + verify external stock-ROM/definition corpora into RR_CORPUS_DIR
 cargo nextest run                     # all tests (public fixtures + external corpus if fetched)
-RR_FIXTURES_DIR=~/rr-fixtures cargo nextest run --features private-fixtures
+RR_FIXTURES_DIR=~/RomRaider-private cargo nextest run --workspace --features private-fixtures
 cargo insta review                    # review snapshot changes
 cargo llvm-cov nextest                # coverage
 cargo mutants -p rr-core -p rr-rom    # mutation testing (safety crates)
@@ -122,7 +122,7 @@ cargo xtask gen-synthetic             # regenerate synthetic ROMs from the refer
 **Env vars** (names only):
 - `RR_LOG` sets the tracing filter.
 - `RR_CORPUS_DIR` is the external stock-ROM/definition corpus cache.
-- `RR_FIXTURES_DIR` is the private fixture corpus.
+- `RR_FIXTURES_DIR` is the private fixture corpus (`~/RomRaider-private`).
 - `RR_HIL_PORT` / `RR_HIL_J2534` set the hardware-in-loop port or J2534 library; HIL tests are skipped unless set.
 - `RR_J2534_LIB` overrides J2534 DLL discovery.
 

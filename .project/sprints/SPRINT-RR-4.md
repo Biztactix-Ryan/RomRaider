@@ -1,5 +1,5 @@
 ---
-completed_points: 0
+completed_points: 27
 created: '2026-10-21'
 end_date: '2026-11-17'
 goal: The RomRaider ECU-definition reader resolves the pinned definition corpus into
@@ -15,7 +15,7 @@ planned_stories:
 - US-RR-24
 - US-RR-29
 start_date: '2026-11-03'
-status: planning
+status: completed
 updated: '2026-10-21'
 ---
 

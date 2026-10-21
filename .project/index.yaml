@@ -128,7 +128,7 @@ entries:
 - id: US-RR-13
   title: Private corpus wiring and ROM-leak guard
   type: story
-  status: backlog
+  status: done
   archived: false
   points: 3
   story_id: null
@@ -227,7 +227,7 @@ entries:
 - id: US-RR-23
   title: 'Pattern (C2): one matcher'
   type: story
-  status: backlog
+  status: done
   archived: false
   points: 3
   story_id: null
@@ -236,7 +236,7 @@ entries:
 - id: US-RR-24
   title: 'Conversion (C4b): exact inverses, safe ranges'
   type: story
-  status: backlog
+  status: done
   archived: false
   points: 8
   story_id: null
@@ -263,7 +263,7 @@ entries:
 - id: US-RR-27
   title: Hardened XML reading layer
   type: story
-  status: backlog
+  status: done
   archived: false
   points: 5
   story_id: null
@@ -281,7 +281,7 @@ entries:
 - id: US-RR-29
   title: RomRaider ECU-definition reader
   type: story
-  status: backlog
+  status: done
   archived: false
   points: 8
   story_id: null
@@ -371,7 +371,7 @@ entries:
 - id: US-RR-38
   title: 'Release skeleton: nightly CLI tarball, AppImage and .deb'
   type: story
-  status: active
+  status: done
   archived: false
   points: 5
   story_id: null
@@ -1108,7 +1108,7 @@ entries:
   title: 'Test: Attempting to commit a stock ROM from the corpus under fixtures/public
     is blocked by the pre-commit hook and by CI'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-13
@@ -1118,7 +1118,7 @@ entries:
   title: 'Test: A trace containing a 17-character VIN pattern under fixtures/public
     fails CI'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-13
@@ -1128,7 +1128,7 @@ entries:
   title: 'Test: Private-fixture tests run when RR_FIXTURES_DIR is set and report skipped
     otherwise'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-13
@@ -1137,7 +1137,7 @@ entries:
 - id: US-RR-13-4
   title: 'Test: The guard itself has tests with planted positive and negative samples'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-13
@@ -1146,7 +1146,7 @@ entries:
 - id: US-RR-13-5
   title: Implement ROM-leak guard checker
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-13
@@ -1155,7 +1155,7 @@ entries:
 - id: US-RR-13-6
   title: Wire leak guard into pre-commit hook and CI
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-13
@@ -1164,7 +1164,7 @@ entries:
 - id: US-RR-13-7
   title: Wire the private fixture tier
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-13
@@ -1919,7 +1919,7 @@ entries:
   title: 'Test: Property test: a byte pattern compiled from a concrete byte string
     with random wildcards matches that string an...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-23
@@ -1929,7 +1929,7 @@ entries:
   title: 'Test: Pattern text parsing is fuzzed with no panics; malformed patterns
     produce diagnostics'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-23
@@ -1939,7 +1939,7 @@ entries:
   title: 'Test: Matching at an offset past the end of the input returns no-match,
     never panics'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-23
@@ -1948,7 +1948,7 @@ entries:
 - id: US-RR-23-4
   title: Implement Pattern kinds and compiler
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-23
@@ -1957,7 +1957,7 @@ entries:
 - id: US-RR-23-5
   title: Pattern text parser with diagnostics and fuzz target
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-23
@@ -1967,7 +1967,7 @@ entries:
   title: 'Test: Property test: for every invertible conversion and every raw value
     r, to_raw(to_real(r)) == r exactly for linea...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-24
@@ -1976,7 +1976,7 @@ entries:
 - id: US-RR-24-10
   title: Compute display ranges correctly
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-24
@@ -1985,7 +1985,7 @@ entries:
 - id: US-RR-24-11
   title: Edit validation with rejection reasons
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-24
@@ -1995,7 +1995,7 @@ entries:
   title: 'Test: Decreasing scalings report correct min/max display ranges (MF-13)
     - KAT fixtures with hand-calculated ranges'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-24
@@ -2005,7 +2005,7 @@ entries:
   title: 'Test: A non-monotonic conversion with no to_raw is rejected for editing
     with a diagnostic; 4-byte storage inverse nev...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-24
@@ -2015,7 +2015,7 @@ entries:
   title: 'Test: A target real value outside the representable range, or hitting a
     division-by-zero region, is rejected with a r...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-24
@@ -2025,7 +2025,7 @@ entries:
   title: 'Test: The same input always yields the same output regardless of call order
     (no cache-dependent results) - property t...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-24
@@ -2034,7 +2034,7 @@ entries:
 - id: US-RR-24-6
   title: 'Test: cargo-mutants reports zero surviving mutants in the conversion module'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-24
@@ -2043,7 +2043,7 @@ entries:
 - id: US-RR-24-7
   title: Define Conversion enum and build from Expr
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-24
@@ -2052,7 +2052,7 @@ entries:
 - id: US-RR-24-8
   title: Detect linear forms and use exact inverses
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-24
@@ -2061,7 +2061,7 @@ entries:
 - id: US-RR-24-9
   title: Implement bounded monotonic numeric solve
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-24
@@ -2249,7 +2249,7 @@ entries:
   title: 'Test: Billion-laughs, external-entity (XXE) and deeply-nested inputs are
     rejected with diagnostics within bounded tim...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-27
@@ -2259,7 +2259,7 @@ entries:
   title: 'Test: ISO-8859-1, UTF-8 with BOM and CRLF variants of the same definition
     parse to identical results'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-27
@@ -2269,7 +2269,7 @@ entries:
   title: 'Test: The XML fuzz target runs nightly with no panics, hangs or unbounded
     allocation'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-27
@@ -2278,7 +2278,7 @@ entries:
 - id: US-RR-27-4
   title: 'Test: Every pinned definition file in the corpus parses without Error diagnostics'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-27
@@ -2287,7 +2287,7 @@ entries:
 - id: US-RR-27-5
   title: Implement hardened XML reader over quick-xml
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-27
@@ -2296,7 +2296,7 @@ entries:
 - id: US-RR-27-6
   title: Add encoding detection and CRLF handling
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-27
@@ -2305,7 +2305,7 @@ entries:
 - id: US-RR-27-7
   title: Add XML fuzz target and hostile sample set
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-27
@@ -2397,7 +2397,7 @@ entries:
   title: 'Test: Every definition file in the pinned definition corpus loads; any Error
     diagnostic is either fixed or recorded a...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-29
@@ -2407,7 +2407,7 @@ entries:
   title: 'Test: Each table type has a hand-checked KAT fixture: minimal XML in, expected
     typed layered doc out'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-29
@@ -2417,7 +2417,7 @@ entries:
   title: 'Test: Unknown elements or attributes produce Warning diagnostics naming
     them with line:col (snapshot tested)'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-29
@@ -2426,7 +2426,7 @@ entries:
 - id: US-RR-29-4
   title: 'Test: The reader never panics on any fuzzed definition input'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-29
@@ -2435,7 +2435,7 @@ entries:
 - id: US-RR-29-5
   title: Read rom and romid elements
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-29
@@ -2444,7 +2444,7 @@ entries:
 - id: US-RR-29-6
   title: Read table elements of all kinds with axes
   type: task
-  status: todo
+  status: done
   archived: false
   points: 5
   story_id: US-RR-29
@@ -2453,7 +2453,7 @@ entries:
 - id: US-RR-29-7
   title: Read scaling elements into Encoding and Conversion
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-29
@@ -2462,7 +2462,7 @@ entries:
 - id: US-RR-29-8
   title: Map base/omit to Layered and warn on unknown elements
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-29
@@ -2471,7 +2471,7 @@ entries:
 - id: US-RR-29-9
   title: Add ECU definition reader fuzz target
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-29
@@ -3266,7 +3266,7 @@ entries:
   title: 'Test: The nightly workflow publishes a pre-release with tarball, AppImage,
     .deb and SHA256SUMS'
   type: task
-  status: review
+  status: done
   archived: false
   points: 2
   story_id: US-RR-38
@@ -6491,7 +6491,7 @@ entries:
   epic_id: null
   tags: []
 total_points: 1343
-completed_points: 351
+completed_points: 456
 story_count: 78
 task_count: 604
 epic_count: 10

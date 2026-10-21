@@ -10,12 +10,12 @@ depends_on:
 - US-RR-38-7
 id: US-RR-38-1
 points: 2
-status: review
+status: done
 story_id: US-RR-38
 tags: []
 title: 'Test: The nightly workflow publishes a pre-release with tarball, AppImage,
   .deb and SHA256SUMS'
-updated: '2026-10-20'
+updated: '2026-10-21'
 ---
 
 Verify acceptance criterion for story US-RR-38:
