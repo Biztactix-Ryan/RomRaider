@@ -6,7 +6,7 @@ hub: false
 name: RomRaider-RS
 next_changeset_id: 1
 next_epic_id: 11
-next_sprint_id: 5
+next_sprint_id: 6
 next_story_id: 79
 prefix: RR
 projects: []

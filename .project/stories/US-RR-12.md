@@ -14,13 +14,13 @@ epic_id: EPIC-RR-2
 id: US-RR-12
 points: 8
 priority: must
-status: backlog
+status: ready
 tags:
 - m0
 - docs
 - fixtures
 title: Legacy behaviour catalogue (read-only)
-updated: '2026-10-19'
+updated: '2026-10-22'
 ---
 
 As a developer, I want each area of the Java RomRaider's behaviour documented as a spec with file references, so that we port intent rather than code, and know which known-answer fixtures to write. Read the source only; never run it.

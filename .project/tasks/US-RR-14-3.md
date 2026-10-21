@@ -7,13 +7,13 @@ created: '2026-10-19'
 depends_on:
 - US-RR-14-7
 id: US-RR-14-3
-points: null
+points: 1
 status: todo
 story_id: US-RR-14
 tags: []
 title: 'Test: Checksum reference vectors cover each sum/XOR/CRC variant planned for
   the checksum engine'
-updated: '2026-10-19'
+updated: '2026-10-22'
 ---
 
 Verify acceptance criterion for story US-RR-14:

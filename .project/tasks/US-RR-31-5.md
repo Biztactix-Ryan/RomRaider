@@ -8,12 +8,12 @@ depends_on:
 - US-RR-31-7
 - US-RR-31-8
 id: US-RR-31-5
-points: null
+points: 2
 status: todo
 story_id: US-RR-31
 tags: []
 title: 'Test: cargo-mutants reports zero surviving mutants in the journal module'
-updated: '2026-10-19'
+updated: '2026-10-22'
 ---
 
 Verify acceptance criterion for story US-RR-31:

@@ -26,10 +26,10 @@
 | [US-RR-11-7](tasks/US-RR-11-7.md) | Implement suspect-image classification | ✅ done | 2 |  | claude | US-RR-11-6 | [US-RR-11](stories/US-RR-11.md) |
 | [US-RR-11-8](tasks/US-RR-11-8.md) | Add CI corpus cache keyed by manifest hash | ✅ done | 1 |  | claude | US-RR-11-5 | [US-RR-11](stories/US-RR-11.md) |
 | [US-RR-11-9](tasks/US-RR-11-9.md) | Enforce RR_CORPUS_DIR outside the repo | ✅ done | 1 |  | claude | US-RR-11-5 | [US-RR-11](stories/US-RR-11.md) |
-| [US-RR-12-1](tasks/US-RR-12-1.md) | Test: Every area listed has a docs/legacy page with legacy/ file:line references for each described behaviour | ⚪ todo | — |  | — | US-RR-12-5, US-RR-12-6, US-RR-12-7, US-RR-12-8, US-RR-12-9 | [US-RR-12](stories/US-RR-12.md) |
-| [US-RR-12-2](tasks/US-RR-12-2.md) | Test: Each page ends with a fixtures-to-write list, and each listed fixture becomes a tracked task or KAT file | ⚪ todo | — |  | — | US-RR-12-5, US-RR-12-6, US-RR-12-7, US-RR-12-8, US-RR-12-9 | [US-RR-12](stories/US-RR-12.md) |
-| [US-RR-12-3](tasks/US-RR-12-3.md) | Test: Behaviours that are bugs are cross-referenced to an MF ledger entry rather than described as intended | ⚪ todo | — |  | — | US-RR-12-5, US-RR-12-6, US-RR-12-7, US-RR-12-8, US-RR-12-9 | [US-RR-12](stories/US-RR-12.md) |
-| [US-RR-12-4](tasks/US-RR-12-4.md) | Test: The SSM page documents init, read-address, read-memory, write and echo handling precisely enough to write simul... | ⚪ todo | — |  | — | US-RR-12-8 | [US-RR-12](stories/US-RR-12.md) |
+| [US-RR-12-1](tasks/US-RR-12-1.md) | Test: Every area listed has a docs/legacy page with legacy/ file:line references for each described behaviour | ⚪ todo | 2 |  | — | US-RR-12-5, US-RR-12-6, US-RR-12-7, US-RR-12-8, US-RR-12-9 | [US-RR-12](stories/US-RR-12.md) |
+| [US-RR-12-2](tasks/US-RR-12-2.md) | Test: Each page ends with a fixtures-to-write list, and each listed fixture becomes a tracked task or KAT file | ⚪ todo | 2 |  | — | US-RR-12-5, US-RR-12-6, US-RR-12-7, US-RR-12-8, US-RR-12-9 | [US-RR-12](stories/US-RR-12.md) |
+| [US-RR-12-3](tasks/US-RR-12-3.md) | Test: Behaviours that are bugs are cross-referenced to an MF ledger entry rather than described as intended | ⚪ todo | 1 |  | — | US-RR-12-5, US-RR-12-6, US-RR-12-7, US-RR-12-8, US-RR-12-9 | [US-RR-12](stories/US-RR-12.md) |
+| [US-RR-12-4](tasks/US-RR-12-4.md) | Test: The SSM page documents init, read-address, read-memory, write and echo handling precisely enough to write simul... | ⚪ todo | 1 |  | — | US-RR-12-8 | [US-RR-12](stories/US-RR-12.md) |
 | [US-RR-12-5](tasks/US-RR-12-5.md) | Catalogue definition parsing and inheritance | ⚪ todo | 3 |  | — | — | [US-RR-12](stories/US-RR-12.md) |
 | [US-RR-12-6](tasks/US-RR-12-6.md) | Catalogue storage, endian, scaling and JEP dialect | ⚪ todo | 3 |  | — | — | [US-RR-12](stories/US-RR-12.md) |
 | [US-RR-12-7](tasks/US-RR-12-7.md) | Catalogue checksum algorithms | ⚪ todo | 3 |  | — | — | [US-RR-12](stories/US-RR-12.md) |
@@ -42,10 +42,10 @@
 | [US-RR-13-5](tasks/US-RR-13-5.md) | Implement ROM-leak guard checker | ✅ done | 3 |  | claude | — | [US-RR-13](stories/US-RR-13.md) |
 | [US-RR-13-6](tasks/US-RR-13-6.md) | Wire leak guard into pre-commit hook and CI | ✅ done | 1 |  | claude | US-RR-13-5 | [US-RR-13](stories/US-RR-13.md) |
 | [US-RR-13-7](tasks/US-RR-13-7.md) | Wire the private fixture tier | ✅ done | 1 |  | claude | — | [US-RR-13](stories/US-RR-13.md) |
-| [US-RR-14-1](tasks/US-RR-14-1.md) | Test: Every vector fixture cites its standard document, edition and section (or legacy file:line for the transcribed ... | ⚪ todo | — |  | — | US-RR-14-5, US-RR-14-6, US-RR-14-7, US-RR-14-8 | [US-RR-14](stories/US-RR-14.md) |
-| [US-RR-14-2](tasks/US-RR-14-2.md) | Test: ISO 14230 default timings (including P3min = 55 ms) are exposed as named constants backed by a fixture, and MF-... | ⚪ todo | — |  | — | US-RR-14-5 | [US-RR-14](stories/US-RR-14.md) |
-| [US-RR-14-3](tasks/US-RR-14-3.md) | Test: Checksum reference vectors cover each sum/XOR/CRC variant planned for the checksum engine | ⚪ todo | — |  | — | US-RR-14-7 | [US-RR-14](stories/US-RR-14.md) |
-| [US-RR-14-4](tasks/US-RR-14-4.md) | Test: J1979 vectors include boundary values (0, max) for every included PID | ⚪ todo | — |  | — | US-RR-14-6 | [US-RR-14](stories/US-RR-14.md) |
+| [US-RR-14-1](tasks/US-RR-14-1.md) | Test: Every vector fixture cites its standard document, edition and section (or legacy file:line for the transcribed ... | ⚪ todo | 1 |  | — | US-RR-14-5, US-RR-14-6, US-RR-14-7, US-RR-14-8 | [US-RR-14](stories/US-RR-14.md) |
+| [US-RR-14-2](tasks/US-RR-14-2.md) | Test: ISO 14230 default timings (including P3min = 55 ms) are exposed as named constants backed by a fixture, and MF-... | ⚪ todo | 1 |  | — | US-RR-14-5 | [US-RR-14](stories/US-RR-14.md) |
+| [US-RR-14-3](tasks/US-RR-14-3.md) | Test: Checksum reference vectors cover each sum/XOR/CRC variant planned for the checksum engine | ⚪ todo | 1 |  | — | US-RR-14-7 | [US-RR-14](stories/US-RR-14.md) |
+| [US-RR-14-4](tasks/US-RR-14-4.md) | Test: J1979 vectors include boundary values (0, max) for every included PID | ⚪ todo | 1 |  | — | US-RR-14-6 | [US-RR-14](stories/US-RR-14.md) |
 | [US-RR-14-5](tasks/US-RR-14-5.md) | Author ISO 9141/14230/15765 timing fixtures and constants | ⚪ todo | 2 |  | — | — | [US-RR-14](stories/US-RR-14.md) |
 | [US-RR-14-6](tasks/US-RR-14-6.md) | Author SAE J1979 mode 01 PID vectors | ⚪ todo | 3 |  | — | — | [US-RR-14](stories/US-RR-14.md) |
 | [US-RR-14-7](tasks/US-RR-14-7.md) | Author checksum and CRC reference vectors | ⚪ todo | 2 |  | — | — | [US-RR-14](stories/US-RR-14.md) |
@@ -104,9 +104,9 @@
 | [US-RR-20-7](tasks/US-RR-20-7.md) | Implement AST evaluator with standard functions | ✅ done | 3 |  | claude | US-RR-20-6 | [US-RR-20](stories/US-RR-20.md) |
 | [US-RR-20-8](tasks/US-RR-20-8.md) | Enforce parser limits with diagnostics | ✅ done | 2 |  | claude | US-RR-20-6 | [US-RR-20](stories/US-RR-20.md) |
 | [US-RR-20-9](tasks/US-RR-20-9.md) | Add expr fuzz target | ✅ done | 1 |  | claude | US-RR-20-6 | [US-RR-20](stories/US-RR-20.md) |
-| [US-RR-21-1](tasks/US-RR-21-1.md) | Test: Every conversion factor has a KAT fixture citing an SI/NIST or equivalent reference (e.g. km per mile = 1.60934... | ⚪ todo | — |  | — | US-RR-21-4 | [US-RR-21](stories/US-RR-21.md) |
-| [US-RR-21-2](tasks/US-RR-21-2.md) | Test: Property test: converting A->B->A round-trips within floating tolerance for every unit pair in the same dimension | ⚪ todo | — |  | — | US-RR-21-4 | [US-RR-21](stories/US-RR-21.md) |
-| [US-RR-21-3](tasks/US-RR-21-3.md) | Test: Every unit string appearing in the pinned logger and ECU definition corpora resolves to a registry unit or prod... | ⚪ todo | — |  | — | US-RR-21-5 | [US-RR-21](stories/US-RR-21.md) |
+| [US-RR-21-1](tasks/US-RR-21-1.md) | Test: Every conversion factor has a KAT fixture citing an SI/NIST or equivalent reference (e.g. km per mile = 1.60934... | ⚪ todo | 2 |  | — | US-RR-21-4 | [US-RR-21](stories/US-RR-21.md) |
+| [US-RR-21-2](tasks/US-RR-21-2.md) | Test: Property test: converting A->B->A round-trips within floating tolerance for every unit pair in the same dimension | ⚪ todo | 1 |  | — | US-RR-21-4 | [US-RR-21](stories/US-RR-21.md) |
+| [US-RR-21-3](tasks/US-RR-21-3.md) | Test: Every unit string appearing in the pinned logger and ECU definition corpora resolves to a registry unit or prod... | ⚪ todo | 2 |  | — | US-RR-21-5 | [US-RR-21](stories/US-RR-21.md) |
 | [US-RR-21-4](tasks/US-RR-21-4.md) | Implement unit registry and conversions | ⚪ todo | 3 |  | — | — | [US-RR-21](stories/US-RR-21.md) |
 | [US-RR-21-5](tasks/US-RR-21-5.md) | Map legacy unit strings and AFR/lambda fuel conversions | ⚪ todo | 2 |  | — | US-RR-21-4 | [US-RR-21](stories/US-RR-21.md) |
 | [US-RR-22-1](tasks/US-RR-22-1.md) | Test: Property tests: resolution is deterministic and idempotent; overriding a field in a child always wins over the ... | ✅ done | 1 |  | claude | US-RR-22-8, US-RR-22-12 | [US-RR-22](stories/US-RR-22.md) |
@@ -197,11 +197,11 @@
 | [US-RR-30-7](tasks/US-RR-30-7.md) | Build derived-parameter dependency specs with diagnostics | ⚪ todo | 2 |  | — | US-RR-30-5 | [US-RR-30](stories/US-RR-30.md) |
 | [US-RR-30-8](tasks/US-RR-30-8.md) | Assign roles for SSM parameters | ⚪ todo | 2 |  | — | US-RR-30-5 | [US-RR-30](stories/US-RR-30.md) |
 | [US-RR-30-9](tasks/US-RR-30-9.md) | Add logger definition fuzz target | ⚪ todo | 1 |  | — | — | [US-RR-30](stories/US-RR-30.md) |
-| [US-RR-31-1](tasks/US-RR-31-1.md) | Test: Property test: for any sequence of patches, undo-all restores the original bytes exactly and redo-all reproduce... | ⚪ todo | — |  | — | US-RR-31-7 | [US-RR-31](stories/US-RR-31.md) |
-| [US-RR-31-2](tasks/US-RR-31-2.md) | Test: A patch whose old bytes do not match the current image is rejected (stale-patch protection) | ⚪ todo | — |  | — | US-RR-31-8 | [US-RR-31](stories/US-RR-31.md) |
-| [US-RR-31-3](tasks/US-RR-31-3.md) | Test: The sidecar journal round-trips losslessly (property test) and rejects a journal whose base image hash does not... | ⚪ todo | — |  | — | US-RR-31-9 | [US-RR-31](stories/US-RR-31.md) |
-| [US-RR-31-4](tasks/US-RR-31-4.md) | Test: There is no public API that mutates image bytes without producing a patch - enforced by module visibility and a... | ⚪ todo | — |  | — | US-RR-31-6 | [US-RR-31](stories/US-RR-31.md) |
-| [US-RR-31-5](tasks/US-RR-31-5.md) | Test: cargo-mutants reports zero surviving mutants in the journal module | ⚪ todo | — |  | — | US-RR-31-7, US-RR-31-8 | [US-RR-31](stories/US-RR-31.md) |
+| [US-RR-31-1](tasks/US-RR-31-1.md) | Test: Property test: for any sequence of patches, undo-all restores the original bytes exactly and redo-all reproduce... | ⚪ todo | 2 |  | — | US-RR-31-7 | [US-RR-31](stories/US-RR-31.md) |
+| [US-RR-31-2](tasks/US-RR-31-2.md) | Test: A patch whose old bytes do not match the current image is rejected (stale-patch protection) | ⚪ todo | 1 |  | — | US-RR-31-8 | [US-RR-31](stories/US-RR-31.md) |
+| [US-RR-31-3](tasks/US-RR-31-3.md) | Test: The sidecar journal round-trips losslessly (property test) and rejects a journal whose base image hash does not... | ⚪ todo | 2 |  | — | US-RR-31-9 | [US-RR-31](stories/US-RR-31.md) |
+| [US-RR-31-4](tasks/US-RR-31-4.md) | Test: There is no public API that mutates image bytes without producing a patch - enforced by module visibility and a... | ⚪ todo | 1 |  | — | US-RR-31-6 | [US-RR-31](stories/US-RR-31.md) |
+| [US-RR-31-5](tasks/US-RR-31-5.md) | Test: cargo-mutants reports zero surviving mutants in the journal module | ⚪ todo | 2 |  | — | US-RR-31-7, US-RR-31-8 | [US-RR-31](stories/US-RR-31.md) |
 | [US-RR-31-6](tasks/US-RR-31-6.md) | Implement Image with original snapshot and private mutation | ⚪ todo | 2 |  | — | — | [US-RR-31](stories/US-RR-31.md) |
 | [US-RR-31-7](tasks/US-RR-31-7.md) | Implement Patch and Journal with undo/redo/grouping | ⚪ todo | 3 |  | — | US-RR-31-6 | [US-RR-31](stories/US-RR-31.md) |
 | [US-RR-31-8](tasks/US-RR-31-8.md) | Add stale-patch protection and modified-byte queries | ⚪ todo | 2 |  | — | US-RR-31-7 | [US-RR-31](stories/US-RR-31.md) |
@@ -221,11 +221,11 @@
 | [US-RR-33-7](tasks/US-RR-33-7.md) | Implement TraceWriter wrapper Link | ⚪ todo | 2 |  | — | US-RR-33-6 | [US-RR-33](stories/US-RR-33.md) |
 | [US-RR-33-8](tasks/US-RR-33-8.md) | Implement ReplayLink with divergence diff | ⚪ todo | 3 |  | — | US-RR-33-6 | [US-RR-33](stories/US-RR-33.md) |
 | [US-RR-33-9](tasks/US-RR-33-9.md) | Add scrub-field marking to trace format | ⚪ todo | 1 |  | — | US-RR-33-6 | [US-RR-33](stories/US-RR-33.md) |
-| [US-RR-34-1](tasks/US-RR-34-1.md) | Test: Every non-suspect stock ROM in the external corpus that has a definition resolves to exactly one definition; re... | ⚪ todo | — |  | — | US-RR-34-7 | [US-RR-34](stories/US-RR-34.md) |
-| [US-RR-34-2](tasks/US-RR-34-2.md) | Test: A ROM matching two definitions is refused with a diagnostic listing both candidates and no definition is applie... | ⚪ todo | — |  | — | US-RR-34-7 | [US-RR-34](stories/US-RR-34.md) |
-| [US-RR-34-3](tasks/US-RR-34-3.md) | Test: A ROM whose size differs from the definition's declared size produces an Error diagnostic and editing is disabled | ⚪ todo | — |  | — | US-RR-34-8 | [US-RR-34](stories/US-RR-34.md) |
-| [US-RR-34-4](tasks/US-RR-34-4.md) | Test: Benchmarks enforce the resolve (<200 ms for 5k tables) and lookup (<5 ms) budgets in CI (MF-18, MF-40, EC-10) | ⚪ todo | — |  | — | US-RR-34-9 | [US-RR-34](stories/US-RR-34.md) |
-| [US-RR-34-5](tasks/US-RR-34-5.md) | Test: Resolved Definitions are immutable (no interior mutability) - compile-time and review check | ⚪ todo | — |  | — | US-RR-34-6 | [US-RR-34](stories/US-RR-34.md) |
+| [US-RR-34-1](tasks/US-RR-34-1.md) | Test: Every non-suspect stock ROM in the external corpus that has a definition resolves to exactly one definition; re... | ⚪ todo | 3 |  | — | US-RR-34-7 | [US-RR-34](stories/US-RR-34.md) |
+| [US-RR-34-2](tasks/US-RR-34-2.md) | Test: A ROM matching two definitions is refused with a diagnostic listing both candidates and no definition is applie... | ⚪ todo | 1 |  | — | US-RR-34-7 | [US-RR-34](stories/US-RR-34.md) |
+| [US-RR-34-3](tasks/US-RR-34-3.md) | Test: A ROM whose size differs from the definition's declared size produces an Error diagnostic and editing is disabled | ⚪ todo | 1 |  | — | US-RR-34-8 | [US-RR-34](stories/US-RR-34.md) |
+| [US-RR-34-4](tasks/US-RR-34-4.md) | Test: Benchmarks enforce the resolve (<200 ms for 5k tables) and lookup (<5 ms) budgets in CI (MF-18, MF-40, EC-10) | ⚪ todo | 2 |  | — | US-RR-34-9 | [US-RR-34](stories/US-RR-34.md) |
+| [US-RR-34-5](tasks/US-RR-34-5.md) | Test: Resolved Definitions are immutable (no interior mutability) - compile-time and review check | ⚪ todo | 1 |  | — | US-RR-34-6 | [US-RR-34](stories/US-RR-34.md) |
 | [US-RR-34-6](tasks/US-RR-34-6.md) | Resolve layered ECU docs into a frozen Definition | ⚪ todo | 5 |  | — | — | [US-RR-34](stories/US-RR-34.md) |
 | [US-RR-34-7](tasks/US-RR-34-7.md) | Build ROM-ID index with ambiguity detection | ⚪ todo | 3 |  | — | US-RR-34-6 | [US-RR-34](stories/US-RR-34.md) |
 | [US-RR-34-8](tasks/US-RR-34-8.md) | Validate ROM size against definition | ⚪ todo | 1 |  | — | US-RR-34-6 | [US-RR-34](stories/US-RR-34.md) |

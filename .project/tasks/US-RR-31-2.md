@@ -7,13 +7,13 @@ created: '2026-10-19'
 depends_on:
 - US-RR-31-8
 id: US-RR-31-2
-points: null
+points: 1
 status: todo
 story_id: US-RR-31
 tags: []
 title: 'Test: A patch whose old bytes do not match the current image is rejected (stale-patch
   protection)'
-updated: '2026-10-19'
+updated: '2026-10-22'
 ---
 
 Verify acceptance criterion for story US-RR-31:

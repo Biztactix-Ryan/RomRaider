@@ -13,13 +13,13 @@ epic_id: EPIC-RR-3
 id: US-RR-21
 points: 3
 priority: must
-status: backlog
+status: ready
 tags:
 - m1
 - core
 - concepts
 title: Units registry (C5)
-updated: '2026-10-19'
+updated: '2026-10-22'
 ---
 
 As a user, I want units defined once with correct conversions and display ranges, so that gauges, dyno maths, CSV headers and unit switching are consistent and correctly named.

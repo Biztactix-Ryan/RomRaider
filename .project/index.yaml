@@ -119,7 +119,7 @@ entries:
 - id: US-RR-12
   title: Legacy behaviour catalogue (read-only)
   type: story
-  status: backlog
+  status: ready
   archived: false
   points: 8
   story_id: null
@@ -137,7 +137,7 @@ entries:
 - id: US-RR-14
   title: Standard test-vector library
   type: story
-  status: backlog
+  status: ready
   archived: false
   points: 5
   story_id: null
@@ -209,7 +209,7 @@ entries:
 - id: US-RR-21
   title: Units registry (C5)
   type: story
-  status: backlog
+  status: ready
   archived: false
   points: 3
   story_id: null
@@ -308,7 +308,7 @@ entries:
 - id: US-RR-31
   title: Byte image and Patch journal (C10)
   type: story
-  status: backlog
+  status: ready
   archived: false
   points: 5
   story_id: null
@@ -335,7 +335,7 @@ entries:
 - id: US-RR-34
   title: Definition resolution and ROM-ID index
   type: story
-  status: backlog
+  status: ready
   archived: false
   points: 8
   story_id: null
@@ -1025,7 +1025,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-12
   epic_id: null
   tags: []
@@ -1035,7 +1035,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-12
   epic_id: null
   tags: []
@@ -1045,7 +1045,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-12
   epic_id: null
   tags: []
@@ -1055,7 +1055,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-12
   epic_id: null
   tags: []
@@ -1176,7 +1176,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-14
   epic_id: null
   tags: []
@@ -1186,7 +1186,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-14
   epic_id: null
   tags: []
@@ -1196,7 +1196,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-14
   epic_id: null
   tags: []
@@ -1206,7 +1206,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-14
   epic_id: null
   tags: []
@@ -1761,7 +1761,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-21
   epic_id: null
   tags: []
@@ -1771,7 +1771,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-21
   epic_id: null
   tags: []
@@ -1781,7 +1781,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-21
   epic_id: null
   tags: []
@@ -2633,7 +2633,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-31
   epic_id: null
   tags: []
@@ -2643,7 +2643,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-31
   epic_id: null
   tags: []
@@ -2653,7 +2653,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-31
   epic_id: null
   tags: []
@@ -2663,7 +2663,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-31
   epic_id: null
   tags: []
@@ -2672,7 +2672,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-31
   epic_id: null
   tags: []
@@ -2860,7 +2860,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 3
   story_id: US-RR-34
   epic_id: null
   tags: []
@@ -2870,7 +2870,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-34
   epic_id: null
   tags: []
@@ -2880,7 +2880,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-34
   epic_id: null
   tags: []
@@ -2890,7 +2890,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-34
   epic_id: null
   tags: []
@@ -2900,7 +2900,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-34
   epic_id: null
   tags: []
@@ -6490,7 +6490,7 @@ entries:
   story_id: US-RR-9
   epic_id: null
   tags: []
-total_points: 1343
+total_points: 1374
 completed_points: 456
 story_count: 78
 task_count: 604

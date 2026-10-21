@@ -17,13 +17,13 @@ epic_id: EPIC-RR-5
 id: US-RR-31
 points: 5
 priority: must
-status: backlog
+status: ready
 tags:
 - m1
 - rom
 - safety
 title: Byte image and Patch journal (C10)
-updated: '2026-10-19'
+updated: '2026-10-22'
 ---
 
 As a tuner, I want every change to my ROM recorded as an exact byte patch with full undo/redo, so that nothing is lost, I can see exactly what changed, and overlapping tables can never desync.

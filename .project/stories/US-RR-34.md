@@ -18,13 +18,13 @@ epic_id: EPIC-RR-4
 id: US-RR-34
 points: 8
 priority: must
-status: backlog
+status: ready
 tags:
 - m1
 - definitions
 - safety
 title: Definition resolution and ROM-ID index
-updated: '2026-10-19'
+updated: '2026-10-22'
 ---
 
 As a tuner, I want the right definition picked for my ROM automatically, and refused when ambiguous, so that I can never edit a ROM through the wrong map definitions.
