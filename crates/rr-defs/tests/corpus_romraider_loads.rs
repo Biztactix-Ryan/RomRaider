@@ -135,8 +135,12 @@ mod loads {
     /// One Error, as compared: source, code, line, column, layer.
     type Key = (String, String, u32, u32, Option<String>);
 
-    fn parse_registry(path: impl Into<PathBuf>, text: &str) -> Result<Registry, FixtureError> {
-        parse_kat::<Registry>(path, text).map(|f| f.data)
+    /// Boxed: `FixtureError` holds paths and is over clippy's
+    /// `result_large_err` threshold on Windows, where a `PathBuf` is larger.
+    fn parse_registry(path: impl Into<PathBuf>, text: &str) -> Result<Registry, Box<FixtureError>> {
+        parse_kat::<Registry>(path, text)
+            .map(|f| f.data)
+            .map_err(Box::new)
     }
 
     fn load_registry() -> Registry {
