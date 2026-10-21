@@ -1,6 +1,6 @@
 ---
 archived: false
-assignee: null
+assignee: claude
 claimed_at: null
 claimed_by_run: null
 created: '2026-10-19'
@@ -9,7 +9,7 @@ depends_on:
 - US-RR-27-7
 id: US-RR-27-1
 points: 2
-status: todo
+status: done
 story_id: US-RR-27
 tags: []
 title: 'Test: Billion-laughs, external-entity (XXE) and deeply-nested inputs are rejected

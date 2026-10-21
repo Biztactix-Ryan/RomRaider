@@ -957,3 +957,109 @@ fn nightly_matrix_fuzzes_the_expr_target() {
         assert!(n > 0, "{path:?} is empty");
     }
 }
+
+/// The XML target (US-RR-27-3, story US-RR-27 "the XML fuzz target runs
+/// nightly with no panics, hangs or unbounded allocation"): `xml` is a leg
+/// of the nightly matrix (the `fuzz list --json` the `targets` job runs), a
+/// manual run can pick it alone, and every run of it, fuzzing or
+/// reproducing, gets the committed `-timeout`, `-rss_limit_mb` and
+/// `-malloc_limit_mb` as its first libFuzzer flags, which is what makes a
+/// hang or a runaway allocation fail the leg (`cargo xtask fuzz selftest`
+/// proves each limit fires). It starts each night from committed seeds, and
+/// its committed regressions are exactly the hostile sample set of
+/// `crates/rr-defs/tests/data/xml/hostile/` (billion laughs, XXE, deep
+/// nesting, ...), byte for byte, so a grown corpus leaking into
+/// `fuzz/regressions/xml/` fails here. Pinned by name, so dropping the target
+/// (its `[[bin]]` and `TARGETS` entry together) fails here.
+#[test]
+fn nightly_matrix_fuzzes_the_xml_target_under_the_limits() {
+    const XML: &str = "xml";
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+    let list = |only: &str| {
+        let o = Command::new(env!("CARGO_BIN_EXE_xtask"))
+            .args(["fuzz", "list", "--json", "--only", only])
+            .output()
+            .unwrap();
+        assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
+        serde_json::from_slice::<Vec<String>>(&o.stdout).unwrap()
+    };
+    let nightly = list("");
+    assert!(
+        nightly.iter().any(|t| t == XML),
+        "`{XML}` is not in the nightly matrix {nightly:?}"
+    );
+    assert_eq!(list(XML), [XML]);
+
+    let limits = fuzz::load(&root).unwrap().limits.expect("committed limits");
+    assert!(fuzz::limit_problems(Some(limits)).is_empty());
+    let want = [
+        format!("-timeout={}", limits.timeout_secs),
+        format!("-rss_limit_mb={}", limits.rss_limit_mb),
+        format!("-malloc_limit_mb={}", limits.malloc_limit_mb),
+    ];
+    for inputs in [
+        vec![],
+        vec![root.join("fuzz/regressions/xml/billion-laughs.xml")],
+    ] {
+        let opts = fuzz::RunOptions {
+            target: XML.to_owned(),
+            max_total_time: Some(600),
+            inputs,
+            ..fuzz::RunOptions::default()
+        };
+        let cmd = fuzz::run_command(&root, limits, "nightly", "x86_64-unknown-linux-gnu", &opts);
+        let args: Vec<String> = cmd
+            .get_args()
+            .map(|a| a.to_string_lossy().into_owned())
+            .collect();
+        let dash = args.iter().position(|a| a == "--").expect("--");
+        assert_eq!(args[dash + 1..dash + 4], want, "{args:?}");
+        assert!(args[..dash].iter().any(|a| a == XML), "{args:?}");
+    }
+
+    let files = |dir: &Path| {
+        let mut v: Vec<(String, Vec<u8>)> = std::fs::read_dir(dir)
+            .unwrap_or_else(|e| panic!("{dir:?}: {e}"))
+            .map(|e| {
+                let e = e.unwrap();
+                (
+                    e.file_name().to_string_lossy().into_owned(),
+                    std::fs::read(e.path()).unwrap(),
+                )
+            })
+            // `.gitattributes` (the hostile set is `binary`) is not an input.
+            .filter(|(name, _)| !name.starts_with('.'))
+            .collect();
+        v.sort();
+        v
+    };
+    let seeds = files(&root.join("fuzz/seeds/xml"));
+    assert!(!seeds.is_empty(), "fuzz/seeds/xml is empty");
+    assert!(
+        seeds.len() <= 32,
+        "fuzz/seeds/xml has {} files: the grown corpus belongs in fuzz/corpus/xml",
+        seeds.len()
+    );
+    let regressions = files(&root.join("fuzz/regressions/xml"));
+    let hostile = files(&root.join("crates/rr-defs/tests/data/xml/hostile"));
+    for name in [
+        "billion-laughs.xml",
+        "xxe-system-file.xml",
+        "deep-nesting.xml",
+    ] {
+        assert!(
+            hostile.iter().any(|(n, _)| n == name),
+            "hostile sample {name} missing"
+        );
+    }
+    let names = |v: &[(String, Vec<u8>)]| v.iter().map(|(n, _)| n.clone()).collect::<Vec<_>>();
+    assert_eq!(
+        names(&regressions),
+        names(&hostile),
+        "fuzz/regressions/xml is not the hostile sample set"
+    );
+    assert!(
+        regressions == hostile,
+        "fuzz/regressions/xml differs from the hostile samples byte for byte"
+    );
+}

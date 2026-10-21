@@ -18,9 +18,11 @@ use std::fmt::Write as _;
 mod expr_target;
 mod pattern_target;
 pub mod replay;
+mod xml_target;
 
 pub use expr_target::expr;
 pub use pattern_target::pattern;
+pub use xml_target::xml;
 
 use rr_core::capability::{AddressRange, EcuId, ScopeError};
 
@@ -32,6 +34,7 @@ pub const TARGETS: &[(&str, Target)] = &[
     ("expr", expr),
     ("pattern", pattern),
     ("toy", toy),
+    ("xml", xml),
 ];
 
 /// A fuzz target body: runs one input, panics on a bug.
@@ -251,6 +254,66 @@ mod tests {
             let err = expr::parse(&src).expect_err(name);
             assert_eq!(*err.kind(), want, "regressions/expr/{name}");
             assert_eq!(err.code(), want.code(), "regressions/expr/{name}");
+        }
+    }
+
+    /// `regressions/xml/` is the hostile sample set of rr-defs, byte for
+    /// byte (`crates/rr-defs/tests/data/xml/hostile/`, whose test checks
+    /// each is refused with its expected code): the replay runs exactly
+    /// those attacks through the `xml` target (US-RR-27-7).
+    #[test]
+    fn xml_regressions_are_the_hostile_set() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+        let listing = |dir: &std::path::Path| {
+            let mut files: Vec<(String, Vec<u8>)> = std::fs::read_dir(dir)
+                .unwrap_or_else(|e| panic!("{dir:?}: {e}"))
+                .map(|e| e.unwrap().path())
+                .filter(|p| p.extension().is_some_and(|x| x == "xml"))
+                .map(|p| {
+                    let name = p.file_name().unwrap().to_string_lossy().into_owned();
+                    (name, std::fs::read(&p).unwrap())
+                })
+                .collect();
+            files.sort();
+            files
+        };
+        let ours = listing(&root.join("regressions/xml"));
+        let theirs = listing(&root.join("../crates/rr-defs/tests/data/xml/hostile"));
+        let names = |f: &[(String, Vec<u8>)]| f.iter().map(|x| x.0.clone()).collect::<Vec<_>>();
+        assert_eq!(names(&ours), names(&theirs));
+        for ((name, a), (_, b)) in ours.iter().zip(&theirs) {
+            assert!(
+                a == b,
+                "regressions/xml/{name} differs from the rr-defs sample"
+            );
+        }
+        assert!(ours.len() >= 20, "{}", ours.len());
+        // Nothing else in the directory: every input is one of the set.
+        let all = std::fs::read_dir(root.join("regressions/xml"))
+            .unwrap()
+            .count();
+        assert_eq!(all, ours.len());
+    }
+
+    /// The real-shaped `xml` seeds read cleanly (all but the deliberately
+    /// broken `unclosed`), so the fuzzer starts from inputs that reach the
+    /// whole tree builder; `attlist-default` and the rest with no
+    /// diagnostic but its one warning.
+    #[test]
+    fn xml_seeds_read_as_intended() {
+        use rr_core::diag::codes;
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("seeds/xml");
+        for entry in std::fs::read_dir(&root).unwrap() {
+            let path = entry.unwrap().path();
+            let name = path.file_name().unwrap().to_string_lossy().into_owned();
+            let loaded = rr_defs::xml::parse(&name, &std::fs::read(&path).unwrap());
+            let codes: Vec<_> = loaded.diagnostics().iter().map(|d| d.code()).collect();
+            let want: &[_] = match name.as_str() {
+                "unclosed" => &[codes::XML_MALFORMED],
+                "attlist-default" => &[codes::XML_DTD_DEFAULT_IGNORED],
+                _ => &[],
+            };
+            assert_eq!(codes, want, "seeds/xml/{name}: {:#?}", loaded.diagnostics());
         }
     }
 

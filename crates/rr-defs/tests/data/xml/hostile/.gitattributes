@@ -1,0 +1,4 @@
+# Hostile XML samples are exact bytes (UTF-16, ISO-8859-1, invalid UTF-8,
+# expected line:col): never convert line endings or re-encode them. They are
+# also fuzz/regressions/xml/, which must stay byte-identical.
+* binary

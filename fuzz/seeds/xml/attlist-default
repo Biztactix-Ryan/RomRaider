@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<!DOCTYPE roms [
+  <!ELEMENT roms (rom*)>
+  <!ATTLIST rom base CDATA "16BITBASE">
+]>
+<roms><rom/></roms>

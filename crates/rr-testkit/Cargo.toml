@@ -19,6 +19,9 @@ proptest.workspace = true
 quick-xml.workspace = true
 rr-core = { path = "../rr-core" }
 sha2.workspace = true
+# Pinned definitions (src/corpus/defs.rs, US-RR-27-4): inflate and CRC-check
+# the members of the forum logger package `logger_v370.zip` (D-028).
+flate2.workspace = true
 # Fixture loader: TOML known-answer files with `schema = N`.
 serde.workspace = true
 thiserror.workspace = true

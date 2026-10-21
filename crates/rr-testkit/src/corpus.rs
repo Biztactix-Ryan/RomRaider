@@ -34,7 +34,9 @@
 //!
 //! [`formulas`] reads the definition tree of the same corpus
 //! (`defs/romraider/`, the manifest's `[defs]`): every formula, for the
-//! expression parser's corpus tests (US-RR-20-10).
+//! expression parser's corpus tests (US-RR-20-10). [`defs`] lists every
+//! pinned definition file (`[defs]`, `[defs.logger_v370]`) and reads each
+//! one checked against its pin (US-RR-27-4).
 //!
 //! The loader never writes: it reads the manifest, lists the directory's top
 //! level, and reads images on request ([`Corpus::read`], which refuses a
@@ -73,6 +75,7 @@
 //! report the skip itself (a test that returns early passes; see
 //! [`crate::fixtures`]).
 
+pub mod defs;
 pub mod formulas;
 pub mod location;
 

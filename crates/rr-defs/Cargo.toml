@@ -8,6 +8,18 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
+rr-core = { path = "../rr-core" }
+# The hardened XML reader (src/xml.rs, US-RR-27-5): a pull parser that never
+# processes a DTD or expands an entity itself; default features (no
+# encoding_rs, no serde).
+quick-xml.workspace = true
+
+[dev-dependencies]
+# Arbitrary-input property test of the XML reader (src/xml/tests.rs).
+proptest.workspace = true
+# Corpus-tier test (tests/corpus_defs_parse.rs, US-RR-27-4): the
+# `corpus_test!` skip-reporting macro and the pinned definition list.
+rr-testkit = { path = "../rr-testkit" }
 
 [lints]
 workspace = true

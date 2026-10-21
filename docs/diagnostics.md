@@ -37,6 +37,18 @@ An `error` makes the owning load fail closed: the caller gets no usable value wi
 | [`PAT0001`](#pat0001) | `PATTERN_SYNTAX` | error | A byte pattern's text is not valid pattern syntax. |
 | [`PAT0002`](#pat0002) | `PATTERN_TOO_LONG` | error | A byte pattern's text or the pattern itself is longer than the parser accepts. |
 | [`PAT0003`](#pat0003) | `PATTERN_BAD_OFFSET` | error | A byte pattern's `@` offset is malformed, misplaced or out of range. |
+| [`XML0001`](#xml0001) | `XML_MALFORMED` | error | An XML file is not well-formed. |
+| [`XML0002`](#xml0002) | `XML_ENCODING` | error | An XML file is not in an encoding the reader supports. |
+| [`XML0003`](#xml0003) | `XML_ENTITY_DECLARED` | error | An XML file's DTD declares an entity or uses a parameter entity. |
+| [`XML0004`](#xml0004) | `XML_UNKNOWN_ENTITY` | error | An XML file refers to an entity other than the predefined ones. |
+| [`XML0005`](#xml0005) | `XML_DTD_DEFAULT_IGNORED` | warning | An XML file's DTD gives an attribute a default value, which is not applied. |
+| [`XML0006`](#xml0006) | `XML_TOO_LARGE` | error | An XML file is larger than the reader accepts. |
+| [`XML0007`](#xml0007) | `XML_TOO_DEEP` | error | An XML file nests elements too deeply. |
+| [`XML0008`](#xml0008) | `XML_TOO_MANY_ELEMENTS` | error | An XML file has more elements than the reader accepts. |
+| [`XML0009`](#xml0009) | `XML_TOO_MANY_ATTRIBUTES` | error | An XML element or file has more attributes than the reader accepts. |
+| [`XML0010`](#xml0010) | `XML_VALUE_TOO_LONG` | error | An XML name or attribute value is longer than the reader accepts. |
+| [`XML0011`](#xml0011) | `XML_TEXT_TOO_LONG` | error | An XML file holds more text than the reader accepts. |
+| [`XML0012`](#xml0012) | `XML_ENCODING_MISMATCH` | warning | An XML file's byte-order mark and XML declaration disagree on the encoding. |
 
 ## DEF: Definitions
 
@@ -401,6 +413,157 @@ The `@` is not followed by decimal digits or `0x` and hex digits,
 comes after the bytes or twice, or gives an offset at which the
 pattern would end past the largest address. The definition or
 profile that owns the pattern is not used.
+
+## XML: XML
+
+The hardened XML reader every XML definition format goes through (`rr-defs::xml`, SECURITY.md API Security): files that are not well-formed, use DTD entities, or exceed the reader's limits.
+
+### XML0001
+
+`XML_MALFORMED` · severity `error` · since 0.1.0
+
+An XML file is not well-formed.
+
+The file breaks XML's syntax: a tag is not closed or closes the wrong
+element, an attribute is unquoted, has no value or appears twice, a
+character reference such as `&#xZZ;` names no character, a bare `&`
+starts no reference, there is no root element or a second one, text
+sits outside the root, or the DTD's internal subset holds something
+other than declarations. The position is where reading stopped. The
+file is not read: no part of a file that is not well-formed is
+trusted.
+
+### XML0002
+
+`XML_ENCODING` · severity `error` · since 0.1.0
+
+An XML file is not in an encoding the reader supports.
+
+The reader reads UTF-8 (with or without a byte-order mark), and
+ISO-8859-1 or US-ASCII when the XML declaration says so
+(`<?xml version="1.0" encoding="ISO-8859-1"?>`). The file starts
+with a UTF-16 or UTF-32 byte-order mark (or is UTF-16 or UTF-32
+without one), its declaration names another encoding (the position
+is the name), or its bytes are not valid in its encoding (the
+position is the first byte that does not decode: typically an
+ISO-8859-1 `°` or `µ` in a file without the declaration that says
+so). The file is not read; re-save it as UTF-8, or add the
+declaration.
+
+### XML0003
+
+`XML_ENTITY_DECLARED` · severity `error` · since 0.1.0
+
+An XML file's DTD declares an entity or uses a parameter entity.
+
+The DOCTYPE's internal subset has an `<!ENTITY>` declaration (general
+or `%` parameter, internal or `SYSTEM`/`PUBLIC` external) or a
+`%name;` reference. Entity declarations are how billion-laughs files
+exhaust memory and external-entity (XXE) files read local files or
+reach the network, so the reader refuses them outright and never
+expands an entity. The file is not read. A DOCTYPE that only names an
+external DTD (`<!DOCTYPE roms SYSTEM "ecu_defs.dtd">`) is fine: the
+DTD is never fetched.
+
+### XML0004
+
+`XML_UNKNOWN_ENTITY` · severity `error` · since 0.1.0
+
+An XML file refers to an entity other than the predefined ones.
+
+Text or an attribute value has a `&name;` reference whose name is not
+`lt`, `gt`, `amp`, `apos` or `quot`. Without a DTD no other entity
+exists, and the reader never looks one up. The file is not read; if
+the `&` was meant literally, write `&amp;`.
+
+### XML0005
+
+`XML_DTD_DEFAULT_IGNORED` · severity `warning` · since 0.1.0
+
+An XML file's DTD gives an attribute a default value, which is not applied.
+
+An `<!ATTLIST>` in the DOCTYPE's internal subset declares a default
+(or `#FIXED`) value. Legacy's Java parser added such defaults to
+every element lacking the attribute; this reader processes no DTD,
+so the element is read as written and the definition reader's own
+default for the attribute applies. The file is still read.
+
+### XML0006
+
+`XML_TOO_LARGE` · severity `error` · since 0.1.0
+
+An XML file is larger than the reader accepts.
+
+The file is over the input length limit (64 MiB by default; the
+largest pinned definition is under 9 MiB). It is refused before any
+of it is read.
+
+### XML0007
+
+`XML_TOO_DEEP` · severity `error` · since 0.1.0
+
+An XML file nests elements too deeply.
+
+An element is nested deeper than the depth limit (64 levels by
+default, never more than 1024; real definitions nest under 10). The
+position is the first element past the limit. The file is not read.
+
+### XML0008
+
+`XML_TOO_MANY_ELEMENTS` · severity `error` · since 0.1.0
+
+An XML file has more elements than the reader accepts.
+
+The file has more elements than the element limit (1 million by
+default; the largest pinned definition has under 110 thousand). The
+position is the first element past the limit. The file is not read.
+
+### XML0009
+
+`XML_TOO_MANY_ATTRIBUTES` · severity `error` · since 0.1.0
+
+An XML element or file has more attributes than the reader accepts.
+
+One element has more attributes than the per-element limit (64 by
+default; real definitions use under 20), or the whole file more than
+the total limit (2 million by default; the largest pinned definition
+has under 220 thousand). The position is the first attribute past the
+limit. The file is not read.
+
+### XML0010
+
+`XML_VALUE_TOO_LONG` · severity `error` · since 0.1.0
+
+An XML name or attribute value is longer than the reader accepts.
+
+An element name, attribute name or attribute value (as written,
+before unescaping) is over the length limit (64 KiB by default; real
+values are under 1 KiB). It is refused before it is copied. The file
+is not read.
+
+### XML0011
+
+`XML_TEXT_TOO_LONG` · severity `error` · since 0.1.0
+
+An XML file holds more text than the reader accepts.
+
+The element text and attribute values kept from the file add up to
+more than the text limit (32 MiB by default; the largest pinned
+definition keeps under 4 MiB). The position is the
+text that would have gone over. The file is not read.
+
+### XML0012
+
+`XML_ENCODING_MISMATCH` · severity `warning` · since 0.1.0
+
+An XML file's byte-order mark and XML declaration disagree on the encoding.
+
+The file starts with a UTF-8 byte-order mark but its declaration
+names another encoding, such as `encoding="ISO-8859-1"`: usually an
+editor that re-saved the file as UTF-8 without updating the
+declaration. The byte-order mark wins and the file is read as UTF-8
+(bytes that are not UTF-8 are still refused, `XML0002`). The
+position is the declared name; correct it to `UTF-8`.
 
 ## Deprecated codes
 

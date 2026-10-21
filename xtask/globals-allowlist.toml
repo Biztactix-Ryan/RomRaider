@@ -16,8 +16,8 @@
 # Entries with an empty justification fail the check, and so do stale entries
 # whose item no longer exists.
 #
-# Both exceptions are test-only: the per-thread counters of the counting
-# allocator of one test binary.
+# Every exception is test-only: the per-thread counters of the counting
+# allocators of two test binaries.
 
 [[allow]]
 path = "crates/rr-core/tests/expr_eval_no_alloc.rs"
@@ -28,3 +28,13 @@ justification = "Test binary only (US-RR-20-7, MF-25): a thread_local! Cell<usiz
 path = "crates/rr-core/tests/expr_eval_no_alloc.rs"
 item = "BYTES"
 justification = "Test binary only (US-RR-20-8, SECURITY.md Formulas): a thread_local! Cell<usize> in which the same #[global_allocator] also sums the bytes it hands out to each thread, to prove a formula refused at a parser limit allocates no more than that limit allows; a global allocator can report only through a static, per-thread for the same reason. Nothing in shipping code reads or links it."
+
+[[allow]]
+path = "crates/rr-defs/tests/xml_hostile.rs"
+item = "LIVE"
+justification = "Test binary only (US-RR-27-7, SECURITY.md API Security, EC-09): a thread_local! Cell<usize> in which its #[global_allocator] tracks the heap each thread holds, to prove refusing a hostile XML file (billion laughs, XXE, deep nesting, a 16 MiB attribute) holds a small, input-independent amount of memory; a global allocator can report only through a static, and per-thread so that other threads of the test process are not charged to the read. Nothing in shipping code reads or links it."
+
+[[allow]]
+path = "crates/rr-defs/tests/xml_hostile.rs"
+item = "PEAK"
+justification = "Test binary only (US-RR-27-7): a thread_local! Cell<usize> holding the highest LIVE value since a measuring window started, the same #[global_allocator]'s peak-heap reading; per-thread for the same reason. Nothing in shipping code reads or links it."

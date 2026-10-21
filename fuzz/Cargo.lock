@@ -70,6 +70,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "memchr"
+version = "2.8.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
+
+[[package]]
+name = "quick-xml"
+version = "0.41.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e660451e55124f798a69a5af3f49ccfbefbd41910eefd25caf2393e1f3473ec1"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
 name = "r-efi"
 version = "6.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -80,11 +95,20 @@ name = "rr-core"
 version = "0.1.0"
 
 [[package]]
+name = "rr-defs"
+version = "0.1.0"
+dependencies = [
+ "quick-xml",
+ "rr-core",
+]
+
+[[package]]
 name = "rr-fuzz"
 version = "0.0.0"
 dependencies = [
  "libfuzzer-sys",
  "rr-core",
+ "rr-defs",
 ]
 
 [[package]]

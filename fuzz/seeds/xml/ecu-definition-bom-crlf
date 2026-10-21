@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE roms SYSTEM "ecu_defs.dtd">
+<!-- hand-written, shaped like a RomRaider ECU definition -->
+<roms>
+  <rom base="16BITBASE">
+    <romid>
+      <xmlid>TESTROM01</xmlid>
+      <internalidaddress>2000</internalidaddress>
+      <internalidstring>TESTROM01</internalidstring>
+      <make>Example</make>
+      <filesize>512kb</filesize>
+    </romid>
+    <table type="3D" name="Boost Target &lt;Main&gt;" category="Boost" storagetype="uint16" endian="big" sizex="4" sizey="2" storageaddress="0x1234">
+      <scaling units="psi" expression="(x-760)*0.01933677" to_byte="x/0.01933677+760" format="0.00" fineincrement=".1" coarseincrement="1"/>
+      <table type="X Axis" name="Engine Load" storageaddress="0x2000" storagetype="float">
+        <scaling units="g/rev" expression="x" to_byte="x" format="0.00"/>
+      </table>
+      <table type="Y Axis" name="RPM" storageaddress="0x2010"/>
+      <description>Target boost &amp; load, in &#176;C-free units.</description>
+    </table>
+  </rom>
+</roms>

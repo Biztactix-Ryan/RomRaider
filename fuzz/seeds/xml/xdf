@@ -1,0 +1,16 @@
+<!-- shaped like a TunerPro XDF -->
+<XDFFORMAT version="1.60">
+  <XDFHEADER>
+    <flags>0x1</flags>
+    <deftitle>Example</deftitle>
+    <BASEOFFSET offset="0" subtract="0"/>
+    <REGION type="0xFFFFFFFF" startaddress="0x0" size="0x8000" regionflags="0x0" name="Binary File"/>
+  </XDFHEADER>
+  <XDFTABLE uniqueid="0x1A2B" flags="0x30">
+    <title>Spark Advance</title>
+    <XDFAXIS id="z">
+      <EMBEDDEDDATA mmedaddress="0x4000" mmedelementsizebits="8" mmedrowcount="2" mmedcolcount="2"/>
+      <MATH equation="X*0.5-20"><VAR id="X"/></MATH>
+    </XDFAXIS>
+  </XDFTABLE>
+</XDFFORMAT>

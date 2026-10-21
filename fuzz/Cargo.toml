@@ -44,6 +44,8 @@ planted-oom = []
 [dependencies]
 libfuzzer-sys = "0.4"
 rr-core = { path = "../crates/rr-core" }
+# The `xml` target: the hardened XML reader (US-RR-27-7).
+rr-defs = { path = "../crates/rr-defs" }
 
 [lib]
 name = "rr_fuzz"
@@ -75,6 +77,13 @@ bench = false
 [[bin]]
 name = "toy"
 path = "fuzz_targets/toy.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "xml"
+path = "fuzz_targets/xml.rs"
 test = false
 doc = false
 bench = false
