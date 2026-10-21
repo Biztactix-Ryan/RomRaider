@@ -9,8 +9,8 @@ use xtask::deps::{DepGraph, check};
 use xtask::{
     codeowners, corpus_coverage, corpus_manifest, coverage_gate, deny_selftest, diagnostics_doc,
     fetch_corpus, fixtures_selftest, fuzz, fuzz_issue, gates_selftest, gen_synthetic, globals,
-    lint_selftest, mutants_exclusions, mutants_scope, mutants_selftest, reference_isolation,
-    release_artifacts, validate_fixtures, writes,
+    leak_guard, lint_selftest, mutants_exclusions, mutants_scope, mutants_selftest,
+    reference_isolation, release_artifacts, validate_fixtures, writes,
 };
 
 #[derive(Parser)]
@@ -304,6 +304,34 @@ enum Cmd {
         /// Directory of release assets (release.yml: `assets`).
         dir: PathBuf,
     },
+    /// ROM-leak guard (US-RR-13-5; SECURITY.md "Proprietary firmware", D-017):
+    /// fail if a file under fixtures/public is over 64 KiB, has the SHA-256
+    /// of a corpus manifest entry, holds a known ROM ID (or, in a binary, a
+    /// ROM-ID-shaped string at a ROM ID address), holds an unscrubbed
+    /// 17-character VIN, or is a symlink; any other path given fails only on
+    /// a manifest hash. Exit 0 clean, 1 on a finding, 2 on a read error
+    /// (rules in xtask/src/leak_guard.rs).
+    LeakGuard {
+        /// Root of the tree checked: where fixtures/public is, and what the
+        /// paths are placed against (defaults to this workspace; e.g. an
+        /// export of the git index for a pre-commit hook).
+        #[arg(long)]
+        root: Option<PathBuf>,
+        /// Corpus manifest(s) whose hashes and ROM IDs are known; repeatable
+        /// (defaults to this workspace's fixtures/corpus-manifest.toml).
+        #[arg(long)]
+        manifest: Vec<PathBuf>,
+        /// Corpus coverage report whose ROM IDs and ID addresses are known
+        /// (defaults to this workspace's fixtures/corpus-coverage.toml).
+        #[arg(long)]
+        coverage: Option<PathBuf>,
+        /// Further `sha256sum`-format hash lists to reject (e.g. a private
+        /// corpus's SHA256SUMS); repeatable.
+        #[arg(long)]
+        sums: Vec<PathBuf>,
+        /// Files or directories to check (defaults to <root>/fixtures/public).
+        paths: Vec<PathBuf>,
+    },
     /// Fuzz targets in fuzz/ (cargo-fuzz, nightly), always run with the
     /// per-input time and memory limits from fuzz/Cargo.toml
     /// (US-RR-5-5; docs/fuzzing.md).
@@ -580,6 +608,66 @@ fn file_issues(
         filings.len()
     );
     Ok(ExitCode::SUCCESS)
+}
+
+fn leak_guard_main(
+    root: Option<PathBuf>,
+    manifests: &[PathBuf],
+    coverage: Option<PathBuf>,
+    sums: &[PathBuf],
+    paths: &[PathBuf],
+) -> Result<ExitCode> {
+    const TAG: &str = "leak-guard";
+    let run = || -> Result<leak_guard::Report> {
+        // The known data is this workspace's committed data, whatever tree
+        // --root names (a hook may check an export of the index).
+        let ws = workspace_root();
+        let ws = ws.canonicalize().unwrap_or(ws);
+        let root = root.unwrap_or_else(|| ws.clone());
+        let mut known = leak_guard::Known::new();
+        if manifests.is_empty() {
+            known.load_manifest(&ws.join(corpus_manifest::COMMITTED_PATH))?;
+        }
+        for m in manifests {
+            known.load_manifest(m)?;
+        }
+        known
+            .load_coverage(&coverage.unwrap_or_else(|| ws.join(corpus_coverage::COMMITTED_PATH)))?;
+        for s in sums {
+            known.load_sums(s)?;
+        }
+        println!(
+            "{TAG}: {} known hash(es), {} known ROM ID(s)",
+            known.hash_count(),
+            known.rom_id_count()
+        );
+        leak_guard::check_paths(&root, paths, &known)
+    };
+    let report = match run() {
+        Ok(r) => r,
+        Err(e) => {
+            eprintln!("{TAG}: error: {e:#}");
+            return Ok(ExitCode::from(2));
+        }
+    };
+    if report.violations.is_empty() {
+        println!(
+            "{TAG}: ok ({} file(s) checked, {} under {})",
+            report.files,
+            report.public_files,
+            leak_guard::PUBLIC_DIR
+        );
+        return Ok(ExitCode::SUCCESS);
+    }
+    for v in &report.violations {
+        eprintln!("{TAG}: {v}");
+    }
+    eprintln!(
+        "{TAG}: {} finding(s) in {} file(s) checked; real ROMs and unscrubbed traces belong in the private corpus (RR_FIXTURES_DIR), never in the repo",
+        report.violations.len(),
+        report.files
+    );
+    Ok(ExitCode::FAILURE)
 }
 
 fn gen_synthetic_main(check: bool, dir: Option<PathBuf>) -> Result<ExitCode> {
@@ -1330,6 +1418,13 @@ fn main() -> Result<ExitCode> {
             manifest,
             verify_only,
         ),
+        Cmd::LeakGuard {
+            root,
+            manifest,
+            coverage,
+            sums,
+            paths,
+        } => leak_guard_main(root, &manifest, coverage, &sums, &paths),
         Cmd::CheckReleaseArtifacts { dir } => {
             let report = release_artifacts::check_dir(&dir)?;
             for (name, entries) in &report.assets {

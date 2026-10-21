@@ -9,10 +9,21 @@
 //! run) and rejects every mutation that would let a tier test pass or go
 //! unreported. [`ci_clippy_job_runs_fixtures_selftest`] keeps the CI step from
 //! being dropped.
+//!
+//! US-RR-13-3: "Private-fixture tests run when RR_FIXTURES_DIR is set and
+//! report skipped otherwise." The skipped half is US-RR-6-1's check above
+//! (with and without `--features private-fixtures`). The run half is the
+//! self-test's present phase: `--features private-fixtures` with
+//! `RR_FIXTURES_DIR` at a scratch directory holding a planted nonce, where the
+//! private sentinels must PASS, and must FAIL when handed a different nonce
+//! (so the body really read the directory). The `present_*` / `mismatch_*`
+//! tests below prove that checker against real and mutated output.
 
 use xtask::fixtures_selftest::{
-    FILTER, ListedTest, SENTINEL_BINARIES, TIERS, check_default_run, check_forced_run, check_list,
-    parse_list, parse_status_lines, summary_passed,
+    FILTER, ListedTest, NONCE_ENV, NONCE_FILE, NONCE_SENTINEL, PRESENT_PACKAGES, PRESENT_SENTINELS,
+    SENTINEL_BINARIES, TIERS, check_default_run, check_forced_run, check_list, check_mismatch_run,
+    check_present_list, check_present_run, parse_list, parse_status_lines, present_filter,
+    summary_passed,
 };
 
 const CORPUS_ROM: &str = "stock_rom_corpus_is_reachable::requires_RR_CORPUS_DIR";
@@ -296,6 +307,215 @@ fn forced_run_check_rejects_unrun_test() {
     let problems = check_forced_run(&tier_tests, false, &output);
     assert_eq!(problems.len(), 1, "{problems:#?}");
     assert!(problems[0].contains("was not run"), "{problems:#?}");
+}
+
+/// The present-phase listing: both private sentinels listed, not ignored, and
+/// matched, as nextest 0.9 prints it with `--features private-fixtures` and
+/// `RR_FIXTURES_DIR` set (trimmed).
+fn present_list_json(ignored: bool, status: &str, kit_name: &str) -> String {
+    let case = |name: &str| {
+        let filter = if status == "matches" {
+            r#"{"status": "matches"}"#.to_owned()
+        } else {
+            format!(r#"{{"status": "mismatch", "reason": "{status}"}}"#)
+        };
+        format!(r#""{name}": {{"kind": "test", "ignored": {ignored}, "filter-match": {filter}}}"#)
+    };
+    format!(
+        r#"{{
+  "rust-suites": {{
+    "rr-rom::corpus_tier": {{ "testcases": {{ {} }} }},
+    "rr-testkit::fixtures": {{ "testcases": {{ {},
+      "reports_shape_mismatch": {{"kind": "test", "ignored": false,
+        "filter-match": {{"status": "mismatch", "reason": "expression"}}}} }} }}
+  }}
+}}"#,
+        case(PRIVATE_ROM),
+        case(kit_name)
+    )
+}
+
+/// `cargo nextest run` in the present phase, abridged from a real run: the
+/// rr-rom sentinel passes, the rr-testkit one reports `kit_status`.
+fn present_run(kit_status: &str, passed: u32, failed: u32) -> String {
+    let skip = "         ";
+    let mut out = String::from("    Starting 2 tests across 2 binaries (14 tests skipped)\n");
+    out += &line(
+        "SKIP",
+        skip,
+        "───",
+        "rr-testkit::fixtures",
+        "reports_shape_mismatch",
+    );
+    out += &line(
+        "PASS",
+        "   0.003s",
+        "1/2",
+        "rr-rom::corpus_tier",
+        PRIVATE_ROM,
+    );
+    out += &line(
+        kit_status,
+        "   0.003s",
+        "2/2",
+        "rr-testkit::fixtures",
+        PRIVATE_KIT,
+    );
+    if kit_status == "FAIL" {
+        out += &format!(
+            "  stderr ───\n    thread '{PRIVATE_KIT}' (2939583) panicked at \
+             crates/rr-testkit/tests/fixtures.rs:273:13:\n    assertion `left == right` failed: \
+             /tmp/rr-fixtures-selftest-1-ab/{NONCE_FILE} does not hold the nonce in {NONCE_ENV}\n      \
+             left: \"ab\"\n     right: \"not-ab\"\n"
+        );
+    }
+    let failed_part = if failed > 0 {
+        format!(", {failed} failed")
+    } else {
+        String::new()
+    };
+    out += &format!(
+        "────────────\n     Summary [   0.003s] {} tests run: {passed} passed{failed_part}, 14 skipped\n",
+        passed + failed
+    );
+    if failed > 0 {
+        out += "error: test run failed\n";
+    }
+    out
+}
+
+/// The present-phase constants name the private sentinels in the two
+/// [`SENTINEL_BINARIES`], the filter selects exactly them, and the rr-testkit
+/// sentinel's source reads the same nonce variable and file.
+#[test]
+fn present_constants_agree() {
+    let private = &TIERS[1];
+    assert_eq!(private.env_var, "RR_FIXTURES_DIR");
+    for (binary, name) in PRESENT_SENTINELS {
+        assert!(SENTINEL_BINARIES.contains(binary), "{binary}");
+        assert!(name.ends_with(private.suffix), "{name}");
+        assert!(
+            PRESENT_PACKAGES.contains(&binary.split("::").next().unwrap()),
+            "{binary}"
+        );
+        assert!(
+            present_filter().contains(&format!("(binary_id(={binary}) & test(={name}))")),
+            "{}",
+            present_filter()
+        );
+    }
+    assert_eq!(NONCE_SENTINEL, ("rr-testkit::fixtures", PRIVATE_KIT));
+    assert!(PRESENT_SENTINELS.contains(&("rr-rom::corpus_tier", PRIVATE_ROM)));
+    let kit = std::fs::read_to_string(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../crates/rr-testkit/tests/fixtures.rs"
+    ))
+    .unwrap();
+    assert!(
+        kit.contains(&format!(
+            "const SELFTEST_NONCE_ENV: &str = \"{NONCE_ENV}\";"
+        )),
+        "rr-testkit's sentinel reads a different nonce variable"
+    );
+    assert!(
+        kit.contains(&format!(
+            "const SELFTEST_NONCE_FILE: &str = \"{NONCE_FILE}\";"
+        )),
+        "rr-testkit's sentinel reads a different nonce file"
+    );
+}
+
+/// US-RR-13-3: with the tier present, the real listing (sentinels listed, not
+/// ignored, matched) passes.
+#[test]
+fn present_list_check_accepts_runnable_sentinels() {
+    let tests = parse_list(&present_list_json(false, "matches", PRIVATE_KIT)).unwrap();
+    assert_eq!(check_present_list(&tests), Vec::<String>::new());
+}
+
+/// US-RR-13-3: a sentinel still `#[ignore]`d with the feature on and
+/// `RR_FIXTURES_DIR` set (the present macro arm lost), excluded by the filter,
+/// or missing, is rejected.
+#[test]
+fn present_list_check_rejects_ignored_excluded_or_missing() {
+    let ignored = parse_list(&present_list_json(true, "ignored", PRIVATE_KIT)).unwrap();
+    let problems = check_present_list(&ignored);
+    assert_eq!(problems.len(), 2, "{problems:#?}");
+    assert!(
+        problems.iter().all(|p| p.contains("still ignored")),
+        "{problems:#?}"
+    );
+
+    let excluded = parse_list(&present_list_json(false, "expression", PRIVATE_KIT)).unwrap();
+    let problems = check_present_list(&excluded);
+    assert_eq!(problems.len(), 2, "{problems:#?}");
+    assert!(
+        problems.iter().all(|p| p.contains("excluded")),
+        "{problems:#?}"
+    );
+
+    let missing = parse_list(&present_list_json(false, "matches", "renamed")).unwrap();
+    let problems = check_present_list(&missing);
+    assert_eq!(problems.len(), 1, "{problems:#?}");
+    assert!(problems[0].contains("is not listed"), "{problems:#?}");
+}
+
+/// US-RR-13-3: the real present run (both sentinels PASS, 2 passed) passes.
+#[test]
+fn present_run_check_accepts_passes() {
+    assert_eq!(
+        check_present_run(true, &present_run("PASS", 2, 0)),
+        Vec::<String>::new()
+    );
+}
+
+/// US-RR-13-3: a sentinel reported SKIP with the tier present (it did not run),
+/// one that failed, or one never run, is rejected; so is a wrong pass count.
+#[test]
+fn present_run_check_rejects_skip_failure_and_unrun() {
+    let problems = check_present_run(true, &present_run("SKIP", 1, 0));
+    assert_eq!(problems.len(), 2, "{problems:#?}");
+    assert!(problems[0].contains("expected only PASS"), "{problems:#?}");
+    assert!(
+        problems[1].contains("1 passed, expected 2"),
+        "{problems:#?}"
+    );
+
+    let problems = check_present_run(false, &present_run("FAIL", 1, 1));
+    assert_eq!(problems.len(), 3, "{problems:#?}");
+    assert!(problems[0].contains("failed"), "{problems:#?}");
+
+    let problems = check_present_run(true, &present_run("PASS", 2, 0).replace(PRIVATE_ROM, "x"));
+    assert_eq!(problems.len(), 1, "{problems:#?}");
+    assert!(problems[0].contains("was not run"), "{problems:#?}");
+}
+
+/// US-RR-13-3: with a wrong nonce the real run (rr-testkit sentinel FAIL,
+/// naming the planted file) passes the check: the body really read
+/// `RR_FIXTURES_DIR`.
+#[test]
+fn mismatch_run_check_accepts_failure_naming_planted_file() {
+    assert_eq!(
+        check_mismatch_run(false, &present_run("FAIL", 1, 1)),
+        Vec::<String>::new()
+    );
+}
+
+/// US-RR-13-3: a sentinel that passes whatever the planted file says (its body
+/// never read the directory) is rejected.
+#[test]
+fn mismatch_run_check_rejects_body_that_ignores_the_directory() {
+    let problems = check_mismatch_run(true, &present_run("PASS", 2, 0));
+    assert_eq!(problems.len(), 3, "{problems:#?}");
+    assert!(problems[0].contains("succeeded"), "{problems:#?}");
+    assert!(problems[1].contains("expected FAIL"), "{problems:#?}");
+    assert!(problems[2].contains(NONCE_FILE), "{problems:#?}");
+
+    let problems = check_mismatch_run(false, &present_run("FAIL", 1, 1).replace(PRIVATE_KIT, "x"));
+    assert!(
+        problems.iter().any(|p| p.contains("was not run")),
+        "{problems:#?}"
+    );
 }
 
 /// US-RR-6-1: CI's `clippy` job (Linux, alongside lint-selftest) runs the end-to-end self-test, on a step that

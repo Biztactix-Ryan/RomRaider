@@ -22,6 +22,15 @@
 //! inside the repo. [`crate::corpus::Corpus`] is the loader for the corpus
 //! itself.
 //!
+//! The private corpus lives in `~/RomRaider-private`, outside the repository,
+//! and is backed up with Ryan's normal home-directory backup (decision, Ryan,
+//! 2026-10-20; CONTRIBUTING.md "Fixtures and corpora"). The location is a
+//! convention: tests still find it only through `RR_FIXTURES_DIR`. The same
+//! outside-the-repo rule applies: [`fixture_root`]`(Tier::Private)` returns
+//! [`FixtureError::PrivateInsideRepo`] for a directory inside (or containing)
+//! the working tree, so a real ROM or car trace is never read from where
+//! `git add` could pick it up (D-017).
+//!
 //! A variable that is set but names something that is not a directory is a
 //! misconfiguration: [`fixture_root`] returns
 //! [`FixtureError::TierNotADirectory`] and the test **fails** (it is not
@@ -128,6 +137,7 @@
 //! the version supported, then deserializes the remaining keys into the
 //! caller's type. The schema-1 KAT types themselves live in [`crate::kat`].
 
+use std::ffi::OsString;
 use std::fmt;
 use std::path::{Path, PathBuf};
 
@@ -244,6 +254,24 @@ pub enum FixtureError {
     /// [`crate::corpus::location`]).
     #[error(transparent)]
     InsideRepo(#[from] crate::corpus::RepoGuardError),
+    /// [`Tier::Private`]'s variable names a directory inside this
+    /// repository's working tree, or one containing it. Real ROMs and car
+    /// traces must live outside it (D-017), in `~/RomRaider-private`.
+    #[error(
+        "private fixtures misconfigured: {env_var}={} is inside, or contains, the repository working tree; \
+         real ROMs and car traces must never sit where git can commit them (D-017): \
+         set {env_var} to a directory outside it, such as ~/RomRaider-private",
+        path.display()
+    )]
+    PrivateInsideRepo {
+        /// The variable that was set ([`PRIVATE_ENV`]).
+        env_var: &'static str,
+        /// Its value.
+        path: PathBuf,
+        /// What the repository check found.
+        #[source]
+        source: crate::corpus::RepoGuardError,
+    },
     /// The tier's variable is set but does not name a directory.
     #[error("{tier} fixtures misconfigured: {env_var}={} is not a directory", path.display())]
     TierNotADirectory {
@@ -326,20 +354,46 @@ pub fn repo_root() -> PathBuf {
 /// The root directory of `tier`.
 ///
 /// [`Tier::Public`] is always `<repo>/fixtures`. The optional tiers read their
-/// environment variable at run time.
+/// environment variable at run time. Both optional tiers must name a directory
+/// outside this repository's working tree (and its git worktrees), and one that
+/// does not contain it: the corpus because of D-025, the private corpus because
+/// real ROMs and car traces must never sit where `git add` can reach them
+/// (D-017; its home is `~/RomRaider-private`, see CONTRIBUTING.md "Fixtures
+/// and corpora"). The check resolves symlinks and `..`
+/// ([`crate::corpus::location`]).
 ///
 /// # Errors
 ///
 /// [`FixtureError::FeatureDisabled`] for [`Tier::Private`] when rr-testkit was
 /// built without [`PRIVATE_FEATURE`] (checked first, whatever the variable
 /// says); [`FixtureError::TierMissing`] if the variable is unset or empty;
+/// [`FixtureError::InsideRepo`] ([`Tier::Corpus`]) or
+/// [`FixtureError::PrivateInsideRepo`] ([`Tier::Private`]) if it names a
+/// directory inside, or containing, the working tree;
 /// [`FixtureError::TierNotADirectory`] if it does not name a directory.
 pub fn fixture_root(tier: Tier) -> Result<PathBuf, FixtureError> {
+    root_in(
+        tier,
+        tier.env_var().and_then(std::env::var_os),
+        &repo_root(),
+        PRIVATE_FEATURE_ENABLED,
+    )
+}
+
+/// [`fixture_root`] with the variable's value, the repository and the feature
+/// state passed in (so the rules are unit-testable without touching the
+/// process environment).
+fn root_in(
+    tier: Tier,
+    value: Option<OsString>,
+    repo: &Path,
+    private_feature: bool,
+) -> Result<PathBuf, FixtureError> {
     let Some(env_var) = tier.env_var() else {
-        return Ok(repo_root().join("fixtures"));
+        return Ok(repo.join("fixtures"));
     };
     if let Some(feature) = tier.cargo_feature()
-        && !PRIVATE_FEATURE_ENABLED
+        && !private_feature
     {
         return Err(FixtureError::FeatureDisabled {
             tier,
@@ -347,12 +401,19 @@ pub fn fixture_root(tier: Tier) -> Result<PathBuf, FixtureError> {
             env_var,
         });
     }
-    let path = match std::env::var_os(env_var) {
+    let path = match value {
         Some(value) if !value.is_empty() => PathBuf::from(value),
         _ => return Err(TierMissing { tier, env_var }.into()),
     };
-    if tier == Tier::Corpus {
-        crate::corpus::location::check_outside_repo(&path, &repo_root())?;
+    if let Err(source) = crate::corpus::location::check_outside_repo(&path, repo) {
+        return Err(match tier {
+            Tier::Private => FixtureError::PrivateInsideRepo {
+                env_var,
+                path,
+                source,
+            },
+            Tier::Public | Tier::Corpus => source.into(),
+        });
     }
     if path.is_dir() {
         Ok(path)
@@ -586,4 +647,121 @@ macro_rules! private_test {
             $($items)*
         }
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fs;
+
+    use super::*;
+
+    /// A scratch base (under the system temp dir, never in the repo) holding a
+    /// synthetic repository `repo/` (with `.git/`) and a private corpus
+    /// `RomRaider-private/` beside it.
+    fn setup(name: &str) -> (PathBuf, PathBuf, PathBuf) {
+        let base =
+            std::env::temp_dir().join(format!("rr-private-tier-{name}-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&base);
+        let repo = base.join("repo");
+        let private = base.join("RomRaider-private");
+        fs::create_dir_all(repo.join(".git")).unwrap();
+        fs::create_dir_all(repo.join("fixtures/private")).unwrap();
+        fs::create_dir_all(&private).unwrap();
+        (base, repo, private)
+    }
+
+    fn private(value: &Path, repo: &Path) -> Result<PathBuf, FixtureError> {
+        root_in(
+            Tier::Private,
+            Some(value.as_os_str().to_owned()),
+            repo,
+            true,
+        )
+    }
+
+    #[test]
+    fn private_root_outside_the_repo_is_used() {
+        let (base, repo, dir) = setup("outside");
+        assert_eq!(private(&dir, &repo).unwrap(), dir);
+        fs::remove_dir_all(base).unwrap();
+    }
+
+    #[test]
+    fn private_root_inside_or_containing_the_repo_is_refused() {
+        let (base, repo, _) = setup("inside");
+        for dir in [
+            repo.clone(),
+            repo.join("fixtures/private"),
+            repo.join("fixtures/private/not-yet"),
+            base.join("RomRaider-private/../repo/fixtures"),
+            base.clone(),
+        ] {
+            match private(&dir, &repo) {
+                Err(FixtureError::PrivateInsideRepo { env_var, path, .. }) => {
+                    assert_eq!(env_var, PRIVATE_ENV);
+                    assert_eq!(path, dir);
+                }
+                other => panic!("{}: {other:?}", dir.display()),
+            }
+        }
+        let message = private(&repo.join("fixtures/private"), &repo)
+            .unwrap_err()
+            .to_string();
+        assert!(message.starts_with("private fixtures misconfigured: RR_FIXTURES_DIR="));
+        assert!(message.contains("~/RomRaider-private"), "{message}");
+        assert!(!message.contains("RR_CORPUS_DIR"), "{message}");
+        fs::remove_dir_all(base).unwrap();
+    }
+
+    #[test]
+    fn private_root_feature_gate_and_variable_come_first() {
+        let (base, repo, dir) = setup("gate");
+        let value = Some(dir.as_os_str().to_owned());
+        assert!(matches!(
+            root_in(Tier::Private, value, &repo, false),
+            Err(FixtureError::FeatureDisabled { .. })
+        ));
+        // The feature gate also wins over a directory inside the repository.
+        assert!(matches!(
+            root_in(
+                Tier::Private,
+                Some(repo.clone().into_os_string()),
+                &repo,
+                false
+            ),
+            Err(FixtureError::FeatureDisabled { .. })
+        ));
+        for unset in [None, Some(OsString::new())] {
+            assert!(matches!(
+                root_in(Tier::Private, unset, &repo, true),
+                Err(FixtureError::TierMissing(TierMissing {
+                    tier: Tier::Private,
+                    env_var: PRIVATE_ENV
+                }))
+            ));
+        }
+        assert!(matches!(
+            private(&base.join("no-such-dir"), &repo),
+            Err(FixtureError::TierNotADirectory {
+                tier: Tier::Private,
+                ..
+            })
+        ));
+        fs::remove_dir_all(base).unwrap();
+    }
+
+    #[test]
+    fn corpus_root_inside_the_repo_keeps_its_own_error() {
+        let (base, repo, _) = setup("corpus");
+        assert!(matches!(
+            root_in(
+                Tier::Corpus,
+                Some(repo.join("target").into_os_string()),
+                &repo,
+                false
+            ),
+            Err(FixtureError::InsideRepo(_))
+        ));
+        fs::remove_dir_all(base).unwrap();
+    }
 }

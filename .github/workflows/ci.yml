@@ -89,8 +89,12 @@ jobs:
       # RR_CORPUS_DIR / RR_FIXTURES_DIR removed, with default features and with
       # --features private-fixtures; fails unless every corpus/private-tier
       # test is reported SKIP (named after the variable to set), never PASS,
-      # and fails when forced with --run-ignored (US-RR-6-1). Here rather than
-      # in `test` because the behaviour is target-independent.
+      # and fails when forced with --run-ignored (US-RR-6-1). Then, with
+      # --features private-fixtures and RR_FIXTURES_DIR at a scratch temp dir
+      # holding a planted nonce, the private sentinel tests must PASS, and
+      # FAIL when given a different nonce, proving they really run against
+      # the directory (US-RR-13-3). Here rather than in `test` because the
+      # behaviour is target-independent.
       - uses: taiki-e/install-action@v2
         with:
           tool: cargo-nextest
@@ -341,6 +345,35 @@ jobs:
       - name: cargo xtask fuzz replay
         run: cargo xtask fuzz replay
 
+  # ROM-leak guard (story US-RR-13, task US-RR-13-6; SECURITY.md
+  # "Proprietary firmware" and "PII Handling", D-017; rules in
+  # xtask/src/leak_guard.rs). The same check as hooks/pre-commit, here so a
+  # commit made without the hook (not installed, or --no-verify) still
+  # fails `ci-ok`. First every file under fixtures/public, with every rule:
+  # over 64 KiB, a corpus manifest SHA-256, a known ROM ID, a ROM-ID-shaped
+  # string at a ROM ID address in a binary, an unscrubbed 17-character VIN,
+  # a symlink. Then every tracked file (NUL-separated, so any file name is
+  # safe): the stock-ROM hashes anywhere in the repo, and fixtures/public's
+  # rules again for the tracked files there. Exit 1 on a finding, 2 on a
+  # read error; both fail the step. Wiring is checked by
+  # xtask/tests/leak_guard_ci_config.rs.
+  leak-guard:
+    name: ROM-leak guard
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install toolchain
+        run: rustup toolchain install --no-self-update && rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: leak-guard
+          save-if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rust-rewrite' }}
+      - name: cargo xtask leak-guard (fixtures/public)
+        run: cargo xtask leak-guard
+      - name: cargo xtask leak-guard (every tracked file)
+        run: git ls-files -z | xargs -0 cargo xtask leak-guard --
+
   # External stock-ROM corpus (story US-RR-11, task US-RR-11-8; D-025;
   # INFRASTRUCTURE.md "Stock-ROM corpus in CI"). `cargo xtask fetch-corpus`
   # downloads the ~500 images from the public upstream at the manifest's
@@ -477,7 +510,7 @@ jobs:
   ci-ok:
     name: ci-ok
     if: always()
-    needs: [fmt, clippy, test, deny, t6, snapshots, faketime, corpus, fuzz-regressions]
+    needs: [fmt, clippy, test, deny, t6, snapshots, faketime, corpus, leak-guard, fuzz-regressions]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:

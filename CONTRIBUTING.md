@@ -80,9 +80,22 @@ From [PROJECT.md Testing Strategy](.project/PROJECT.md#testing-strategy), ARCHIT
 
 How to write, source and review a known-answer fixture is in [fixtures/README.md](fixtures/README.md).
 
-Not built yet: the ROM-leak guard that rejects binaries over 64 KB or known ROM IDs under `fixtures/public`. Follow the rules anyway.
-
 To get the external corpus, run `cargo xtask fetch-corpus` (about 110 MB download, 650 MB on disk). It fetches the pinned upstream commits of the stock ROMs and of the ECU definitions ([D-028](.project/DECISIONS.md#d-028-ecu-definition-corpus-source-td-dsubarudefs-alpha-pinned-logger-defs-from-the-forum-v370-package-privately-mirrored); kept in the cache's `defs/`) into `RR_CORPUS_DIR` (default `~/.cache/romraider-rs/corpus`, which must be outside the repo) and checks every file's size and SHA-256 against `fixtures/corpus-manifest.toml`. The forum logger package `logger_v370.zip` is never downloaded: if you have the hand-downloaded copy, put it at `RR_CORPUS_DIR/defs/logger_v370.zip` or pass `--logger-zip <path>` and it is hash-checked; without it the run says so and carries on. A second run with a complete cache does not use the network. `--verify-only` checks the cache without fetching, and `--source <git URL or path>` fetches from a mirror instead. Details are in `xtask/src/fetch_corpus.rs`. The fixture loader is described in [Fixtures and corpora](#fixtures-and-corpora).
+
+### ROM-leak guard
+
+The ROM-leak guard, `cargo xtask leak-guard [PATH...]`, rejects any file under `fixtures/public` that is over 64 KiB, has the SHA-256 of a corpus manifest entry, holds a known ROM ID (or, in a binary, a ROM-ID-shaped string at a ROM ID address), holds an unscrubbed 17-character VIN, or is a symlink; a stock-ROM hash is rejected anywhere in the repo. With no paths it checks all of `fixtures/public`; it exits 1 on a finding and 2 on a read error. Rules: `xtask/src/leak_guard.rs`. It runs in two places:
+
+- **CI:** the `leak-guard` job of `.github/workflows/ci.yml` (in `ci-ok.needs`) runs `cargo xtask leak-guard` and then the guard over every tracked file (`git ls-files -z | xargs -0 cargo xtask leak-guard --`). A commit that skipped the hook still fails here.
+- **Pre-commit hook:** `hooks/pre-commit` (POSIX sh, so Git for Windows' sh runs it too) exports the staged files from the index, not your working tree, to a scratch directory and runs `cargo xtask leak-guard --root <scratch> <scratch>` on them, so a file whose working copy you scrubbed after `git add` is still caught. It needs `cargo` on `PATH` (or in `~/.cargo/bin`). A finding, or a guard that cannot run, stops the commit. A commit that only deletes files skips the check.
+
+Install the hook once per clone. Pick one:
+
+- `git config core.hooksPath hooks`: git runs the hooks straight from this repo's `hooks/` directory, so updates arrive with `git pull`. This repo-local setting replaces any global `core.hooksPath` for this clone only, so your global hooks stop running here; to keep them, use the next option instead.
+- If you have a global `core.hooksPath` (for example `~/.git-hooks`), leave it alone and chain from your global `pre-commit`: add `top=$(git rev-parse --show-toplevel) && if [ -f "$top/hooks/pre-commit" ] && [ -f "$top/xtask/src/leak_guard.rs" ]; then sh "$top/hooks/pre-commit" || exit $?; fi`. The second test keeps it from running another repository's `hooks/pre-commit`.
+- Without any `core.hooksPath`: copy or symlink it, `ln -s ../../hooks/pre-commit .git/hooks/pre-commit` (on Windows, `cp hooks/pre-commit .git/hooks/pre-commit`; copy it again when it changes). git ignores `.git/hooks` whenever a `core.hooksPath` is set.
+
+To check the hook is active, stage a file under `fixtures/public` containing `JF1GD29662G512345` and run `git commit`: it must stop with `unscrubbed VIN`. `git commit --no-verify` skips the hook, but not CI. Run `cargo xtask leak-guard` by hand before committing a fixture if you have not installed the hook.
 
 ## Fixtures and corpora
 
@@ -92,12 +105,13 @@ Tests read fixtures through `rr_testkit::fixtures` (full rules in the module doc
 |------|-------|------------------|
 | Public | `fixtures/` in this repo (synthetic or scrubbed) | Always on. |
 | External corpus | `RR_CORPUS_DIR`: stock ROMs and definitions fetched by `cargo xtask fetch-corpus` (its default download location is `~/.cache/romraider-rs/corpus`) | Set `RR_CORPUS_DIR`. The default location alone does not turn the tier on. |
-| Private | `RR_FIXTURES_DIR`: real ROMs and car traces, never in the public repo | Build with `--features private-fixtures` **and** set `RR_FIXTURES_DIR`. |
+| Private | `RR_FIXTURES_DIR`: real ROMs and car traces, never in the public repo (lives in `~/RomRaider-private`) | Build with `--features private-fixtures` **and** set `RR_FIXTURES_DIR`. |
 
 Writing such tests:
 
 - Wrap tests that need the corpus in `rr_testkit::corpus_test! { fn name() { .. } }`, and tests that need private fixtures in `rr_testkit::private_test! { .. }`. Get the root with `fixture_root(Tier::Corpus)` or `fixture_root(Tier::Private)`.
 - Read the stock-ROM corpus itself with `rr_testkit::corpus::Corpus::open()` (inside `corpus_test!`). It is read-only, and it refuses an `RR_CORPUS_DIR` inside this repository's working tree (or any of its git worktrees), or one containing it, as `fixture_root(Tier::Corpus)` and `cargo xtask fetch-corpus` also do: the check resolves symlinks and `..`, so no spelling of a path gets around it (`crates/rr-testkit/src/corpus/location.rs`, shared with fetch-corpus). A missing or empty directory is `CorpusError::NotFetched`, separate from a broken corpus. Manifest entries come out as `Entry::Clean` or `Entry::Suspect`, so a test has to decide what to do with the suspect images; use `manifest().clean()` to take only the clean ones.
+- The private corpus lives in `~/RomRaider-private`, outside the repository, and is backed up with Ryan's normal home-directory backup (decision, Ryan, 2026-10-20). Nothing finds it by default: set `RR_FIXTURES_DIR=~/RomRaider-private`. `fixture_root(Tier::Private)` refuses a directory inside this repository's working tree (or any of its git worktrees), or one containing it, with `FixtureError::PrivateInsideRepo`, using the same check as the corpus tier. So no `fixtures/private` directory, ignored or not, can hold real ROMs or traces.
 - A crate with private-tier tests forwards the feature to its `rr-testkit` dev-dependency: `[features] private-fixtures = ["rr-testkit/private-fixtures"]` (see `crates/rr-rom/Cargo.toml`). The feature only changes test builds. The corpus tier has no feature, because the corpus is public data.
 - Fixture files declare `schema = N`. `load_kat` rejects a missing or unsupported schema and names the file.
 - `cargo xtask validate-fixtures` checks every KAT fixture (`fixtures/kat`, `crates/rr-testkit/tests/data/kat`): each expected value has a `source`, a `hand-calc` source's `working` contains `=`, at least two numbers and the expected value itself, and with `--base <git-rev>` an expected value that differs from the base version needs a new `[[changelog]]` entry. The full rule list is in `crates/rr-testkit/src/kat/validate.rs`; the authoring guide is [fixtures/README.md](fixtures/README.md). CI runs it in `.github/workflows/fixtures.yml` on every push and pull request touching `fixtures/`, `crates/rr-testkit/` or `xtask/`, once on every fixture and once with `--base` (the PR's base commit, or the pre-push commit).
@@ -109,7 +123,7 @@ Running them:
 ```sh
 cargo nextest run --workspace                                   # public only; corpus and private tests are skipped
 RR_CORPUS_DIR=~/.cache/romraider-rs/corpus cargo nextest run --workspace
-RR_FIXTURES_DIR=~/rr-fixtures cargo nextest run --workspace --features private-fixtures
+RR_FIXTURES_DIR=~/RomRaider-private cargo nextest run --workspace --features private-fixtures
 ```
 
 `--workspace --features private-fixtures` turns the feature on for every crate that declares it. Cargo errors only if none of the selected crates has it. Changing either variable or the feature rebuilds the affected tests.
@@ -122,9 +136,9 @@ SKIP [         ] (─────) rr-rom::corpus_tier private_corpus_is_reachab
 Summary [   0.030s] 35 tests run: 35 passed, 4 skipped
 ```
 
-`cargo test` shows the reason instead, for example ``ignored, private fixtures disabled: build with `--features private-fixtures` and set RR_FIXTURES_DIR to run``. Forcing skipped tests to run (`--run-ignored all`) without their tier makes them **fail**, with a message naming the feature or variable. A variable that is set but does not name a directory also fails the test.
+`cargo test` shows the reason instead, for example ``ignored, private fixtures disabled: build with `--features private-fixtures` and set RR_FIXTURES_DIR to run``. Forcing skipped tests to run (`--run-ignored all`) without their tier makes them **fail**, with a message naming the feature or variable. A variable that is set but does not name a directory, or names one inside the repository, also fails the test.
 
-The public CI jobs (`test`, `t6`, `clippy`, `snapshots`) set neither variable and do not enable `private-fixtures`, so these tests are always skipped there. Before a PR that touches code with private-tier tests, run them locally.
+The public CI jobs (`test`, `t6`, `clippy`, `snapshots`) set neither variable and do not enable `private-fixtures`, so these tests are always skipped there. The one exception is the `cargo xtask fixtures-selftest` step in `clippy`, which proves both halves end to end: the tier tests are skipped without their variable, and the two private sentinel tests run with `--features private-fixtures` and `RR_FIXTURES_DIR` pointed at a scratch directory (outside the repo) holding only a planted nonce, never real fixtures. Before a PR that touches code with private-tier tests, run them locally.
 
 ## No-Java rule (D-024)
 
@@ -206,10 +220,11 @@ cargo xtask check-deps
 cargo xtask check-globals
 cargo xtask check-reference-isolation   # rr-testkit::reference (and what it reaches) names no rr-core / workspace crate
 cargo xtask lint-selftest
-cargo xtask fixtures-selftest   # corpus/private-tier tests are SKIPped (never PASS) without RR_CORPUS_DIR / RR_FIXTURES_DIR
+cargo xtask fixtures-selftest   # corpus/private-tier tests are SKIPped (never PASS) without RR_CORPUS_DIR / RR_FIXTURES_DIR; the private sentinels run and read a planted scratch RR_FIXTURES_DIR when it is set
 cargo xtask check-writes
 cargo xtask check-mutants-exclusions   # every exclusion in .cargo/mutants.toml has a justification comment directly above it
 cargo xtask diagnostics-doc --check   # docs/diagnostics.md matches the diagnostic code registry (also a nextest test)
+cargo xtask leak-guard   # no real ROM, ROM fragment or unscrubbed VIN under fixtures/public; CI also runs it over every tracked file (`git ls-files -z | xargs -0 cargo xtask leak-guard --`)
 cargo xtask gen-synthetic --check   # fixtures/public/synthetic is byte-identical to a fresh generation (run without --check to regenerate)
 cargo xtask validate-fixtures   # KAT fixtures: every expected value sourced, hand-calc shows working; add --base origin/master to require a changelog entry for changed expected values
 cargo xtask gates-selftest   # proves the fmt / clippy / nextest commands fail on a planted violation

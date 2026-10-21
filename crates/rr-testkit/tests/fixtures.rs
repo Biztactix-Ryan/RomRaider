@@ -14,6 +14,13 @@ use rr_testkit::fixtures::{
 };
 use serde::Deserialize;
 
+/// Variable through which `cargo xtask fixtures-selftest` hands the private
+/// sentinel test the nonce it planted (`xtask::fixtures_selftest::NONCE_ENV`).
+const SELFTEST_NONCE_ENV: &str = "RR_FIXTURES_SELFTEST_NONCE";
+/// File, in the scratch `RR_FIXTURES_DIR`, holding that nonce
+/// (`xtask::fixtures_selftest::NONCE_FILE`).
+const SELFTEST_NONCE_FILE: &str = "rr-fixtures-selftest.nonce";
+
 #[derive(Debug, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 struct Kat {
@@ -197,6 +204,13 @@ fn build_time_presence_matches_runtime_env() {
                 assert!(feature_on && set);
                 assert_eq!(env_var, var);
             }
+            // Set, but inside the working tree: a misconfiguration the
+            // sentinel tests report, not a build/run-time mismatch.
+            Err(FixtureError::InsideRepo(_)) => assert!(set && tier == Tier::Corpus),
+            Err(FixtureError::PrivateInsideRepo { env_var, .. }) => {
+                assert!(feature_on && set);
+                assert_eq!(env_var, var);
+            }
             Err(other) => panic!("unexpected {other:?}"),
         }
     }
@@ -242,8 +256,27 @@ rr_testkit::private_test! {
     /// Sentinel for `cargo xtask fixtures-selftest` (US-RR-6-1): must stay, and
     /// must be reported as skipped, never passed, when `RR_FIXTURES_DIR` is
     /// unset (with or without `--features private-fixtures`).
+    ///
+    /// With the tier present, the self-test (US-RR-13-3) also proves this body
+    /// really runs against `RR_FIXTURES_DIR`: it plants a random nonce in
+    /// [`SELFTEST_NONCE_FILE`] in a scratch private directory and passes it in
+    /// [`SELFTEST_NONCE_ENV`]; the test must pass with the matching nonce and
+    /// fail with a different one. Without that variable (a real private
+    /// corpus) only the directory check applies.
     fn private_tier_root_is_a_directory() -> Result<(), FixtureError> {
-        assert!(fixture_root(Tier::Private)?.is_dir());
+        let root = fixture_root(Tier::Private)?;
+        assert!(root.is_dir());
+        if let Some(expected) = std::env::var_os(SELFTEST_NONCE_ENV) {
+            let path = root.join(SELFTEST_NONCE_FILE);
+            let planted = std::fs::read_to_string(&path)
+                .map_err(|source| FixtureError::Io { path: path.clone(), source })?;
+            assert_eq!(
+                std::ffi::OsStr::new(planted.trim()),
+                expected,
+                "{} does not hold the nonce in {SELFTEST_NONCE_ENV}",
+                path.display()
+            );
+        }
         Ok(())
     }
 }

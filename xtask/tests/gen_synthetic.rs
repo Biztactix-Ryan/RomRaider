@@ -16,12 +16,13 @@ use xtask::gen_synthetic::{
     self, COMMITTED_DIR, EXAMPLE, NOT_GENERATED, PACKAGE, SUMS_FILE, read_files,
 };
 
-/// The first bytes of `rr_testkit::reference::synthetic::MARKER`.
-const MARKER_PREFIX: &[u8] = b"RomRaider-RS SYNTHETIC ROM v1";
+/// The first bytes of `rr_testkit::reference::synthetic::MARKER`, which the
+/// ROM-leak guard relies on (`cargo xtask leak-guard`, US-RR-13-5).
+const MARKER_PREFIX: &[u8] = xtask::leak_guard::SYNTHETIC_MARKER;
 
-/// The ROM-leak guard planned in CONTRIBUTING.md rejects binaries over this
-/// size under fixtures/public (US-RR-13).
-const LEAK_GUARD_MAX: usize = 64 * 1024;
+/// The ROM-leak guard rejects files over this size under fixtures/public
+/// (US-RR-13-5).
+const LEAK_GUARD_MAX: u64 = xtask::leak_guard::MAX_PUBLIC_BYTES;
 
 fn workspace_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("..")
@@ -201,7 +202,7 @@ fn committed_roms_are_marked_synthetic_and_small() -> anyhow::Result<()> {
             "{name} has no synthetic marker"
         );
         assert!(
-            bytes.len() <= LEAK_GUARD_MAX,
+            bytes.len() as u64 <= LEAK_GUARD_MAX,
             "{name} is {} bytes",
             bytes.len()
         );

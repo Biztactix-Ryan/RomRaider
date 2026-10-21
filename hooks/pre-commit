@@ -1,0 +1,87 @@
+#!/bin/sh
+# ROM-leak guard pre-commit hook (story US-RR-13, task US-RR-13-6;
+# SECURITY.md "Proprietary firmware" and "PII Handling", D-017).
+#
+# Checks what is being committed, not the working tree: every added, copied,
+# modified or renamed path is exported from the index (GIT_INDEX_FILE when
+# git sets one, as `git commit -a` and `git commit <path>` do) into a scratch
+# tree, and `cargo xtask leak-guard --root <tree> <tree>` checks it. Paths
+# under fixtures/public get every rule (over 64 KiB, a corpus SHA-256, a
+# known ROM ID, a ROM-ID-shaped string at a ROM ID address in a binary, an
+# unscrubbed 17-character VIN, a symlink); every other path gets the
+# stock-ROM hash rule (rules: xtask/src/leak_guard.rs). The export runs on
+# NUL-separated names, so spaces and other odd characters in paths are safe.
+#
+# Exit 0 lets the commit go ahead; anything else stops it. The hook fails
+# closed: a guard that cannot run (no cargo, a build error, a read error)
+# also stops the commit. CI runs the same guard over every tracked file
+# (.github/workflows/ci.yml, job `leak-guard`), so a commit made with
+# `git commit --no-verify` still fails `ci-ok`.
+#
+# Install: CONTRIBUTING.md, "ROM-leak guard". Plain POSIX sh, so it also
+# runs under Git for Windows' sh.
+#
+# RR_XTASK: path to a built xtask binary to run instead of `cargo xtask`
+# (the hook's own tests use this; it skips the cargo build check).
+
+set -u
+
+top=$(git rev-parse --show-toplevel) || exit 2
+cd "$top" || exit 2
+
+# The tree the commit is diffed against: HEAD, or the empty tree for the
+# first commit on an unborn branch.
+if git rev-parse --verify -q HEAD >/dev/null 2>&1; then
+    against=HEAD
+else
+    against=$(git hash-object -t tree /dev/null) || exit 2
+fi
+
+tmp=$(mktemp -d "${TMPDIR:-/tmp}/rr-leak-guard.XXXXXX") || {
+    echo "pre-commit: leak-guard: cannot create a scratch directory" >&2
+    exit 2
+}
+trap 'rm -rf "$tmp"' EXIT
+trap 'exit 2' HUP INT TERM
+
+# Written to a file rather than piped, so a failing git command is seen
+# (POSIX sh has no pipefail).
+if ! git diff --cached --name-only -z --diff-filter=ACMR "$against" >"$tmp/staged"; then
+    echo "pre-commit: leak-guard: cannot list the staged paths" >&2
+    exit 2
+fi
+# Nothing added or changed (e.g. a commit that only deletes): nothing to check.
+if [ ! -s "$tmp/staged" ]; then
+    exit 0
+fi
+mkdir "$tmp/tree" || exit 2
+if ! git checkout-index --prefix="$tmp/tree/" -z --stdin <"$tmp/staged"; then
+    echo "pre-commit: leak-guard: cannot export the staged files" >&2
+    exit 2
+fi
+
+status=0
+if [ -n "${RR_XTASK:-}" ]; then
+    "$RR_XTASK" leak-guard --root "$tmp/tree" "$tmp/tree" || status=$?
+else
+    # GUI git clients often start hooks without ~/.cargo/bin on PATH.
+    if ! command -v cargo >/dev/null 2>&1 && [ -x "$HOME/.cargo/bin/cargo" ]; then
+        PATH="$HOME/.cargo/bin:$PATH"
+        export PATH
+    fi
+    if ! command -v cargo >/dev/null 2>&1; then
+        echo "pre-commit: leak-guard: cargo not found; cannot run the ROM-leak guard" >&2
+        exit 2
+    fi
+    cargo --quiet xtask leak-guard --root "$tmp/tree" "$tmp/tree" || status=$?
+fi
+
+if [ "$status" -ne 0 ]; then
+    if [ "$status" -eq 1 ]; then
+        echo "pre-commit: the ROM-leak guard rejected the staged files above; commit stopped." >&2
+        echo "pre-commit: real ROMs and unscrubbed traces belong in RR_FIXTURES_DIR (CONTRIBUTING.md, \"ROM-leak guard\")." >&2
+    else
+        echo "pre-commit: the ROM-leak guard could not run (exit $status); commit stopped." >&2
+    fi
+    exit "$status"
+fi

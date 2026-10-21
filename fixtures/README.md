@@ -18,9 +18,13 @@ The project-wide rules are in
 ROMs belong in the external corpus (`RR_CORPUS_DIR`), and your own ROMs and
 car traces in the private tier (`RR_FIXTURES_DIR`). A KAT fixture that needs
 ROM bytes refers to them with `[input] rom = { tier = "corpus", ... }`
-([below](#input)), and the bytes stay out of the repository. A guard that
-rejects ROM images under `fixtures/` is planned (story US-RR-13), but it is
-not built yet. Until then, reviewers check this by hand. The only ROM-shaped
+([below](#input)), and the bytes stay out of the repository. The ROM-leak
+guard, `cargo xtask leak-guard` (story US-RR-13), rejects ROM images, ROM
+fragments and unscrubbed VINs under `fixtures/public`, and stock-ROM bytes
+anywhere in the repository. It runs in the `hooks/pre-commit` hook on what you
+stage and in CI's `leak-guard` job on every tracked file; install the hook as
+[CONTRIBUTING.md, ROM-leak guard](../CONTRIBUTING.md#rom-leak-guard) says.
+Reviewers still check new binaries by hand. The only ROM-shaped
 files in the repository are the generated synthetic ROMs in
 [`public/synthetic/`](public/synthetic/), which are built from known values
 and marked as synthetic ([Synthetic ROMs](#synthetic-roms)).
@@ -505,8 +509,9 @@ it.
 32-byte marker `RomRaider-RS SYNTHETIC ROM v1` (padded with NUL bytes) at
 offset 0, which no table may overwrite, and its manifest says
 `synthetic = true`. The ROMs are small (the standard ROM is 2 KiB, well under
-the 64 KiB limit of the planned ROM-leak guard). The guard (US-RR-13) can rely
-on the marker. Any `.bin` in `public/synthetic/` that is not produced by a
+the 64 KiB limit of the ROM-leak guard). The guard (`cargo xtask leak-guard`,
+US-RR-13) relies on the marker: a binary that starts with it is exempt from
+the ROM-ID-address rule, never from the known-ROM-ID rule. Any `.bin` in `public/synthetic/` that is not produced by a
 published plan fails `--check`, so a real ROM cannot be hidden there.
 
 ## Review

@@ -12,13 +12,13 @@ epic_id: EPIC-RR-2
 id: US-RR-13
 points: 3
 priority: must
-status: backlog
+status: done
 tags:
 - m0
 - security
 - fixtures
 title: Private corpus wiring and ROM-leak guard
-updated: '2026-10-20'
+updated: '2026-10-21'
 ---
 
 As a maintainer, I want our own ROMs and car traces usable in tests but impossible to commit publicly, so that we never leak proprietary firmware or VINs.
