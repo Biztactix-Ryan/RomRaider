@@ -1,0 +1,14 @@
+<roms>
+<rom>
+ <romid><xmlid>SWITCH</xmlid></romid>
+ <table type="Switch" name="Rear O2" category="Sensors" storageaddress="0x700" sizey="2">
+  <description>Rear O2 sensor</description>
+  <state name="on" data="01 00"/>
+  <state name="off" data="00 00"/>
+  <state name="ON" data="02 01"/>
+ </table>
+ <table type="Switch" name="Wide Switch" storagetype="uint16" endian="little" storageaddress="0x710" sizey="1">
+  <state name="enabled" data="0100"/>
+ </table>
+</rom>
+</roms>

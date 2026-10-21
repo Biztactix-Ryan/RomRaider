@@ -1,0 +1,15 @@
+<roms version="2">
+ stray text
+<rom bogus="1">
+ <romid><xmlid>ODD</xmlid><make>Subaru</make><checksummodule>subarudbw</checksummodule><colour>red</colour></romid>
+ <romid><xmlid>ODD2</xmlid></romid>
+ <TABLE Type="1D" type="1D" name="Odd" storagetype="uint8" storageaddress="0x10" shape="round"><unknown/>text<scaling expression="x" storagetype="uint8" colour="red"/></TABLE>
+ <table name="odd" storageaddress="0x11"/>
+ <table type="1D" name="Axis Here" storagetype="uint8" storageaddress="0x12"><table type="X Axis" name="X"/><data>d</data></table>
+ <checksum type="std"/>
+ <Simulation/>
+ <surprise/>
+</rom>
+<rom><romid><xmlid>odd2</xmlid></romid></rom>
+<extra/>
+</roms>

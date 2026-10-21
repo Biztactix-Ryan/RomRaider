@@ -1,6 +1,6 @@
 ---
 archived: false
-assignee: null
+assignee: claude
 claimed_at: null
 claimed_by_run: null
 created: '2026-10-19'
@@ -9,7 +9,7 @@ depends_on:
 - US-RR-29-7
 id: US-RR-29-2
 points: 2
-status: todo
+status: done
 story_id: US-RR-29
 tags: []
 title: 'Test: Each table type has a hand-checked KAT fixture: minimal XML in, expected

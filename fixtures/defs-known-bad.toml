@@ -1,0 +1,81 @@
+# Known-bad pinned ECU definitions, and the pinned definition files the
+# RomRaider ECU-definition reader does not read (US-RR-29-1, D-028).
+#
+# Read and checked by crates/rr-defs/tests/corpus_romraider_loads.rs:
+#
+# * `the_known_bad_registry_is_valid` (every run, no corpus needed) rejects
+#   an unknown key, an entry whose `file` is not a `[[defs.files]]` XML entry
+#   of fixtures/corpus-manifest.toml, a `sha256` other than the one pinned
+#   there (so a corpus bump forces each entry to be reviewed again), a code
+#   that is not a registered Error code, an empty `reason` or `legacy`, and
+#   duplicates.
+# * `every_pinned_definition_file_loads` (corpus tier, CI `corpus` job)
+#   reads every pinned file, resolves every <rom>, and fails unless the
+#   Error diagnostics are exactly the ones listed here: a new Error fails,
+#   and so does a listed one that is no longer reported (remove its entry).
+#
+# Metadata only: a path, a hash, a location and why; never definition
+# content. An entry is not an allowance to hide a reader bug: it is a defect
+# of the pinned file itself, where legacy RomRaider did no better (checked
+# against legacy/, not guessed), and the reader reports it as an Error.
+
+schema = 1
+
+# ---------------------------------------------------------------------------
+# Known-bad definitions: pinned files whose Errors are the file's own defect.
+# `file` is the path as pinned in [[defs.files]] (below the definition tree,
+# defs/romraider/ in RR_CORPUS_DIR); `sha256` is the manifest's for it;
+# each [[known_bad.error]] is one Error exactly (code, line:col, and the
+# layer (<rom> xmlid) it is reported in, when it names one).
+
+[[known_bad]]
+file = "ecu/RR_EP5F300s.xml"
+sha256 = "bf7fff0b7d6167860fdcbeedbbac10ad17e71d629f3dfa71908529490ccdd612"
+reason = """
+Table `Intake Cam Advance Angle (ECT Related) Multiplier`: the EP5F300S
+<rom> places its Y axis (line 303, storageaddress DABE8) on a 2D table
+whose only definition, the base <rom>'s at line 4502 of the same file,
+gives that axis no `storagetype` (it carries ECUFlash's `elements="16"`
+and `scaling="DegreesF"` attributes instead, which RomRaider does not
+read), and no definition the ROM inherits gives one either. The axis
+cells cannot be decoded, so that one table is left out of the resolved
+ROM (DEF0024, MF-02); every other table of EP5F300S resolves. Not fixed
+in the reader: guessing a storage type (DegreesF is an ECUFlash scaling
+name, not a RomRaider one) would invent values. The fix belongs in the
+definition (add storagetype to the axis) upstream."""
+legacy = """
+Loads the file but shows the axis as all zeros: Table2D.java:29 starts the
+axis as `new Table1D()` with `storageType` 0 (Table.java:54);
+TableScaleUnmarshaller.java:156-161 defaults the missing attribute to
+String.valueOf(0), which RomAttributeParser.parseStorageType (:52-71)
+parses to 0; RomAttributeParser.parseByteValue (:133-173) has no case for
+length 0 and returns 0 for every cell, each read at the same address
+(DataCell.java:178-186, index * 0). The silent zero value is MF-02, which
+this project reports as an Error instead (docs/diagnostics.md DEF0024)."""
+
+[[known_bad.error]]
+code = "DEF0024"
+line = 303
+column = 5
+layer = "EP5F300S"
+
+# ---------------------------------------------------------------------------
+# Out of scope for the ECU-definition reader: pinned XML whose root element
+# is not <roms> or <rom>. Each is still parsed (no XML Error allowed) and
+# counted, never silently skipped; the reader that will read it is named.
+# The two pinned .dtd files are not documents and are only pin-checked.
+
+[[out_of_scope]]
+root = "logger"
+reader = "US-RR-30 (logger-definition reader to ParamSet)"
+reason = """
+RomRaider logger definitions (logger/*.xml, logger/MerpMod/**, and the
+members of the logger_v370.zip pin): parameters and conversions for
+logging, not ROM tables. The ECU-definition reader has no use for them."""
+
+[[out_of_scope]]
+root = "dyno"
+reader = "US-RR-58 (dyno tool: car definitions read with serde)"
+reason = """
+dyno/cars_def.xml: the legacy dyno plugin's car database (mass, gear
+ratios, tyre sizes; DynoControlPanel.java:105), not an ECU definition."""

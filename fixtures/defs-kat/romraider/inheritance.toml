@@ -1,0 +1,111 @@
+schema = 1
+title = "Inheritance: a child <rom> changes one attribute of a base table and gives it an address; omit removes another"
+notes = """
+KATBASE defines `Boost Target` (2D) without an address, `Wastegate Duty`
+with one, and `Unused Here` without one. KATCHILD (base="KATBASE") names
+`Boost Target` with no type: it changes the inherited table, giving it a
+storageaddress, its axis one too, and userlevel 3 over the base's 2; every
+other field is inherited (legacy xml/DOMRomUnmarshaller.java:168-182).
+`Wastegate Duty` omit="true" removes that one table and nothing else.
+`Unused Here` has no address in any layer, so it is not on the ROM
+(listed as unplaced; legacy maps/Rom.java:303-321 dropped it).
+The table's provenance is the child's <table> element (17:5), the
+strongest layer that mentions it.
+"""
+resolve = "KATCHILD"
+omitted = ["Wastegate Duty"]
+unplaced = ["Unused Here"]
+xml = '''
+<roms>
+  <rom>
+    <romid><xmlid>KATBASE</xmlid></romid>
+    <table type="2D" name="Boost Target" category="Boost" storagetype="uint16" endian="big" sizey="4" userlevel="2">
+      <scaling units="psi" expression="x*0.01" to_byte="x/0.01" format="0.00"/>
+      <table type="Y Axis" name="RPM" storagetype="uint16">
+        <scaling units="RPM" expression="x" to_byte="x" format="#"/>
+      </table>
+    </table>
+    <table type="1D" name="Wastegate Duty" storageaddress="5000" storagetype="uint8">
+      <description>Base duty.</description>
+    </table>
+    <table type="1D" name="Unused Here" storagetype="uint8"/>
+  </rom>
+  <rom base="KATBASE">
+    <romid><xmlid>KATCHILD</xmlid></romid>
+    <table name="Boost Target" storageaddress="6000" userlevel="3">
+      <table type="Y Axis" storageaddress="5FF0"/>
+    </table>
+    <table name="Wastegate Duty" omit="true"/>
+  </rom>
+</roms>
+'''
+
+[[table]]
+name = "Boost Target"
+kind = "2D"
+at = "17:5"
+layer = "KATCHILD"
+category = "Boost"
+user_level = 3
+size_y = 4
+
+[table.cells]
+storage_address = 0x6000
+storage = "u16"
+endian = "big"
+size = 4
+
+[table.cells.scaling.default]
+units = "psi"
+expression = "x*0.01"
+to_byte = "x/0.01"
+format = "0.00"
+
+[table.encoding]
+storage = "u16"
+endian = "big"
+layout = "default"
+working = "uint16 = u16 and endian big, both inherited from KATBASE (the child sets neither); no <memmodel> = big; layout default"
+
+[table.conversion]
+form = "expr"
+to_raw = true
+unit = "psi"
+format = "0.00"
+working = "the inherited scaling: expression x*0.01 = to_real, to_byte x/0.01 = to_raw; units psi, format 0.00"
+
+[[table.cell]]
+hex = "03 E8"
+real = 10.0
+working = "big-endian 0x03E8 = 3*256 + 232 = 1000; 1000*0.01 = 10.0"
+
+[[table.axis]]
+name = "RPM"
+
+[table.axis.cells]
+storage_address = 0x5FF0
+storage = "u16"
+
+[table.axis.cells.scaling.default]
+units = "RPM"
+expression = "x"
+to_byte = "x"
+format = "#"
+
+[table.axis.encoding]
+storage = "u16"
+endian = "big"
+layout = "default"
+working = "uint16 = u16 from KATBASE's axis, the address 0x5FF0 from KATCHILD's; no endian, no <memmodel> = big; layout default"
+
+[table.axis.conversion]
+form = "expr"
+to_raw = true
+unit = "RPM"
+format = "#"
+working = "the inherited axis scaling: expression x = to_real, to_byte x = to_raw; units RPM, format #"
+
+[[table.axis.cell]]
+hex = "1F 40"
+real = 8000.0
+working = "big-endian 0x1F40 = 31*256 + 64 = 8000; x = 8000.0"

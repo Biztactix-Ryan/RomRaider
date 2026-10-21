@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Over the fuzz body's to_byte cost (17 tables with a to_byte, one
+     with formulas over 32 bytes): resolved on the retry with every
+     to_byte renamed (src/romraider_defs_target.rs, US-RR-29-4). -->
+<roms>
+  <rom>
+    <romid><xmlid>TOBYTE</xmlid><internalidaddress>0</internalidaddress><internalidstring>TB</internalidstring></romid>
+    <table type="1D" name="T0" storageaddress="0x100" storagetype="uint8"><scaling units="u" expression="x*0.5" to_byte="x*2" format="0.0"/></table>
+    <table type="1D" name="T1" storageaddress="0x104" storagetype="int8"><scaling units="u" expression="x/2+40" to_byte="(x-40)*2" format="0.0"/></table>
+    <table type="1D" name="T2" storageaddress="0x108" storagetype="uint16"><scaling units="u" expression="(x-128)*0.1" to_byte="x*10+128" format="0.0"/></table>
+    <table type="1D" name="T3" storageaddress="0x10C" storagetype="int16"><scaling units="u" expression="x*0.01" to_byte="x*100" format="0.0"/></table>
+    <table type="1D" name="T4" storageaddress="0x110" storagetype="uint32"><scaling units="u" expression="x+1" to_byte="x-1" format="0.0"/></table>
+    <table type="1D" name="T5" storageaddress="0x114" storagetype="int32"><scaling units="u" expression="x*4" to_byte="x/4" format="0.0"/></table>
+    <table type="1D" name="T6" storageaddress="0x118" storagetype="uint8"><scaling units="u" expression="x*0.5" to_byte="x*2" format="0.0"/></table>
+    <table type="1D" name="T7" storageaddress="0x11C" storagetype="int8"><scaling units="u" expression="x/2+40" to_byte="(x-40)*2" format="0.0"/></table>
+    <table type="1D" name="T8" storageaddress="0x120" storagetype="uint16"><scaling units="u" expression="(x-128)*0.1" to_byte="x*10+128" format="0.0"/></table>
+    <table type="1D" name="T9" storageaddress="0x124" storagetype="int16"><scaling units="u" expression="x*0.01" to_byte="x*100" format="0.0"/></table>
+    <table type="1D" name="T10" storageaddress="0x128" storagetype="uint32"><scaling units="u" expression="x+1" to_byte="x-1" format="0.0"/></table>
+    <table type="1D" name="T11" storageaddress="0x12C" storagetype="int32"><scaling units="u" expression="x*4" to_byte="x/4" format="0.0"/></table>
+    <table type="1D" name="T12" storageaddress="0x130" storagetype="uint8"><scaling units="u" expression="x*0.5" to_byte="x*2" format="0.0"/></table>
+    <table type="1D" name="T13" storageaddress="0x134" storagetype="int8"><scaling units="u" expression="x/2+40" to_byte="(x-40)*2" format="0.0"/></table>
+    <table type="1D" name="T14" storageaddress="0x138" storagetype="uint16"><scaling units="u" expression="(x-128)*0.1" to_byte="x*10+128" format="0.0"/></table>
+    <table type="1D" name="T15" storageaddress="0x13C" storagetype="int16"><scaling units="u" expression="x*0.01" to_byte="x*100" format="0.0"/></table>
+    <table type="1D" name="T16" storageaddress="0x140" storagetype="uint32"><scaling units="u" expression="(x-128)*0.0078125+14.7*(1+0.001*x)" to_byte="((x-14.7)/0.0078125)+128" format="0.0"/></table>
+  </rom>
+</roms>

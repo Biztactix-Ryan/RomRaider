@@ -17,12 +17,12 @@ epic_id: EPIC-RR-4
 id: US-RR-29
 points: 8
 priority: must
-status: backlog
+status: done
 tags:
 - m1
 - definitions
 title: RomRaider ECU-definition reader
-updated: '2026-10-19'
+updated: '2026-10-21'
 ---
 
 As a tuner, I want my existing RomRaider ECU-definition XML files to load unchanged, so that I can switch to the new app without rewriting definitions.

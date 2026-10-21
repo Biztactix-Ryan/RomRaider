@@ -1,0 +1,94 @@
+schema = 1
+title = "BitwiseSwitch tables: named bits in order, a 2-byte cell, and the default one-byte storage"
+notes = """
+Bits are kept in document order, position and name as written (legacy
+maps/TableBitwiseSwitch.java:70-75). `Fan Flags` has no storagetype and
+gets the switch default, one unsigned byte.
+"""
+resolve = "KATBW"
+xml = '''
+<roms>
+  <rom>
+    <romid><xmlid>KATBW</xmlid></romid>
+    <table type="BitwiseSwitch" name="Feature Flags" category="Switches" storageaddress="40" storagetype="uint16" userlevel="4">
+      <bit position="0" name="Launch Control"/>
+      <bit position="7" name="Flat Foot Shift"/>
+      <bit position="15" name="Valet Mode"/>
+    </table>
+    <table type="BitwiseSwitch" name="Fan Flags" storageaddress="42">
+      <bit position="3" name="Fan Override"/>
+    </table>
+  </rom>
+</roms>
+'''
+
+[[table]]
+name = "Feature Flags"
+kind = "BitwiseSwitch"
+at = "4:5"
+layer = "KATBW"
+category = "Switches"
+user_level = 4
+
+[table.cells]
+storage_address = 0x40
+storage = "u16"
+
+[table.encoding]
+storage = "u16"
+endian = "big"
+layout = "default"
+working = "uint16 = u16; no endian, no <memmodel> = big; layout default"
+
+[table.conversion]
+form = "linear"
+m = 1.0
+b = 0.0
+working = "no <scaling> = raw values: real = 1*x + 0"
+
+[[table.cell]]
+hex = "80 81"
+real = 32897.0
+working = "big-endian 0x8081 = 128*256 + 129 = 32897 = (1 << 15) + (1 << 7) + (1 << 0) = 32768 + 128 + 1: bits 15, 7 and 0 set"
+
+[[table.bit]]
+position = 0
+name = "Launch Control"
+
+[[table.bit]]
+position = 7
+name = "Flat Foot Shift"
+
+[[table.bit]]
+position = 15
+name = "Valet Mode"
+
+[[table]]
+name = "Fan Flags"
+kind = "BitwiseSwitch"
+at = "9:5"
+layer = "KATBW"
+
+[table.cells]
+storage_address = 0x42
+
+[table.encoding]
+storage = "u8"
+endian = "big"
+layout = "default"
+working = "no storagetype: a BitwiseSwitch defaults to 1 byte unsigned = u8; no endian = big; layout default"
+
+[table.conversion]
+form = "linear"
+m = 1.0
+b = 0.0
+working = "no <scaling> = raw values: real = 1*x + 0"
+
+[[table.cell]]
+hex = "08"
+real = 8.0
+working = "0x08 = 1 << 3 = 8: bit 3 set; 1*8 + 0 = 8.0"
+
+[[table.bit]]
+position = 3
+name = "Fan Override"

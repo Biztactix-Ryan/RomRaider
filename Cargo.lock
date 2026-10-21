@@ -749,10 +749,12 @@ dependencies = [
 name = "rr-defs"
 version = "0.1.0"
 dependencies = [
+ "insta",
  "proptest",
  "quick-xml",
  "rr-core",
  "rr-testkit",
+ "serde",
 ]
 
 [[package]]

@@ -1,0 +1,21 @@
+<roms>
+<rom>
+ <romid><xmlid>32BITBASE</xmlid><filesize>1mb</filesize><memmodel>SH7058</memmodel></romid>
+ <table type="2D" name="Fuel Map" storagetype="uint8" sizey="4"><table type="X Axis" name="RPM" storagetype="uint16"/></table>
+ <table type="1D" name="Rev Limit" storagetype="uint16"><scaling units="rpm" expression="x"/></table>
+ <table type="Switch" name="Mode" sizey="1"><state name="on" data="01"/><state name="off" data="00"/></table>
+ <table type="1D" name="Copy" base="Rev Limit"/>
+ <table type="1D" name="Spare" storagetype="uint8" storageaddress="0x30"/>
+</rom>
+<rom base="32BITBASE">
+ <romid><xmlid>FAMILY</xmlid><offset>0x10</offset><obsolete>1</obsolete></romid>
+ <table name="Rev Limit" storageaddress="0x40"/>
+ <table name="Mode" omit="true"/>
+</rom>
+<rom base="family">
+ <romid><xmlid>A2WC522N</xmlid><internalidaddress>2000</internalidaddress><internalidstring>A2WC522N</internalidstring><noramoffset/></romid>
+ <table name="Fuel Map" storageaddress="0x80" storagetype="int8"><table type="Y Axis" name="RPM" storageaddress="0xA0"/></table>
+ <table name="Copy" storageaddress="0x44"/>
+ <table name="Spare" omit="true"/>
+</rom>
+</roms>

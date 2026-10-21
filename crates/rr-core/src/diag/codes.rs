@@ -189,6 +189,229 @@ registry! {
     /// guessed scaling would show wrong values.
     UNKNOWN_SCALING = "DEF0001", Error, since "0.1.0";
 
+    /// A file read as a RomRaider ECU definition is some other kind of XML.
+    ///
+    /// Its root element is neither `<roms>` nor `<rom>` (for example a
+    /// logger definition's `<logger>`). Nothing in it is read as a ROM
+    /// definition; legacy RomRaider found no ROM in such a file.
+    NOT_ROM_DEFINITION = "DEF0002", Error, since "0.1.0";
+
+    /// An ECU definition file's root element is a `<rom>`, not `<roms>`.
+    ///
+    /// The file is read as a file holding that one ROM. Legacy RomRaider
+    /// looked for `<rom>` children of the root and so found no ROM in such a
+    /// file; wrap the `<rom>` in `<roms>` for a file both read alike.
+    SINGLE_ROM_ROOT = "DEF0003", Warning, since "0.1.0";
+
+    /// A definition has an element that is not part of its format.
+    ///
+    /// The element (a misspelt `<xmlid>`, or another tool's element such as
+    /// ECUFlash's `<include>`) is not read; the diagnostic names it and the
+    /// element it is in. Legacy RomRaider skipped such elements without a
+    /// word, so a misspelt element silently lost its value.
+    UNKNOWN_ELEMENT = "DEF0004", Warning, since "0.1.0";
+
+    /// A definition element has an attribute that is not part of its format.
+    ///
+    /// The attribute is not read; the diagnostic names it and its element.
+    /// Attribute names are case-sensitive, as legacy RomRaider read them: a
+    /// `BASE` attribute on `<rom>` is not `base`, and legacy ignored it
+    /// silently.
+    UNKNOWN_ATTRIBUTE = "DEF0005", Warning, since "0.1.0";
+
+    /// A definition has an element legacy RomRaider read but this reader does not yet.
+    ///
+    /// The element (for example a `<rom>`'s `<checksum>` or `<Simulation>`)
+    /// is valid in the format but not supported yet, and is ignored. A
+    /// definition that relies on it (a checksum to fix on save) is not
+    /// complete.
+    UNSUPPORTED_ELEMENT = "DEF0006", Warning, since "0.1.0";
+
+    /// A definition element holds text where only child elements belong.
+    ///
+    /// For example text directly inside `<rom>` or `<romid>`, or inside an
+    /// element that is a flag (`<noramoffset>`). The text is ignored, as
+    /// legacy RomRaider ignored it.
+    UNEXPECTED_TEXT = "DEF0007", Warning, since "0.1.0";
+
+    /// An element that says one thing appears more than once.
+    ///
+    /// For example two `<xmlid>` in one `<romid>`, or two `<romid>` in one
+    /// `<rom>`. The later one wins, as in legacy RomRaider; the diagnostic
+    /// points at it. (A ROM is identified by its first `<romid>` only, as
+    /// legacy did.)
+    DUPLICATE_ELEMENT = "DEF0008", Warning, since "0.1.0";
+
+    /// A ROM definition has no `<romid>` with a non-empty `<xmlid>`.
+    ///
+    /// The `xmlid` names the ROM: other definitions name it as their `base`,
+    /// and it identifies the definition in every message. A `<rom>` without
+    /// one is not read.
+    MISSING_XMLID = "DEF0009", Error, since "0.1.0";
+
+    /// An address or offset is not a hexadecimal number in range.
+    ///
+    /// Addresses (`internalidaddress`) and offsets (`<offset>`) are
+    /// hexadecimal, with or without a `0x` prefix (`2000` is `0x2000`), at
+    /// most `FFFFFFFF`; an `internalidaddress` may also be `-1`, legacy's
+    /// marker for an `internalidstring` of `force`. The value is not read:
+    /// legacy RomRaider failed to load the whole file on such a value.
+    INVALID_ADDRESS = "DEF0010", Error, since "0.1.0";
+
+    /// A `<filesize>` is not a size legacy RomRaider understood.
+    ///
+    /// A file size is decimal digits with an optional `kb` or `mb` (times
+    /// 1024 or 1024²) or `b` suffix, in any case (`1024kb`, `512Kb`,
+    /// `196608`), at most 4 GiB less one byte. The value is not read: legacy
+    /// RomRaider failed to load the whole file on such a value.
+    INVALID_FILE_SIZE = "DEF0011", Error, since "0.1.0";
+
+    /// A ROM's hexadecimal identification string is not hexadecimal bytes.
+    ///
+    /// An `internalidstring` starting with `0x` gives the ID as bytes (`0x`
+    /// prefixes and spaces are ignored, an odd digit count is padded with a
+    /// leading `0`, as legacy RomRaider did), but this one holds a character
+    /// that is not a hex digit, or no digit at all. The ROM cannot be
+    /// identified from an image.
+    INVALID_ROM_ID = "DEF0012", Error, since "0.1.0";
+
+    /// A ROM's identification has only one of its two halves.
+    ///
+    /// An `internalidstring` without an `internalidaddress` is matched at
+    /// address 0, as legacy RomRaider did. An `internalidaddress` without
+    /// an `internalidstring`, or the address `-1` with a string other than
+    /// `force`, never matches an image, as in legacy. Either way the
+    /// definition is probably missing an element.
+    ROM_ID_INCOMPLETE = "DEF0013", Warning, since "0.1.0";
+
+    /// A yes/no definition value is neither `true` nor `false`.
+    ///
+    /// The value (for example `<obsolete>yes</obsolete>`) is read as
+    /// `false`, as legacy RomRaider's `Boolean.parseBoolean` read every
+    /// value but `true` (in any case).
+    INVALID_BOOLEAN = "DEF0014", Warning, since "0.1.0";
+
+    /// A definition `<table>` has no `name`.
+    ///
+    /// A table is known by its name: a child definition changes or omits an
+    /// inherited table by naming it. A `<table>` without a `name` (or with an
+    /// empty one) is not read; legacy RomRaider dropped it without a word.
+    MISSING_TABLE_NAME = "DEF0015", Error, since "0.1.0";
+
+    /// A definition `<table>` has an unknown `type`, or none where one is needed.
+    ///
+    /// A table's `type` is `1D`, `2D`, `3D`, `Switch` or `BitwiseSwitch` (any
+    /// case; `X Axis`, `Y Axis`, `Static X Axis` and `Static Y Axis` read as
+    /// `1D`, as in legacy RomRaider). A table that is not a change to one
+    /// inherited from a `base` (or to one earlier in the same `<rom>`) must
+    /// say its type. Legacy RomRaider logged such a table and left it out.
+    INVALID_TABLE_TYPE = "DEF0016", Error, since "0.1.0";
+
+    /// A definition number is not a decimal integer in range.
+    ///
+    /// Table sizes (`sizex`, `sizey`) are whole numbers from 1, `skipCells`
+    /// from 0, `userlevel` an integer, and a `<bit>`'s `position` 0 to 31,
+    /// all in decimal digits with an optional sign. The value is not read:
+    /// legacy RomRaider failed to load the whole file on such a value.
+    INVALID_NUMBER = "DEF0017", Error, since "0.1.0";
+
+    /// A table's `userlevel` is outside 1 to 5.
+    ///
+    /// User levels run from 1 (beginner) to 5 (debug). The value is clamped
+    /// to that range, as legacy RomRaider meant to do (its clamp had no
+    /// effect, so a level of 7 hid the table at every setting).
+    USER_LEVEL_OUT_OF_RANGE = "DEF0018", Warning, since "0.1.0";
+
+    /// A table is missing an axis its type needs.
+    ///
+    /// A `2D` table has one axis, and a `3D` table an `X Axis` and a `Y Axis`
+    /// (child `<table>` elements). In a `<rom>` without a `base` nothing can
+    /// supply a missing one, so the table cannot be shown; legacy RomRaider
+    /// read it against an empty axis.
+    MISSING_AXIS = "DEF0019", Error, since "0.1.0";
+
+    /// A definition element is valid but has no effect where it is.
+    ///
+    /// For example an axis on a `1D` or `Switch` table, a child `<table>`
+    /// whose `type` is not an axis type, static `<data>` on a `2D` or `3D`
+    /// table, or both an `X Axis` and a `Y Axis` on a `2D` table (which has
+    /// one axis: both are read into it, the later winning, as in legacy
+    /// RomRaider). Legacy RomRaider ignored these without a word.
+    CONTENT_IGNORED = "DEF0020", Warning, since "0.1.0";
+
+    /// A switch table's `<state data>` is not hexadecimal values.
+    ///
+    /// A state's `data` is the table's cell values in hexadecimal, separated
+    /// by spaces or commas (`01 00 FF`), each at most `FFFFFFFF`. The state
+    /// is not read: legacy RomRaider failed to load the whole file on such a
+    /// value.
+    INVALID_STATE_DATA = "DEF0021", Error, since "0.1.0";
+
+    /// A static axis has a different number of values than the axis has cells.
+    ///
+    /// A static axis lists its values as `<data>` elements; their count
+    /// should be the axis size (its own `sizey`/`sizex`, which legacy
+    /// RomRaider replaced with the table's size along that axis). With too
+    /// few, legacy showed empty headers; with too many, it dropped the rest.
+    STATIC_AXIS_SIZE = "DEF0022", Warning, since "0.1.0";
+
+    /// A scaling's `min`, `max` or increment is not a decimal number.
+    ///
+    /// A RomRaider `<scaling>` (or `<scalingbase>`) gives `min`, `max`,
+    /// `increment` / `coarseincrement` and `fineincrement` as decimal
+    /// numbers (`.01`, `-40`, `1e3`). The value is not read: legacy
+    /// RomRaider failed to load the whole file on such a value.
+    INVALID_SCALING_NUMBER = "DEF0023", Error, since "0.1.0";
+
+    /// A table or axis read from the image has no storage type.
+    ///
+    /// Once its definition and every `base` it inherits from are merged, a
+    /// table (or a non-static axis) whose cells are read from the ROM image
+    /// has no `storagetype`, so its cells cannot be decoded. (A `Switch` or
+    /// `BitwiseSwitch` table without one is `uint8`, as in legacy
+    /// RomRaider.) Legacy read every cell of such a table as 0
+    /// (`RomAttributeParser.parseByteValue` with a length of 0); here it is
+    /// not loaded (MF-02).
+    MISSING_STORAGE_TYPE = "DEF0024", Error, since "0.1.0";
+
+    /// A scaling's `to_byte` formula cannot be used; it is ignored.
+    ///
+    /// The real-to-raw formula of a RomRaider `<scaling>` does not parse (an
+    /// unbalanced parenthesis, say) or names something other than `x`; the
+    /// message gives the expression error and its code. Nothing is lost:
+    /// values typed into a cell are always stored with the inverse of the
+    /// scaling's `expression`, and a definition's `to_byte` is only checked
+    /// against it (`CNV0005`), never used. Legacy RomRaider loaded such a
+    /// definition, and its JEP evaluated the formula as NaN when a value was
+    /// written.
+    UNUSABLE_TO_BYTE = "DEF0025", Warning, since "0.1.0";
+
+    /// Two ROM definitions in the loaded definition files have the same `xmlid`.
+    ///
+    /// The `xmlid` names a ROM definition, compared ignoring case as legacy
+    /// RomRaider compared it. Within one file the first `<rom>` of the name
+    /// is used and the later one is ignored, as legacy found the first. In
+    /// different files both are kept: a `base` is looked up in its own file
+    /// first, as legacy looked it up there only, so each file's copy of a
+    /// shared base (RomRaider's per-ROM files each carry their own
+    /// `32BITBASE`) serves that file; a reference from a file that has none,
+    /// and a lookup of the name from outside the files, gets the one in the
+    /// first file loaded, as legacy took the first file that matched. The
+    /// message names where both are.
+    DUPLICATE_XMLID = "DEF0026", Warning, since "0.1.0";
+
+    /// A table placed on a ROM has no type in any definition of its `base` chain; it is not loaded.
+    ///
+    /// The `<table>` gives the table an address but no `type`, and no
+    /// definition the ROM inherits from has a table of that name to take
+    /// one from: usually a child definition changing a table its base does
+    /// not define (a misspelt name, or a table missing from that copy of
+    /// the base). Its cells cannot be laid out, so the table is left out
+    /// and the rest of the ROM loads, as in legacy RomRaider, which logged
+    /// "Table type unspecified" and skipped it. (A table of a `<rom>` with
+    /// no `base` that has no type is `DEF0016` when the file is read.)
+    UNTYPED_TABLE = "DEF0027", Warning, since "0.1.0";
+
     /// A definition names a storage type the encoding does not support.
     ///
     /// The storage string (for example `uint48` or a misspelt `unit16`) does
@@ -974,6 +1197,32 @@ mod tests {
         ("CNV0006", "NOT_INVERTIBLE"),
         ("CNV0007", "EDIT_OUT_OF_RANGE"),
         ("CNV0008", "EDIT_NOT_FINITE"),
+        ("DEF0002", "NOT_ROM_DEFINITION"),
+        ("DEF0003", "SINGLE_ROM_ROOT"),
+        ("DEF0004", "UNKNOWN_ELEMENT"),
+        ("DEF0005", "UNKNOWN_ATTRIBUTE"),
+        ("DEF0006", "UNSUPPORTED_ELEMENT"),
+        ("DEF0007", "UNEXPECTED_TEXT"),
+        ("DEF0008", "DUPLICATE_ELEMENT"),
+        ("DEF0009", "MISSING_XMLID"),
+        ("DEF0010", "INVALID_ADDRESS"),
+        ("DEF0011", "INVALID_FILE_SIZE"),
+        ("DEF0012", "INVALID_ROM_ID"),
+        ("DEF0013", "ROM_ID_INCOMPLETE"),
+        ("DEF0014", "INVALID_BOOLEAN"),
+        ("DEF0015", "MISSING_TABLE_NAME"),
+        ("DEF0016", "INVALID_TABLE_TYPE"),
+        ("DEF0017", "INVALID_NUMBER"),
+        ("DEF0018", "USER_LEVEL_OUT_OF_RANGE"),
+        ("DEF0019", "MISSING_AXIS"),
+        ("DEF0020", "CONTENT_IGNORED"),
+        ("DEF0021", "INVALID_STATE_DATA"),
+        ("DEF0022", "STATIC_AXIS_SIZE"),
+        ("DEF0023", "INVALID_SCALING_NUMBER"),
+        ("DEF0024", "MISSING_STORAGE_TYPE"),
+        ("DEF0025", "UNUSABLE_TO_BYTE"),
+        ("DEF0026", "DUPLICATE_XMLID"),
+        ("DEF0027", "UNTYPED_TABLE"),
     ];
 
     /// A break of the stability rules against the published ledger.

@@ -1,0 +1,25 @@
+<roms>
+<rom base="NOWHERE"><romid><xmlid>ORPHAN</xmlid></romid></rom>
+<rom base="LOOPB"><romid><xmlid>LOOPA</xmlid></romid></rom>
+<rom base="LOOPA"><romid><xmlid>LOOPB</xmlid></romid></rom>
+<rom base="SELF"><romid><xmlid>SELF</xmlid></romid></rom>
+<rom>
+ <romid><xmlid>BAD</xmlid><internalidaddress>zz</internalidaddress><filesize>lots</filesize></romid>
+ <table type="2D" name="No Axis" storagetype="uint8" storageaddress="0x10"/>
+ <table type="3D" name="Half" storagetype="uint8" storageaddress="0x20"><table type="X Axis" name="X" storagetype="uint8" storageaddress="0x30"/></table>
+ <table type="1D" name="No Storage" storageaddress="0x40"/>
+ <table type="1D" name="Wide Mask" storagetype="uint8" storageaddress="0x50" mask="1FF"/>
+ <table type="1D" name="Bad Formula" storagetype="uint8" storageaddress="0x60"><scaling expression="x*" to_byte="(" min="x"/></table>
+ <table type="1D" name="Mismatch" storagetype="uint8" storageaddress="0x70"><scaling expression="x*2" to_byte="x"/></table>
+ <table type="Switch" name="Bad Data" storageaddress="0x80"><state name="on" data="zz"/></table>
+ <table type="BitwiseSwitch" name="Bad Bit" storageaddress="0x90"><bit position="32" name="x"/></table>
+ <table type="bogus" name="Bad Type" storageaddress="0xA0"/>
+ <table name="Untyped" storageaddress="0xB0"/>
+ <table type="1D" name="Bad Address" storagetype="uint8" storageaddress="0x100000000"/>
+ <table type="1D" name="Lost" storagetype="uint8" storageaddress="0xD0"><scaling base="missing"/></table>
+ <table type="1D" name="Loop" base="Loop2" storageaddress="0xC0"/>
+ <table type="1D" name="Loop2" base="Loop" storagetype="uint8"/>
+</rom>
+<rom><romid><xmlid></xmlid></romid></rom>
+<rom/>
+</roms>

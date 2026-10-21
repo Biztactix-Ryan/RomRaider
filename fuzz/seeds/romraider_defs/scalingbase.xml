@@ -1,0 +1,12 @@
+<roms>
+<scalingbase name="psi" units="psi" expression="x*0.01" to_byte="x/0.01" format="0.00" category="Imperial"/>
+<scalingbase name="bar" base="psi" units="bar" expression="x*0.000689"/>
+<rom>
+ <romid><xmlid>SCALED</xmlid></romid>
+ <table type="1D" name="Boost Limit" storagetype="uint16" storageaddress="0x900">
+  <scaling base="psi" category="Imperial"/>
+  <scaling base="bar" category="Metric" format="0.000"/>
+  <scaling units="raw" expression="x"/>
+ </table>
+</rom>
+</roms>

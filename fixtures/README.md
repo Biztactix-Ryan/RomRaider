@@ -34,11 +34,13 @@ and marked as synthetic ([Synthetic ROMs](#synthetic-roms)).
 | Path | What |
 |------|------|
 | [`fixtures/kat/*.toml`](kat/) | Seed KAT fixtures, one storage type or scaling per file, named `<storage>-<endian>.toml` (`u16-be.toml`, `i24-le.toml`, `u8-be.toml`), plus `bitfield-*`, `scaling-*` and `u20-movi20.toml`; and expression fixtures, `expr-*.toml` ([`expr-jep-precedence.toml`](kat/expr-jep-precedence.toml): JEP operator precedence and `^` semantics, US-RR-20-2; [`expr-corpus.toml`](kat/expr-corpus.toml): hand-checked formulas of the definition corpus, named by hash, US-RR-20-10; [`expr-bitwise-functions.toml`](kat/expr-bitwise-functions.toml): `BitWise`, `& \| << >>` and the standard functions, which the corpus does not use). |
+| [`defs-kat/romraider/*.toml`](defs-kat/romraider/) | Definition-reader KATs (US-RR-29-2): one per RomRaider table kind (`table-1d`, `table-2d`, `table-3d`, `table-switch`, `table-bitwise-switch`) and `inheritance` (`base` / `omit`), each a minimal ECU-definition XML and the typed document it must resolve to, written by hand. Not schema-1 byte KATs: see [Definition-reader fixtures](#definition-reader-fixtures). |
 | [`crates/rr-testkit/tests/data/kat/*.toml`](../crates/rr-testkit/tests/data/kat/) | Samples for rr-testkit's own schema tests: a checksum fixture, a decode fixture with an inline conversion, and one that uses a ROM and definition reference. They are not seed fixtures, but the validator checks them too. |
 | [`crates/rr-testkit/src/kat.rs`](../crates/rr-testkit/src/kat.rs) | The schema-1 types (serde model). Its module docs are the format reference. |
 | [`crates/rr-testkit/src/kat/validate.rs`](../crates/rr-testkit/src/kat/validate.rs) | The validator rules. Its module docs are the reference for every rule. |
 | [`public/synthetic/`](public/synthetic/) | Generated synthetic ROM images (`<plan>.bin`), their manifests (`<plan>.manifest.toml`) and `SHA256SUMS`. Never edit by hand: see [Synthetic ROMs](#synthetic-roms). |
 | [`corpus-manifest.toml`](corpus-manifest.toml) | Manifest of the external stock-ROM corpus (D-025): path, size, SHA-256 and file-name fields of every image, metadata only. Images that are not a raw ROM of a standard size carry a `suspect` table (kind, reason, embedded-image offset); tests consuming the corpus must branch on it. Its `[defs]` table pins the ECU-definition corpus the same way (D-028: upstream, commit, licence position, every file's path, size and SHA-256, and the `logger_v370.zip` pin), metadata only. It lists ROM IDs by design, so it lives outside `public/` and `kat/`. Never edit by hand: `cargo xtask gen-corpus-manifest --mirror <dir> --defs-mirror <dir>` regenerates it and `--check` verifies it (format in [`xtask/src/corpus_manifest.rs`](../xtask/src/corpus_manifest.rs)). |
+| [`defs-known-bad.toml`](defs-known-bad.toml) | The known-bad registry of the pinned definition corpus (US-RR-29-1, D-028): each pinned ECU definition whose Error diagnostics are the file's own defect, with its manifest SHA-256 (a corpus bump forces a re-review), every Error exactly (code, `line:col`, layer), the reason, and what legacy RomRaider did with it (checked in `legacy/`); and the root elements of pinned XML the ECU-definition reader does not read (`logger`, `dyno`), each with the reader that will. Metadata only. Edited by hand and reviewed; `crates/rr-defs/tests/corpus_romraider_loads.rs` validates it on every run (unknown keys, unpinned files, SHA mismatches, non-Error codes) and its corpus-tier test fails on any Error not listed, and on any listed Error no longer reported. |
 | [`corpus-formulas.toml`](corpus-formulas.toml) | Every distinct formula of the pinned definition corpus (US-RR-20-10, D-028): the ECU `<scaling expression\|to_byte>` and logger `<conversion expr>` attributes, deduplicated by exact text, each as its SHA-256, occurrence count, kinds and first location (corpus-relative path and positional XPath), plus counts. Metadata only, never formula text. Never edit by hand: `RR_CORPUS_DIR=<dir> cargo run -p rr-testkit --example gen-corpus-formulas` regenerates it, and the corpus-tier test `corpus_formula_metadata_is_current` (CI `corpus` job) checks it (format in [`crates/rr-testkit/src/corpus/formulas.rs`](../crates/rr-testkit/src/corpus/formulas.rs)). |
 | [`corpus-coverage.toml`](corpus-coverage.toml) | Which corpus images have a pinned ECU definition (US-RR-16-6, D-028): for every manifest image, the definition files whose `<romid>` matches its bytes (legacy RomRaider matching) with their `xmlid`s, or `no-definition`; the ROM ID read from the image; totals by region; the 2004 ADM Liberty flags. Metadata only, never definition content. Never edit by hand: `cargo xtask gen-corpus-coverage` regenerates it from a fetched corpus and `--check` verifies it (CI `corpus` job; format in [`xtask/src/corpus_coverage.rs`](../xtask/src/corpus_coverage.rs)). |
 | [`.github/workflows/fixtures.yml`](../.github/workflows/fixtures.yml) | The CI jobs that run the validator and check the synthetic ROMs on Linux and Windows. |
@@ -503,6 +505,47 @@ On success it prints, for example,
 cannot link it. The validator's own tests are in
 `crates/rr-testkit/tests/kat_validate.rs`, and they run under
 `cargo nextest run --workspace`.
+
+## Definition-reader fixtures
+
+[`defs-kat/romraider/`](defs-kat/romraider/) holds the known-answer
+fixtures of the RomRaider ECU-definition reader (story US-RR-29, task
+US-RR-29-2): one file per table kind, and one for `base` / `omit`
+inheritance. Each is a TOML file with `schema = 1` holding:
+
+- `xml`: a whole, minimal definition file, verbatim, in a literal string
+  (`'''`). Its line 1 is the line after the opening `'''`, so positions
+  are the XML's own `line:col`.
+- `resolve`: the `xmlid` of the `<rom>` to resolve, along its `base` chain.
+- `diagnostics` (every diagnostic, exactly: `code`, `severity`, `at`),
+  `unplaced` (tables with no address in any layer) and `omitted` (tables an
+  `omit="true"` removed). Each defaults to none.
+- `[[table]]`: every resolved table, in order. Its keys are the merged
+  `TableDoc` fields (a key left out is a field the XML does not set), `at`
+  and `layer` (the `<table>` element and `<rom>` it comes from), its
+  `[table.cells]` (with `[table.cells.scaling.<category>]`),
+  `[[table.state]]`, `[[table.bit]]` and `[[table.axis]]` (as resolved:
+  the one axis of a 2D table, X then Y of a 3D one), and the resolved
+  `[table.encoding]` and `[table.conversion]`.
+- `[[table.cell]]` (and `[[table.axis.cell]]`): `hex` bytes of one cell, and
+  the `real` value the resolved encoding and conversion must decode them to.
+
+Every derived value (an `encoding`, a `conversion`, a `cell`) has a
+`working` that shows how it follows from the XML, with an `=`: defaults
+(big-endian, a switch's one-byte storage), a `<memmodel endian>` override,
+the bytes and arithmetic of a decoded cell. The same no-Java rule applies:
+no expected value comes from the reader or from the Java application.
+
+The test that reads them,
+[`crates/rr-defs/tests/kat_romraider_tables.rs`](../crates/rr-defs/tests/kat_romraider_tables.rs),
+documents every key. It loads each file with rr-testkit's schema-checking
+loader, rejects unknown keys and a `working` without `=` or citing Java,
+compares the reader's answer field by field (a field the reader sets that
+the fixture does not list fails too), decodes every `cell`, and checks that
+the fixtures cover every table kind and axis type. `cargo xtask
+validate-fixtures` does not read this directory: its rules are those of the
+byte-decoding fixtures in `kat/`. Review them as any fixture
+([Review](#review)): recompute each `working` by hand from the XML.
 
 ## Synthetic ROMs
 

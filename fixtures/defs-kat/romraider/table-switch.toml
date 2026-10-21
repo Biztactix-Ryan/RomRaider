@@ -1,0 +1,106 @@
+schema = 1
+title = "Switch tables: states by lower-cased name, the default one-byte storage, and a 2-byte little-endian switch"
+notes = """
+`CEL Flash` has no storagetype: a switch table's storage defaults to one
+unsigned byte (legacy maps/TableSwitch.java constructor, storageType = 1),
+so FF reads 255, not -1. State data is hexadecimal values separated by
+spaces or commas (legacy maps/PresetManager.java). States are keyed by
+name lower-cased; the name is kept as written.
+"""
+resolve = "KATSW"
+xml = '''
+<roms>
+  <rom>
+    <romid><xmlid>KATSW</xmlid></romid>
+    <table type="Switch" name="CEL Flash" category="Switches" storageaddress="1F2C4" sizey="3">
+      <description>Flash the CEL on a fault.</description>
+      <state name="On" data="05 00 FF"/>
+      <state name="off" data="00,00, 0a"/>
+    </table>
+    <table type="Switch" name="Speed Limiter" storageaddress="1F300" storagetype="uint16" endian="little" sizey="2">
+      <state name="enabled" data="E400 0001"/>
+      <state name="disabled" data="0000 0000"/>
+    </table>
+  </rom>
+</roms>
+'''
+
+[[table]]
+name = "CEL Flash"
+kind = "Switch"
+at = "4:5"
+layer = "KATSW"
+category = "Switches"
+description = "Flash the CEL on a fault."
+size_y = 3
+
+[table.cells]
+storage_address = 0x1F2C4
+size = 3
+
+[table.encoding]
+storage = "u8"
+endian = "big"
+layout = "default"
+working = "no storagetype: a Switch defaults to 1 byte unsigned = u8; no endian, no <memmodel> = big; layout default"
+
+[table.conversion]
+form = "linear"
+m = 1.0
+b = 0.0
+working = "no <scaling> = raw values: real = 1*x + 0"
+
+[[table.cell]]
+hex = "FF"
+real = 255.0
+working = "unsigned 0xFF = 15*16 + 15 = 255; 1*255 + 0 = 255.0 (signed it would be 255 - 256 = -1)"
+
+[[table.state]]
+key = "on"
+name = "On"
+data = [0x05, 0x00, 0xFF]
+
+[[table.state]]
+key = "off"
+name = "off"
+data = [0x00, 0x00, 0x0A]
+
+[[table]]
+name = "Speed Limiter"
+kind = "Switch"
+at = "9:5"
+layer = "KATSW"
+size_y = 2
+
+[table.cells]
+storage_address = 0x1F300
+storage = "u16"
+endian = "little"
+size = 2
+
+[table.encoding]
+storage = "u16"
+endian = "little"
+layout = "default"
+working = "uint16 = u16; endian little, no <memmodel> = little; layout default"
+
+[table.conversion]
+form = "linear"
+m = 1.0
+b = 0.0
+working = "no <scaling> = raw values: real = 1*x + 0"
+
+[[table.cell]]
+hex = "00 E4"
+real = 58368.0
+working = "little-endian 0xE400 = 0x00 + 0xE4*256 = 228*256 = 58368; 1*58368 + 0 = 58368.0"
+
+[[table.state]]
+key = "enabled"
+name = "enabled"
+data = [0xE400, 0x0001]
+
+[[table.state]]
+key = "disabled"
+name = "disabled"
+data = [0x0000, 0x0000]

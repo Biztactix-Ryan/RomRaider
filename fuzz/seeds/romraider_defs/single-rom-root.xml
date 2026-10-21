@@ -1,0 +1,4 @@
+<rom>
+ <romid><xmlid>LONE</xmlid><internalidaddress>0</internalidaddress><internalidstring>0x3C726F6D</internalidstring></romid>
+ <table type="1D" name="Only" storagetype="int32" storageaddress="0x0"/>
+</rom>

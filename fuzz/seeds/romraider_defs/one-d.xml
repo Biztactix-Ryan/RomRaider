@@ -1,0 +1,10 @@
+<roms>
+<rom>
+ <romid><xmlid>ONED</xmlid><internalidaddress>10</internalidaddress><internalidstring>ONED</internalidstring><filesize>1kb</filesize></romid>
+ <table type="1D" name="Rev Limit" category="Limits" storagetype="uint16" endian="big" storageaddress="0x20" userlevel="1">
+  <scaling units="rpm" expression="x*0.5" to_byte="x/0.5" format="0" min="0" max="8000" increment="50" fineincrement="10"/>
+ </table>
+ <table type="1D" name="Rev Note" storageaddress="0x22"><data>static</data></table>
+ <table type="1D" name="Unplaced" storagetype="uint8"/>
+</rom>
+</roms>

@@ -1,0 +1,13 @@
+<roms>
+<rom>
+ <romid><xmlid>BITS</xmlid></romid>
+ <table type="BitwiseSwitch" name="Flags" storagetype="uint16" storageaddress="0x800" locked="true">
+  <bit position="0" name="Launch"/>
+  <bit position="7" name="Flat Shift"/>
+  <bit position="15" name="Top"/>
+ </table>
+ <table type="BitwiseSwitch" name="Byte Flags" storageaddress="0x810">
+  <bit position="3" name="Three"/>
+ </table>
+</rom>
+</roms>

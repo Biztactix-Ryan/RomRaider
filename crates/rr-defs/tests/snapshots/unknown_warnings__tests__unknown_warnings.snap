@@ -1,0 +1,419 @@
+---
+source: crates/rr-defs/tests/unknown_warnings.rs
+expression: rendered
+---
+=== clean definition: no diagnostics at all
+   1 | <roms>
+   2 |   <rom>
+   3 |     <romid><xmlid>A</xmlid></romid>
+   4 |     <table type="1D" name="Idle" storageaddress="100" storagetype="uint8" category="NaN"/>
+   5 |   </rom>
+   6 | </roms>
+(no diagnostics)
+
+=== <roms>: unknown attribute and child element
+   1 | <roms version="2">
+   2 |   <frobnicate/>
+   3 |   <rom><romid><xmlid>A</xmlid></romid></rom>
+   4 | </roms>
+defs.xml:1:7: warning[DEF0005]: unknown attribute `version` on <roms>; ignored
+   1 | <roms version="2">
+     |       ^^^^^^^
+defs.xml:2:3: warning[DEF0004]: unknown element <frobnicate> in <roms>; ignored
+   2 |   <frobnicate/>
+     |   ^^^^^^^^^^^
+
+=== lone <rom> root: unknown attribute and child element
+   1 | <rom colour="red">
+   2 |   <romid><xmlid>A</xmlid></romid>
+   3 |   <patch/>
+   4 | </rom>
+defs.xml:1:1: warning[DEF0003]: the root element is <rom>, not <roms>; read as a file holding that one ROM (legacy RomRaider found no ROM in such a file)
+   1 | <rom colour="red">
+     | ^^^^
+defs.xml:1:6: warning[DEF0005]: unknown attribute `colour` on <rom>; ignored
+   1 | <rom colour="red">
+     |      ^^^^^^
+defs.xml:3:3: warning[DEF0004]: unknown element <patch> in <rom>; ignored
+   3 |   <patch/>
+     |   ^^^^^^
+
+=== <rom>: unknown attribute and child element
+   1 | <roms>
+   2 |   <rom base="none" colour="red">
+   3 |     <romid><xmlid>A</xmlid></romid>
+   4 |     <patch/>
+   5 |   </rom>
+   6 | </roms>
+defs.xml:2:20: warning[DEF0005]: unknown attribute `colour` on <rom>; ignored
+   2 |   <rom base="none" colour="red">
+     |                    ^^^^^^
+defs.xml:4:5: warning[DEF0004]: unknown element <patch> in <rom>; ignored
+   4 |     <patch/>
+     |     ^^^^^^
+
+=== <romid>: unknown attribute and child element
+   1 | <roms>
+   2 |   <rom>
+   3 |     <romid region="eu">
+   4 |       <xmlid>A</xmlid>
+   5 |       <colour>red</colour>
+   6 |     </romid>
+   7 |   </rom>
+   8 | </roms>
+defs.xml:3:12: warning[DEF0005]: unknown attribute `region` on <romid>; ignored
+   3 |     <romid region="eu">
+     |            ^^^^^^
+defs.xml:5:7: warning[DEF0004]: unknown element <colour> in <romid>; ignored
+   5 |       <colour>red</colour>
+     |       ^^^^^^^
+
+=== <romid> value elements: unknown attributes and child elements
+   1 | <roms>
+   2 |   <rom>
+   3 |     <romid>
+   4 |       <xmlid lang="en">A</xmlid>
+   5 |       <make>Subaru<badge/></make>
+   6 |       <memmodel endian="big" width="32">SH7058</memmodel>
+   7 |       <noramoffset unit="b"/>
+   8 |     </romid>
+   9 |   </rom>
+  10 | </roms>
+defs.xml:4:14: warning[DEF0005]: unknown attribute `lang` on <xmlid>; ignored
+   4 |       <xmlid lang="en">A</xmlid>
+     |              ^^^^
+defs.xml:5:19: warning[DEF0004]: unknown element <badge> in <make>; ignored
+   5 |       <make>Subaru<badge/></make>
+     |                   ^^^^^^
+defs.xml:6:30: warning[DEF0005]: unknown attribute `width` on <memmodel>; ignored
+   6 |       <memmodel endian="big" width="32">SH7058</memmodel>
+     |                              ^^^^^
+defs.xml:7:20: warning[DEF0005]: unknown attribute `unit` on <noramoffset>; ignored
+   7 |       <noramoffset unit="b"/>
+     |                    ^^^^
+
+=== 1D <table> and its <scaling>: unknown attributes and child elements
+   1 | <roms>
+   2 |   <rom>
+   3 |     <romid><xmlid>A</xmlid></romid>
+   4 |     <table type="1D" name="Idle" storageaddress="100" storagetype="uint8" colour="red">
+   5 |       <scaling units="rpm" expression="x" format="0" colour="blue"><note/></scaling>
+   6 |       <graph/>
+   7 |     </table>
+   8 |   </rom>
+   9 | </roms>
+defs.xml:4:75: warning[DEF0005]: unknown attribute `colour` on <table>; ignored
+   4 |     <table type="1D" name="Idle" storageaddress="100" storagetype="uint8" colour="red">
+     |                                                                           ^^^^^^
+defs.xml:5:54: warning[DEF0005]: unknown attribute `colour` on <scaling>; ignored
+   5 |       <scaling units="rpm" expression="x" format="0" colour="blue"><note/></scaling>
+     |                                                      ^^^^^^
+defs.xml:5:68: warning[DEF0004]: unknown element <note> in <scaling>; ignored
+   5 |       <scaling units="rpm" expression="x" format="0" colour="blue"><note/></scaling>
+     |                                                                    ^^^^^
+defs.xml:6:7: warning[DEF0004]: unknown element <graph> in <table>; ignored
+   6 |       <graph/>
+     |       ^^^^^^
+
+=== <data> and <description> of a table: unknown attributes and child elements
+   1 | <roms>
+   2 |   <rom>
+   3 |     <romid><xmlid>A</xmlid></romid>
+   4 |     <table type="1D" name="Gear" storageaddress="100" storagetype="uint8">
+   5 |       <data index="1">1<sub/></data>
+   6 |       <description lang="en">Gear<b/></description>
+   7 |     </table>
+   8 |   </rom>
+   9 | </roms>
+defs.xml:5:13: warning[DEF0005]: unknown attribute `index` on <data>; ignored
+   5 |       <data index="1">1<sub/></data>
+     |             ^^^^^
+defs.xml:5:24: warning[DEF0004]: unknown element <sub> in <data>; ignored
+   5 |       <data index="1">1<sub/></data>
+     |                        ^^^^
+defs.xml:6:20: warning[DEF0005]: unknown attribute `lang` on <description>; ignored
+   6 |       <description lang="en">Gear<b/></description>
+     |                    ^^^^
+defs.xml:6:34: warning[DEF0004]: unknown element <b> in <description>; ignored
+   6 |       <description lang="en">Gear<b/></description>
+     |                                  ^^
+
+=== 2D <table> and its Y Axis: unknown attributes and child elements
+   1 | <roms>
+   2 |   <rom>
+   3 |     <romid><xmlid>A</xmlid></romid>
+   4 |     <table type="2D" name="Boost" storageaddress="100" storagetype="uint8" sizey="2" colour="red">
+   5 |       <table type="Y Axis" name="RPM" storageaddress="200" storagetype="uint8" colour="blue">
+   6 |         <scaling units="rpm" expression="x" smooth="1"/>
+   7 |         <ticks/>
+   8 |       </table>
+   9 |       <graph/>
+  10 |     </table>
+  11 |   </rom>
+  12 | </roms>
+defs.xml:4:86: warning[DEF0005]: unknown attribute `colour` on <table>; ignored
+   4 |     <table type="2D" name="Boost" storageaddress="100" storagetype="uint8" sizey="2" colour="red">
+     |                                                                                      ^^^^^^
+defs.xml:5:80: warning[DEF0005]: unknown attribute `colour` on an axis <table>; ignored
+   5 |       <table type="Y Axis" name="RPM" storageaddress="200" storagetype="uint8" colour="blue">
+     |                                                                                ^^^^^^
+defs.xml:6:45: warning[DEF0005]: unknown attribute `smooth` on <scaling>; ignored
+   6 |         <scaling units="rpm" expression="x" smooth="1"/>
+     |                                             ^^^^^^
+defs.xml:7:9: warning[DEF0004]: unknown element <ticks> in an axis <table>; ignored
+   7 |         <ticks/>
+     |         ^^^^^^
+defs.xml:9:7: warning[DEF0004]: unknown element <graph> in <table>; ignored
+   9 |       <graph/>
+     |       ^^^^^^
+
+=== 3D <table>, its X Axis and Static Y Axis, and the axis's <data> and <description>
+   1 | <roms>
+   2 |   <rom>
+   3 |     <romid><xmlid>A</xmlid></romid>
+   4 |     <table type="3D" name="Fuel" storageaddress="100" storagetype="uint8" sizex="2" sizey="2" colour="red">
+   5 |       <table type="X Axis" name="Load" storageaddress="200" storagetype="uint8" colour="blue"><ticks/></table>
+   6 |       <table type="Static Y Axis" name="Gear" sizey="2" colour="green">
+   7 |         <data index="0">1</data>
+   8 |         <data>2<sub/></data>
+   9 |         <description lang="en">gears<b/></description>
+  10 |       </table>
+  11 |       <graph/>
+  12 |     </table>
+  13 |   </rom>
+  14 | </roms>
+defs.xml:4:95: warning[DEF0005]: unknown attribute `colour` on <table>; ignored
+   4 |     <table type="3D" name="Fuel" storageaddress="100" storagetype="uint8" sizex="2" sizey="2" colour="red">
+     |                                                                                               ^^^^^^
+defs.xml:5:81: warning[DEF0005]: unknown attribute `colour` on an axis <table>; ignored
+   5 |       <table type="X Axis" name="Load" storageaddress="200" storagetype="uint8" colour="blue"><ticks/></table>
+     |                                                                                 ^^^^^^
+defs.xml:5:95: warning[DEF0004]: unknown element <ticks> in an axis <table>; ignored
+   5 |       <table type="X Axis" name="Load" storageaddress="200" storagetype="uint8" colour="blue"><ticks/></table>
+     |                                                                                               ^^^^^^
+defs.xml:6:57: warning[DEF0005]: unknown attribute `colour` on an axis <table>; ignored
+   6 |       <table type="Static Y Axis" name="Gear" sizey="2" colour="green">
+     |                                                         ^^^^^^
+defs.xml:7:15: warning[DEF0005]: unknown attribute `index` on <data>; ignored
+   7 |         <data index="0">1</data>
+     |               ^^^^^
+defs.xml:8:16: warning[DEF0004]: unknown element <sub> in <data>; ignored
+   8 |         <data>2<sub/></data>
+     |                ^^^^
+defs.xml:9:22: warning[DEF0005]: unknown attribute `lang` on <description>; ignored
+   9 |         <description lang="en">gears<b/></description>
+     |                      ^^^^
+defs.xml:9:37: warning[DEF0004]: unknown element <b> in <description>; ignored
+   9 |         <description lang="en">gears<b/></description>
+     |                                     ^^
+defs.xml:11:7: warning[DEF0004]: unknown element <graph> in <table>; ignored
+  11 |       <graph/>
+     |       ^^^^^^
+
+=== Switch <table> and its <state>: unknown attributes and child elements
+   1 | <roms>
+   2 |   <rom>
+   3 |     <romid><xmlid>A</xmlid></romid>
+   4 |     <table type="Switch" name="Flag" storageaddress="100" sizey="1" frob="1">
+   5 |       <state name="on" data="01" colour="red"><note/></state>
+   6 |       <state name="off" data="00"/>
+   7 |     </table>
+   8 |   </rom>
+   9 | </roms>
+defs.xml:4:69: warning[DEF0005]: unknown attribute `frob` on <table>; ignored
+   4 |     <table type="Switch" name="Flag" storageaddress="100" sizey="1" frob="1">
+     |                                                                     ^^^^
+defs.xml:5:34: warning[DEF0005]: unknown attribute `colour` on <state>; ignored
+   5 |       <state name="on" data="01" colour="red"><note/></state>
+     |                                  ^^^^^^
+defs.xml:5:47: warning[DEF0004]: unknown element <note> in <state>; ignored
+   5 |       <state name="on" data="01" colour="red"><note/></state>
+     |                                               ^^^^^
+
+=== BitwiseSwitch <table> and its <bit>: unknown attributes and child elements
+   1 | <roms>
+   2 |   <rom>
+   3 |     <romid><xmlid>A</xmlid></romid>
+   4 |     <table type="BitwiseSwitch" name="Bits" storageaddress="100" storagetype="uint8" frob="1">
+   5 |       <bit position="0" name="A" colour="red"><note/></bit>
+   6 |     </table>
+   7 |   </rom>
+   8 | </roms>
+defs.xml:4:86: warning[DEF0005]: unknown attribute `frob` on <table>; ignored
+   4 |     <table type="BitwiseSwitch" name="Bits" storageaddress="100" storagetype="uint8" frob="1">
+     |                                                                                      ^^^^
+defs.xml:5:34: warning[DEF0005]: unknown attribute `colour` on <bit>; ignored
+   5 |       <bit position="0" name="A" colour="red"><note/></bit>
+     |                                  ^^^^^^
+defs.xml:5:47: warning[DEF0004]: unknown element <note> in <bit>; ignored
+   5 |       <bit position="0" name="A" colour="red"><note/></bit>
+     |                                               ^^^^^
+
+=== <scalingbase>: unknown attribute and child element
+   1 | <roms>
+   2 |   <scalingbase name="rpm" units="rpm" expression="x" colour="red"><note/></scalingbase>
+   3 |   <rom><romid><xmlid>A</xmlid></romid></rom>
+   4 | </roms>
+defs.xml:2:54: warning[DEF0005]: unknown attribute `colour` on <scalingbase>; ignored
+   2 |   <scalingbase name="rpm" units="rpm" expression="x" colour="red"><note/></scalingbase>
+     |                                                      ^^^^^^
+defs.xml:2:67: warning[DEF0004]: unknown element <note> in <scalingbase>; ignored
+   2 |   <scalingbase name="rpm" units="rpm" expression="x" colour="red"><note/></scalingbase>
+     |                                                                   ^^^^^
+
+=== omitted <table>: its unknown attribute and child element are still named
+   1 | <roms>
+   2 |   <rom><romid><xmlid>B</xmlid></romid><table type="1D" name="Idle" storageaddress="100"/></rom>
+   3 |   <rom base="B">
+   4 |     <romid><xmlid>A</xmlid></romid>
+   5 |     <table name="Idle" omit="true" colour="red">
+   6 |       <graph/>
+   7 |       <scaling units="x"/>
+   8 |     </table>
+   9 |   </rom>
+  10 | </roms>
+defs.xml:5:36: warning[DEF0005]: unknown attribute `colour` on <table>; ignored
+   5 |     <table name="Idle" omit="true" colour="red">
+     |                                    ^^^^^^
+defs.xml:5:5: warning[DEF0020]: table `Idle` is omitted; the rest of its <table> is ignored
+   5 |     <table name="Idle" omit="true" colour="red">
+     |     ^^^^^^
+defs.xml:6:7: warning[DEF0004]: unknown element <graph> in <table>; ignored
+   6 |       <graph/>
+     |       ^^^^^^
+
+=== unknown attributes valued NaN (legacy's absent value) are still named
+   1 | <roms>
+   2 |   <rom><romid><xmlid>B</xmlid></romid><table type="1D" name="Idle" storageaddress="100"/></rom>
+   3 |   <rom base="B" colour="NaN">
+   4 |     <romid><xmlid>A</xmlid></romid>
+   5 |     <table name="Idle" omit="true" colour="NaN"/>
+   6 |     <table type="2D" name="Boost" storageaddress="100" sizey="2" category="NaN" colour="NaN">
+   7 |       <table type="Y Axis" name="RPM" storageaddress="200" logparam="NaN" colour="NaN">
+   8 |         <scaling units="rpm" expression="x" min="NaN" colour="NaN"/>
+   9 |       </table>
+  10 |       <state name="on" data="01" colour="NaN"/>
+  11 |     </table>
+  12 |   </rom>
+  13 | </roms>
+defs.xml:3:17: warning[DEF0005]: unknown attribute `colour` on <rom>; ignored
+   3 |   <rom base="B" colour="NaN">
+     |                 ^^^^^^
+defs.xml:5:36: warning[DEF0005]: unknown attribute `colour` on <table>; ignored
+   5 |     <table name="Idle" omit="true" colour="NaN"/>
+     |                                    ^^^^^^
+defs.xml:6:81: warning[DEF0005]: unknown attribute `colour` on <table>; ignored
+   6 |     <table type="2D" name="Boost" storageaddress="100" sizey="2" category="NaN" colour="NaN">
+     |                                                                                 ^^^^^^
+defs.xml:7:75: warning[DEF0005]: unknown attribute `colour` on an axis <table>; ignored
+   7 |       <table type="Y Axis" name="RPM" storageaddress="200" logparam="NaN" colour="NaN">
+     |                                                                           ^^^^^^
+defs.xml:8:55: warning[DEF0005]: unknown attribute `colour` on <scaling>; ignored
+   8 |         <scaling units="rpm" expression="x" min="NaN" colour="NaN"/>
+     |                                                       ^^^^^^
+defs.xml:10:34: warning[DEF0005]: unknown attribute `colour` on <state>; ignored
+  10 |       <state name="on" data="01" colour="NaN"/>
+     |                                  ^^^^^^
+
+=== many unknowns in one element: every one is listed
+   1 | <roms a="1" b="2">
+   2 |   <rom>
+   3 |     <romid><xmlid>A</xmlid></romid>
+   4 |     <table type="1D" name="Idle" storageaddress="100" x1="1" x2="2" x3="3">
+   5 |       <one/>
+   6 |       <two/>
+   7 |       <three/>
+   8 |     </table>
+   9 |   </rom>
+  10 |   <first/>
+  11 |   <second/>
+  12 | </roms>
+defs.xml:1:7: warning[DEF0005]: unknown attribute `a` on <roms>; ignored
+   1 | <roms a="1" b="2">
+     |       ^
+defs.xml:1:13: warning[DEF0005]: unknown attribute `b` on <roms>; ignored
+   1 | <roms a="1" b="2">
+     |             ^
+defs.xml:4:55: warning[DEF0005]: unknown attribute `x1` on <table>; ignored
+   4 |     <table type="1D" name="Idle" storageaddress="100" x1="1" x2="2" x3="3">
+     |                                                       ^^
+defs.xml:4:62: warning[DEF0005]: unknown attribute `x2` on <table>; ignored
+   4 |     <table type="1D" name="Idle" storageaddress="100" x1="1" x2="2" x3="3">
+     |                                                              ^^
+defs.xml:4:69: warning[DEF0005]: unknown attribute `x3` on <table>; ignored
+   4 |     <table type="1D" name="Idle" storageaddress="100" x1="1" x2="2" x3="3">
+     |                                                                     ^^
+defs.xml:5:7: warning[DEF0004]: unknown element <one> in <table>; ignored
+   5 |       <one/>
+     |       ^^^^
+defs.xml:6:7: warning[DEF0004]: unknown element <two> in <table>; ignored
+   6 |       <two/>
+     |       ^^^^
+defs.xml:7:7: warning[DEF0004]: unknown element <three> in <table>; ignored
+   7 |       <three/>
+     |       ^^^^^^
+defs.xml:10:3: warning[DEF0004]: unknown element <first> in <roms>; ignored
+  10 |   <first/>
+     |   ^^^^^^
+defs.xml:11:3: warning[DEF0004]: unknown element <second> in <roms>; ignored
+  11 |   <second/>
+     |   ^^^^^^^
+
+=== element names ignore case; attribute names do not (except a scaling's caseless ones)
+   1 | <ROMS>
+   2 |   <Rom>
+   3 |     <ROMID><XMLID>A</XMLID></ROMID>
+   4 |     <TABLE type="1D" name="Idle" storageaddress="100" Category="fuel">
+   5 |       <Scaling Units="rpm" EXPRESSION="x" To_Byte="x"/>
+   6 |     </TABLE>
+   7 |   </Rom>
+   8 | </ROMS>
+defs.xml:4:55: warning[DEF0005]: unknown attribute `Category` on <TABLE>; ignored
+   4 |     <TABLE type="1D" name="Idle" storageaddress="100" Category="fuel">
+     |                                                       ^^^^^^^^
+defs.xml:5:43: warning[DEF0005]: unknown attribute `To_Byte` on <Scaling>; ignored
+   5 |       <Scaling Units="rpm" EXPRESSION="x" To_Byte="x"/>
+     |                                           ^^^^^^^
+
+=== axes the reader ignores: their unknown attributes and child elements are still named
+   1 | <roms>
+   2 |   <rom>
+   3 |     <romid><xmlid>A</xmlid></romid>
+   4 |     <table type="1D" name="Idle" storageaddress="100">
+   5 |       <table type="X Axis" name="RPM" colour="red"><ticks/></table>
+   6 |     </table>
+   7 |     <table type="2D" name="Boost" storageaddress="100" sizey="2">
+   8 |       <table type="Y Axis" name="RPM" storageaddress="200">
+   9 |         <table type="X Axis" name="Inner" colour="green"><ticks/></table>
+  10 |       </table>
+  11 |       <table type="Z Axis" name="Gear" colour="blue"><ticks/></table>
+  12 |     </table>
+  13 |   </rom>
+  14 | </roms>
+defs.xml:5:7: warning[DEF0020]: an axis on a 1D table, which has none; ignored, as legacy RomRaider did
+   5 |       <table type="X Axis" name="RPM" colour="red"><ticks/></table>
+     |       ^^^^^^
+defs.xml:5:39: warning[DEF0005]: unknown attribute `colour` on an axis <table>; ignored
+   5 |       <table type="X Axis" name="RPM" colour="red"><ticks/></table>
+     |                                       ^^^^^^
+defs.xml:5:52: warning[DEF0004]: unknown element <ticks> in an axis <table>; ignored
+   5 |       <table type="X Axis" name="RPM" colour="red"><ticks/></table>
+     |                                                    ^^^^^^
+defs.xml:9:9: warning[DEF0020]: <table> inside an axis, which has no axes; ignored, as legacy RomRaider did
+   9 |         <table type="X Axis" name="Inner" colour="green"><ticks/></table>
+     |         ^^^^^^
+defs.xml:9:43: warning[DEF0005]: unknown attribute `colour` on an axis <table>; ignored
+   9 |         <table type="X Axis" name="Inner" colour="green"><ticks/></table>
+     |                                           ^^^^^^
+defs.xml:9:58: warning[DEF0004]: unknown element <ticks> in an axis <table>; ignored
+   9 |         <table type="X Axis" name="Inner" colour="green"><ticks/></table>
+     |                                                          ^^^^^^
+defs.xml:11:7: warning[DEF0020]: <table> inside a table has type "Z Axis", not an axis type (X Axis, Y Axis, Static X Axis, Static Y Axis); ignored, as legacy RomRaider did
+  11 |       <table type="Z Axis" name="Gear" colour="blue"><ticks/></table>
+     |       ^^^^^^
+defs.xml:11:40: warning[DEF0005]: unknown attribute `colour` on an axis <table>; ignored
+  11 |       <table type="Z Axis" name="Gear" colour="blue"><ticks/></table>
+     |                                        ^^^^^^
+defs.xml:11:54: warning[DEF0004]: unknown element <ticks> in an axis <table>; ignored
+  11 |       <table type="Z Axis" name="Gear" colour="blue"><ticks/></table>
+     |                                                      ^^^^^^

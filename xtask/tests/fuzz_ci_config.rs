@@ -1063,3 +1063,107 @@ fn nightly_matrix_fuzzes_the_xml_target_under_the_limits() {
         "fuzz/regressions/xml differs from the hostile samples byte for byte"
     );
 }
+
+/// The ECU-definition target (US-RR-29-9, story US-RR-29 "the reader never
+/// panics on any fuzzed definition input"): `romraider_defs` is a leg of the
+/// nightly matrix (the `fuzz list --json` the `targets` job runs), a manual
+/// run can pick it alone, and every run of it, fuzzing or reproducing, gets
+/// the committed `-timeout`, `-rss_limit_mb` and `-malloc_limit_mb` as its
+/// first libFuzzer flags. It starts each night from its committed
+/// hand-written seeds (every table kind, scalings, a `base` chain with
+/// `omit`, unknown elements, a file resolved only on the body's retry
+/// without its `to_byte`s (US-RR-29-4); and the built-mode `built-*`
+/// inputs), and `fuzz/regressions/romraider_defs/` exists for the replay.
+/// Neither holds
+/// a file named the way libFuzzer names corpus entries (40 hex digits of
+/// SHA-1), so a grown corpus copied into either fails here. Pinned by name,
+/// so dropping the target (its `[[bin]]` and `TARGETS` entry together)
+/// fails here.
+#[test]
+fn nightly_matrix_fuzzes_the_romraider_defs_target_under_the_limits() {
+    const DEFS: &str = "romraider_defs";
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+    let list = |only: &str| {
+        let o = Command::new(env!("CARGO_BIN_EXE_xtask"))
+            .args(["fuzz", "list", "--json", "--only", only])
+            .output()
+            .unwrap();
+        assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
+        serde_json::from_slice::<Vec<String>>(&o.stdout).unwrap()
+    };
+    let nightly = list("");
+    assert!(
+        nightly.iter().any(|t| t == DEFS),
+        "`{DEFS}` is not in the nightly matrix {nightly:?}"
+    );
+    assert_eq!(list(DEFS), [DEFS]);
+
+    let limits = fuzz::load(&root).unwrap().limits.expect("committed limits");
+    assert!(fuzz::limit_problems(Some(limits)).is_empty());
+    let want = [
+        format!("-timeout={}", limits.timeout_secs),
+        format!("-rss_limit_mb={}", limits.rss_limit_mb),
+        format!("-malloc_limit_mb={}", limits.malloc_limit_mb),
+    ];
+    for inputs in [
+        vec![],
+        vec![root.join("fuzz/seeds/romraider_defs/base-omit.xml")],
+    ] {
+        let opts = fuzz::RunOptions {
+            target: DEFS.to_owned(),
+            max_total_time: Some(600),
+            inputs,
+            ..fuzz::RunOptions::default()
+        };
+        let cmd = fuzz::run_command(&root, limits, "nightly", "x86_64-unknown-linux-gnu", &opts);
+        let args: Vec<String> = cmd
+            .get_args()
+            .map(|a| a.to_string_lossy().into_owned())
+            .collect();
+        let dash = args.iter().position(|a| a == "--").expect("--");
+        assert_eq!(args[dash + 1..dash + 4], want, "{args:?}");
+        assert!(args[..dash].iter().any(|a| a == DEFS), "{args:?}");
+    }
+
+    let names = |dir: &Path| {
+        let mut v: Vec<String> = std::fs::read_dir(dir)
+            .unwrap_or_else(|e| panic!("{dir:?}: {e}"))
+            .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        v.sort();
+        v
+    };
+    let corpus_named = |n: &str| {
+        n.len() == 40
+            && n.bytes()
+                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+    };
+    let seeds = names(&root.join("fuzz/seeds/romraider_defs"));
+    for seed in [
+        "one-d.xml",
+        "two-d.xml",
+        "three-d.xml",
+        "switch.xml",
+        "bitwise.xml",
+        "scalingbase.xml",
+        "base-omit.xml",
+        "unknown.xml",
+        "errors.xml",
+        "to-byte-over-cost.xml",
+    ] {
+        assert!(seeds.iter().any(|s| s == seed), "seed {seed} missing");
+    }
+    assert!(seeds.iter().any(|s| s.starts_with("built-")), "{seeds:?}");
+    assert!(
+        seeds.len() <= 32,
+        "fuzz/seeds/romraider_defs has {} files: the grown corpus belongs in fuzz/corpus/romraider_defs",
+        seeds.len()
+    );
+    let regressions = names(&root.join("fuzz/regressions/romraider_defs"));
+    for name in seeds.iter().chain(&regressions) {
+        assert!(
+            !corpus_named(name),
+            "{name}: a libFuzzer corpus entry committed as a seed or regression"
+        );
+    }
+}

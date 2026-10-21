@@ -20,6 +20,12 @@ proptest.workspace = true
 # Corpus-tier test (tests/corpus_defs_parse.rs, US-RR-27-4): the
 # `corpus_test!` skip-reporting macro and the pinned definition list.
 rr-testkit = { path = "../rr-testkit" }
+# Definition-reader KATs (tests/kat_romraider_tables.rs, US-RR-29-2): the
+# fixture model, loaded with rr-testkit's schema-checking TOML loader.
+serde.workspace = true
+# Snapshots of the reader's unknown-element/attribute warnings
+# (tests/unknown_warnings.rs, US-RR-29-3).
+insta.workspace = true
 
 [lints]
 workspace = true

@@ -1,0 +1,210 @@
+schema = 1
+title = "3D tables: X Axis and Y Axis read from the image, a Static Y Axis, sizes, flips, swapxy and skipCells"
+notes = """
+`Base Timing` sets every 3D attribute, with flipx and flipy different so a
+swap of the two shows; its one-value readings (cells.size, cells.flip) are
+sizey and flipy, preferred over sizex and flipx (legacy
+TableScaleUnmarshaller:185-188), its 3D readings each attribute
+(:198-211). Its Y Axis has its own endian="little" (no <memmodel>).
+`Target Lambda` has an X Axis read from the image and a Static Y Axis.
+"""
+resolve = "KAT3D"
+xml = '''
+<roms>
+  <rom>
+    <romid><xmlid>KAT3D</xmlid></romid>
+    <table type="3D" name="Base Timing" category="Ignition" storageaddress="C1A20" storagetype="uint8" endian="big" sizex="16" sizey="18" swapxy="true" flipx="true" flipy="false" skipCells="2" userlevel="2">
+      <scaling units="degrees" expression="(x*0.3515625)-20" to_byte="(x+20)/0.3515625" format="0.00"/>
+      <table type="X Axis" name="Engine Load" storageaddress="C19E0" storagetype="float" logparam="P200">
+        <scaling units="g/rev" expression="x" to_byte="x" format="0.00"/>
+      </table>
+      <table type="Y Axis" name="Engine Speed" storageaddress="C1A00" storagetype="uint16" endian="little">
+        <scaling units="RPM" expression="x*2" to_byte="x/2" format="#"/>
+      </table>
+    </table>
+    <table type="3D" name="Target Lambda" storageaddress="D0000" storagetype="uint16" sizex="2" sizey="3">
+      <table type="X Axis" name="Throttle" storageaddress="CFFF0" storagetype="uint8"/>
+      <table type="Static Y Axis" name="Mode" sizey="3">
+        <data>Cruise</data>
+        <data>Power</data>
+        <data>Launch</data>
+      </table>
+    </table>
+  </rom>
+</roms>
+'''
+
+[[table]]
+name = "Base Timing"
+kind = "3D"
+at = "4:5"
+layer = "KAT3D"
+category = "Ignition"
+user_level = 2
+size_x = 16
+size_y = 18
+flip_x = true
+flip_y = false
+swap_xy = true
+skip_cells = 2
+
+[table.cells]
+storage_address = 0xC1A20
+storage = "u8"
+endian = "big"
+size = 18
+flip = false
+
+[table.cells.scaling.default]
+units = "degrees"
+expression = "(x*0.3515625)-20"
+to_byte = "(x+20)/0.3515625"
+format = "0.00"
+
+[table.encoding]
+storage = "u8"
+endian = "big"
+layout = "default"
+working = "uint8 = u8 (1 byte, unsigned); endian big, no <memmodel> = big; no mask, no dataLayout = default"
+
+[table.conversion]
+form = "expr"
+to_raw = true
+unit = "degrees"
+format = "0.00"
+working = "expression (x*0.3515625)-20 = to_real, to_byte (x+20)/0.3515625 = to_raw; units degrees, format 0.00"
+
+[[table.cell]]
+hex = "80"
+real = 25.0
+working = "0x80 = 128; 0.3515625 = 45/128, so 128*0.3515625 = 45; 45 - 20 = 25.0"
+
+[[table.cell]]
+hex = "00"
+real = -20.0
+working = "0x00 = 0; 0*0.3515625 - 20 = -20.0"
+
+[[table.axis]]
+name = "Engine Load"
+log_param = "P200"
+
+[table.axis.cells]
+storage_address = 0xC19E0
+storage = "f32"
+
+[table.axis.cells.scaling.default]
+units = "g/rev"
+expression = "x"
+to_byte = "x"
+format = "0.00"
+
+[table.axis.encoding]
+storage = "f32"
+endian = "big"
+layout = "default"
+working = "float = f32; no endian on the axis and no <memmodel> = big (the default); layout default"
+
+[table.axis.conversion]
+form = "expr"
+to_raw = true
+unit = "g/rev"
+format = "0.00"
+working = "expression x = to_real, to_byte x = to_raw; units g/rev, format 0.00"
+
+[[table.axis.cell]]
+hex = "3F 80 00 00"
+real = 1.0
+working = "big-endian bits 0x3F800000: sign 0, exponent 0x7F = 127, fraction 0; 2^(127-127) * (1 + 0) = 1.0"
+
+[[table.axis]]
+name = "Engine Speed"
+
+[table.axis.cells]
+storage_address = 0xC1A00
+storage = "u16"
+endian = "little"
+
+[table.axis.cells.scaling.default]
+units = "RPM"
+expression = "x*2"
+to_byte = "x/2"
+format = "#"
+
+[table.axis.encoding]
+storage = "u16"
+endian = "little"
+layout = "default"
+working = "uint16 = u16; the axis's own endian little = little (no <memmodel>); layout default"
+
+[table.axis.conversion]
+form = "expr"
+to_raw = true
+unit = "RPM"
+format = "#"
+working = "expression x*2 = to_real, to_byte x/2 = to_raw; units RPM, format #"
+
+[[table.axis.cell]]
+hex = "E8 03"
+real = 2000.0
+working = "little-endian 0x03E8 = 3*256 + 232 = 1000; 1000*2 = 2000.0"
+
+[[table]]
+name = "Target Lambda"
+kind = "3D"
+at = "13:5"
+layer = "KAT3D"
+size_x = 2
+size_y = 3
+
+[table.cells]
+storage_address = 0xD0000
+storage = "u16"
+size = 3
+
+[table.encoding]
+storage = "u16"
+endian = "big"
+layout = "default"
+working = "uint16 = u16; no endian, no <memmodel> = big; layout default"
+
+[table.conversion]
+form = "linear"
+m = 1.0
+b = 0.0
+working = "no <scaling> = raw values: real = 1*x + 0"
+
+[[table.cell]]
+hex = "01 00"
+real = 256.0
+working = "big-endian 0x0100 = 1*256 + 0 = 256; 1*256 + 0 = 256.0"
+
+[[table.axis]]
+name = "Throttle"
+
+[table.axis.cells]
+storage_address = 0xCFFF0
+storage = "u8"
+
+[table.axis.encoding]
+storage = "u8"
+endian = "big"
+layout = "default"
+working = "uint8 = u8; no endian, no <memmodel> = big; layout default"
+
+[table.axis.conversion]
+form = "linear"
+m = 1.0
+b = 0.0
+working = "no <scaling> = raw values: real = 1*x + 0"
+
+[[table.axis.cell]]
+hex = "64"
+real = 100.0
+working = "0x64 = 6*16 + 4 = 100; 1*100 + 0 = 100.0"
+
+[[table.axis]]
+name = "Mode"
+
+[table.axis.cells]
+size = 3
+static_values = ["Cruise", "Power", "Launch"]

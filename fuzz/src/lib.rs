@@ -18,10 +18,12 @@ use std::fmt::Write as _;
 mod expr_target;
 mod pattern_target;
 pub mod replay;
+mod romraider_defs_target;
 mod xml_target;
 
 pub use expr_target::expr;
 pub use pattern_target::pattern;
+pub use romraider_defs_target::romraider_defs;
 pub use xml_target::xml;
 
 use rr_core::capability::{AddressRange, EcuId, ScopeError};
@@ -33,6 +35,7 @@ pub const TARGETS: &[(&str, Target)] = &[
     ("ecu_id", ecu_id),
     ("expr", expr),
     ("pattern", pattern),
+    ("romraider_defs", romraider_defs),
     ("toy", toy),
     ("xml", xml),
 ];
@@ -315,6 +318,102 @@ mod tests {
             };
             assert_eq!(codes, want, "seeds/xml/{name}: {:#?}", loaded.diagnostics());
         }
+    }
+
+    /// The `romraider_defs` seeds reach what they are there for: the
+    /// well-formed ones read, load and resolve with no Error, between them
+    /// resolving a table of every kind (a static axis, a scaling `base` and
+    /// an `omit` included); `errors.xml`, `unknown.xml` and `not-roms.xml`
+    /// report what their names say; and the built-mode seeds (first byte
+    /// `0x00`) build definitions that resolve tables (US-RR-29-9).
+    #[test]
+    fn romraider_defs_seeds_read_as_intended() {
+        use rr_core::diag::{Severity, codes};
+        use rr_defs::romraider::{DefinitionSet, TableKind};
+        use std::collections::BTreeSet;
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("seeds/romraider_defs");
+        let mut kinds = BTreeSet::new();
+        let mut built_tables = 0;
+        let mut static_axis = false;
+        for entry in std::fs::read_dir(&root).unwrap() {
+            let path = entry.unwrap().path();
+            let name = path.file_name().unwrap().to_string_lossy().into_owned();
+            let bytes = std::fs::read(&path).unwrap();
+            let built = bytes.first() == Some(&0);
+            let xml = if built {
+                romraider_defs_target::build(&bytes[1..]).into_bytes()
+            } else {
+                bytes
+            };
+            let (set, mut diags) =
+                DefinitionSet::read_all([("seed.xml", xml.as_slice())]).accept_errors();
+            let mut tables = 0;
+            let mut resolver = set.resolver();
+            for (r, _) in set.roms() {
+                let (rom, more) = resolver.resolve(r).accept_errors();
+                diags.extend(more);
+                for t in rom.iter().flat_map(|rom| rom.tables()) {
+                    tables += 1;
+                    kinds.insert(t.kind.name());
+                    static_axis |= t.axes.iter().any(|a| a.cells.is_none());
+                }
+            }
+            let has = |code| diags.iter().any(|d| d.code() == code);
+            let errors = diags.iter().filter(|d| d.is_error()).count();
+            match name.as_str() {
+                "errors.xml" => {
+                    for code in [
+                        codes::UNKNOWN_BASE,
+                        codes::INHERITANCE_CYCLE,
+                        codes::MISSING_AXIS,
+                        codes::MISSING_STORAGE_TYPE,
+                        codes::UNKNOWN_SCALING,
+                        codes::UNTYPED_TABLE,
+                        codes::MISSING_XMLID,
+                    ] {
+                        assert!(has(code), "{name}: no {code}: {diags:#?}");
+                    }
+                }
+                "unknown.xml" => {
+                    assert_eq!(errors, 0, "{name}: {diags:#?}");
+                    for code in [
+                        codes::UNKNOWN_ELEMENT,
+                        codes::UNKNOWN_ATTRIBUTE,
+                        codes::UNEXPECTED_TEXT,
+                        codes::DUPLICATE_ELEMENT,
+                        codes::DUPLICATE_XMLID,
+                        codes::UNSUPPORTED_ELEMENT,
+                    ] {
+                        assert!(has(code), "{name}: no {code}: {diags:#?}");
+                    }
+                }
+                "not-roms.xml" => assert!(has(codes::NOT_ROM_DEFINITION), "{diags:#?}"),
+                _ if built => {
+                    assert!(tables > 0, "{name} resolves no table: {diags:#?}");
+                    built_tables += tables;
+                }
+                _ => {
+                    assert!(
+                        diags.iter().all(|d| d.severity() != Severity::Error),
+                        "{name}: {diags:#?}"
+                    );
+                    assert!(tables > 0, "{name} resolves no table");
+                }
+            }
+        }
+        let all: BTreeSet<_> = [
+            TableKind::OneD,
+            TableKind::TwoD,
+            TableKind::ThreeD,
+            TableKind::Switch,
+            TableKind::BitwiseSwitch,
+        ]
+        .iter()
+        .map(|k| k.name())
+        .collect();
+        assert_eq!(kinds, all);
+        assert!(static_axis, "no seed resolves a static axis");
+        assert!(built_tables > 0, "no built-mode seed");
     }
 
     #[test]

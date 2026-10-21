@@ -1,0 +1,116 @@
+schema = 1
+title = "1D tables: every attribute a 1D table takes, an axis type as a table's own type, and static values"
+notes = """
+Three 1D tables. `Rev Limit` sets every attribute a 1D table reads and a
+scaling with every attribute. `Idle Steps` has type "X Axis", which as a
+table's own type reads as 1D (legacy TableScaleUnmarshaller:115-121), a
+mask, and no scaling (raw values). `Gear Labels` has static <data> values
+and no address: it is placed by its values and has no cells to decode.
+Expected values are written from the XML by hand; none was copied from the
+reader's output.
+"""
+resolve = "KAT1D"
+xml = '''
+<roms>
+  <rom>
+    <romid><xmlid>KAT1D</xmlid></romid>
+    <table type="1D" name="Rev Limit" category="Limits" storageaddress="0x2B0E0" storagetype="uint16" endian="big" sizey="1" userlevel="3" locked="true" logparam="P8">
+      <scaling units="rpm" expression="x*0.5" to_byte="x/0.5" format="#" min="0" max="8000" coarseincrement="50" fineincrement="5"/>
+      <description>Fuel cut RPM.</description>
+    </table>
+    <table type="X Axis" name="Idle Steps" storageaddress="2B100" storagetype="uint8" sizex="4" mask="7E"/>
+    <table type="1D" name="Gear Labels"><data>1st</data><data>2nd</data></table>
+  </rom>
+</roms>
+'''
+
+[[table]]
+name = "Rev Limit"
+kind = "1D"
+at = "4:5"
+layer = "KAT1D"
+category = "Limits"
+description = "Fuel cut RPM."
+user_level = 3
+locked = true
+log_param = "P8"
+size_y = 1
+
+[table.cells]
+storage_address = 0x2B0E0
+storage = "u16"
+endian = "big"
+size = 1
+
+[table.cells.scaling.default]
+units = "rpm"
+expression = "x*0.5"
+to_byte = "x/0.5"
+format = "#"
+min = 0.0
+max = 8000.0
+coarse_increment = 50.0
+fine_increment = 5.0
+
+[table.encoding]
+storage = "u16"
+endian = "big"
+layout = "default"
+working = "storagetype uint16 = u16 (2 bytes, unsigned); endian big = big, no <memmodel> to override it; no mask = no bitfield; no dataLayout = default"
+
+[table.conversion]
+form = "expr"
+to_raw = true
+unit = "rpm"
+format = "#"
+working = "expression x*0.5 = to_real, to_byte x/0.5 = to_raw (kept: (x*0.5)/0.5 = x); units rpm, format #"
+
+[[table.cell]]
+hex = "0D AC"
+real = 1750.0
+working = "big-endian 0x0DAC = 13*256 + 172 = 3500; 3500*0.5 = 1750.0 (little-endian would be 0xAC0D = 44045)"
+
+[[table.cell]]
+hex = "1F 40"
+real = 4000.0
+working = "0x1F40 = 31*256 + 64 = 8000; 8000*0.5 = 4000.0"
+
+[[table]]
+name = "Idle Steps"
+kind = "1D"
+at = "8:5"
+layer = "KAT1D"
+size_x = 4
+
+[table.cells]
+storage_address = 0x2B100
+storage = "u8"
+bitfield = { mask = 0x7E, shift = 1, signed = false }
+size = 4
+
+[table.encoding]
+storage = "u8"
+endian = "big"
+bitfield = { mask = 0x7E, shift = 1, signed = false }
+layout = "default"
+working = "uint8 = u8; no endian attribute and no <memmodel> = big (the default); mask 7E = 0b0111_1110, lowest set bit 1, so shift = 1, unsigned"
+
+[table.conversion]
+form = "linear"
+m = 1.0
+b = 0.0
+working = "no <scaling> = raw values: real = 1*x + 0, no unit, no format"
+
+[[table.cell]]
+hex = "A5"
+real = 18.0
+working = "0xA5 & 0x7E = 0b1010_0101 & 0b0111_1110 = 0b0010_0100 = 0x24 = 36; 36 >> 1 = 18; 1*18 + 0 = 18.0"
+
+[[table]]
+name = "Gear Labels"
+kind = "1D"
+at = "9:5"
+layer = "KAT1D"
+
+[table.cells]
+static_values = ["1st", "2nd"]

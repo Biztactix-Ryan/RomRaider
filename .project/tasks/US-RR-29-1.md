@@ -1,6 +1,6 @@
 ---
 archived: false
-assignee: null
+assignee: claude
 claimed_at: null
 claimed_by_run: null
 created: '2026-10-19'
@@ -9,7 +9,7 @@ depends_on:
 - US-RR-27-6
 id: US-RR-29-1
 points: 3
-status: todo
+status: done
 story_id: US-RR-29
 tags: []
 title: 'Test: Every definition file in the pinned definition corpus loads; any Error

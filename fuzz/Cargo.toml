@@ -44,7 +44,8 @@ planted-oom = []
 [dependencies]
 libfuzzer-sys = "0.4"
 rr-core = { path = "../crates/rr-core" }
-# The `xml` target: the hardened XML reader (US-RR-27-7).
+# The `xml` target: the hardened XML reader (US-RR-27-7); the
+# `romraider_defs` target: the RomRaider ECU-definition reader (US-RR-29-9).
 rr-defs = { path = "../crates/rr-defs" }
 
 [lib]
@@ -70,6 +71,13 @@ bench = false
 [[bin]]
 name = "pattern"
 path = "fuzz_targets/pattern.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "romraider_defs"
+path = "fuzz_targets/romraider_defs.rs"
 test = false
 doc = false
 bench = false

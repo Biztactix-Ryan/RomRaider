@@ -1,0 +1,12 @@
+<roms>
+<rom>
+ <romid><xmlid>TWOD</xmlid></romid>
+ <table type="2D" name="Fuel Map" storagetype="uint8" storageaddress="0x100" sizey="4" logparam="P8">
+  <scaling units="AFR" expression="14.7/(1+x*0.0078125)" to_byte="(14.7/x-1)/0.0078125" format="0.00"/>
+  <table type="X Axis" name="RPM" storagetype="uint16" storageaddress="0x200"><scaling units="rpm" expression="x*50"/></table>
+ </table>
+ <table type="2D" name="Idle Speed" storagetype="int16" storageaddress="0x300" sizey="2">
+  <table type="Static Y Axis" name="Gear" sizey="2"><data>1st</data><data>2nd</data></table>
+ </table>
+</rom>
+</roms>

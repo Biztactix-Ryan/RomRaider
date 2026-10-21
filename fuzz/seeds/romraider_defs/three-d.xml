@@ -1,0 +1,14 @@
+<roms>
+<rom>
+ <romid><xmlid>THREED</xmlid><memmodel endian="little">SH7058</memmodel></romid>
+ <table type="3D" name="Boost Target" category="Boost" storagetype="uint16" endian="big" storageaddress="0x400" sizex="2" sizey="3" flipx="true" swapxy="true" skipCells="1" mask="0FFF" dataLayout="default">
+  <scaling units="psi" expression="(x-128)*0.1" format="0.0"/>
+  <table type="X Axis" name="RPM" storagetype="uint8" storageaddress="0x500" sizex="2"/>
+  <table type="Y Axis" name="Load" storagetype="float" storageaddress="0x510" flipy="true"/>
+ </table>
+ <table type="3D" name="Timing" storagetype="int8" storageaddress="0x600" dataLayout="bosch_subtract" sizex="1" sizey="1">
+  <table type="Static X Axis" name="A" sizex="1"><data>a</data></table>
+  <table type="Y Axis" name="B" storagetype="uint32" storageaddress="0x610" beforeram="true"/>
+ </table>
+</rom>
+</roms>
