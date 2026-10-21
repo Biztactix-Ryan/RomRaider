@@ -1,0 +1,64 @@
+# KAT fixture (US-RR-24-2, MF-13). Every expected value is hand-calculated; the
+# working shows the byte arithmetic, the scaling and, for [range], why each
+# extreme is where it is. Cross-checked independently with Python (exact
+# fractions.Fraction arithmetic and a min/max over all 65536 raw values; never
+# with rr-core or rr-testkit code).
+schema = 1
+title = "decreasing linear scaling (-x*.000224304213)+7.350001 on u16 big-endian"
+notes = """
+A falling scaling from the definition corpus: `(-x*.000224304213)+7.350001` on uint16 storage, an additive
+air/fuel-ratio compensation centred near raw 0x8000 (2390 scalings, first in
+defs/romraider/ecu/2004JDMForesterSTiMT-A2WC000E_v1.xml). The decimal factor is not exact in binary, so
+real values carry tolerance = 1e-9.
+
+Legacy reported this table's range as f(minBin) .. f(maxBin)
+(legacy/src/main/java/com/romraider/maps/Table.java:444-450): over the full raw range, min 7.350001 and
+max -7.349775598955, swapped (PROJECT.md MF-13)."""
+
+[definition.encoding]
+storage = "u16"
+endian = "big"
+
+[definition.conversion]
+to_real = "(-x*.000224304213)+7.350001"
+to_raw = "(7.350001-x)/.000224304213"
+units = "AFR points"
+
+[input]
+hex = "00 00  80 00  FF FF"
+
+[[decode]]
+offset = 0
+raw = 0
+real = 7.350001
+tolerance = 1e-9
+source = { kind = "hand-calc", working = "bytes 00 00: raw = 0*256 + 0 = 0; real = (-0*0.000224304213) + 7.350001 = 0 + 7.350001 = 7.350001" }
+
+[[decode]]
+offset = 2
+raw = 32768
+real = 5.48416e-7
+tolerance = 1e-9
+source = { kind = "hand-calc", working = "bytes 80 00: raw = 128*256 + 0 = 32768; 32768*0.000224304213 = 7350000451584e-12 = 7.350000451584; real = 7.350001 - 7.350000451584 = 0.000000548416" }
+note = "the scaling crosses zero just above raw 0x8000"
+
+[[decode]]
+offset = 4
+raw = 65535
+real = -7.349775598955
+tolerance = 1e-9
+source = { kind = "hand-calc", working = "bytes FF FF: raw = 255*256 + 255 = 65535; 65535*224304213 = 224304213*65536 - 224304213 = 14700000903168 - 224304213 = 14699776598955, so 65535*0.000224304213 = 14.699776598955; real = 7.350001 - 14.699776598955 = -7.349775598955" }
+
+[range]
+real_min = -7.349775598955
+raw_at_min = 65535
+real_max = 7.350001
+raw_at_max = 0
+monotonicity = "decreasing"
+tolerance = 1e-9
+source = { kind = "hand-calc", working = "u16 raw values run from 0 to 65535 and x has the negative factor -0.000224304213, so real falls as raw rises: max = (-0*0.000224304213) + 7.350001 = 7.350001 at raw 0; min = 7.350001 - 65535*0.000224304213 = 7.350001 - 14.699776598955 = -7.349775598955 at raw 65535" }
+
+[[changelog]]
+date = 2026-10-21
+reason = "initial values"
+author = "US-RR-24-2"

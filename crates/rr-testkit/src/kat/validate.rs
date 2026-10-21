@@ -9,19 +9,20 @@
 //! Every fixture file must first load with [`crate::kat::parse`] (schema,
 //! shape, unknown keys, hex, ...). On top of that, each violation below is
 //! reported with the file, the case (`[[decode]] #2 (offset 2)`,
-//! `` [[checksum]] #1 `after` ``, `` [[expr]] #3 (`2+3*4`) ``,
+//! `` [[checksum]] #1 `after` ``, `` [[expr]] #3 (`2+3*4`) ``, `[range]`,
 //! `[[changelog]] #1`; cases count from 1) and a rule code:
 //!
 //! | Rule | Rejected when |
 //! |------|---------------|
 //! | `load` | The file does not load as a schema-1 fixture. |
-//! | `missing-source` | An expected value (a `[[decode]]` or `[[expr]]` case, or a `[[checksum]]` case's `before` / `after`) has no `source`. |
+//! | `missing-source` | An expected value (a `[[decode]]` or `[[expr]]` case, a `[[checksum]]` case's `before` / `after`, or the `[range]`) has no `source`. |
 //! | `hand-calc-working` | A `hand-calc` source has no `working`, or its `working` breaks the rule below. |
 //! | `empty-source` | A `standard` source has an empty `doc` or `section`; a `stock-rom` an empty `rom`; a `car-trace` an empty `trace`. |
 //! | `cross-source` | A `cross-source` source cites fewer than two distinct, non-empty sources. |
 //! | `forbidden-source` | A source cites Java (the word `java`, any case): values taken from the Java application, or from the code under test, are not a source (D-024). |
-//! | `real-without-conversion` | A case has `real` but its inline `[definition]` has no `[definition.conversion]`. |
+//! | `real-without-conversion` | A case has `real`, or the fixture has a `[range]`, but its inline `[definition]` has no `[definition.conversion]`. |
 //! | `tolerance` | `tolerance` is negative or not finite, or is given without `real` (decode) or with a `value` that is not finite (expr). |
+//! | `range` | A `[range]` contradicts itself: `real_min` or `real_max` is not finite, `real_min` is above `real_max`, or its `monotonicity` disagrees with where the extremes are (`increasing` needs `real_min < real_max` with `raw_at_min` below `raw_at_max`, `decreasing` the same with `raw_at_min` above `raw_at_max`, `constant` needs `real_min == real_max`). |
 //! | `offset-out-of-range` | With `hex` input: a decode cell (inline `encoding`, default layout) or a stored checksum does not fit inside the input. |
 //! | `checksum-width` | A checksum case's `before.hex` and `after.hex` differ in length. |
 //! | `changelog-reason` | A `[[changelog]]` entry has an empty `reason`. |
@@ -50,10 +51,13 @@
 //!    (any case) or `inf` / `infinity` (preceded by `-` for `-inf`); for a
 //!    checksum `before` / `after` it must contain the stored checksum, either
 //!    as an integer (bytes read big- or little-endian) or as its bytes in hex
-//!    (`00 0A`, `0x000A`);
+//!    (`00 0A`, `0x000A`); for a `[range]` it must contain `real_min` and
+//!    `real_max` (within its `tolerance`, else up to 1e-9 relative) and
+//!    `raw_at_min` and `raw_at_max`;
 //! 5. show an intermediate value: at least one number that is not the
-//!    result (not the expected `raw` / `real` / `value`, or not the stored
-//!    checksum read big- or little-endian; `0x01F4` *is* 500).
+//!    result (not the expected `raw` / `real` / `value`, not one of the four
+//!    values of a `[range]`, or not the stored checksum read big- or
+//!    little-endian; `0x01F4` *is* 500).
 //!
 //! So `"500"` (no equation), `"x = 500"` (one number),
 //! `"raw = 500, real = 50.0"` and `"0x01F4 = 500 = 50.0"` (no formula),
@@ -84,6 +88,9 @@
 //!   changed or removed (a moved `offset` is a change, so swapping two
 //!   cases' offsets is caught). Cases are matched as a multiset, so adding
 //!   or reordering cases is not a change;
+//! * a base `[range]` (`real_min`, `raw_at_min`, `real_max`, `raw_at_max`,
+//!   `monotonicity`, `tolerance`) was changed or removed (adding one is not
+//!   a change);
 //! * the fixture switched between decode, checksum and expr cases.
 //!
 //! Sources, notes and titles may change freely. When expected values changed,
@@ -112,7 +119,7 @@ use std::process::Command;
 
 use super::{
     ChangelogEntry, ChecksumCase, ChecksumState, DecodeCase, Definition, ExprCase, Formula,
-    HexBytes, Input, Kat, KatKind, Layout, RawValue, Source, Storage,
+    HexBytes, Input, Kat, KatKind, Layout, Monotonicity, RangeCase, RawValue, Source, Storage,
 };
 
 /// The rule a [`Violation`] breaks (see the module docs for each).
@@ -134,6 +141,8 @@ pub enum Rule {
     RealWithoutConversion,
     /// A bad or orphaned `tolerance`.
     Tolerance,
+    /// A `[range]` that contradicts itself.
+    Range,
     /// A cell or stored checksum outside the hex input.
     OffsetOutOfRange,
     /// `before.hex` and `after.hex` of different lengths.
@@ -157,6 +166,7 @@ impl Rule {
             Self::ForbiddenSource => "forbidden-source",
             Self::RealWithoutConversion => "real-without-conversion",
             Self::Tolerance => "tolerance",
+            Self::Range => "range",
             Self::OffsetOutOfRange => "offset-out-of-range",
             Self::ChecksumWidth => "checksum-width",
             Self::ChangelogReason => "changelog-reason",
@@ -411,6 +421,8 @@ fn expr_location(index: usize, formula: &dyn fmt::Display) -> String {
     format!("[[expr]] #{} (`{formula}`)", index + 1)
 }
 
+const RANGE_LOCATION: &str = "[range]";
+
 // ---------------------------------------------------------------------------
 // Raw (pre-load) checks
 // ---------------------------------------------------------------------------
@@ -462,6 +474,9 @@ fn raw_source_checks(path: &Path, table: &toml::Table, out: &mut Vec<Violation>)
         };
         raw_source(path, &location, case.get("source"), out);
     }
+    if let Some(range) = table.get("range").and_then(toml::Value::as_table) {
+        raw_source(path, RANGE_LOCATION, range.get("source"), out);
+    }
 }
 
 fn raw_source(path: &Path, location: &str, source: Option<&toml::Value>, out: &mut Vec<Violation>) {
@@ -499,6 +514,7 @@ enum Expected<'a> {
     Decode(&'a DecodeCase),
     Checksum(&'a ChecksumState),
     Expr(&'a ExprCase),
+    Range(&'a RangeCase),
 }
 
 fn check_fixture(path: &Path, kat: &Kat, out: &mut Vec<Violation>) {
@@ -507,11 +523,25 @@ fn check_fixture(path: &Path, kat: &Kat, out: &mut Vec<Violation>) {
         Some(Input::Rom(_)) | None => None,
     };
     match &kat.kind {
-        KatKind::Decode { definition, cases } => {
+        KatKind::Decode {
+            definition,
+            cases,
+            range,
+        } => {
             for (index, case) in cases.iter().enumerate() {
                 let location = decode_location(index, case.offset);
                 check_source(path, &location, &case.source, &Expected::Decode(case), out);
                 check_decode_case(path, &location, definition, input, case, out);
+            }
+            if let Some(range) = range {
+                check_source(
+                    path,
+                    RANGE_LOCATION,
+                    &range.source,
+                    &Expected::Range(range),
+                    out,
+                );
+                check_range(path, definition, range, out);
             }
         }
         KatKind::Checksum { cases, .. } => {
@@ -607,6 +637,87 @@ fn check_decode_case(
                 case.offset
             ),
         );
+    }
+}
+
+fn check_range(path: &Path, definition: &Definition, range: &RangeCase, out: &mut Vec<Violation>) {
+    let mut push = |rule, message: String| {
+        out.push(Violation::new(path, Some(RANGE_LOCATION), rule, message));
+    };
+    if let Definition::Inline {
+        conversion: None, ..
+    } = definition
+    {
+        push(
+            Rule::RealWithoutConversion,
+            "[range] gives real values but the inline [definition] has no \
+             [definition.conversion]; add one or drop [range]"
+                .to_owned(),
+        );
+    }
+    if let Some(tolerance) = range.tolerance
+        && (!tolerance.is_finite() || tolerance < 0.0)
+    {
+        push(
+            Rule::Tolerance,
+            format!("`tolerance` must be a finite, non-negative number, got {tolerance}"),
+        );
+    }
+    let (min, max) = (range.real_min, range.real_max);
+    let raws = raw_order(range.raw_at_min, range.raw_at_max);
+    let problem = if !min.is_finite() || !max.is_finite() {
+        Some(format!(
+            "`real_min` ({min}) and `real_max` ({max}) must be finite: a display range \
+             leaves out raw values with no real value"
+        ))
+    } else if min > max {
+        Some(format!(
+            "`real_min` ({min}) is above `real_max` ({max}): the minimum and maximum are \
+             swapped (MF-13 is exactly this mistake for a decreasing scaling)"
+        ))
+    } else {
+        match range.monotonicity {
+            Monotonicity::Increasing | Monotonicity::Decreasing if min == max => Some(format!(
+                "`monotonicity` is {} but `real_min` equals `real_max` ({min}); \
+                 a conversion with one real value is `constant`",
+                range.monotonicity.name()
+            )),
+            Monotonicity::Increasing if raws != Some(std::cmp::Ordering::Less) => Some(format!(
+                "`monotonicity` is increasing, so `raw_at_min` ({}) must be below \
+                 `raw_at_max` ({})",
+                show_raw(range.raw_at_min),
+                show_raw(range.raw_at_max)
+            )),
+            Monotonicity::Decreasing if raws != Some(std::cmp::Ordering::Greater) => Some(format!(
+                "`monotonicity` is decreasing, so `raw_at_min` ({}) must be above \
+                     `raw_at_max` ({}): a decreasing scaling is lowest at the top of the raw range",
+                show_raw(range.raw_at_min),
+                show_raw(range.raw_at_max)
+            )),
+            Monotonicity::Constant if min != max => Some(format!(
+                "`monotonicity` is constant but `real_min` ({min}) differs from `real_max` ({max})"
+            )),
+            _ => None,
+        }
+    };
+    if let Some(problem) = problem {
+        push(Rule::Range, problem);
+    }
+}
+
+/// How two raw values compare (integers exactly, floats by value); `None`
+/// for a NaN.
+fn raw_order(a: RawValue, b: RawValue) -> Option<std::cmp::Ordering> {
+    match (a, b) {
+        (RawValue::Int(a), RawValue::Int(b)) => Some(a.cmp(&b)),
+        (a, b) => raw_f64(a).partial_cmp(&raw_f64(b)),
+    }
+}
+
+const fn raw_f64(raw: RawValue) -> f64 {
+    match raw {
+        RawValue::Int(n) => n as f64,
+        RawValue::Float(x) => x,
     }
 }
 
@@ -812,11 +923,7 @@ fn check_working(working: &str, expected: &Expected<'_>) -> Result<(), String> {
     }
     match expected {
         Expected::Decode(case) => {
-            let raw_found = match case.raw {
-                RawValue::Int(n) => mentions_int(&numbers, n),
-                RawValue::Float(x) => mentions_float(&numbers, x, 0.0),
-            };
-            if !raw_found {
+            if !mentions_raw(&numbers, case.raw) {
                 return Err(format!(
                     "`hand-calc` working {working:?} does not arrive at the expected raw value {}",
                     show_raw(case.raw)
@@ -836,6 +943,28 @@ fn check_working(working: &str, expected: &Expected<'_>) -> Result<(), String> {
                     "`hand-calc` working {working:?} does not mention the stored checksum {}",
                     show_hex(&state.hex)
                 ));
+            }
+        }
+        Expected::Range(range) => {
+            let tolerance = range.tolerance.unwrap_or(0.0);
+            for (what, raw) in [
+                ("raw_at_min", range.raw_at_min),
+                ("raw_at_max", range.raw_at_max),
+            ] {
+                if !mentions_raw(&numbers, raw) {
+                    return Err(format!(
+                        "`hand-calc` working {working:?} does not mention `{what}` {}",
+                        show_raw(raw)
+                    ));
+                }
+            }
+            for (what, real) in [("real_min", range.real_min), ("real_max", range.real_max)] {
+                // A non-finite extreme is rule `range`; no working reaches it.
+                if !real.is_finite() || !mentions_float(&numbers, real, tolerance) {
+                    return Err(format!(
+                        "`hand-calc` working {working:?} does not arrive at `{what}` {real}"
+                    ));
+                }
             }
         }
         Expected::Expr(case) => {
@@ -867,11 +996,15 @@ fn check_working(working: &str, expected: &Expected<'_>) -> Result<(), String> {
 fn is_result(n: Num, expected: &Expected<'_>) -> bool {
     let one = [n];
     match expected {
+        Expected::Range(range) => {
+            let tolerance = range.tolerance.unwrap_or(0.0);
+            mentions_raw(&one, range.raw_at_min)
+                || mentions_raw(&one, range.raw_at_max)
+                || mentions_float(&one, range.real_min, tolerance)
+                || mentions_float(&one, range.real_max, tolerance)
+        }
         Expected::Decode(case) => {
-            let raw = match case.raw {
-                RawValue::Int(m) => mentions_int(&one, m),
-                RawValue::Float(x) => mentions_float(&one, x, 0.0),
-            };
+            let raw = mentions_raw(&one, case.raw);
             raw || case
                 .real
                 .is_some_and(|real| mentions_float(&one, real, case.tolerance.unwrap_or(0.0)))
@@ -985,6 +1118,13 @@ fn mentions_int(numbers: &[Num], expected: i128) -> bool {
         Num::Int(m) => m == expected,
         Num::Float(x) => x.fract() == 0.0 && Num::Int(expected).as_f64() == x,
     })
+}
+
+fn mentions_raw(numbers: &[Num], expected: RawValue) -> bool {
+    match expected {
+        RawValue::Int(n) => mentions_int(numbers, n),
+        RawValue::Float(x) => mentions_float(numbers, x, 0.0),
+    }
 }
 
 fn mentions_float(numbers: &[Num], expected: f64, tolerance: f64) -> bool {
@@ -1135,6 +1275,20 @@ fn decode_key(case: &DecodeCase) -> (u64, RawValue, Option<f64>, Option<f64>) {
     (case.offset, case.raw, case.real, case.tolerance)
 }
 
+/// The expected-value part of a `[range]`, floats by their bits.
+type RangeKey = (RawValue, u64, RawValue, u64, Monotonicity, Option<u64>);
+
+fn range_key(range: &RangeCase) -> RangeKey {
+    (
+        range.raw_at_min,
+        range.real_min.to_bits(),
+        range.raw_at_max,
+        range.real_max.to_bits(),
+        range.monotonicity,
+        range.tolerance.map(f64::to_bits),
+    )
+}
+
 /// The expected-value part of a checksum case.
 type ChecksumKey<'a> = (
     &'a str,
@@ -1207,14 +1361,28 @@ pub fn check_change(path: &Path, base_label: &str, base: &Kat, head: &Kat) -> Op
             KatKind::Decode {
                 definition: base_def,
                 cases: base_cases,
+                range: base_range,
             },
             KatKind::Decode {
                 definition: head_def,
                 cases: head_cases,
+                range: head_range,
             },
         ) => {
             if base_def != head_def {
                 changes.push("the [definition] changed".to_owned());
+            }
+            if let Some(base_range) = base_range
+                && head_range.as_ref().map(range_key) != Some(range_key(base_range))
+            {
+                changes.push(format!(
+                    "the [range] (min {} at raw {}, max {} at raw {}, {}) was changed or removed",
+                    base_range.real_min,
+                    show_raw(base_range.raw_at_min),
+                    base_range.real_max,
+                    show_raw(base_range.raw_at_max),
+                    base_range.monotonicity.name()
+                ));
             }
             let base_keys: Vec<_> = base_cases.iter().map(decode_key).collect();
             let head_keys: Vec<_> = head_cases.iter().map(decode_key).collect();

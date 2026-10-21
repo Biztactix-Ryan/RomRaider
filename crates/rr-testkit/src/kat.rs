@@ -53,6 +53,15 @@
 //! tolerance = 1e-9                # optional absolute tolerance on `real`
 //! source = { kind = "hand-calc", working = "0x01F4 = 1*256 + 244 = 500; 500 * 0.1 = 50.0" }
 //!
+//! [range]                         # optional; needs a conversion (US-RR-24-2, MF-13)
+//! real_min = 0.0                  # the smallest real value over every raw value the cell holds
+//! raw_at_min = 0                  # the lowest raw value giving it
+//! real_max = 6553.5               # the largest real value
+//! raw_at_max = 65535              # the lowest raw value giving it
+//! monotonicity = "increasing"     # increasing | decreasing | constant | non-monotonic
+//! tolerance = 1e-9                # optional absolute tolerance on `real_min` / `real_max`
+//! source = { kind = "hand-calc", working = "0*0.1 = 0.0 at raw 0; 65535*0.1 = 6553.5 at raw 65535" }
+//!
 //! [[changelog]]                   # optional; one entry per change to an expected value
 //! date = 2026-10-19
 //! reason = "why the old value was wrong"
@@ -78,6 +87,14 @@
 //!
 //! A checksum fixture's `[definition]` is optional (the algorithm and params
 //! are its definition); a decode fixture must have one.
+//!
+//! A decode fixture may also pin its conversion's *display range*
+//! (`[range]`, [`RangeCase`]): the smallest and largest real value over
+//! every raw value the cell can hold (its storage, or its bitfield), the
+//! lowest raw value giving each, and whether the conversion rises or falls.
+//! It exists for decreasing scalings, whose minimum is at the top of the raw
+//! range (legacy took the minimum at the lowest raw value, MF-13). Only a
+//! decode fixture has one.
 //!
 //! # Expression fixture
 //!
@@ -188,6 +205,8 @@ pub enum KatKind {
         definition: Definition,
         /// At least one case.
         cases: Vec<DecodeCase>,
+        /// The conversion's display range, if the fixture pins it.
+        range: Option<RangeCase>,
     },
     /// `[[checksum]]` cases: checksum state before and after a fix.
     Checksum {
@@ -213,6 +232,7 @@ struct RawKat {
     decode: Option<Vec<DecodeCase>>,
     checksum: Option<Vec<ChecksumCase>>,
     expr: Option<Vec<ExprCase>>,
+    range: Option<RangeCase>,
     #[serde(default)]
     changelog: Vec<ChangelogEntry>,
 }
@@ -231,6 +251,13 @@ impl TryFrom<RawKat> for Kat {
                     .to_owned(),
             );
         }
+        if raw.range.is_some() && raw.decode.is_none() {
+            return Err(
+                "[range] is the display range of a decode fixture's conversion; \
+                 only a fixture with [[decode]] cases has one"
+                    .to_owned(),
+            );
+        }
         let kind = match (raw.decode, raw.checksum, raw.expr) {
             (Some(cases), _, _) => {
                 let Some(definition) = raw.definition else {
@@ -242,7 +269,11 @@ impl TryFrom<RawKat> for Kat {
                 if cases.is_empty() {
                     return Err("`decode` is empty: add at least one [[decode]] case".to_owned());
                 }
-                KatKind::Decode { definition, cases }
+                KatKind::Decode {
+                    definition,
+                    cases,
+                    range: raw.range,
+                }
             }
             (None, Some(cases), _) => {
                 if cases.is_empty() {
@@ -761,6 +792,63 @@ pub struct DecodeCase {
     pub source: Source,
     /// Optional free-text note.
     pub note: Option<String>,
+}
+
+/// `[range]`: the display range of a decode fixture's conversion over every
+/// raw value its cell can hold (the storage's range, or the bitfield's), as
+/// a display shows it (US-RR-24-2, PROJECT.md MF-13).
+///
+/// The extremes are over the raw values themselves, not `f(lowest raw)` and
+/// `f(highest raw)`: for a decreasing scaling `real_min` is at the top of
+/// the raw range. Each `raw_at_*` is the lowest raw value giving that real
+/// value. Raw values with no real value (a division by zero) are left out.
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RangeCase {
+    /// The smallest real value.
+    pub real_min: f64,
+    /// The lowest raw value whose real value is `real_min`.
+    pub raw_at_min: RawValue,
+    /// The largest real value.
+    pub real_max: f64,
+    /// The lowest raw value whose real value is `real_max`.
+    pub raw_at_max: RawValue,
+    /// How the real value moves as the raw value increases.
+    pub monotonicity: Monotonicity,
+    /// Absolute tolerance on `real_min` and `real_max` (exact if omitted).
+    pub tolerance: Option<f64>,
+    /// Where the range came from. Required.
+    pub source: Source,
+    /// Optional free-text note.
+    pub note: Option<String>,
+}
+
+/// `monotonicity` of a [`RangeCase`], over the raw values that have a real
+/// value. Not strict: neighbouring raw values may share a real value.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Monotonicity {
+    /// Never falls, and rises somewhere.
+    Increasing,
+    /// Never rises, and falls somewhere.
+    Decreasing,
+    /// Every raw value gives the same real value.
+    Constant,
+    /// Both rises and falls.
+    NonMonotonic,
+}
+
+impl Monotonicity {
+    /// The TOML spelling.
+    #[must_use]
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Increasing => "increasing",
+            Self::Decreasing => "decreasing",
+            Self::Constant => "constant",
+            Self::NonMonotonic => "non-monotonic",
+        }
+    }
 }
 
 /// One `[[expr]]` case: a formula evaluated at `x` (and, for a formula with

@@ -29,8 +29,11 @@
 //! (`maps/Table.java:40`), and a `static ENDIAN: OnceLock<Endian>` set by the
 //! first definition loaded would bring that bug back while passing the
 //! mutable-state rule. The expression module is another (MF-25): legacy kept
-//! parsed formulas in one global synchronized cache (`util/JEPUtil.java:44`).
-//! The layer module (C1) is a third: a merge is a pure function of its
+//! parsed formulas in one global synchronized cache (`util/JEPUtil.java:44`),
+//! and so is the conversion module built on it (MF-05): legacy's `Scale`
+//! cached inverse results per scale (`maps/Scale.java:44`), and a cached
+//! answer differed from an uncached one. The layer module (C1) is one too:
+//! a merge is a pure function of its
 //! layers, so a resolved-document cache there would make one load depend on
 //! what was loaded before it. The pattern module (C2) is another: a
 //! compiled pattern is plain data, and a cache of compiled patterns keyed by
@@ -89,6 +92,11 @@ pub const STATELESS_PATHS: &[&str] = &[
     // one global synchronized cache of parsed formulas (`util/JEPUtil.java:44`).
     "crates/rr-core/src/expr.rs",
     "crates/rr-core/src/expr/",
+    // Conversion (C4, MF-05, MF-25): no cache of converted or inverted
+    // values; legacy's `Scale` kept a per-scale inverse cache whose answers
+    // differed from an uncached call (`maps/Scale.java:44`, `:82-85`).
+    "crates/rr-core/src/conversion.rs",
+    "crates/rr-core/src/conversion/",
     // Layered + Resolver (C1): merging is a pure function of the layers; a
     // cache of resolved documents belongs to the caller, not the module.
     "crates/rr-core/src/layer.rs",
@@ -763,13 +771,15 @@ mod tests {
     }
 
     #[test]
-    fn stateless_paths_cover_the_encoding_expr_layer_and_pattern_modules_only() {
+    fn stateless_paths_cover_the_encoding_expr_conversion_layer_and_pattern_modules_only() {
         for p in [
             "crates/rr-core/src/encoding.rs",
             "crates/rr-core/src/encoding/codec.rs",
             "crates/rr-core/src/encoding/codec/tests.rs",
             "crates/rr-core/src/expr.rs",
             "crates/rr-core/src/expr/parser.rs",
+            "crates/rr-core/src/conversion.rs",
+            "crates/rr-core/src/conversion/lut.rs",
             "crates/rr-core/src/layer.rs",
             "crates/rr-core/src/layer/list.rs",
             "crates/rr-core/src/pattern.rs",
@@ -783,6 +793,8 @@ mod tests {
             "crates/rr-core/src/encodings/codec.rs",
             "crates/rr-core/src/expression.rs",
             "crates/rr-core/src/exprs/parser.rs",
+            "crates/rr-core/src/conversions.rs",
+            "crates/rr-core/src/conversion_x/lut.rs",
             "crates/rr-core/src/layers.rs",
             "crates/rr-core/src/layered/list.rs",
             "crates/rr-core/src/patterns.rs",

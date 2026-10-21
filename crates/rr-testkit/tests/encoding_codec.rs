@@ -113,7 +113,10 @@ fn seed_cases() -> Vec<SeedCase> {
     for path in paths {
         let name = path.file_name().unwrap().to_string_lossy().into_owned();
         let fixture = kat::load(&path).unwrap_or_else(|e| panic!("{name}: {e}"));
-        let KatKind::Decode { definition, cases } = fixture.data.kind else {
+        let KatKind::Decode {
+            definition, cases, ..
+        } = fixture.data.kind
+        else {
             continue; // checksum fixtures have nothing to decode
         };
         let Definition::Inline { encoding, .. } = definition else {

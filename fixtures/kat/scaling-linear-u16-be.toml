@@ -3,7 +3,11 @@
 # with Python (never with rr-core or rr-testkit code).
 schema = 1
 title = "linear scaling x*0.25 - 50 on u16 big-endian"
-notes = "Linear conversion; 0.25 is exact in binary, so every real value is exact and no tolerance is needed."
+notes = """
+Linear conversion; 0.25 is exact in binary, so every real value is exact and no tolerance is needed.
+The [range] is the increasing control for the decreasing-scaling ranges (US-RR-24-2, PROJECT.md MF-13):
+here the minimum is at the lowest raw value and the maximum at the highest; cross-checked with Python
+over all 65536 raw values."""
 
 [definition.encoding]
 storage = "u16"
@@ -40,6 +44,14 @@ offset = 6
 raw = 65535
 real = 16333.75
 source = { kind = "hand-calc", working = "bytes FF FF: raw = 255*256 + 255 = 65535; real = 65535*0.25 - 50 = 16383.75 - 50 = 16333.75" }
+
+[range]
+real_min = -50.0
+raw_at_min = 0
+real_max = 16333.75
+raw_at_max = 65535
+monotonicity = "increasing"
+source = { kind = "hand-calc", working = "u16 raw values run from 0 to 65535 and the factor 0.25 is positive, so real rises with raw: min = 0*0.25 - 50 = -50.0 at raw 0; max = 65535*0.25 - 50 = 16383.75 - 50 = 16333.75 at raw 65535" }
 
 [[changelog]]
 date = 2026-10-19

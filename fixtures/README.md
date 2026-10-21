@@ -129,6 +129,7 @@ typo cannot quietly drop a value. Here is the format in brief.
 | `[definition]` | for `[[decode]]` | How to read the bytes. |
 | `[input]` | for `[[decode]]` and `[[checksum]]` | The bytes. An `[[expr]]` fixture has none. |
 | `[[decode]]`, `[[checksum]]` or `[[expr]]` | yes, exactly one of the three | The expected values. A fixture is one shape, never two. |
+| `[range]` | no, `[[decode]]` fixtures only | The conversion's display range. See [`[range]`](#range). |
 | `[[changelog]]` | no | One entry each time an expected value changes. See [Changing an expected value](#changing-an-expected-value). |
 
 ### `[definition]`
@@ -167,6 +168,41 @@ Use exactly one of these:
 | `tolerance` | An absolute tolerance on `real`: finite, non-negative, and only allowed with `real`. Leave it out when the value is exact, for example for a scale that is a power of two. |
 | `source` | Required. See [Sources](#sources). |
 | `note` | Optional. Say what a wrong decoder would read, for example "reads 65280 if the byte order is wrong". |
+
+### `[range]`
+
+A decode fixture with a conversion may also pin the conversion's display
+range: the smallest and largest real value over every raw value the cell can
+hold (its storage's range, or its bitfield's), as an editor shows it.
+`crates/rr-testkit/tests/conversion_kat.rs` checks every `[range]` against
+rr-core's `Conversion::real_range`. It exists for falling scalings (US-RR-24-2,
+PROJECT.md MF-13): legacy took a table's minimum as `f(lowest raw)` and its
+maximum as `f(highest raw)` (`legacy/src/main/java/com/romraider/maps/Table.java:444-450`),
+which swaps them for a decreasing scaling.
+
+| Key | Meaning |
+|-----|---------|
+| `real_min` | The smallest real value. Finite. |
+| `raw_at_min` | The lowest raw value giving `real_min`, written like a case's `raw`. |
+| `real_max` | The largest real value. Finite. |
+| `raw_at_max` | The lowest raw value giving `real_max`. |
+| `monotonicity` | How the real value moves as the raw value rises: `increasing` (never falls, rises somewhere), `decreasing` (never rises, falls somewhere), `constant` or `non-monotonic`. |
+| `tolerance` | An absolute tolerance on `real_min` and `real_max`, as for a case's `real`. |
+| `source` | Required. A `hand-calc` working must reach all four values, so write it as "max = ... at raw R; min = ... at raw R", with why each extreme is where it is. |
+| `note` | Optional. Say what a wrong range would be, for example "legacy's min/max were swapped here". |
+
+Raw values with no real value (a division by zero) are left out of the
+range; a `[range]` fixture should use a conversion defined over the whole raw
+range. The validator checks that the range agrees with itself (rule `range`,
+[below](#other-rules-the-validator-enforces)). The seed falling scalings are
+[`scaling-decreasing-u8.toml`](kat/scaling-decreasing-u8.toml),
+[`scaling-decreasing-u16-be.toml`](kat/scaling-decreasing-u16-be.toml),
+[`scaling-decreasing-i16-le.toml`](kat/scaling-decreasing-i16-le.toml),
+[`scaling-decreasing-u32-be.toml`](kat/scaling-decreasing-u32-be.toml) and
+the reciprocal [`scaling-nonlinear-u8.toml`](kat/scaling-nonlinear-u8.toml);
+[`scaling-linear-u16-be.toml`](kat/scaling-linear-u16-be.toml) is the rising
+control. The schema has no lookup-table conversion, so no fixture pins a
+table's range; rr-core's unit tests cover those.
 
 ### `[[checksum]]` cases
 
@@ -236,7 +272,7 @@ note.
 ## Sources
 
 Every expected value has `source = { kind = "...", ... }`: each `[[decode]]`
-and `[[expr]]` case, and each checksum `before` and `after`. A missing source is rule
+and `[[expr]]` case, each checksum `before` and `after`, and the `[range]`. A missing source is rule
 `missing-source`. Pick the kind that matches where the number really came
 from. If two kinds apply, use `cross-source`, or pick the stronger one and
 mention the other in `note`.
@@ -291,9 +327,12 @@ must:
    (any case) or `inf` / `infinity` (written `-inf` for `-inf`). For a
    checksum `before` or `after`, the working must
    contain the stored checksum, either as an integer (the bytes read big- or
-   little-endian) or as its bytes in hex (`00 0A`, `0x000A`);
+   little-endian) or as its bytes in hex (`00 0A`, `0x000A`). For a
+   `[range]`, the working must contain all four values: `real_min` and
+   `real_max` (within its `tolerance`, or else a relative 1e-9),
+   `raw_at_min` and `raw_at_max`;
 5. **show an intermediate value**: at least one number that is not the
-   result. Every spelling of the result counts as the result: for
+   result (for a `[range]`, not one of its four values). Every spelling of the result counts as the result: for
    `raw = 500`, `0x01F4` is 500, so `"0x01F4 = 500"` restates the answer.
 
 A `hand-calc` source with no `working` key at all is also `hand-calc-working`.
@@ -323,7 +362,12 @@ The full list, with rule codes, is in
 - `empty-source`: the required fields of `standard`, `stock-rom` and
   `car-trace` sources must not be empty.
 - `cross-source`: a `cross-source` needs at least two distinct sources.
-- `real-without-conversion` and `tolerance`.
+- `real-without-conversion` (also for a `[range]`) and `tolerance`.
+- `range`: a `[range]` must agree with itself. `real_min` and `real_max` are
+  finite and `real_min <= real_max` (a swapped pair is the MF-13 mistake);
+  `increasing` needs `real_min < real_max` with `raw_at_min` below
+  `raw_at_max`, `decreasing` the same with `raw_at_min` above `raw_at_max`,
+  and `constant` needs `real_min == real_max`.
 - `offset-out-of-range`: a cell or stored checksum must fit inside a `hex`
   input. This is not checked for `u20`, for the `bosch-subtract` layout, or for
   ROM input.
@@ -366,6 +410,9 @@ expected-value change:
   `value`, `tolerance`, compared bit for bit, so a `nan` case matches itself)
   no longer has an identical case. That is, it was changed or removed. A
   moved `offset` is a change, so swapping two cases' offsets is caught;
+- a base `[range]` (`real_min`, `raw_at_min`, `real_max`, `raw_at_max`,
+  `monotonicity`, `tolerance`) was changed or removed. Adding one is not a
+  change;
 - the fixture switched between `[[decode]]`, `[[checksum]]` and `[[expr]]`.
 
 When one of these happens, the new version must **add** a `[[changelog]]`

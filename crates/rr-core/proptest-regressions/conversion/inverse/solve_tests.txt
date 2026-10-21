@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 6d6d6b155da39aafc74e1a89f7cbb05aa4e0657fa82193ead668491e3e7718b2 # shrinks to text = "sqrt(x)*0.01", raw = Int(IntRange { min: -2147483648, max: 2147483647, holes: 0 }), targets = [5875818.306051905, -29170.433861955677, 6160205.754710303], seed = 16005684803084451422

@@ -1,0 +1,69 @@
+# KAT fixture (US-RR-24-2, MF-13). Every expected value is hand-calculated; the
+# working shows the byte arithmetic, the scaling and, for [range], why each
+# extreme is where it is. Cross-checked independently with Python
+# (int.from_bytes(signed=True), exact fractions.Fraction arithmetic and a
+# min/max over all 65536 raw values; never with rr-core or rr-testkit code).
+schema = 1
+title = "decreasing linear scaling x*-0.5+10 on i16 little-endian: signed endpoints"
+notes = """
+Written for this fixture: the definition corpus has no falling scaling on signed storage (its int8 and
+int16 scalings, in defs/romraider/ecu/JZ2F401A_rom_def.xml, all have positive factors), so the shape
+follows the corpus's negative-factor scalings (`x*-.3515625`, `x*-.12` on uint8). 0.5 is exact in binary,
+so every real value is exact.
+
+A falling scaling over a signed range has its maximum at the most negative raw value, -32768, and its
+minimum at +32767. Read as unsigned (0 .. 65535) the cell would instead give max 10.0 at raw 0 and min
+10 - 65535*0.5 = -32757.5 at raw 65535. Legacy's f(minBin) .. f(maxBin)
+(legacy/src/main/java/com/romraider/maps/Table.java:444-450) would report min 16394.0 and max -16373.5,
+swapped (PROJECT.md MF-13)."""
+
+[definition.encoding]
+storage = "i16"
+endian = "little"
+
+[definition.conversion]
+to_real = "x*-0.5+10"
+to_raw = "(x-10)/-0.5"
+units = "deg"
+
+[input]
+hex = "00 80  00 00  FF 7F  FF FF"
+
+[[decode]]
+offset = 0
+raw = -32768
+real = 16394.0
+source = { kind = "hand-calc", working = "bytes 00 80 little-endian: u = 0x80*256 + 0x00 = 32768; top bit set: raw = 32768 - 65536 = -32768; real = -32768*-0.5 + 10 = 16384 + 10 = 16394.0" }
+note = "reads 32768 (real -16374.0) if the cell is decoded as unsigned"
+
+[[decode]]
+offset = 2
+raw = 0
+real = 10.0
+source = { kind = "hand-calc", working = "bytes 00 00 little-endian: u = 0*256 + 0 = 0; raw = 0; real = 0*-0.5 + 10 = 10.0" }
+
+[[decode]]
+offset = 4
+raw = 32767
+real = -16373.5
+source = { kind = "hand-calc", working = "bytes FF 7F little-endian: u = 0x7F*256 + 0xFF = 32512 + 255 = 32767; top bit clear: raw = 32767; real = 32767*-0.5 + 10 = -16383.5 + 10 = -16373.5" }
+
+[[decode]]
+offset = 6
+raw = -1
+real = 10.5
+source = { kind = "hand-calc", working = "bytes FF FF little-endian: u = 255*256 + 255 = 65535; top bit set: raw = 65535 - 65536 = -1; real = -1*-0.5 + 10 = 0.5 + 10 = 10.5" }
+
+[range]
+real_min = -16373.5
+raw_at_min = 32767
+real_max = 16394.0
+raw_at_max = -32768
+monotonicity = "decreasing"
+source = { kind = "hand-calc", working = "i16 raw values run from -32768 to 32767 and the factor -0.5 is negative, so real falls as raw rises: max = -32768*-0.5 + 10 = 16384 + 10 = 16394.0 at raw -32768; min = 32767*-0.5 + 10 = -16383.5 + 10 = -16373.5 at raw 32767" }
+note = "an unsigned raw range would give max 10.0 at raw 0 and min -32757.5 at raw 65535"
+
+[[changelog]]
+date = 2026-10-21
+reason = "initial values"
+author = "US-RR-24-2"

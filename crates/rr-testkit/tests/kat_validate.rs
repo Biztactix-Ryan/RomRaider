@@ -10,6 +10,10 @@
 //! For US-RR-9-1 it also proves the default run (what CI's `cargo xtask
 //! validate-fixtures` does) discovers every KAT fixture in the repository,
 //! and that stripping any one `source` from any real fixture is rejected.
+//! For US-RR-24-2 it proves the `[range]` rules: a source with working that
+//! reaches all four values, a conversion, a sane tolerance, a range that
+//! agrees with its own `monotonicity` (`range`), and a changelog entry for a
+//! changed or removed range in base mode.
 
 use std::fs;
 use std::io;
@@ -291,11 +295,19 @@ fn stripping_any_source_from_any_real_fixture_is_rejected() {
             }
         }
 
+        if table.contains_key("range") {
+            targets.push(("range", 0, None, "[range]".to_owned()));
+        }
+
         for (key, index, state, location) in targets {
             let mut stripped = table.clone();
-            let case = stripped[key].as_array_mut().unwrap()[index]
-                .as_table_mut()
-                .unwrap();
+            let case = if key == "range" {
+                stripped[key].as_table_mut().unwrap()
+            } else {
+                stripped[key].as_array_mut().unwrap()[index]
+                    .as_table_mut()
+                    .unwrap()
+            };
             let holder = match state {
                 Some(state) => case[state].as_table_mut().unwrap(),
                 None => case,
@@ -1224,4 +1236,169 @@ fn changed_expr_value_needs_a_changelog_and_nan_matches_itself() {
         message.contains("switched between [[decode]], [[checksum]] and [[expr]]"),
         "{message}"
     );
+}
+
+// ---------------------------------------------------------------------------
+// [range] (US-RR-24-2)
+// ---------------------------------------------------------------------------
+
+/// A falling `[range]` for `DECODE_HEAD` with a substituted conversion.
+const RANGE: &str = r#"
+[range]
+real_min = -27.5
+raw_at_min = 255
+real_max = 100.0
+raw_at_max = 0
+monotonicity = "decreasing"
+source = { kind = "hand-calc", working = "factor -0.5 < 0: max = 100 - 0*0.5 = 100.0 at raw 0; min = 100 - 255*0.5 = -27.5 at raw 255" }
+"#;
+
+fn with_range(range: &str) -> String {
+    format!("{DECODE_HEAD}{GOOD_CASE}{range}")
+}
+
+#[test]
+fn a_good_range_passes() {
+    assert_eq!(check(&with_range(RANGE)), vec![]);
+    let increasing = RANGE
+        .replace("real_min = -27.5", "real_min = 0.0")
+        .replace("raw_at_min = 255", "raw_at_min = 0")
+        .replace("real_max = 100.0", "real_max = 6553.5")
+        .replace("raw_at_max = 0", "raw_at_max = 65535")
+        .replace("\"decreasing\"", "\"increasing\"")
+        .replace(
+            r#"working = "factor -0.5 < 0: max = 100 - 0*0.5 = 100.0 at raw 0; min = 100 - 255*0.5 = -27.5 at raw 255""#,
+            r#"working = "min = 0*0.1 = 0.0 at raw 0; max = 65535*0.1 = 6553.5 at raw 65535""#,
+        );
+    assert_eq!(check(&with_range(&increasing)), vec![]);
+}
+
+#[test]
+fn range_without_source_or_working_is_rejected_at_the_range() {
+    let no_source: String = RANGE
+        .lines()
+        .filter(|l| !l.starts_with("source"))
+        .map(|l| format!("{l}\n"))
+        .collect();
+    let violations = check(&with_range(&no_source));
+    one(&violations, Rule::MissingSource);
+    assert_eq!(violations[0].location.as_deref(), Some("[range]"));
+
+    // The working must reach each of the four values.
+    for (missing, working) in [
+        (
+            "raw_at_min",
+            "max = 100 - 0*0.5 = 100.0 at raw 0; min = 100 - 127.5 = -27.5",
+        ),
+        (
+            "raw_at_max",
+            "max = 100 - 0.5*1 = 100.0; min = 100 - 255*0.5 = -27.5 at raw 255",
+        ),
+        (
+            "real_min",
+            "max = 100 - 0*0.5 = 100.0 at raw 0; min at raw 255 = 100 - 255*0.5",
+        ),
+        (
+            "real_max",
+            "max at raw 0; min = 50*2 - 255*0.5 = -27.5 at raw 255",
+        ),
+    ] {
+        let text = with_range(&RANGE.replace(
+            "factor -0.5 < 0: max = 100 - 0*0.5 = 100.0 at raw 0; min = 100 - 255*0.5 = -27.5 at raw 255",
+            working,
+        ));
+        let message = one(&check(&text), Rule::HandCalcWorking);
+        assert!(message.contains(missing), "{missing}: {message}");
+        assert!(message.contains("[range]"), "{message}");
+    }
+}
+
+#[test]
+fn range_rules() {
+    let no_conversion = DECODE_HEAD.replace("[definition.conversion]\nto_real = \"x * 0.1\"\n", "");
+    let text = format!(
+        "{no_conversion}\n[[decode]]\nraw = 500\nsource = {{ kind = \"stock-rom\", rom = \"R\" }}\n{RANGE}"
+    );
+    let message = one(&check(&text), Rule::RealWithoutConversion);
+    assert!(message.contains("[range]"), "{message}");
+
+    let text = with_range(&RANGE.replace("monotonicity", "tolerance = -1.0\nmonotonicity"));
+    one(&check(&text), Rule::Tolerance);
+
+    // MF-13 written into a fixture: min and max swapped.
+    let swapped = RANGE
+        .replace("real_min = -27.5", "real_min = 100.0")
+        .replace("real_max = 100.0", "real_max = -27.5");
+    let message = one(&check(&with_range(&swapped)), Rule::Range);
+    assert!(message.contains("swapped"), "{message}");
+
+    // Decreasing, but the minimum is put at the lowest raw value.
+    let raws = RANGE
+        .replace("raw_at_min = 255", "raw_at_min = 0")
+        .replace("raw_at_max = 0", "raw_at_max = 255");
+    let message = one(&check(&with_range(&raws)), Rule::Range);
+    assert!(message.contains("decreasing"), "{message}");
+
+    let increasing = RANGE.replace("\"decreasing\"", "\"increasing\"");
+    let message = one(&check(&with_range(&increasing)), Rule::Range);
+    assert!(message.contains("increasing"), "{message}");
+
+    let constant = RANGE.replace("\"decreasing\"", "\"constant\"");
+    let message = one(&check(&with_range(&constant)), Rule::Range);
+    assert!(message.contains("constant"), "{message}");
+
+    let flat = RANGE.replace("real_min = -27.5", "real_min = 100.0");
+    let flat = flat.replace("= -27.5 at raw 255", "= 100.0 at raw 255");
+    let message = one(&check(&with_range(&flat)), Rule::Range);
+    assert!(message.contains("`constant`"), "{message}");
+
+    let non_finite = RANGE.replace("real_min = -27.5", "real_min = -inf");
+    let violations = check(&with_range(&non_finite));
+    let rules: Vec<Rule> = violations.iter().map(|v| v.rule).collect();
+    assert_eq!(
+        rules,
+        [Rule::HandCalcWorking, Rule::Range],
+        "{violations:#?}"
+    );
+    assert!(violations[1].message.contains("finite"), "{violations:#?}");
+
+    // A non-monotonic range may put its extremes anywhere.
+    let turns = raws.replace("\"decreasing\"", "\"non-monotonic\"");
+    assert_eq!(check(&with_range(&turns)), vec![]);
+}
+
+#[test]
+fn changing_or_removing_a_range_needs_a_changelog_entry_but_adding_one_does_not() {
+    let base = with_range(RANGE);
+    assert_eq!(against(&format!("{DECODE_HEAD}{GOOD_CASE}"), &base), vec![]);
+
+    let removed = format!("{DECODE_HEAD}{GOOD_CASE}");
+    let message = one(&against(&base, &removed), Rule::ChangedWithoutChangelog);
+    assert!(
+        message.contains("the [range] (min -27.5 at raw 255, max 100 at raw 0, decreasing)"),
+        "{message}"
+    );
+    assert_eq!(against(&base, &format!("{removed}{CHANGELOG}")), vec![]);
+
+    for head in [
+        RANGE.replace("real_min = -27.5", "real_min = -27.5\ntolerance = 1e-9"),
+        RANGE.replace("\"decreasing\"", "\"non-monotonic\""),
+        RANGE.replace("raw_at_max = 0", "raw_at_max = 0x00"),
+    ] {
+        let head = with_range(&head);
+        if head == base {
+            continue;
+        }
+        let violations = against(&base, &head);
+        if head.contains("0x00") {
+            // The same raw value spelled differently is not a change.
+            assert_eq!(violations, vec![]);
+        } else {
+            one(&violations, Rule::ChangedWithoutChangelog);
+        }
+    }
+
+    // Editing only the source or note is not a change.
+    let reworded = with_range(&RANGE.replace("factor -0.5 < 0", "the factor -0.5 is negative"));
+    assert_eq!(against(&base, &reworded), vec![]);
 }

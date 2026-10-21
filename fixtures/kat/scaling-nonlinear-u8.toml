@@ -5,7 +5,13 @@ schema = 1
 title = "non-linear (reciprocal) scaling 14.7/(1+x*0.0078125) on u8"
 notes = """
 An air/fuel-ratio style reciprocal conversion (0.0078125 = 1/128). Real values are rounded decimals
-of exact rationals; f64 evaluation can differ in the last bit, hence tolerance = 1e-9."""
+of exact rationals; f64 evaluation can differ in the last bit, hence tolerance = 1e-9.
+
+The same formula is the definition corpus's most common reciprocal (`14.7/(1+x*.0078125)` on uint8, 4872
+scalings, first in defs/romraider/ecu/2004JDMForesterSTiMT-A2WC000E_v1.xml). It falls as raw rises, so its
+display minimum is at raw 255, not raw 0 ([range], US-RR-24-2, PROJECT.md MF-13; legacy took the minimum
+as f(minBin), legacy/src/main/java/com/romraider/maps/Table.java:444-450). The [range] was cross-checked
+with Python (exact fractions.Fraction arithmetic over all 256 raw values)."""
 
 [definition.encoding]
 storage = "u8"
@@ -47,6 +53,16 @@ real = 4.912793733681462
 tolerance = 1e-9
 source = { kind = "hand-calc", working = "byte 0xFF = 255; 255*0.0078125 = 255/128 = 1.9921875; 1 + 1.9921875 = 2.9921875 = 383/128; real = 14.7*128/383 = 1881.6/383 = 4.912793733681462 (long division: 383*4 = 1532, remainder 349.6, then digits 9 1 2 7 9 3 7 3 3 6 8 1 4 6 2)" }
 note = "doubling raw does not halve or double real: the conversion is not linear"
+
+[range]
+real_min = 4.912793733681462
+raw_at_min = 255
+real_max = 14.7
+raw_at_max = 0
+monotonicity = "decreasing"
+tolerance = 1e-9
+source = { kind = "hand-calc", working = "the divisor 1 + x*0.0078125 rises with raw, from 1 + 0*0.0078125 = 1 at raw 0 to 1 + 255*0.0078125 = 2.9921875 at raw 255, and stays positive, so 14.7/(1 + x*0.0078125) falls: max = 14.7/1 = 14.7 at raw 0; min = 14.7/2.9921875 = 1881.6/383 = 4.912793733681462 at raw 255" }
+note = "f(lowest raw) = 14.7 is the maximum: legacy's min/max were swapped for this scaling"
 
 [[changelog]]
 date = 2026-10-19

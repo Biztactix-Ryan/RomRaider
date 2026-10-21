@@ -3,16 +3,17 @@
 //! Parses a representative fixture of each shape (decode values, checksum
 //! from `tests/data/kat/`, expression inline), and proves that structurally broken fixtures —
 //! malformed hex, unknown schema, a missing `source`, a `hand-calc` without
-//! `working`, unknown keys, ambiguous `[definition]` / `[input]` — are
-//! rejected with an error that names the file and the problem.
+//! `working`, unknown keys, ambiguous `[definition]` / `[input]`, a
+//! `[range]` outside a decode fixture — are rejected with an error that
+//! names the file and the problem.
 
 use std::path::PathBuf;
 
 use rr_testkit::fixtures::{FixtureError, SUPPORTED_SCHEMA, Tier};
 use rr_testkit::kat::{
     self, Bitfield, ChecksumState, Definition, DefinitionRef, Encoding, Endian, Formula,
-    FormulaTier, HexBytes, Input, KatKind, Layout, RawValue, Snippet, SnippetFormat, Source,
-    Storage,
+    FormulaTier, HexBytes, Input, KatKind, Layout, Monotonicity, RawValue, Snippet, SnippetFormat,
+    Source, Storage,
 };
 
 fn data(name: &str) -> PathBuf {
@@ -61,7 +62,10 @@ fn parses_decode_values_fixture() {
         kat.input,
         Some(Input::Hex(HexBytes(vec![0x01, 0xF4, 0xFF, 0x38])))
     );
-    let KatKind::Decode { definition, cases } = kat.kind else {
+    let KatKind::Decode {
+        definition, cases, ..
+    } = kat.kind
+    else {
         panic!("expected a decode fixture, got {:?}", kat.kind);
     };
     let Definition::Inline {
@@ -151,7 +155,10 @@ fn parses_rom_input_and_definition_reference() {
         "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     );
     assert_eq!((rom.offset, rom.length), (0x1000, Some(8)));
-    let KatKind::Decode { definition, cases } = kat.kind else {
+    let KatKind::Decode {
+        definition, cases, ..
+    } = kat.kind
+    else {
         panic!("expected a decode fixture");
     };
     assert_eq!(
@@ -189,7 +196,10 @@ raw = 3
 source = { kind = "stock-rom", rom = "A2WC510N" }
 "#;
     let kat = kat::parse("snippet.toml", text).unwrap().data;
-    let KatKind::Decode { definition, cases } = kat.kind else {
+    let KatKind::Decode {
+        definition, cases, ..
+    } = kat.kind
+    else {
         panic!("expected decode");
     };
     assert_eq!(
@@ -613,4 +623,100 @@ fn rejects_bad_values() {
         "{DECODE_HEAD}{case}[[changelog]]\ndate = 2026-10-19\n"
     ));
     assert!(message.contains("missing field `reason`"), "{message}");
+}
+
+// ---------------------------------------------------------------------------
+// [range] (US-RR-24-2)
+// ---------------------------------------------------------------------------
+
+const RANGE: &str = r#"
+[range]
+real_min = -27.5
+raw_at_min = 255
+real_max = 100.0
+raw_at_max = 0
+monotonicity = "decreasing"
+tolerance = 1e-9
+source = { kind = "hand-calc", working = "100 - 255*0.5 = -27.5 at raw 255; 100 - 0*0.5 = 100.0 at raw 0" }
+note = "falls"
+"#;
+
+fn decode_with_range(range: &str) -> String {
+    format!(
+        "{DECODE_HEAD}[definition.conversion]\nto_real = \"100-x*0.5\"\n\
+         [[decode]]\nraw = 127\nsource = {HAND_CALC}\n{range}"
+    )
+}
+
+#[test]
+fn parses_a_decode_fixture_range() {
+    let kat = kat::parse("range.toml", &decode_with_range(RANGE))
+        .unwrap()
+        .data;
+    let KatKind::Decode {
+        range: Some(range), ..
+    } = kat.kind
+    else {
+        panic!("expected a decode fixture with a [range]: {:?}", kat.kind);
+    };
+    assert_eq!(range.real_min, -27.5);
+    assert_eq!(range.raw_at_min, RawValue::Int(255));
+    assert_eq!(range.real_max, 100.0);
+    assert_eq!(range.raw_at_max, RawValue::Int(0));
+    assert_eq!(range.monotonicity, Monotonicity::Decreasing);
+    assert_eq!(range.tolerance, Some(1e-9));
+    assert!(matches!(range.source, Source::HandCalc { .. }));
+    assert_eq!(range.note.as_deref(), Some("falls"));
+
+    let kat = kat::parse("plain.toml", &decode_with_range(""))
+        .unwrap()
+        .data;
+    assert!(matches!(kat.kind, KatKind::Decode { range: None, .. }));
+
+    for (spelling, monotonicity) in [
+        ("increasing", Monotonicity::Increasing),
+        ("decreasing", Monotonicity::Decreasing),
+        ("constant", Monotonicity::Constant),
+        ("non-monotonic", Monotonicity::NonMonotonic),
+    ] {
+        let text = decode_with_range(&RANGE.replace("\"decreasing\"", &format!("\"{spelling}\"")));
+        let KatKind::Decode {
+            range: Some(range), ..
+        } = kat::parse("m.toml", &text).unwrap().data.kind
+        else {
+            panic!("{spelling}");
+        };
+        assert_eq!(range.monotonicity, monotonicity);
+        assert_eq!(monotonicity.name(), spelling);
+    }
+}
+
+#[test]
+fn rejects_a_malformed_or_misplaced_range() {
+    let message = shape_error(&decode_with_range(&RANGE.replace("note =", "notes =")));
+    assert!(message.contains("notes"), "{message}");
+    let message = shape_error(&decode_with_range(&RANGE.replace("decreasing", "falling")));
+    assert!(message.contains("falling"), "{message}");
+    let message = shape_error(&decode_with_range(&RANGE.replace("raw_at_max = 0\n", "")));
+    assert!(message.contains("raw_at_max"), "{message}");
+    let no_source: String = RANGE
+        .lines()
+        .filter(|l| !l.starts_with("source"))
+        .map(|l| format!("{l}\n"))
+        .collect();
+    let message = shape_error(&decode_with_range(&no_source));
+    assert!(message.contains("source"), "{message}");
+
+    let checksum = format!(
+        "schema = 1\ntitle = \"t\"\n[input]\nhex = \"00 00\"\n[[checksum]]\nalgorithm = \"a\"\n\
+         offset = 0\nbefore = {{ hex = \"00\", valid = true, source = {HAND_CALC} }}\n\
+         after = {{ hex = \"00\", valid = true, source = {HAND_CALC} }}\n{RANGE}"
+    );
+    let message = shape_error(&checksum);
+    assert!(message.contains("[range]"), "{message}");
+    let expr = format!(
+        "schema = 1\ntitle = \"t\"\n[[expr]]\nformula = \"1+1\"\nvalue = 2.0\nsource = {HAND_CALC}\n{RANGE}"
+    );
+    let message = shape_error(&expr);
+    assert!(message.contains("[range]"), "{message}");
 }

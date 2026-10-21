@@ -19,14 +19,14 @@ epic_id: EPIC-RR-3
 id: US-RR-24
 points: 8
 priority: must
-status: backlog
+status: done
 tags:
 - m1
 - core
 - concepts
 - safety
 title: 'Conversion (C4b): exact inverses, safe ranges'
-updated: '2026-10-19'
+updated: '2026-10-21'
 ---
 
 As a tuner, I want the value I type to be written as exactly the right raw bytes, or refused, so that a scaling bug can never silently write a wrong value into my ROM.

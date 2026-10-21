@@ -26,6 +26,14 @@ An `error` makes the owning load fail closed: the caller gets no usable value wi
 | [`EXP0006`](#exp0006) | `EXPR_TOO_MANY_NODES` | error | A formula has too many operands, operators and calls. |
 | [`EXP0007`](#exp0007) | `EXPR_TOO_MANY_ARGS` | error | A function call in a formula has too many arguments. |
 | [`EXP0008`](#exp0008) | `EXPR_STACK_TOO_DEEP` | error | A formula would need too large an evaluation stack. |
+| [`CNV0001`](#cnv0001) | `CONVERSION_PARAM_REF` | error | A conversion formula refers to a parameter; it may use only `x`. |
+| [`CNV0002`](#cnv0002) | `INVALID_LUT` | error | A lookup-table conversion's points do not describe a function of the raw value. |
+| [`CNV0003`](#cnv0003) | `INVALID_LINEAR` | error | A linear conversion has a factor or offset that is not a finite number. |
+| [`CNV0004`](#cnv0004) | `CONVERSION_NO_VALUE` | error | A conversion gives no real value for any raw value the cell can hold. |
+| [`CNV0005`](#cnv0005) | `TO_RAW_MISMATCH` | warning | A scaling's `to_raw` formula does not invert its `to_real` formula. |
+| [`CNV0006`](#cnv0006) | `NOT_INVERTIBLE` | error | A conversion cannot be inverted over the cell's raw range, so its values cannot be edited. |
+| [`CNV0007`](#cnv0007) | `EDIT_OUT_OF_RANGE` | error | A value typed for a cell is outside what the cell can hold. |
+| [`CNV0008`](#cnv0008) | `EDIT_NOT_FINITE` | error | A value typed for a cell is not a finite number, or the scaling has no value there. |
 | [`LAY0001`](#lay0001) | `INHERITANCE_CYCLE` | error | An `extends`/`base` chain loops back on itself. |
 | [`LAY0002`](#lay0002) | `UNKNOWN_BASE` | error | A document names a base that no loaded file defines. |
 | [`LAY0003`](#lay0003) | `DUPLICATE_DOCUMENT` | error | Two loaded documents have the same name. |
@@ -263,6 +271,120 @@ right-nested operators (`1+(2+(3+...))`) and in calls with many
 arguments. The diagnostic points at the operand that would have been
 one value too many. The scaling or parameter that owns the formula
 is not loaded.
+
+## CNV: Conversions
+
+Scalings and conversions between raw and real values (C4, `rr-core::conversion`): formulas, lookup tables and linear forms that cannot convert.
+
+### CNV0001
+
+`CONVERSION_PARAM_REF` · severity `error` · since 0.1.0
+
+A conversion formula refers to a parameter; it may use only `x`.
+
+A scaling's `to_real` or `to_raw` formula names something other than
+`x`, the value being converted: a parameter reference such as `P8`
+or `[P9:km/h]`, or a misspelt `X` (names are case-sensitive). A
+conversion has no other input, so the name has no value; legacy
+evaluated such a formula to NaN when a cell was drawn. The
+diagnostic points at the first such name. The scaling is not loaded.
+
+### CNV0002
+
+`INVALID_LUT` · severity `error` · since 0.1.0
+
+A lookup-table conversion's points do not describe a function of the raw value.
+
+The table has fewer than two points, a raw or real value that is not
+a finite number, or a raw value that is not greater than the one
+before it (raw values must strictly increase, so every raw value has
+at most one real value). The conversion is not loaded.
+
+### CNV0003
+
+`INVALID_LINEAR` · severity `error` · since 0.1.0
+
+A linear conversion has a factor or offset that is not a finite number.
+
+The `m` or `b` of `m * x + b` is NaN or infinite, so no raw value has
+a finite real value. The conversion is not loaded.
+
+### CNV0004
+
+`CONVERSION_NO_VALUE` · severity `error` · since 0.1.0
+
+A conversion gives no real value for any raw value the cell can hold.
+
+Over the whole raw range of the cell's storage, the conversion's
+result is NaN or infinite (`1/(x-x)`), or every raw value is outside
+its lookup table (a table covering 300 to 400 for an 8-bit cell), so
+there is no display range and nothing can be shown or edited. The
+diagnostic names the lowest raw value and why it has no value.
+
+### CNV0005
+
+`TO_RAW_MISMATCH` · severity `warning` · since 0.1.0
+
+A scaling's `to_raw` formula does not invert its `to_real` formula.
+
+For some raw value the cell can hold, the definition's real-to-raw
+formula (RomRaider `to_byte`), rounded half up as legacy did, turns
+that raw value's real value into a raw value that displays
+differently: the two formulas disagree (a wrong factor, a missing
+offset). Edits use the exact inverse of `to_real` (or, where it is
+not linear, a numeric solve of it) and the `to_raw` formula is not
+used, so values typed are stored as shown; legacy used the `to_raw`
+formula and wrote the wrong bytes.
+The diagnostic names the first raw value found and both values.
+
+### CNV0006
+
+`NOT_INVERTIBLE` · severity `error` · since 0.1.0
+
+A conversion cannot be inverted over the cell's raw range, so its values cannot be edited.
+
+Writing a value needs the one raw value whose real value is nearest
+it. A conversion that is not linear is solved numerically, which
+needs it to be monotonic over the raw values the cell can hold (a
+`to_raw` formula the definition gives is checked, never trusted, so
+it does not stand in); this one rises
+over some and falls over others (`(x-128)^2`, `1/(x-10)`), has no
+real value at a raw value between two that do (a division by zero
+inside the range), or gives every raw value the same real value. The
+diagnostic names the raw values where it rises and falls, or the one
+with no value. Legacy searched such a scaling anyway and wrote
+whichever raw value its search ended on. The values are shown;
+edits are refused.
+
+### CNV0007
+
+`EDIT_OUT_OF_RANGE` · severity `error` · since 0.1.0
+
+A value typed for a cell is outside what the cell can hold.
+
+The raw value whose real value is nearest the value typed is outside
+the raw range of the cell's storage: the value is more than half a
+raw step below the lowest real value the cell can hold or above the
+highest (for a decreasing scaling, the lowest real value is the
+highest raw value's). The diagnostic names the value, the range it
+must be in and the raw value at the nearest end. Nothing is written:
+legacy narrowed the rounded raw value with a Java `int` cast, which
+wraps past `2^31`, then clamped it to the storage limits, so it wrote
+a different value without saying so.
+
+### CNV0008
+
+`EDIT_NOT_FINITE` · severity `error` · since 0.1.0
+
+A value typed for a cell is not a finite number, or the scaling has no value there.
+
+The value is NaN or infinite, or it lies past the last real value
+the scaling gives on that side where the next raw value has none (a
+division by zero, as at the pole of `1/(x-10)`, the square root of a
+negative number, an overflow), so there is no nearest raw value to
+round it to. The diagnostic names the value and, for the second
+case, the last real value and the raw value with none. Nothing is
+written.
 
 ## LAY: Layering
 

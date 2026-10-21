@@ -1,0 +1,60 @@
+# KAT fixture (US-RR-24-2, MF-13). Every expected value is hand-calculated; the
+# working shows the byte arithmetic, the scaling and, for [range], why each
+# extreme is where it is. Cross-checked independently with Python (exact
+# fractions.Fraction arithmetic and a min/max over all 256 raw values; never
+# with rr-core or rr-testkit code).
+schema = 1
+title = "decreasing linear scaling x*-.3515625 on u8: the minimum is at raw 255"
+notes = """
+A negative-factor scaling from the definition corpus: `x*-.3515625` on uint8 storage ("degrees of
+correction", 20 scalings, first in defs/romraider/ecu/metric/ecu_defs.xml). 0.3515625 = 45/128 is exact
+in binary, so every real value is exact and no tolerance is needed.
+
+The [range] is the point (PROJECT.md MF-13): legacy took a table's minimum real value as f(minBin) and
+its maximum as f(maxBin) (legacy/src/main/java/com/romraider/maps/Table.java:444-450), so for this
+falling scaling it reported min 0.0 and max -89.6484375, swapped. The real minimum is at the top of the
+raw range. Raw 0 evaluates to -0.0 (0 times a negative factor), which compares equal to 0.0."""
+
+[definition.encoding]
+storage = "u8"
+endian = "big"
+
+[definition.conversion]
+to_real = "x*-.3515625"
+to_raw = "x/-.3515625"
+units = "degrees"
+
+[input]
+hex = "00 80 FF"
+
+[[decode]]
+offset = 0
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "byte 0x00 = 0*16 + 0 = 0; real = 0*-0.3515625 = 0.0" }
+
+[[decode]]
+offset = 1
+raw = 128
+real = -45.0
+source = { kind = "hand-calc", working = "byte 0x80 = 8*16 + 0 = 128; real = 128*-0.3515625 = -(128*45/128) = -45.0" }
+
+[[decode]]
+offset = 2
+raw = 255
+real = -89.6484375
+source = { kind = "hand-calc", working = "byte 0xFF = 15*16 + 15 = 255; real = 255*-0.3515625 = -(255*45/128) = -11475/128 = -89.6484375" }
+
+[range]
+real_min = -89.6484375
+raw_at_min = 255
+real_max = 0.0
+raw_at_max = 0
+monotonicity = "decreasing"
+source = { kind = "hand-calc", working = "u8 raw values run from 0 to 255 and the factor -0.3515625 is negative, so real falls as raw rises: max = 0*-0.3515625 = 0.0 at raw 0; min = 255*-0.3515625 = -89.6484375 at raw 255" }
+note = "f(lowest raw) = 0.0 is the maximum, not the minimum: legacy's min/max were swapped here"
+
+[[changelog]]
+date = 2026-10-21
+reason = "initial values"
+author = "US-RR-24-2"

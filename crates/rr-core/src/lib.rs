@@ -2,6 +2,7 @@
 
 pub mod capability;
 pub mod clock;
+pub mod conversion;
 pub mod diag;
 pub mod encoding;
 pub mod expr;

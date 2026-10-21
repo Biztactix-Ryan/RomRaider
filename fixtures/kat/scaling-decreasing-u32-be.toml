@@ -1,0 +1,61 @@
+# KAT fixture (US-RR-24-2, MF-13, MF-05). Every expected value is
+# hand-calculated; the working shows the byte arithmetic, the scaling and, for
+# [range], why each extreme is where it is. Cross-checked independently with
+# Python (exact fractions.Fraction arithmetic; never with rr-core or rr-testkit
+# code).
+schema = 1
+title = "decreasing linear scaling 1000-x*0.0009765625 on u32 big-endian: 4-byte raw range"
+notes = """
+Written for this fixture: the definition corpus has no falling scaling on 4-byte storage, so the shape
+follows its power-of-two negative-factor scaling `x*-.00006103515625` (2^-14, on uint16). Here the factor
+is 0.0009765625 = 1/1024 = 2^-10, so every real value is exact in f64 (each is a multiple of 2^-10 below
+2^23).
+
+The raw range is 0 .. 4294967295 = 2^32 - 1, which a signed 32-bit int (legacy cast its to_byte result to one,
+MF-05) cannot hold above 2^31 - 1. A falling linear scaling has its minimum at the top of that range; legacy's
+f(minBin) .. f(maxBin) (legacy/src/main/java/com/romraider/maps/Table.java:444-450) would report it the
+wrong way round (PROJECT.md MF-13)."""
+
+[definition.encoding]
+storage = "u32"
+endian = "big"
+
+[definition.conversion]
+to_real = "1000-x*0.0009765625"
+to_raw = "(1000-x)/0.0009765625"
+units = "count"
+
+[input]
+hex = "00 00 00 00  80 00 00 00  FF FF FF FF"
+
+[[decode]]
+offset = 0
+raw = 0
+real = 1000.0
+source = { kind = "hand-calc", working = "bytes 00 00 00 00: raw = 0*16777216 + 0*65536 + 0*256 + 0 = 0; real = 1000 - 0*0.0009765625 = 1000.0" }
+
+[[decode]]
+offset = 4
+raw = 2147483648
+real = -2096152.0
+source = { kind = "hand-calc", working = "bytes 80 00 00 00: raw = 128*16777216 = 2147483648 = 2^31; 2147483648*0.0009765625 = 2^31/2^10 = 2097152; real = 1000 - 2097152 = -2096152.0" }
+note = "2^31: one above i32::MAX, so a signed 32-bit reading gives -2147483648"
+
+[[decode]]
+offset = 8
+raw = 4294967295
+real = -4193303.9990234375
+source = { kind = "hand-calc", working = "bytes FF FF FF FF: raw = 255*16777216 + 255*65536 + 255*256 + 255 = 4294967295 = 2^32 - 1; 4294967295*0.0009765625 = 4294967295/1024 = 4194304 - 1/1024 = 4194303.9990234375; real = 1000 - 4194303.9990234375 = -4193303.9990234375" }
+
+[range]
+real_min = -4193303.9990234375
+raw_at_min = 4294967295
+real_max = 1000.0
+raw_at_max = 0
+monotonicity = "decreasing"
+source = { kind = "hand-calc", working = "u32 raw values run from 0 to 4294967295 and x has the negative factor -0.0009765625, so real falls as raw rises: max = 1000 - 0*0.0009765625 = 1000.0 at raw 0; min = 1000 - 4294967295/1024 = 1000 - 4194303.9990234375 = -4193303.9990234375 at raw 4294967295" }
+
+[[changelog]]
+date = 2026-10-21
+reason = "initial values"
+author = "US-RR-24-2"

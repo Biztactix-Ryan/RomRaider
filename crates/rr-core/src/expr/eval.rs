@@ -353,14 +353,14 @@ fn truth(b: bool) -> f64 {
     if b { 1.0 } else { 0.0 }
 }
 
-fn unary(op: UnaryOp, a: f64) -> f64 {
+pub(crate) fn unary(op: UnaryOp, a: f64) -> f64 {
     match op {
         UnaryOp::Neg => -a,
         UnaryOp::Not => truth(a == 0.0),
     }
 }
 
-fn binary(op: BinaryOp, a: f64, b: f64) -> f64 {
+pub(crate) fn binary(op: BinaryOp, a: f64, b: f64) -> f64 {
     match op {
         BinaryOp::Or => truth(a != 0.0 || b != 0.0),
         BinaryOp::And => truth(a != 0.0 && b != 0.0),
@@ -383,7 +383,7 @@ fn binary(op: BinaryOp, a: f64, b: f64) -> f64 {
     }
 }
 
-fn call(func: Func, args: &[f64]) -> f64 {
+pub(crate) fn call(func: Func, args: &[f64]) -> f64 {
     let arg = |i: usize| args.get(i).copied().unwrap_or(f64::NAN);
     let a = arg(0);
     match func {
