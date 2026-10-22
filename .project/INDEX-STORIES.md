@@ -32,7 +32,7 @@
 | [US-RR-34](stories/US-RR-34.md) | Definition resolution and ROM-ID index | ✅ done | must | 8 | m1, definitions, safety | [EPIC-RR-4](epics/EPIC-RR-4.md) | 5 | 9 |
 | [US-RR-35](stories/US-RR-35.md) | Checksum engine: specs + named registry | 📋 backlog | must | 13 | m1, rom, checksum, safety | [EPIC-RR-5](epics/EPIC-RR-5.md) | 7 | 17 |
 | [US-RR-36](stories/US-RR-36.md) | ECU simulator with rule-based fault injection | 📋 backlog | must | 8 | m2, comms, testing, simulator | [EPIC-RR-6](epics/EPIC-RR-6.md) | 4 | 10 |
-| [US-RR-37](stories/US-RR-37.md) | Serial Link and KKL cable profile | 📋 backlog | must | 8 | m2, comms, kkl, linux | [EPIC-RR-6](epics/EPIC-RR-6.md) | 5 | 11 |
+| [US-RR-37](stories/US-RR-37.md) | Serial Link and KKL cable profile | 📋 backlog | must | 8 | m2, comms, kkl, linux | [EPIC-RR-6](epics/EPIC-RR-6.md) | 5 | 12 |
 | [US-RR-38](stories/US-RR-38.md) | Release skeleton: nightly CLI tarball, AppImage and .deb | ✅ done | must | 5 | m0, release, linux | [EPIC-RR-9](epics/EPIC-RR-9.md) | 4 | 8 |
 | [US-RR-39](stories/US-RR-39.md) | Resolved-definition known-answer suite | 📋 backlog | must | 5 | m1, definitions, testing | [EPIC-RR-4](epics/EPIC-RR-4.md) | 3 | 10 |
 | [US-RR-4](stories/US-RR-4.md) | Coverage and mutation gates | ✅ done | must | 5 | m0, testing, mutation, coverage, safety | [EPIC-RR-1](epics/EPIC-RR-1.md) | 4 | 8 |

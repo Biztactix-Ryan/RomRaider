@@ -7,13 +7,13 @@ created: '2026-10-19'
 depends_on:
 - US-RR-28-8
 id: US-RR-28-2
-points: null
+points: 2
 status: todo
 story_id: US-RR-28
 tags: []
 title: 'Test: A profile with an older schema version migrates to the current one with
   a snapshot test per migration step; an ...'
-updated: '2026-10-19'
+updated: '2026-10-23'
 ---
 
 Verify acceptance criterion for story US-RR-28:

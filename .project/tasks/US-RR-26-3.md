@@ -7,13 +7,13 @@ created: '2026-10-19'
 depends_on:
 - US-RR-26-10
 id: US-RR-26-3
-points: null
+points: 1
 status: todo
 story_id: US-RR-26
 tags: []
 title: 'Test: disable-one and disable-all remove exactly the targeted rules, verified
   by trace output'
-updated: '2026-10-19'
+updated: '2026-10-23'
 ---
 
 Verify acceptance criterion for story US-RR-26:

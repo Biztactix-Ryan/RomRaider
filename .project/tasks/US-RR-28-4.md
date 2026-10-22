@@ -7,12 +7,12 @@ created: '2026-10-19'
 depends_on:
 - US-RR-28-9
 id: US-RR-28-4
-points: null
+points: 1
 status: todo
 story_id: US-RR-28
 tags: []
 title: 'Test: TOML profile parsing is fuzzed with no panics'
-updated: '2026-10-19'
+updated: '2026-10-23'
 ---
 
 Verify acceptance criterion for story US-RR-28:

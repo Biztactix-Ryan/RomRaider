@@ -8,13 +8,13 @@ depends_on:
 - US-RR-26-8
 - US-RR-26-9
 id: US-RR-26-6
-points: null
+points: 2
 status: todo
 story_id: US-RR-26
 tags: []
 title: 'Test: cargo-mutants reports zero surviving mutants in rule flattening and
   application'
-updated: '2026-10-19'
+updated: '2026-10-23'
 ---
 
 Verify acceptance criterion for story US-RR-26:

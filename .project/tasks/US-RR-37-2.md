@@ -8,13 +8,13 @@ depends_on:
 - US-RR-37-6
 - US-RR-37-11
 id: US-RR-37-2
-points: null
+points: 2
 status: todo
 story_id: US-RR-37
 tags: []
 title: 'Test: Removing the device mid-transaction yields a Link error within the configured
   deadline, with no hang or panic (...'
-updated: '2026-10-19'
+updated: '2026-10-23'
 ---
 
 Verify acceptance criterion for story US-RR-37:

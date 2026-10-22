@@ -7,13 +7,13 @@ created: '2026-10-19'
 depends_on:
 - US-RR-33-8
 id: US-RR-33-2
-points: null
+points: 1
 status: todo
 story_id: US-RR-33
 tags: []
 title: 'Test: ReplayLink fails the test with a precise diff when the code under test
   sends a request that differs from the trace'
-updated: '2026-10-19'
+updated: '2026-10-23'
 ---
 
 Verify acceptance criterion for story US-RR-33:

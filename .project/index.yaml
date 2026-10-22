@@ -2073,7 +2073,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-25
   epic_id: null
   tags: []
@@ -2083,7 +2083,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-25
   epic_id: null
   tags: []
@@ -2093,7 +2093,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-25
   epic_id: null
   tags: []
@@ -2102,7 +2102,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-25
   epic_id: null
   tags: []
@@ -2147,7 +2147,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-26
   epic_id: null
   tags: []
@@ -2175,7 +2175,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-26
   epic_id: null
   tags: []
@@ -2185,7 +2185,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-26
   epic_id: null
   tags: []
@@ -2195,7 +2195,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-26
   epic_id: null
   tags: []
@@ -2204,7 +2204,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-26
   epic_id: null
   tags: []
@@ -2214,7 +2214,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-26
   epic_id: null
   tags: []
@@ -2316,7 +2316,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-28
   epic_id: null
   tags: []
@@ -2326,7 +2326,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-28
   epic_id: null
   tags: []
@@ -2335,7 +2335,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-28
   epic_id: null
   tags: []
@@ -2344,7 +2344,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-28
   epic_id: null
   tags: []
@@ -2795,7 +2795,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-33
   epic_id: null
   tags: []
@@ -2814,7 +2814,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-33
   epic_id: null
   tags: []
@@ -2824,7 +2824,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-33
   epic_id: null
   tags: []
@@ -2834,7 +2834,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-33
   epic_id: null
   tags: []
@@ -3230,7 +3230,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-37
   epic_id: null
   tags: []
@@ -3252,13 +3252,22 @@ entries:
   story_id: US-RR-37
   epic_id: null
   tags: []
+- id: US-RR-37-12
+  title: 'First-contact capture: send SSM init over Serial Link and record .rrtrace'
+  type: task
+  status: todo
+  archived: false
+  points: 2
+  story_id: US-RR-37
+  epic_id: null
+  tags: []
 - id: US-RR-37-2
   title: 'Test: Removing the device mid-transaction yields a Link error within the
     configured deadline, with no hang or panic (...'
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-37
   epic_id: null
   tags: []
@@ -3268,7 +3277,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 2
   story_id: US-RR-37
   epic_id: null
   tags: []
@@ -3278,7 +3287,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-37
   epic_id: null
   tags: []
@@ -3288,7 +3297,7 @@ entries:
   type: task
   status: todo
   archived: false
-  points: null
+  points: 1
   story_id: US-RR-37
   epic_id: null
   tags: []
@@ -6716,8 +6725,8 @@ entries:
   story_id: US-RR-9
   epic_id: null
   tags: []
-total_points: 1427
+total_points: 1462
 completed_points: 564
 story_count: 78
-task_count: 628
+task_count: 629
 epic_count: 10

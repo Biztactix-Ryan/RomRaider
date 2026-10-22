@@ -8,13 +8,13 @@ depends_on:
 - US-RR-25-6
 - US-RR-25-7
 id: US-RR-25-2
-points: null
+points: 1
 status: todo
 story_id: US-RR-25
 tags: []
 title: 'Test: Garbage before a header, two frames in one read, and a frame split across
   reads are all handled (EC-17)'
-updated: '2026-10-19'
+updated: '2026-10-23'
 ---
 
 Verify acceptance criterion for story US-RR-25:

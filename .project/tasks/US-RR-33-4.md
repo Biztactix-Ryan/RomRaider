@@ -7,13 +7,13 @@ created: '2026-10-19'
 depends_on:
 - US-RR-33-9
 id: US-RR-33-4
-points: null
+points: 1
 status: todo
 story_id: US-RR-33
 tags: []
 title: 'Test: Traces carry no VIN or serial unless explicitly marked unscrubbed (field-level
   marking for the scrub command)'
-updated: '2026-10-19'
+updated: '2026-10-23'
 ---
 
 Verify acceptance criterion for story US-RR-33:

@@ -7,13 +7,13 @@ created: '2026-10-19'
 depends_on:
 - US-RR-37-10
 id: US-RR-37-4
-points: null
+points: 1
 status: todo
 story_id: US-RR-37
 tags: []
 title: 'Test: The FTDI latency timer value is detected on Linux and a Warning diagnostic
   is raised if it is above 1 ms'
-updated: '2026-10-19'
+updated: '2026-10-23'
 ---
 
 Verify acceptance criterion for story US-RR-37:

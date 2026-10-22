@@ -7,13 +7,13 @@ created: '2026-10-19'
 depends_on:
 - US-RR-26-8
 id: US-RR-26-2
-points: null
+points: 2
 status: todo
 story_id: US-RR-26
 tags: []
 title: 'Test: Layer precedence (protocol < adapter < ECU family < ECU ID) is honoured
   for conflicting actions - property test...'
-updated: '2026-10-19'
+updated: '2026-10-23'
 ---
 
 Verify acceptance criterion for story US-RR-26:

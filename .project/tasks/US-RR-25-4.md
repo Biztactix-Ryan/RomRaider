@@ -7,12 +7,12 @@ created: '2026-10-19'
 depends_on:
 - US-RR-25-8
 id: US-RR-25-4
-points: null
+points: 1
 status: todo
 story_id: US-RR-25
 tags: []
 title: 'Test: Every variant has a fuzz target with no panics or unbounded buffering'
-updated: '2026-10-19'
+updated: '2026-10-23'
 ---
 
 Verify acceptance criterion for story US-RR-25:

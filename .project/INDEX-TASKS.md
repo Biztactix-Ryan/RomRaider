@@ -137,22 +137,22 @@
 | [US-RR-24-7](tasks/US-RR-24-7.md) | Define Conversion enum and build from Expr | ✅ done | 2 |  | claude | — | [US-RR-24](stories/US-RR-24.md) |
 | [US-RR-24-8](tasks/US-RR-24-8.md) | Detect linear forms and use exact inverses | ✅ done | 3 |  | claude | US-RR-24-7 | [US-RR-24](stories/US-RR-24.md) |
 | [US-RR-24-9](tasks/US-RR-24-9.md) | Implement bounded monotonic numeric solve | ✅ done | 3 |  | claude | US-RR-24-7 | [US-RR-24](stories/US-RR-24.md) |
-| [US-RR-25-1](tasks/US-RR-25-1.md) | Test: Property test: any sequence of valid frames, split at arbitrary byte boundaries and fed incrementally, yields e... | ⚪ todo | — |  | — | US-RR-25-6, US-RR-25-7 | [US-RR-25](stories/US-RR-25.md) |
-| [US-RR-25-2](tasks/US-RR-25-2.md) | Test: Garbage before a header, two frames in one read, and a frame split across reads are all handled (EC-17) | ⚪ todo | — |  | — | US-RR-25-6, US-RR-25-7 | [US-RR-25](stories/US-RR-25.md) |
-| [US-RR-25-3](tasks/US-RR-25-3.md) | Test: A Sync frame failing its checksum is dropped and reported, never emitted as data (MF-10) | ⚪ todo | — |  | — | US-RR-25-7 | [US-RR-25](stories/US-RR-25.md) |
-| [US-RR-25-4](tasks/US-RR-25-4.md) | Test: Every variant has a fuzz target with no panics or unbounded buffering | ⚪ todo | — |  | — | US-RR-25-8 | [US-RR-25](stories/US-RR-25.md) |
+| [US-RR-25-1](tasks/US-RR-25-1.md) | Test: Property test: any sequence of valid frames, split at arbitrary byte boundaries and fed incrementally, yields e... | ⚪ todo | 2 |  | — | US-RR-25-6, US-RR-25-7 | [US-RR-25](stories/US-RR-25.md) |
+| [US-RR-25-2](tasks/US-RR-25-2.md) | Test: Garbage before a header, two frames in one read, and a frame split across reads are all handled (EC-17) | ⚪ todo | 1 |  | — | US-RR-25-6, US-RR-25-7 | [US-RR-25](stories/US-RR-25.md) |
+| [US-RR-25-3](tasks/US-RR-25-3.md) | Test: A Sync frame failing its checksum is dropped and reported, never emitted as data (MF-10) | ⚪ todo | 1 |  | — | US-RR-25-7 | [US-RR-25](stories/US-RR-25.md) |
+| [US-RR-25-4](tasks/US-RR-25-4.md) | Test: Every variant has a fuzz target with no panics or unbounded buffering | ⚪ todo | 1 |  | — | US-RR-25-8 | [US-RR-25](stories/US-RR-25.md) |
 | [US-RR-25-5](tasks/US-RR-25-5.md) | Define Framer trait and incremental feed API | ⚪ todo | 2 |  | — | — | [US-RR-25](stories/US-RR-25.md) |
 | [US-RR-25-6](tasks/US-RR-25-6.md) | Implement LengthByte, Fixed, Line and KwpHeader framers | ⚪ todo | 3 |  | — | US-RR-25-5 | [US-RR-25](stories/US-RR-25.md) |
 | [US-RR-25-7](tasks/US-RR-25-7.md) | Implement Sync (checksum+resync), IdleGap and IsoTp framers | ⚪ todo | 3 |  | — | US-RR-25-5 | [US-RR-25](stories/US-RR-25.md) |
 | [US-RR-25-8](tasks/US-RR-25-8.md) | Add per-variant fuzz targets | ⚪ todo | 1 |  | — | US-RR-25-6, US-RR-25-7 | [US-RR-25](stories/US-RR-25.md) |
-| [US-RR-26-1](tasks/US-RR-26-1.md) | Test: A rule without id, note or source is rejected at load with a diagnostic | ⚪ todo | — |  | — | US-RR-26-7 | [US-RR-26](stories/US-RR-26.md) |
+| [US-RR-26-1](tasks/US-RR-26-1.md) | Test: A rule without id, note or source is rejected at load with a diagnostic | ⚪ todo | 1 |  | — | US-RR-26-7 | [US-RR-26](stories/US-RR-26.md) |
 | [US-RR-26-10](tasks/US-RR-26-10.md) | Add disable-one and disable-all switches | ⚪ todo | 1 |  | — | US-RR-26-8 | [US-RR-26](stories/US-RR-26.md) |
 | [US-RR-26-11](tasks/US-RR-26-11.md) | Implement compile-time hook registry | ⚪ todo | 2 |  | — | US-RR-26-7 | [US-RR-26](stories/US-RR-26.md) |
-| [US-RR-26-2](tasks/US-RR-26-2.md) | Test: Layer precedence (protocol < adapter < ECU family < ECU ID) is honoured for conflicting actions - property test... | ⚪ todo | — |  | — | US-RR-26-8 | [US-RR-26](stories/US-RR-26.md) |
-| [US-RR-26-3](tasks/US-RR-26-3.md) | Test: disable-one and disable-all remove exactly the targeted rules, verified by trace output | ⚪ todo | — |  | — | US-RR-26-10 | [US-RR-26](stories/US-RR-26.md) |
-| [US-RR-26-4](tasks/US-RR-26-4.md) | Test: Applying rules to an op with no matching rules costs a single table lookup (benchmark asserts no scan) | ⚪ todo | — |  | — | US-RR-26-8 | [US-RR-26](stories/US-RR-26.md) |
-| [US-RR-26-5](tasks/US-RR-26-5.md) | Test: Unknown hook names are a load error, not a runtime surprise | ⚪ todo | — |  | — | US-RR-26-11 | [US-RR-26](stories/US-RR-26.md) |
-| [US-RR-26-6](tasks/US-RR-26-6.md) | Test: cargo-mutants reports zero surviving mutants in rule flattening and application | ⚪ todo | — |  | — | US-RR-26-8, US-RR-26-9 | [US-RR-26](stories/US-RR-26.md) |
+| [US-RR-26-2](tasks/US-RR-26-2.md) | Test: Layer precedence (protocol < adapter < ECU family < ECU ID) is honoured for conflicting actions - property test... | ⚪ todo | 2 |  | — | US-RR-26-8 | [US-RR-26](stories/US-RR-26.md) |
+| [US-RR-26-3](tasks/US-RR-26-3.md) | Test: disable-one and disable-all remove exactly the targeted rules, verified by trace output | ⚪ todo | 1 |  | — | US-RR-26-10 | [US-RR-26](stories/US-RR-26.md) |
+| [US-RR-26-4](tasks/US-RR-26-4.md) | Test: Applying rules to an op with no matching rules costs a single table lookup (benchmark asserts no scan) | ⚪ todo | 2 |  | — | US-RR-26-8 | [US-RR-26](stories/US-RR-26.md) |
+| [US-RR-26-5](tasks/US-RR-26-5.md) | Test: Unknown hook names are a load error, not a runtime surprise | ⚪ todo | 1 |  | — | US-RR-26-11 | [US-RR-26](stories/US-RR-26.md) |
+| [US-RR-26-6](tasks/US-RR-26-6.md) | Test: cargo-mutants reports zero surviving mutants in rule flattening and application | ⚪ todo | 2 |  | — | US-RR-26-8, US-RR-26-9 | [US-RR-26](stories/US-RR-26.md) |
 | [US-RR-26-7](tasks/US-RR-26-7.md) | Define Rule, When and Action types | ⚪ todo | 2 |  | — | — | [US-RR-26](stories/US-RR-26.md) |
 | [US-RR-26-8](tasks/US-RR-26-8.md) | Flatten rules into per-op lookup with layer precedence | ⚪ todo | 3 |  | — | US-RR-26-7 | [US-RR-26](stories/US-RR-26.md) |
 | [US-RR-26-9](tasks/US-RR-26-9.md) | Implement action application API and trace sink | ⚪ todo | 3 |  | — | US-RR-26-8 | [US-RR-26](stories/US-RR-26.md) |
@@ -163,12 +163,12 @@
 | [US-RR-27-5](tasks/US-RR-27-5.md) | Implement hardened XML reader over quick-xml | ✅ done | 3 |  | claude | — | [US-RR-27](stories/US-RR-27.md) |
 | [US-RR-27-6](tasks/US-RR-27-6.md) | Add encoding detection and CRLF handling | ✅ done | 2 |  | claude | US-RR-27-5 | [US-RR-27](stories/US-RR-27.md) |
 | [US-RR-27-7](tasks/US-RR-27-7.md) | Add XML fuzz target and hostile sample set | ✅ done | 2 |  | claude | US-RR-27-5 | [US-RR-27](stories/US-RR-27.md) |
-| [US-RR-28-1](tasks/US-RR-28-1.md) | Test: Every schema round-trips: load(save(x)) == x (property test) | ⚪ todo | — |  | — | US-RR-28-5, US-RR-28-6, US-RR-28-7 | [US-RR-28](stories/US-RR-28.md) |
-| [US-RR-28-2](tasks/US-RR-28-2.md) | Test: A profile with an older schema version migrates to the current one with a snapshot test per migration step; an ... | ⚪ todo | — |  | — | US-RR-28-8 | [US-RR-28](stories/US-RR-28.md) |
-| [US-RR-28-3](tasks/US-RR-28-3.md) | Test: Unknown keys are errors with line:col provenance (no silent ignore) | ⚪ todo | — |  | — | US-RR-28-5, US-RR-28-6, US-RR-28-7 | [US-RR-28](stories/US-RR-28.md) |
-| [US-RR-28-4](tasks/US-RR-28-4.md) | Test: TOML profile parsing is fuzzed with no panics | ⚪ todo | — |  | — | US-RR-28-9 | [US-RR-28](stories/US-RR-28.md) |
-| [US-RR-28-5](tasks/US-RR-28-5.md) | Define LinkProfile and Timing schema | ⚪ todo | 3 |  | — | — | [US-RR-28](stories/US-RR-28.md) |
-| [US-RR-28-6](tasks/US-RR-28-6.md) | Define Rule-set and DeviceProfile schemas | ⚪ todo | 3 |  | — | — | [US-RR-28](stories/US-RR-28.md) |
+| [US-RR-28-1](tasks/US-RR-28-1.md) | Test: Every schema round-trips: load(save(x)) == x (property test) | ⚪ todo | 2 |  | — | US-RR-28-5, US-RR-28-6, US-RR-28-7 | [US-RR-28](stories/US-RR-28.md) |
+| [US-RR-28-2](tasks/US-RR-28-2.md) | Test: A profile with an older schema version migrates to the current one with a snapshot test per migration step; an ... | ⚪ todo | 2 |  | — | US-RR-28-8 | [US-RR-28](stories/US-RR-28.md) |
+| [US-RR-28-3](tasks/US-RR-28-3.md) | Test: Unknown keys are errors with line:col provenance (no silent ignore) | ⚪ todo | 1 |  | — | US-RR-28-5, US-RR-28-6, US-RR-28-7 | [US-RR-28](stories/US-RR-28.md) |
+| [US-RR-28-4](tasks/US-RR-28-4.md) | Test: TOML profile parsing is fuzzed with no panics | ⚪ todo | 1 |  | — | US-RR-28-9 | [US-RR-28](stories/US-RR-28.md) |
+| [US-RR-28-5](tasks/US-RR-28-5.md) | Define LinkProfile and Timing schema | ⚪ todo | 3 |  | — | US-RR-25-5 | [US-RR-28](stories/US-RR-28.md) |
+| [US-RR-28-6](tasks/US-RR-28-6.md) | Define Rule-set and DeviceProfile schemas | ⚪ todo | 3 |  | — | US-RR-26-7, US-RR-28-5 | [US-RR-28](stories/US-RR-28.md) |
 | [US-RR-28-7](tasks/US-RR-28-7.md) | Define ChecksumSpec schema | ⚪ todo | 2 |  | — | — | [US-RR-28](stories/US-RR-28.md) |
 | [US-RR-28-8](tasks/US-RR-28-8.md) | Implement schema versioning, migrations and JSON Schema export | ⚪ todo | 3 |  | — | US-RR-28-5, US-RR-28-6, US-RR-28-7 | [US-RR-28](stories/US-RR-28.md) |
 | [US-RR-28-9](tasks/US-RR-28-9.md) | Add TOML profile fuzz target | ⚪ todo | 1 |  | — | US-RR-28-5 | [US-RR-28](stories/US-RR-28.md) |
@@ -214,11 +214,11 @@
 | [US-RR-32-4](tasks/US-RR-32-4.md) | Inventory legacy sleeps and J2534 timing config | ⚪ todo | 2 |  | — | — | [US-RR-32](stories/US-RR-32.md) |
 | [US-RR-32-5](tasks/US-RR-32-5.md) | Write base SSM/KWP LinkProfiles and initial quirk rules | ⚪ todo | 2 |  | — | US-RR-32-4, US-RR-28 | [US-RR-32](stories/US-RR-32.md) |
 | [US-RR-32-6](tasks/US-RR-32-6.md) | Write SSM K-line timing fixture LEG-SSM-20 | ⚪ todo | 1 |  | — | US-RR-64-9 | [US-RR-32](stories/US-RR-32.md) |
-| [US-RR-33-1](tasks/US-RR-33-1.md) | Test: Property test: recording any sequence of transactions through TraceWriter then replaying via ReplayLink reprodu... | ⚪ todo | — |  | — | US-RR-33-7, US-RR-33-8 | [US-RR-33](stories/US-RR-33.md) |
+| [US-RR-33-1](tasks/US-RR-33-1.md) | Test: Property test: recording any sequence of transactions through TraceWriter then replaying via ReplayLink reprodu... | ⚪ todo | 2 |  | — | US-RR-33-7, US-RR-33-8 | [US-RR-33](stories/US-RR-33.md) |
 | [US-RR-33-10](tasks/US-RR-33-10.md) | Add trace reader fuzz target | ⚪ todo | 1 |  | — | US-RR-33-6 | [US-RR-33](stories/US-RR-33.md) |
-| [US-RR-33-2](tasks/US-RR-33-2.md) | Test: ReplayLink fails the test with a precise diff when the code under test sends a request that differs from the trace | ⚪ todo | — |  | — | US-RR-33-8 | [US-RR-33](stories/US-RR-33.md) |
-| [US-RR-33-3](tasks/US-RR-33-3.md) | Test: The .rrtrace reader is fuzzed with no panics; an unknown trace version is rejected | ⚪ todo | — |  | — | US-RR-33-10 | [US-RR-33](stories/US-RR-33.md) |
-| [US-RR-33-4](tasks/US-RR-33-4.md) | Test: Traces carry no VIN or serial unless explicitly marked unscrubbed (field-level marking for the scrub command) | ⚪ todo | — |  | — | US-RR-33-9 | [US-RR-33](stories/US-RR-33.md) |
+| [US-RR-33-2](tasks/US-RR-33-2.md) | Test: ReplayLink fails the test with a precise diff when the code under test sends a request that differs from the trace | ⚪ todo | 1 |  | — | US-RR-33-8 | [US-RR-33](stories/US-RR-33.md) |
+| [US-RR-33-3](tasks/US-RR-33-3.md) | Test: The .rrtrace reader is fuzzed with no panics; an unknown trace version is rejected | ⚪ todo | 1 |  | — | US-RR-33-10 | [US-RR-33](stories/US-RR-33.md) |
+| [US-RR-33-4](tasks/US-RR-33-4.md) | Test: Traces carry no VIN or serial unless explicitly marked unscrubbed (field-level marking for the scrub command) | ⚪ todo | 1 |  | — | US-RR-33-9 | [US-RR-33](stories/US-RR-33.md) |
 | [US-RR-33-5](tasks/US-RR-33-5.md) | Define Link trait and capabilities | ⚪ todo | 2 |  | — | — | [US-RR-33](stories/US-RR-33.md) |
 | [US-RR-33-6](tasks/US-RR-33-6.md) | Define .rrtrace v1 format with reader and writer | ⚪ todo | 3 |  | — | US-RR-33-5 | [US-RR-33](stories/US-RR-33.md) |
 | [US-RR-33-7](tasks/US-RR-33-7.md) | Implement TraceWriter wrapper Link | ⚪ todo | 2 |  | — | US-RR-33-6 | [US-RR-33](stories/US-RR-33.md) |
@@ -260,14 +260,15 @@
 | [US-RR-36-7](tasks/US-RR-36-7.md) | Implement ECU-side fault injection via Rule engine | ⚪ todo | 3 |  | — | US-RR-36-5 | [US-RR-36](stories/US-RR-36.md) |
 | [US-RR-36-8](tasks/US-RR-36-8.md) | Implement write recorder and assertion helper | ⚪ todo | 2 |  | — | US-RR-36-5 | [US-RR-36](stories/US-RR-36.md) |
 | [US-RR-36-9](tasks/US-RR-36-9.md) | Implement basic SSM responder | ⚪ todo | 3 |  | — | US-RR-36-5, US-RR-12 | [US-RR-36](stories/US-RR-36.md) |
-| [US-RR-37-1](tasks/US-RR-37-1.md) | Test: Using a pty pair (Linux) / com0com-style harness, echo bytes are stripped and an echo mismatch is reported as a... | ⚪ todo | — |  | — | US-RR-37-7, US-RR-37-11 | [US-RR-37](stories/US-RR-37.md) |
-| [US-RR-37-10](tasks/US-RR-37-10.md) | Add KKL adapter profiles and latency-timer detection | ⚪ todo | 2 |  | — | US-RR-37-6 | [US-RR-37](stories/US-RR-37.md) |
+| [US-RR-37-1](tasks/US-RR-37-1.md) | Test: Using a pty pair (Linux) / com0com-style harness, echo bytes are stripped and an echo mismatch is reported as a... | ⚪ todo | 2 |  | — | US-RR-37-7, US-RR-37-11 | [US-RR-37](stories/US-RR-37.md) |
+| [US-RR-37-10](tasks/US-RR-37-10.md) | Add KKL adapter profiles and latency-timer detection | ⚪ todo | 2 |  | — | US-RR-37-6, US-RR-28-6 | [US-RR-37](stories/US-RR-37.md) |
 | [US-RR-37-11](tasks/US-RR-37-11.md) | Build pty/virtual-serial test harness | ⚪ todo | 2 |  | — | — | [US-RR-37](stories/US-RR-37.md) |
-| [US-RR-37-2](tasks/US-RR-37-2.md) | Test: Removing the device mid-transaction yields a Link error within the configured deadline, with no hang or panic (... | ⚪ todo | — |  | — | US-RR-37-6, US-RR-37-11 | [US-RR-37](stories/US-RR-37.md) |
-| [US-RR-37-3](tasks/US-RR-37-3.md) | Test: After replug on a different /dev/ttyUSBn the link reconnects by stable ID (EC-19c) | ⚪ todo | — |  | — | US-RR-37-9 | [US-RR-37](stories/US-RR-37.md) |
-| [US-RR-37-4](tasks/US-RR-37-4.md) | Test: The FTDI latency timer value is detected on Linux and a Warning diagnostic is raised if it is above 1 ms | ⚪ todo | — |  | — | US-RR-37-10 | [US-RR-37](stories/US-RR-37.md) |
-| [US-RR-37-5](tasks/US-RR-37-5.md) | Test: HIL: opening the KKL cable at 4800 8N1 against the Liberty succeeds (recorded in the HIL report) | ⚪ todo | — |  | — | US-RR-37-6, US-RR-37-7, US-RR-37-10 | [US-RR-37](stories/US-RR-37.md) |
-| [US-RR-37-6](tasks/US-RR-37-6.md) | Implement Serial Link on a dedicated I/O thread | ⚪ todo | 3 |  | — | — | [US-RR-37](stories/US-RR-37.md) |
+| [US-RR-37-12](tasks/US-RR-37-12.md) | First-contact capture: send SSM init over Serial Link and record .rrtrace | ⚪ todo | 2 |  | — | US-RR-37-6, US-RR-37-7, US-RR-37-10, US-RR-37-11, US-RR-33-7, US-RR-33-9 | [US-RR-37](stories/US-RR-37.md) |
+| [US-RR-37-2](tasks/US-RR-37-2.md) | Test: Removing the device mid-transaction yields a Link error within the configured deadline, with no hang or panic (... | ⚪ todo | 2 |  | — | US-RR-37-6, US-RR-37-11 | [US-RR-37](stories/US-RR-37.md) |
+| [US-RR-37-3](tasks/US-RR-37-3.md) | Test: After replug on a different /dev/ttyUSBn the link reconnects by stable ID (EC-19c) | ⚪ todo | 2 |  | — | US-RR-37-9 | [US-RR-37](stories/US-RR-37.md) |
+| [US-RR-37-4](tasks/US-RR-37-4.md) | Test: The FTDI latency timer value is detected on Linux and a Warning diagnostic is raised if it is above 1 ms | ⚪ todo | 1 |  | — | US-RR-37-10 | [US-RR-37](stories/US-RR-37.md) |
+| [US-RR-37-5](tasks/US-RR-37-5.md) | Test: HIL: opening the KKL cable at 4800 8N1 against the Liberty succeeds (recorded in the HIL report) | ⚪ todo | 1 |  | — | US-RR-37-6, US-RR-37-7, US-RR-37-10, US-RR-37-12 | [US-RR-37](stories/US-RR-37.md) |
+| [US-RR-37-6](tasks/US-RR-37-6.md) | Implement Serial Link on a dedicated I/O thread | ⚪ todo | 3 |  | — | US-RR-33-5, US-RR-28-5 | [US-RR-37](stories/US-RR-37.md) |
 | [US-RR-37-7](tasks/US-RR-37-7.md) | Implement K-line echo strip and verify | ⚪ todo | 2 |  | — | US-RR-37-6 | [US-RR-37](stories/US-RR-37.md) |
 | [US-RR-37-8](tasks/US-RR-37-8.md) | Implement break signalling | ⚪ todo | 1 |  | — | US-RR-37-6 | [US-RR-37](stories/US-RR-37.md) |
 | [US-RR-37-9](tasks/US-RR-37-9.md) | Implement stable-ID discovery and reconnect | ⚪ todo | 3 |  | — | US-RR-37-6 | [US-RR-37](stories/US-RR-37.md) |

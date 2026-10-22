@@ -8,13 +8,13 @@ depends_on:
 - US-RR-33-7
 - US-RR-33-8
 id: US-RR-33-1
-points: null
+points: 2
 status: todo
 story_id: US-RR-33
 tags: []
 title: 'Test: Property test: recording any sequence of transactions through TraceWriter
   then replaying via ReplayLink reprodu...'
-updated: '2026-10-19'
+updated: '2026-10-23'
 ---
 
 Verify acceptance criterion for story US-RR-33:
