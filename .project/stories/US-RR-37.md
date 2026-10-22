@@ -17,14 +17,14 @@ epic_id: EPIC-RR-6
 id: US-RR-37
 points: 8
 priority: must
-status: backlog
+status: ready
 tags:
 - m2
 - comms
 - kkl
 - linux
 title: Serial Link and KKL cable profile
-updated: '2026-10-19'
+updated: '2026-10-23'
 ---
 
 As the owner of a 2004 AU Liberty with a KKL cable, I want the serial link to handle K-line's quirks automatically, so that logging just works and a flaky cable never shows wrong data.

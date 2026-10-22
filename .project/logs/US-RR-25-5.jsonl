@@ -1,0 +1,1 @@
+{"timestamp":"2026-10-22T21:35:40.597645Z","outcome":"info","status":"todo","note":"Released untouched so /pm-orchestrate starts SPRINT-RR-6 from a clean board. Ordering note: do 25-5 (Frame/Framing types in rr-core::framing) before 33-5, so the Link trait's transact(op, req, expect) -> Frame reuses C6 instead of redefining Frame in rr-link.","actor":"Ryan Tregea"}

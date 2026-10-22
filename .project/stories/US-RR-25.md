@@ -15,14 +15,14 @@ epic_id: EPIC-RR-3
 id: US-RR-25
 points: 5
 priority: must
-status: backlog
+status: ready
 tags:
 - m0
 - core
 - concepts
 - comms
 title: 'Framing (C6): one framer for ECUs and devices'
-updated: '2026-10-19'
+updated: '2026-10-23'
 ---
 
 As a developer, I want byte streams split into frames by one tested framer, so that ECU responses and wideband device streams share framing logic, and corrupt frames are dropped consistently.

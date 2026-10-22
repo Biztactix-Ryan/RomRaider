@@ -219,7 +219,7 @@
 | [US-RR-33-2](tasks/US-RR-33-2.md) | Test: ReplayLink fails the test with a precise diff when the code under test sends a request that differs from the trace | ⚪ todo | 1 |  | — | US-RR-33-8 | [US-RR-33](stories/US-RR-33.md) |
 | [US-RR-33-3](tasks/US-RR-33-3.md) | Test: The .rrtrace reader is fuzzed with no panics; an unknown trace version is rejected | ⚪ todo | 1 |  | — | US-RR-33-10 | [US-RR-33](stories/US-RR-33.md) |
 | [US-RR-33-4](tasks/US-RR-33-4.md) | Test: Traces carry no VIN or serial unless explicitly marked unscrubbed (field-level marking for the scrub command) | ⚪ todo | 1 |  | — | US-RR-33-9 | [US-RR-33](stories/US-RR-33.md) |
-| [US-RR-33-5](tasks/US-RR-33-5.md) | Define Link trait and capabilities | ⚪ todo | 2 |  | — | — | [US-RR-33](stories/US-RR-33.md) |
+| [US-RR-33-5](tasks/US-RR-33-5.md) | Define Link trait and capabilities | ⚪ todo | 2 |  | — | US-RR-25-5 | [US-RR-33](stories/US-RR-33.md) |
 | [US-RR-33-6](tasks/US-RR-33-6.md) | Define .rrtrace v1 format with reader and writer | ⚪ todo | 3 |  | — | US-RR-33-5 | [US-RR-33](stories/US-RR-33.md) |
 | [US-RR-33-7](tasks/US-RR-33-7.md) | Implement TraceWriter wrapper Link | ⚪ todo | 2 |  | — | US-RR-33-6 | [US-RR-33](stories/US-RR-33.md) |
 | [US-RR-33-8](tasks/US-RR-33-8.md) | Implement ReplayLink with divergence diff | ⚪ todo | 3 |  | — | US-RR-33-6 | [US-RR-33](stories/US-RR-33.md) |

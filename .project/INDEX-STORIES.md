@@ -19,20 +19,20 @@
 | [US-RR-22](stories/US-RR-22.md) | Layered + Resolver (C1): one inheritance engine | ✅ done | must | 8 | m0, core, concepts, safety | [EPIC-RR-3](epics/EPIC-RR-3.md) | 6 | 12 |
 | [US-RR-23](stories/US-RR-23.md) | Pattern (C2): one matcher | ✅ done | must | 3 | m0, core, concepts | [EPIC-RR-3](epics/EPIC-RR-3.md) | 3 | 5 |
 | [US-RR-24](stories/US-RR-24.md) | Conversion (C4b): exact inverses, safe ranges | ✅ done | must | 8 | m1, core, concepts, safety | [EPIC-RR-3](epics/EPIC-RR-3.md) | 6 | 11 |
-| [US-RR-25](stories/US-RR-25.md) | Framing (C6): one framer for ECUs and devices | 📋 backlog | must | 5 | m0, core, concepts, comms | [EPIC-RR-3](epics/EPIC-RR-3.md) | 4 | 8 |
-| [US-RR-26](stories/US-RR-26.md) | Rule engine (C8): quirks and faults as data | 📋 backlog | must | 8 | m0, core, concepts, comms, safety | [EPIC-RR-3](epics/EPIC-RR-3.md) | 6 | 11 |
+| [US-RR-25](stories/US-RR-25.md) | Framing (C6): one framer for ECUs and devices | 🟢 ready | must | 5 | m0, core, concepts, comms | [EPIC-RR-3](epics/EPIC-RR-3.md) | 4 | 8 |
+| [US-RR-26](stories/US-RR-26.md) | Rule engine (C8): quirks and faults as data | 🟢 ready | must | 8 | m0, core, concepts, comms, safety | [EPIC-RR-3](epics/EPIC-RR-3.md) | 6 | 11 |
 | [US-RR-27](stories/US-RR-27.md) | Hardened XML reading layer | ✅ done | must | 5 | m1, definitions, security | [EPIC-RR-4](epics/EPIC-RR-4.md) | 4 | 7 |
-| [US-RR-28](stories/US-RR-28.md) | TOML profile schemas with versioning | 📋 backlog | must | 5 | m1, definitions, profiles | [EPIC-RR-4](epics/EPIC-RR-4.md) | 4 | 9 |
+| [US-RR-28](stories/US-RR-28.md) | TOML profile schemas with versioning | 🟢 ready | must | 5 | m1, definitions, profiles | [EPIC-RR-4](epics/EPIC-RR-4.md) | 4 | 9 |
 | [US-RR-29](stories/US-RR-29.md) | RomRaider ECU-definition reader | ✅ done | must | 8 | m1, definitions | [EPIC-RR-4](epics/EPIC-RR-4.md) | 4 | 9 |
 | [US-RR-3](stories/US-RR-3.md) | Safety lints: banned time, panics, globals | ✅ done | must | 3 | m0, lint, safety | [EPIC-RR-1](epics/EPIC-RR-1.md) | 4 | 7 |
 | [US-RR-30](stories/US-RR-30.md) | Logger-definition reader to ParamSet | 📋 backlog | must | 8 | m1, definitions, logger | [EPIC-RR-4](epics/EPIC-RR-4.md) | 4 | 11 |
 | [US-RR-31](stories/US-RR-31.md) | Byte image and Patch journal (C10) | ✅ done | must | 5 | m1, rom, safety | [EPIC-RR-5](epics/EPIC-RR-5.md) | 5 | 9 |
 | [US-RR-32](stories/US-RR-32.md) | Legacy timing audit: every sleep becomes a named timing or quirk | 📋 backlog | must | 3 | m2, comms, timing | [EPIC-RR-6](epics/EPIC-RR-6.md) | 3 | 6 |
-| [US-RR-33](stories/US-RR-33.md) | Link trait, .rrtrace format and Replay Link | 📋 backlog | must | 5 | m2, comms, testing | [EPIC-RR-6](epics/EPIC-RR-6.md) | 4 | 10 |
+| [US-RR-33](stories/US-RR-33.md) | Link trait, .rrtrace format and Replay Link | 🟢 ready | must | 5 | m2, comms, testing | [EPIC-RR-6](epics/EPIC-RR-6.md) | 4 | 10 |
 | [US-RR-34](stories/US-RR-34.md) | Definition resolution and ROM-ID index | ✅ done | must | 8 | m1, definitions, safety | [EPIC-RR-4](epics/EPIC-RR-4.md) | 5 | 9 |
 | [US-RR-35](stories/US-RR-35.md) | Checksum engine: specs + named registry | 📋 backlog | must | 13 | m1, rom, checksum, safety | [EPIC-RR-5](epics/EPIC-RR-5.md) | 7 | 17 |
 | [US-RR-36](stories/US-RR-36.md) | ECU simulator with rule-based fault injection | 📋 backlog | must | 8 | m2, comms, testing, simulator | [EPIC-RR-6](epics/EPIC-RR-6.md) | 4 | 10 |
-| [US-RR-37](stories/US-RR-37.md) | Serial Link and KKL cable profile | 📋 backlog | must | 8 | m2, comms, kkl, linux | [EPIC-RR-6](epics/EPIC-RR-6.md) | 5 | 12 |
+| [US-RR-37](stories/US-RR-37.md) | Serial Link and KKL cable profile | 🟢 ready | must | 8 | m2, comms, kkl, linux | [EPIC-RR-6](epics/EPIC-RR-6.md) | 5 | 12 |
 | [US-RR-38](stories/US-RR-38.md) | Release skeleton: nightly CLI tarball, AppImage and .deb | ✅ done | must | 5 | m0, release, linux | [EPIC-RR-9](epics/EPIC-RR-9.md) | 4 | 8 |
 | [US-RR-39](stories/US-RR-39.md) | Resolved-definition known-answer suite | 📋 backlog | must | 5 | m1, definitions, testing | [EPIC-RR-4](epics/EPIC-RR-4.md) | 3 | 10 |
 | [US-RR-4](stories/US-RR-4.md) | Coverage and mutation gates | ✅ done | must | 5 | m0, testing, mutation, coverage, safety | [EPIC-RR-1](epics/EPIC-RR-1.md) | 4 | 8 |

@@ -14,13 +14,13 @@ epic_id: EPIC-RR-4
 id: US-RR-28
 points: 5
 priority: must
-status: backlog
+status: ready
 tags:
 - m1
 - definitions
 - profiles
 title: TOML profile schemas with versioning
-updated: '2026-10-19'
+updated: '2026-10-23'
 ---
 
 As a definition author, I want typed, versioned TOML schemas for link profiles, quirk rules, device profiles and checksum specs, so that supporting a new ECU, cable or device is a reviewed data file with migrations, not code.

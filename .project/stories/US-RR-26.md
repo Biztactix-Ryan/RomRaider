@@ -18,7 +18,7 @@ epic_id: EPIC-RR-3
 id: US-RR-26
 points: 8
 priority: must
-status: backlog
+status: ready
 tags:
 - m0
 - core
@@ -26,7 +26,7 @@ tags:
 - comms
 - safety
 title: 'Rule engine (C8): quirks and faults as data'
-updated: '2026-10-19'
+updated: '2026-10-23'
 ---
 
 As a definition author, I want ECU and adapter quirks expressed as declarative rules with a required explanation, so that oddities like "this ECU needs 60 ms after the ID request" never become unexplained sleeps in protocol code.

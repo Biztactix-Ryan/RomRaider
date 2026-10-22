@@ -245,7 +245,7 @@ entries:
 - id: US-RR-25
   title: 'Framing (C6): one framer for ECUs and devices'
   type: story
-  status: backlog
+  status: ready
   archived: false
   points: 5
   story_id: null
@@ -254,7 +254,7 @@ entries:
 - id: US-RR-26
   title: 'Rule engine (C8): quirks and faults as data'
   type: story
-  status: backlog
+  status: ready
   archived: false
   points: 8
   story_id: null
@@ -272,7 +272,7 @@ entries:
 - id: US-RR-28
   title: TOML profile schemas with versioning
   type: story
-  status: backlog
+  status: ready
   archived: false
   points: 5
   story_id: null
@@ -326,7 +326,7 @@ entries:
 - id: US-RR-33
   title: Link trait, .rrtrace format and Replay Link
   type: story
-  status: backlog
+  status: ready
   archived: false
   points: 5
   story_id: null
@@ -362,7 +362,7 @@ entries:
 - id: US-RR-37
   title: Serial Link and KKL cable profile
   type: story
-  status: backlog
+  status: ready
   archived: false
   points: 8
   story_id: null

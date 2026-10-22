@@ -15,13 +15,13 @@ epic_id: EPIC-RR-6
 id: US-RR-33
 points: 5
 priority: must
-status: backlog
+status: ready
 tags:
 - m2
 - comms
 - testing
 title: Link trait, .rrtrace format and Replay Link
-updated: '2026-10-19'
+updated: '2026-10-23'
 ---
 
 As a developer, I want one I/O abstraction for every adapter and a trace format that doubles as a test fixture, so that any real session can be replayed deterministically as a regression test.

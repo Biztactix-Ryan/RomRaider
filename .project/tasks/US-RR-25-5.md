@@ -11,7 +11,7 @@ status: todo
 story_id: US-RR-25
 tags: []
 title: Define Framer trait and incremental feed API
-updated: '2026-10-19'
+updated: '2026-10-23'
 ---
 
 rr-core::framing: Framing enum + Framer trait: feed(&[u8]) -> frames/events; bounded buffers.
