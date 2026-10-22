@@ -11,12 +11,12 @@ depends_on:
 - US-RR-14-8
 id: US-RR-14-1
 points: 1
-status: todo
+status: done
 story_id: US-RR-14
 tags: []
 title: 'Test: Every vector fixture cites its standard document, edition and section
   (or legacy file:line for the transcribed ...'
-updated: '2026-10-22'
+updated: '2026-10-23'
 ---
 
 Verify acceptance criterion for story US-RR-14:

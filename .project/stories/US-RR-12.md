@@ -14,7 +14,7 @@ epic_id: EPIC-RR-2
 id: US-RR-12
 points: 8
 priority: must
-status: ready
+status: done
 tags:
 - m0
 - docs

@@ -13,7 +13,7 @@ epic_id: EPIC-RR-3
 id: US-RR-21
 points: 3
 priority: must
-status: ready
+status: done
 tags:
 - m1
 - core

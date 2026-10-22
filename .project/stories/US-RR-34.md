@@ -18,7 +18,7 @@ epic_id: EPIC-RR-4
 id: US-RR-34
 points: 8
 priority: must
-status: ready
+status: done
 tags:
 - m1
 - definitions

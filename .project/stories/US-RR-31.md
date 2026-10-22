@@ -17,7 +17,7 @@ epic_id: EPIC-RR-5
 id: US-RR-31
 points: 5
 priority: must
-status: ready
+status: done
 tags:
 - m1
 - rom

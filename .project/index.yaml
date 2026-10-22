@@ -119,7 +119,7 @@ entries:
 - id: US-RR-12
   title: Legacy behaviour catalogue (read-only)
   type: story
-  status: ready
+  status: done
   archived: false
   points: 8
   story_id: null
@@ -137,7 +137,7 @@ entries:
 - id: US-RR-14
   title: Standard test-vector library
   type: story
-  status: ready
+  status: done
   archived: false
   points: 5
   story_id: null
@@ -209,7 +209,7 @@ entries:
 - id: US-RR-21
   title: Units registry (C5)
   type: story
-  status: ready
+  status: done
   archived: false
   points: 3
   story_id: null
@@ -308,7 +308,7 @@ entries:
 - id: US-RR-31
   title: Byte image and Patch journal (C10)
   type: story
-  status: ready
+  status: done
   archived: false
   points: 5
   story_id: null
@@ -335,7 +335,7 @@ entries:
 - id: US-RR-34
   title: Definition resolution and ROM-ID index
   type: story
-  status: ready
+  status: done
   archived: false
   points: 8
   story_id: null
@@ -1023,7 +1023,7 @@ entries:
   title: 'Test: Every area listed has a docs/legacy page with legacy/ file:line references
     for each described behaviour'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-12
@@ -1033,7 +1033,7 @@ entries:
   title: 'Test: Each page ends with a fixtures-to-write list, and each listed fixture
     becomes a tracked task or KAT file'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-12
@@ -1043,7 +1043,7 @@ entries:
   title: 'Test: Behaviours that are bugs are cross-referenced to an MF ledger entry
     rather than described as intended'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-12
@@ -1053,7 +1053,7 @@ entries:
   title: 'Test: The SSM page documents init, read-address, read-memory, write and
     echo handling precisely enough to write simul...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-12
@@ -1062,7 +1062,7 @@ entries:
 - id: US-RR-12-5
   title: Catalogue definition parsing and inheritance
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-12
@@ -1071,7 +1071,7 @@ entries:
 - id: US-RR-12-6
   title: Catalogue storage, endian, scaling and JEP dialect
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-12
@@ -1080,7 +1080,7 @@ entries:
 - id: US-RR-12-7
   title: Catalogue checksum algorithms
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-12
@@ -1089,7 +1089,7 @@ entries:
 - id: US-RR-12-8
   title: Catalogue SSM/K-line protocol flow
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-12
@@ -1098,7 +1098,7 @@ entries:
 - id: US-RR-12-9
   title: Catalogue logger defs, CSV format and settings.xml
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-12
@@ -1174,7 +1174,7 @@ entries:
   title: 'Test: Every vector fixture cites its standard document, edition and section
     (or legacy file:line for the transcribed ...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-14
@@ -1184,7 +1184,7 @@ entries:
   title: 'Test: ISO 14230 default timings (including P3min = 55 ms) are exposed as
     named constants backed by a fixture, and MF-...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-14
@@ -1194,7 +1194,7 @@ entries:
   title: 'Test: Checksum reference vectors cover each sum/XOR/CRC variant planned
     for the checksum engine'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-14
@@ -1204,7 +1204,7 @@ entries:
   title: 'Test: J1979 vectors include boundary values (0, max) for every included
     PID'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-14
@@ -1213,7 +1213,7 @@ entries:
 - id: US-RR-14-5
   title: Author ISO 9141/14230/15765 timing fixtures and constants
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-14
@@ -1222,7 +1222,7 @@ entries:
 - id: US-RR-14-6
   title: Author SAE J1979 mode 01 PID vectors
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-14
@@ -1231,7 +1231,7 @@ entries:
 - id: US-RR-14-7
   title: Author checksum and CRC reference vectors
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-14
@@ -1240,7 +1240,7 @@ entries:
 - id: US-RR-14-8
   title: Transcribe NCS codec vectors as data
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-14
@@ -1759,7 +1759,7 @@ entries:
   title: 'Test: Every conversion factor has a KAT fixture citing an SI/NIST or equivalent
     reference (e.g. km per mile = 1.60934...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-21
@@ -1769,7 +1769,7 @@ entries:
   title: 'Test: Property test: converting A->B->A round-trips within floating tolerance
     for every unit pair in the same dimension'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-21
@@ -1779,7 +1779,7 @@ entries:
   title: 'Test: Every unit string appearing in the pinned logger and ECU definition
     corpora resolves to a registry unit or prod...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-21
@@ -1788,7 +1788,7 @@ entries:
 - id: US-RR-21-4
   title: Implement unit registry and conversions
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-21
@@ -1797,7 +1797,7 @@ entries:
 - id: US-RR-21-5
   title: Map legacy unit strings and AFR/lambda fuel conversions
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-21
@@ -2553,6 +2553,26 @@ entries:
   story_id: US-RR-30
   epic_id: null
   tags: []
+- id: US-RR-30-10
+  title: Write logger-definition reader KATs LEG-LOG-01, 02, 03, 12, 13, 14 (structure,
+    transports, addresses, DTD drift, corpus, error policy)
+  type: task
+  status: todo
+  archived: false
+  points: 3
+  story_id: US-RR-30
+  epic_id: null
+  tags: []
+- id: US-RR-30-11
+  title: Write logger decode and parameter KATs LEG-LOG-04, 06, 07, 08, 09, 11 (decode,
+    conversions, capability, ecuparam, derived, switches/DTC)
+  type: task
+  status: todo
+  archived: false
+  points: 3
+  story_id: US-RR-30
+  epic_id: null
+  tags: []
 - id: US-RR-30-2
   title: 'Test: A derived parameter with a missing dependency produces a diagnostic
     naming the dependency and stays visible as ...'
@@ -2631,7 +2651,7 @@ entries:
   title: 'Test: Property test: for any sequence of patches, undo-all restores the
     original bytes exactly and redo-all reproduce...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-31
@@ -2641,7 +2661,7 @@ entries:
   title: 'Test: A patch whose old bytes do not match the current image is rejected
     (stale-patch protection)'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-31
@@ -2651,7 +2671,7 @@ entries:
   title: 'Test: The sidecar journal round-trips losslessly (property test) and rejects
     a journal whose base image hash does not...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-31
@@ -2661,7 +2681,7 @@ entries:
   title: 'Test: There is no public API that mutates image bytes without producing
     a patch - enforced by module visibility and a...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-31
@@ -2670,7 +2690,7 @@ entries:
 - id: US-RR-31-5
   title: 'Test: cargo-mutants reports zero surviving mutants in the journal module'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-31
@@ -2679,7 +2699,7 @@ entries:
 - id: US-RR-31-6
   title: Implement Image with original snapshot and private mutation
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-31
@@ -2688,7 +2708,7 @@ entries:
 - id: US-RR-31-7
   title: Implement Patch and Journal with undo/redo/grouping
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-31
@@ -2697,7 +2717,7 @@ entries:
 - id: US-RR-31-8
   title: Add stale-patch protection and modified-byte queries
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-31
@@ -2706,7 +2726,7 @@ entries:
 - id: US-RR-31-9
   title: Implement sidecar .rrjournal serialisation
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-31
@@ -2757,6 +2777,15 @@ entries:
   status: todo
   archived: false
   points: 2
+  story_id: US-RR-32
+  epic_id: null
+  tags: []
+- id: US-RR-32-6
+  title: Write SSM K-line timing fixture LEG-SSM-20
+  type: task
+  status: todo
+  archived: false
+  points: 1
   story_id: US-RR-32
   epic_id: null
   tags: []
@@ -2858,7 +2887,7 @@ entries:
   title: 'Test: Every non-suspect stock ROM in the external corpus that has a definition
     resolves to exactly one definition; re...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-34
@@ -2868,7 +2897,7 @@ entries:
   title: 'Test: A ROM matching two definitions is refused with a diagnostic listing
     both candidates and no definition is applie...'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-34
@@ -2878,7 +2907,7 @@ entries:
   title: 'Test: A ROM whose size differs from the definition''s declared size produces
     an Error diagnostic and editing is disabled'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-34
@@ -2888,7 +2917,7 @@ entries:
   title: 'Test: Benchmarks enforce the resolve (<200 ms for 5k tables) and lookup
     (<5 ms) budgets in CI (MF-18, MF-40, EC-10)'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-34
@@ -2898,7 +2927,7 @@ entries:
   title: 'Test: Resolved Definitions are immutable (no interior mutability) - compile-time
     and review check'
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-34
@@ -2907,7 +2936,7 @@ entries:
 - id: US-RR-34-6
   title: Resolve layered ECU docs into a frozen Definition
   type: task
-  status: todo
+  status: done
   archived: false
   points: 5
   story_id: US-RR-34
@@ -2916,7 +2945,7 @@ entries:
 - id: US-RR-34-7
   title: Build ROM-ID index with ambiguity detection
   type: task
-  status: todo
+  status: done
   archived: false
   points: 3
   story_id: US-RR-34
@@ -2925,7 +2954,7 @@ entries:
 - id: US-RR-34-8
   title: Validate ROM size against definition
   type: task
-  status: todo
+  status: done
   archived: false
   points: 1
   story_id: US-RR-34
@@ -2934,7 +2963,7 @@ entries:
 - id: US-RR-34-9
   title: Add resolve and lookup benchmarks with CI budgets
   type: task
-  status: todo
+  status: done
   archived: false
   points: 2
   story_id: US-RR-34
@@ -2992,6 +3021,34 @@ entries:
   status: todo
   archived: false
   points: 2
+  story_id: US-RR-35
+  epic_id: null
+  tags: []
+- id: US-RR-35-15
+  title: Write checksum engine fixtures LEG-CHK-05, 06, 07, 10, 11, 15 (Nissan std/alt/alt2,
+    Motronic/BMW/copy, E38, ordering)
+  type: task
+  status: todo
+  archived: false
+  points: 3
+  story_id: US-RR-35
+  epic_id: null
+  tags: []
+- id: US-RR-35-16
+  title: Write Subaru and corpus checksum fixtures LEG-CHK-08, 09, 12
+  type: task
+  status: todo
+  archived: false
+  points: 2
+  story_id: US-RR-35
+  epic_id: null
+  tags: []
+- id: US-RR-35-17
+  title: Write checksum spec-load tests LEG-CHK-13 and LEG-DEF-25
+  type: task
+  status: todo
+  archived: false
+  points: 1
   story_id: US-RR-35
   epic_id: null
   tags: []
@@ -3080,6 +3137,15 @@ entries:
   status: todo
   archived: false
   points: null
+  story_id: US-RR-36
+  epic_id: null
+  tags: []
+- id: US-RR-36-10
+  title: Complete SSM simulator scripts and faults LEG-SSM-07..16
+  type: task
+  status: todo
+  archived: false
+  points: 3
   story_id: US-RR-36
   epic_id: null
   tags: []
@@ -3348,6 +3414,16 @@ entries:
   story_id: US-RR-39
   epic_id: null
   tags: []
+- id: US-RR-39-10
+  title: Pin definition-reader tests LEG-DEF-02, 03, 07, 26 (filesize, ROM-ID matching,
+    base errors, hostile XML)
+  type: task
+  status: todo
+  archived: false
+  points: 2
+  story_id: US-RR-39
+  epic_id: null
+  tags: []
 - id: US-RR-39-2
   title: 'Test: Resolved-tree snapshots for 20 real corpus definitions are committed
     with a review note and any change requires...'
@@ -3392,6 +3468,36 @@ entries:
   status: todo
   archived: false
   points: 1
+  story_id: US-RR-39
+  epic_id: null
+  tags: []
+- id: US-RR-39-7
+  title: Write definition KATs LEG-DEF-01, 05, 06, 08, 09, 10 (romid, RAM offset,
+    inheritance, omit, table base, addresses)
+  type: task
+  status: todo
+  archived: false
+  points: 3
+  story_id: US-RR-39
+  epic_id: null
+  tags: []
+- id: US-RR-39-8
+  title: Write definition KATs LEG-DEF-11..18, LEG-ENC-04, LEG-ENC-19 (storage, endian,
+    table types, axes, 3D layout, switch, bits, float endian, static data)
+  type: task
+  status: todo
+  archived: false
+  points: 3
+  story_id: US-RR-39
+  epic_id: null
+  tags: []
+- id: US-RR-39-9
+  title: Write definition KATs LEG-DEF-19..24 (scalingbase, scaling inheritance, scale
+    selection, attributes, user levels, malformed)
+  type: task
+  status: todo
+  archived: false
+  points: 3
   story_id: US-RR-39
   epic_id: null
   tags: []
@@ -3486,6 +3592,16 @@ entries:
   status: todo
   archived: false
   points: 2
+  story_id: US-RR-40
+  epic_id: null
+  tags: []
+- id: US-RR-40-11
+  title: Write table-layout fixtures LEG-ENC-03, 09, 14, 18 (MOVI20S table, Bosch
+    subtract, 3D order, overlapping tables)
+  type: task
+  status: todo
+  archived: false
+  points: 3
   story_id: US-RR-40
   epic_id: null
   tags: []
@@ -3803,6 +3919,16 @@ entries:
   story_id: US-RR-44
   epic_id: null
   tags: []
+- id: US-RR-44-11
+  title: Complete encode and conversion fixtures LEG-ENC-02, 06, 08, 10, 11, 12, 13,
+    15, 16
+  type: task
+  status: todo
+  archived: false
+  points: 3
+  story_id: US-RR-44
+  epic_id: null
+  tags: []
 - id: US-RR-44-2
   title: 'Test: Interpolation across a selection with a non-linear scaling produces
     linearly spaced real values (within one raw...'
@@ -3886,6 +4012,15 @@ entries:
   status: todo
   archived: false
   points: null
+  story_id: US-RR-45
+  epic_id: null
+  tags: []
+- id: US-RR-45-10
+  title: Write save-pipeline fixture LEG-CHK-14 (failing checksum, override, re-validation)
+  type: task
+  status: todo
+  archived: false
+  points: 1
   story_id: US-RR-45
   epic_id: null
   tags: []
@@ -4057,6 +4192,16 @@ entries:
   status: todo
   archived: false
   points: 2
+  story_id: US-RR-47
+  epic_id: null
+  tags: []
+- id: US-RR-47-12
+  title: Write SSM codec KATs LEG-SSM-01..06 (checksum, request encode, init decode,
+    capability, reject, limits)
+  type: task
+  status: todo
+  archived: false
+  points: 3
   story_id: US-RR-47
   epic_id: null
   tags: []
@@ -4704,6 +4849,15 @@ entries:
   story_id: US-RR-55
   epic_id: null
   tags: []
+- id: US-RR-55-7
+  title: Write derived-signal value KAT LEG-LOG-10
+  type: task
+  status: todo
+  archived: false
+  points: 1
+  story_id: US-RR-55
+  epic_id: null
+  tags: []
 - id: US-RR-56-1
   title: 'Test: Each profiled device decodes a replay fixture (built from the legacy
     mock data and protocol docs) to hand-check...'
@@ -4817,6 +4971,15 @@ entries:
   story_id: US-RR-57
   epic_id: null
   tags: []
+- id: US-RR-57-10
+  title: Write CSV writer fixtures LEG-CSV-07..11
+  type: task
+  status: todo
+  archived: false
+  points: 3
+  story_id: US-RR-57
+  epic_id: null
+  tags: []
 - id: US-RR-57-2
   title: 'Test: A parameter-set change mid-session rotates to a new file and the header
     is never rewritten mid-file (MF-30, EC-27)'
@@ -4876,6 +5039,15 @@ entries:
   tags: []
 - id: US-RR-57-8
   title: Implement CSV importer with header detection
+  type: task
+  status: todo
+  archived: false
+  points: 3
+  story_id: US-RR-57
+  epic_id: null
+  tags: []
+- id: US-RR-57-9
+  title: Write legacy CSV importer goldens LEG-CSV-01..06
   type: task
   status: todo
   archived: false
@@ -4949,6 +5121,15 @@ entries:
   story_id: US-RR-58
   epic_id: null
   tags: []
+- id: US-RR-58-8
+  title: Write dyno-collector legacy CSV import fixture LEG-CSV-12
+  type: task
+  status: todo
+  archived: false
+  points: 1
+  story_id: US-RR-58
+  epic_id: null
+  tags: []
 - id: US-RR-59-1
   title: 'Test: Killing the process at any point during a settings save leaves the
     previous settings intact (fault-injection te...'
@@ -4956,6 +5137,15 @@ entries:
   status: todo
   archived: false
   points: null
+  story_id: US-RR-59
+  epic_id: null
+  tags: []
+- id: US-RR-59-10
+  title: Write legacy settings.xml importer fixtures LEG-SET-01..10
+  type: task
+  status: todo
+  archived: false
+  points: 3
   story_id: US-RR-59
   epic_id: null
   tags: []
@@ -5268,6 +5458,15 @@ entries:
   story_id: US-RR-61
   epic_id: null
   tags: []
+- id: US-RR-61-9
+  title: Write editor display-format fixture LEG-ENC-17
+  type: task
+  status: todo
+  archived: false
+  points: 1
+  story_id: US-RR-61
+  epic_id: null
+  tags: []
 - id: US-RR-62-1
   title: 'Test: With a failing checksum, the default save path does not write; only
     the explicit typed override does (egui_kitt...'
@@ -5410,6 +5609,15 @@ entries:
   story_id: US-RR-63
   epic_id: null
   tags: []
+- id: US-RR-63-9
+  title: Write live-value formatting fixture LEG-LOG-05
+  type: task
+  status: todo
+  archived: false
+  points: 1
+  story_id: US-RR-63
+  epic_id: null
+  tags: []
 - id: US-RR-64-1
   title: 'Test: The Liberty''s ECU ID and ROM ID are recorded in the HIL report and
     in VISION.md (replacing TBD)'
@@ -5479,6 +5687,15 @@ entries:
   tags: []
 - id: US-RR-64-8
   title: Feed HIL findings back into simulator rules
+  type: task
+  status: todo
+  archived: false
+  points: 2
+  story_id: US-RR-64
+  epic_id: null
+  tags: []
+- id: US-RR-64-9
+  title: Capture SSM fixtures LEG-SSM-17, 18, 19 on the 2004 Liberty (read-only)
   type: task
   status: todo
   archived: false
@@ -6226,6 +6443,15 @@ entries:
   story_id: US-RR-76
   epic_id: null
   tags: []
+- id: US-RR-76-6
+  title: Write SSM-over-CAN KAT LEG-SSM-21
+  type: task
+  status: todo
+  archived: false
+  points: 1
+  story_id: US-RR-76
+  epic_id: null
+  tags: []
 - id: US-RR-77-1
   title: 'Test: Every implemented PID decodes the J1979 vector fixtures exactly, including
     boundary values'
@@ -6490,8 +6716,8 @@ entries:
   story_id: US-RR-9
   epic_id: null
   tags: []
-total_points: 1374
-completed_points: 456
+total_points: 1427
+completed_points: 564
 story_count: 78
-task_count: 604
+task_count: 628
 epic_count: 10

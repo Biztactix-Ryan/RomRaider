@@ -1,6 +1,6 @@
 ---
 archived: false
-assignee: null
+assignee: claude
 claimed_at: null
 claimed_by_run: null
 created: '2026-10-19'
@@ -8,7 +8,7 @@ depends_on:
 - US-RR-21-4
 id: US-RR-21-1
 points: 2
-status: todo
+status: done
 story_id: US-RR-21
 tags: []
 title: 'Test: Every conversion factor has a KAT fixture citing an SI/NIST or equivalent

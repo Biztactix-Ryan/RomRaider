@@ -20,7 +20,7 @@ GitHub Actions workflows (`.github/workflows/`):
 
 | Workflow | Trigger | Jobs |
 |----------|---------|------|
-| `ci.yml` | push, PR | `fmt` + `clippy -D warnings`; `nextest` matrix (see below); `insta` snapshot check (no pending snapshots); `cargo-deny` (licences, advisories, bans); T6 safety-invariant suite; stock-ROM corpus job `corpus` (see "Stock-ROM corpus in CI" below); aggregate check `ci-ok` |
+| `ci.yml` | push, PR | `fmt` + `clippy -D warnings`; `nextest` matrix (see below); `insta` snapshot check (no pending snapshots); `cargo-deny` (licences, advisories, bans); T6 safety-invariant suite; stock-ROM corpus job `corpus` (see "Stock-ROM corpus in CI" below); perf budgets `perf-budget` (definition resolve < 200 ms for 5k tables, ROM-ID lookup < 5 ms; best of N in release, fails above budget x 1.5; `crates/rr-defs/benches/resolve_lookup.rs`, US-RR-34-9; gate proven by `crates/rr-defs/tests/perf_budget_gate.rs`, US-RR-34-4); aggregate check `ci-ok` |
 | `coverage.yml` | push to `master` / `rust-rewrite`, PR | `cargo-llvm-cov`; fails if rr-core/rr-rom/rr-comms < 90% or a PR regresses coverage; check `coverage-gate` |
 | `mutants.yml` | every PR (job `scope` skips the gate jobs unless gated crates, test support or the gate changed; incremental `--in-diff`); weekly full run | `cargo-mutants` on encoding, expr, journal, checksum, write gating; 0 survivors; aggregate check `mutants-ok` (always runs) |
 | `fuzz.yml` | nightly | Each `cargo-fuzz` target for 10 min; corpus cached; crashes opened as issues |

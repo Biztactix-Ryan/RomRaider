@@ -14,14 +14,14 @@ epic_id: EPIC-RR-2
 id: US-RR-14
 points: 5
 priority: must
-status: ready
+status: done
 tags:
 - m0
 - testing
 - fixtures
 - standards
 title: Standard test-vector library
-updated: '2026-10-22'
+updated: '2026-10-23'
 ---
 
 As a developer, I want published standards turned into known-answer fixtures, so that protocol, conversion and checksum code is checked against authoritative external sources.

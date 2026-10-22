@@ -1,6 +1,6 @@
 ---
 archived: false
-assignee: null
+assignee: claude
 claimed_at: null
 claimed_by_run: null
 created: '2026-10-19'
@@ -8,7 +8,7 @@ depends_on:
 - US-RR-21-4
 id: US-RR-21-2
 points: 1
-status: todo
+status: done
 story_id: US-RR-21
 tags: []
 title: 'Test: Property test: converting A->B->A round-trips within floating tolerance
