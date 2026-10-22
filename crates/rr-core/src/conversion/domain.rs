@@ -156,6 +156,12 @@ pub(super) fn first_true(mut lo: i128, mut end: i128, pred: impl Fn(i128) -> boo
 /// (the sign) shifted down to follow. Order-preserving on storable values;
 /// the inverse of [`deposit`].
 fn compress(v: i128, holes: u64) -> i128 {
+    // No holes (every whole-cell format): the rank is the value. The loop
+    // below gives the same, one bit at a time, which is most of the cost
+    // of a scan over a 16-bit cell's every raw value.
+    if holes == 0 {
+        return v;
+    }
     let mut out = 0_i128;
     let mut taken = 0_u32;
     for bit in 0..64 {
@@ -172,6 +178,10 @@ fn compress(v: i128, holes: u64) -> i128 {
 /// `i`'s bits over the low 64 bit positions that are not `holes`, the
 /// rest (the sign) above them.
 fn deposit(i: i128, holes: u64) -> i128 {
+    // No holes: the value is the rank, as in `compress`.
+    if holes == 0 {
+        return i;
+    }
     let mut out = 0_i128;
     let mut taken = 0_u32;
     for bit in 0..64 {

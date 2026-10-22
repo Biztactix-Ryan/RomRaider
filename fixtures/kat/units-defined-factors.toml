@@ -1,0 +1,451 @@
+# Unit conversion factors of the units registry (US-RR-21, C5): one known
+# answer for every conversion factor (US-RR-21-1).
+#
+# Every value comes from the unit's definition: a factor NIST SP 811 lists as
+# exact (`standard`), or a hand calculation from exact definitions (SI
+# prefixes, the hour and minute, the international inch, foot, mile and pound
+# of 1959, standard gravity) with the working shown and the reference named in
+# it. They were cross-checked independently with Python's decimal and
+# fractions modules, never with rr-core or rr-testkit code (D-024).
+#
+# References:
+# * "NIST SP 811 (2008)": NIST Special Publication 811, Guide for the Use of
+#   the International System of Units (SI), 2008 edition; Appendix B.8 lists
+#   conversion factors alphabetically, exact ones in bold.
+# * "SI Brochure": BIPM, The International System of Units (SI), 9th edition
+#   (2019); Table 7 the SI prefixes, Table 8 the non-SI units accepted for
+#   use with the SI (min = 60 s, h = 3600 s, L = 1 dm^3).
+# * "NIST Handbook 44": Specifications, Tolerances, and Other Technical
+#   Requirements for Weighing and Measuring Devices, Appendix C (General
+#   Tables of Units of Measurement): 1 US gallon = 231 in^3 exactly.
+#
+# Coverage (crates/rr-testkit/tests/units_kat.rs,
+# every_factor_has_a_cited_known_answer): every registry unit that is not its
+# dimension's base unit has a case here converting between it and that base
+# unit, citing one of the references above in its source; an affine unit
+# (kelvin, degree Fahrenheit) has two, at different points. Most cases go from
+# the unit to the base, `value` chosen so that the conversion is a single
+# correctly rounded f64 operation on exact inputs, and so is compared bit for
+# bit.
+#
+# `from` and `to` are unit ids of rr_core::units. Consumed by
+# crates/rr-testkit/tests/units_kat.rs, which converts each `value` with
+# rr_core::units::convert. A case without `tolerance` is exact, compared bit
+# for bit; a factor with no finite decimal form (psi, hp, lb/min) carries a
+# tolerance of a few ulps.
+schema = 1
+title = "Unit registry: every defined conversion factor (SI prefixes, time, temperature, pressure, length, mass, volume, flow, torque, power)"
+notes = """
+Temperature is affine: t/degC = (t/degF - 32)/1.8 and T/K = t/degC + 273.15 (SP 811 §4.2.1.1 and \
+Appendix B.8, degree Fahrenheit). One pound-force is 0.45359237 kg * 9.80665 m/s^2 = \
+4.4482216152605 N exactly (SP 811 B.8: pound (avoirdupois) 4.535 923 7 E-01 kg and standard \
+acceleration of free fall 9.806 65 E+00 m/s^2, both exact). The conventional millimetre and inch \
+of mercury are the pressure of that height of mercury of conventional density 13 595.1 kg/m^3 \
+under standard gravity; their products agree with SP 811 B.8's rounded factors. MF-42: legacy \
+named the km-per-mile factor 1.609344 KPH_2_MPH (logger/car/util/Constants.java:27); the first two \
+cases pin which way it goes.
+"""
+
+# --- Speed -------------------------------------------------------------------
+
+[[unit]]
+from = "mph"
+to = "kmh"
+value = 1.0
+expected = 1.609344
+source = { kind = "standard", doc = "NIST SP 811 (2008)", section = "Appendix B.8: mile (mi) to meter (m), 1.609 344 E+03, exact" }
+note = "1 mi/h = 1609.344 m/h = 1.609344 km/h; MF-42: legacy's KPH_2_MPH is this factor"
+
+[[unit]]
+from = "mi"
+to = "km"
+value = 1.0
+expected = 1.609344
+source = { kind = "standard", doc = "NIST SP 811 (2008)", section = "Appendix B.8: mile (mi) to meter (m), 1.609 344 E+03, exact" }
+
+[[unit]]
+from = "kmh"
+to = "mph"
+value = 100.0
+expected = 62.13711922373339
+tolerance = 1e-13
+source = { kind = "hand-calc", working = "NIST SP 811 (2008) B.8: 1 mi = 1609.344 m exactly, so 100 km/h = 100 / 1.609344 mph = 62.137119223733396961743 mph" }
+note = "a reader that multiplies by 1.609344 instead gets 160.9344"
+
+[[unit]]
+from = "mps"
+to = "kmh"
+value = 10.0
+expected = 36.0
+source = { kind = "hand-calc", working = "SI Brochure 9th ed. (2019) Table 8: 1 h = 3600 s; Table 7: 1 km = 1000 m; 10 m/s = 10 * 3600 m/h = 36000 m/h = 36000 / 1000 km/h = 36 km/h" }
+
+# --- Temperature (base: degree Celsius) ------------------------------------
+
+[[unit]]
+from = "celsius"
+to = "fahrenheit"
+value = 0.0
+expected = 32.0
+source = { kind = "hand-calc", working = "NIST SP 811 (2008) B.8, degree Fahrenheit: t/degC = (t/degF - 32)/1.8, so t/degF = t/degC * 1.8 + 32 = 0 * 1.8 + 32 = 32" }
+note = "a pure factor with no offset would give 0"
+
+[[unit]]
+from = "fahrenheit"
+to = "celsius"
+value = 212.0
+expected = 100.0
+source = { kind = "hand-calc", working = "NIST SP 811 (2008) B.8, degree Fahrenheit: t/degC = (t/degF - 32) / 1.8 = (212 - 32) / 1.8 = 180 / 1.8 = 100" }
+
+[[unit]]
+from = "celsius"
+to = "kelvin"
+value = 0.0
+expected = 273.15
+source = { kind = "hand-calc", working = "NIST SP 811 (2008) §4.2.1.1: t/degC = T/K - 273.15, so T/K = t/degC + 273.15 = 0 + 273.15 = 273.15" }
+
+[[unit]]
+from = "kelvin"
+to = "celsius"
+value = 0.0
+expected = -273.15
+source = { kind = "hand-calc", working = "NIST SP 811 (2008) §4.2.1.1: t/degC = T/K - 273.15 = 0 - 273.15 = -273.15" }
+note = "absolute zero; with the celsius -> kelvin case, the second point that fixes the affine conversion"
+
+[[unit]]
+from = "fahrenheit"
+to = "kelvin"
+value = 32.0
+expected = 273.15
+tolerance = 1e-12
+source = { kind = "hand-calc", working = "NIST SP 811 (2008) B.8, degree Fahrenheit to kelvin: T/K = (t/degF + 459.67) / 1.8 = (32 + 459.67) / 1.8 = 491.67 / 1.8 = 273.15" }
+
+# --- Absolute pressure (base: kilopascal) -----------------------------------
+
+[[unit]]
+from = "pa"
+to = "kpa"
+value = 101325.0
+expected = 101.325
+source = { kind = "hand-calc", working = "SI Brochure 9th ed. (2019) Table 7: kilo = 10^3, so 101325 Pa = 101325 / 1000 kPa = 101.325 kPa" }
+note = "the standard atmosphere, NIST SP 811 (2008) B.8 atmosphere, standard: 1.013 25 E+05 Pa, exact"
+
+[[unit]]
+from = "hpa"
+to = "kpa"
+value = 1013.25
+expected = 101.325
+source = { kind = "hand-calc", working = "SI Brochure 9th ed. (2019) Table 7: hecto = 10^2, kilo = 10^3, so 1 hPa = 100 / 1000 kPa = 0.1 kPa and 1013.25 hPa = 1013.25 / 10 kPa = 101.325 kPa" }
+
+[[unit]]
+from = "mpa"
+to = "kpa"
+value = 0.25
+expected = 250.0
+source = { kind = "hand-calc", working = "SI Brochure 9th ed. (2019) Table 7: mega = 10^6, kilo = 10^3, so 1 MPa = 10^6 / 10^3 kPa = 1000 kPa and 0.25 MPa = 0.25 * 1000 kPa = 250 kPa" }
+
+[[unit]]
+from = "bar"
+to = "kpa"
+value = 1.0
+expected = 100.0
+source = { kind = "standard", doc = "NIST SP 811 (2008)", section = "Appendix B.8: bar (bar) to pascal (Pa), 1.0 E+05, exact" }
+
+[[unit]]
+from = "psi"
+to = "kpa"
+value = 1.0
+expected = 6.894757293168361
+tolerance = 2e-15
+source = { kind = "hand-calc", working = "NIST SP 811 (2008) B.8: lb = 0.45359237 kg, gn = 9.80665 m/s^2, in = 0.0254 m, all exact; 1 psi = 1 lbf / 1 in^2 = (0.45359237 * 9.80665) N / (0.0254 * 0.0254) m^2 = 4.4482216152605 / 0.00064516 Pa = 6894.7572931683613367 Pa = 6.894757293168361 kPa" }
+note = "SP 811 B.8 lists 6.894 757 E+03 Pa, rounded; legacy's dyno used 6894.75728"
+
+[[unit]]
+from = "mmhg"
+to = "kpa"
+value = 1.0
+expected = 0.133322387415
+source = { kind = "hand-calc", working = "conventional mmHg = 13595.1 kg/m^3 * 9.80665 m/s^2 * 0.001 m (gn exact, NIST SP 811 (2008) B.8) = 133322.387415 * 0.001 Pa = 133.322387415 Pa = 0.133322387415 kPa; SP 811 B.8 millimeter of mercury, conventional: 1.333 224 E+02 Pa, rounded" }
+
+[[unit]]
+from = "inhg"
+to = "kpa"
+value = 1.0
+expected = 3.386388640341
+source = { kind = "hand-calc", working = "conventional inHg = 13595.1 kg/m^3 * 9.80665 m/s^2 * 0.0254 m (gn and in exact, NIST SP 811 (2008) B.8) = 133322.387415 * 0.0254 Pa = 3386.388640341 Pa = 3.386388640341 kPa; SP 811 B.8 inch of mercury, conventional: 3.386 389 E+03 Pa, rounded" }
+
+# --- Gauge pressure (base: kilopascal, gauge) -------------------------------
+
+[[unit]]
+from = "bar_gauge"
+to = "kpa_gauge"
+value = 1.5
+expected = 150.0
+source = { kind = "hand-calc", working = "NIST SP 811 (2008) B.8: 1 bar = 1.0 E+05 Pa = 100 kPa exactly, so 1.5 bar = 1.5 * 100 kPa = 150 kPa" }
+note = "boost: a gauge pressure converts by the same factor as an absolute one"
+
+[[unit]]
+from = "psi_gauge"
+to = "kpa_gauge"
+value = 1.0
+expected = 6.894757293168361
+tolerance = 4e-15
+source = { kind = "hand-calc", working = "NIST SP 811 (2008) B.8: lb = 0.45359237 kg, gn = 9.80665 m/s^2, in = 0.0254 m, all exact; 1 psi = (0.45359237 * 9.80665) N / (0.0254 * 0.0254) m^2 = 4.4482216152605 / 0.00064516 Pa = 6894.7572931683613367 Pa = 6.894757293168361 kPa" }
+note = "tolerance: 4.4482216152605/0.64516 has no finite decimal form; four f64 roundings (of 4.4482216152605, of 0.64516, of the division and of this expected value), each at most 2^-53 = 1.11e-16 relative, bound the error by 4 * 1.11e-16 * 6.9 = 3.1e-15"
+
+[[unit]]
+from = "mmhg_gauge"
+to = "kpa_gauge"
+value = 1.0
+expected = 0.133322387415
+source = { kind = "hand-calc", working = "conventional mmHg = 13595.1 kg/m^3 * 9.80665 m/s^2 * 0.001 m (gn exact, NIST SP 811 (2008) B.8) = 133.322387415 Pa = 0.133322387415 kPa" }
+
+[[unit]]
+from = "inhg_gauge"
+to = "kpa_gauge"
+value = -1.0
+expected = -3.386388640341
+source = { kind = "hand-calc", working = "conventional inHg = 13595.1 kg/m^3 * 9.80665 m/s^2 * 0.0254 m (gn and in exact, NIST SP 811 (2008) B.8) = 3386.388640341 Pa, so -1 inHg = -1 * 3.386388640341 kPa = -3.386388640341 kPa" }
+note = "vacuum: a gauge pressure below the atmosphere is negative"
+
+# --- Length (base: metre) ---------------------------------------------------
+
+[[unit]]
+from = "km"
+to = "m"
+value = 1.5
+expected = 1500.0
+source = { kind = "hand-calc", working = "SI Brochure 9th ed. (2019) Table 7: kilo = 10^3, so 1.5 km = 1.5 * 1000 m = 1500 m" }
+
+[[unit]]
+from = "mm"
+to = "m"
+value = 250.0
+expected = 0.25
+source = { kind = "hand-calc", working = "SI Brochure 9th ed. (2019) Table 7: milli = 10^-3, so 250 mm = 250 / 1000 m = 0.25 m" }
+
+[[unit]]
+from = "mi"
+to = "m"
+value = 1.0
+expected = 1609.344
+source = { kind = "standard", doc = "NIST SP 811 (2008)", section = "Appendix B.8: mile (mi) to meter (m), 1.609 344 E+03, exact" }
+
+[[unit]]
+from = "ft"
+to = "m"
+value = 1.0
+expected = 0.3048
+source = { kind = "standard", doc = "NIST SP 811 (2008)", section = "Appendix B.8: foot (ft) to meter (m), 3.048 E-01, exact" }
+
+[[unit]]
+from = "in"
+to = "m"
+value = 1.0
+expected = 0.0254
+source = { kind = "standard", doc = "NIST SP 811 (2008)", section = "Appendix B.8: inch (in) to meter (m), 2.54 E-02, exact" }
+
+# --- Mass (base: kilogram) --------------------------------------------------
+
+[[unit]]
+from = "g"
+to = "kg"
+value = 1500.0
+expected = 1.5
+source = { kind = "hand-calc", working = "SI Brochure 9th ed. (2019) Table 7: 1 g = 10^-3 kg, so 1500 g = 1500 / 1000 kg = 1.5 kg" }
+
+[[unit]]
+from = "lb"
+to = "kg"
+value = 1.0
+expected = 0.45359237
+source = { kind = "standard", doc = "NIST SP 811 (2008)", section = "Appendix B.8: pound (avoirdupois) (lb) to kilogram (kg), 4.535 923 7 E-01, exact" }
+note = "legacy's dyno used 0.4536"
+
+# --- Mass flow (base: gram per second) --------------------------------------
+
+[[unit]]
+from = "kg_per_h"
+to = "g_per_s"
+value = 36.0
+expected = 10.0
+source = { kind = "hand-calc", working = "SI Brochure 9th ed. (2019) Table 7: 1 kg = 1000 g; Table 8: 1 h = 3600 s; 36 kg/h = 36 * 1000 g / 3600 s = 36000 / 3600 g/s = 10 g/s" }
+
+[[unit]]
+from = "lb_per_min"
+to = "g_per_s"
+value = 1.0
+expected = 7.5598728333333333
+tolerance = 4e-15
+source = { kind = "hand-calc", working = "NIST SP 811 (2008) B.8: 1 lb = 0.45359237 kg = 453.59237 g exactly; SI Brochure 9th ed. (2019) Table 8: 1 min = 60 s; 1 lb/min = 453.59237 / 60 g/s = 7.55987283333333333... g/s" }
+note = "a turbo's flow rating. Tolerance: 453.59237/60 has no finite decimal form; three f64 roundings (of 453.59237, of the division and of this expected value), each at most 2^-53 = 1.11e-16 relative, bound the error by 3 * 1.11e-16 * 7.56 = 2.5e-15"
+
+# --- Volume (base: litre) ---------------------------------------------------
+
+[[unit]]
+from = "ml"
+to = "l"
+value = 250.0
+expected = 0.25
+source = { kind = "hand-calc", working = "SI Brochure 9th ed. (2019) Table 7: milli = 10^-3, so 250 mL = 250 / 1000 L = 0.25 L" }
+
+[[unit]]
+from = "gal_us"
+to = "l"
+value = 1.0
+expected = 3.785411784
+source = { kind = "hand-calc", working = "NIST Handbook 44 Appendix C: 1 gal (US) = 231 in^3 exactly; NIST SP 811 (2008) B.8: 1 in = 0.0254 m exactly; 231 * 0.0254^3 m^3 = 231 * 0.000016387064 m^3 = 0.003785411784 m^3 = 3.785411784 L" }
+note = "SP 811 B.8 gallon (U.S.) lists 3.785 412 E-03 m^3, rounded"
+
+[[unit]]
+from = "gal_uk"
+to = "l"
+value = 1.0
+expected = 4.54609
+source = { kind = "standard", doc = "NIST SP 811 (2008)", section = "Appendix B.8: gallon [Canadian and U.K. (Imperial)] (gal) to cubic meter (m3), 4.546 09 E-03, exact" }
+
+# --- Volume flow (base: litre per hour) -------------------------------------
+
+[[unit]]
+from = "l_per_min"
+to = "l_per_h"
+value = 2.5
+expected = 150.0
+source = { kind = "hand-calc", working = "1 h = 60 min (SI Brochure, 9th ed. (2019), Table 8), so 2.5 L/min = 2.5 * 60 L/h = 150 L/h" }
+note = "the pinned logger definitions' `L/min` (US-RR-21-5)"
+
+[[unit]]
+from = "cc_per_min"
+to = "l_per_h"
+value = 1000.0
+expected = 60.0
+source = { kind = "hand-calc", working = "SI Brochure 9th ed. (2019) Table 7: 1 cm^3 = 10^-3 L; Table 8: 1 h = 60 min; 1000 cc/min = 1000 * 60 cm^3/h = 60000 / 1000 L/h = 60 L/h" }
+note = "an injector's flow rating"
+
+[[unit]]
+from = "gal_us_per_h"
+to = "l_per_h"
+value = 1.0
+expected = 3.785411784
+source = { kind = "hand-calc", working = "NIST Handbook 44 Appendix C: 1 gal (US) = 231 in^3 exactly; NIST SP 811 (2008) B.8: 1 in = 0.0254 m exactly; 1 gal/h = 231 * 0.000016387064 m^3/h = 0.003785411784 m^3/h = 3.785411784 L/h" }
+
+[[unit]]
+from = "gal_uk_per_h"
+to = "l_per_h"
+value = 1.0
+expected = 4.54609
+source = { kind = "hand-calc", working = "NIST SP 811 (2008) B.8: gallon [Canadian and U.K. (Imperial)] = 4.546 09 E-03 m^3 exactly, so 1 gal/h = 4.54609 * 10^-3 m^3/h = 4.54609 L/h" }
+
+# --- Time (base: second) ----------------------------------------------------
+
+[[unit]]
+from = "ms"
+to = "s"
+value = 8.0
+expected = 0.008
+source = { kind = "hand-calc", working = "SI Brochure 9th ed. (2019) Table 7: milli = 10^-3, so 8 ms = 8 / 1000 s = 0.008 s" }
+
+[[unit]]
+from = "us"
+to = "s"
+value = 2500.0
+expected = 0.0025
+source = { kind = "hand-calc", working = "SI Brochure 9th ed. (2019) Table 7: micro = 10^-6, so 2500 us = 2500 / 1000000 s = 0.0025 s" }
+note = "an injector pulse width"
+
+[[unit]]
+from = "min"
+to = "s"
+value = 2.5
+expected = 150.0
+source = { kind = "hand-calc", working = "SI Brochure 9th ed. (2019) Table 8: 1 min = 60 s, so 2.5 min = 2.5 * 60 s = 150 s" }
+
+[[unit]]
+from = "h"
+to = "s"
+value = 0.5
+expected = 1800.0
+source = { kind = "hand-calc", working = "SI Brochure 9th ed. (2019) Table 8: 1 h = 3600 s, so 0.5 h = 0.5 * 3600 s = 1800 s" }
+
+# --- Electrical -------------------------------------------------------------
+
+[[unit]]
+from = "mv"
+to = "v"
+value = 4500.0
+expected = 4.5
+source = { kind = "hand-calc", working = "SI Brochure 9th ed. (2019) Table 7: milli = 10^-3, so 4500 mV = 4500 / 1000 V = 4.5 V" }
+
+[[unit]]
+from = "ma"
+to = "a"
+value = 20.0
+expected = 0.02
+source = { kind = "hand-calc", working = "SI Brochure 9th ed. (2019) Table 7: milli = 10^-3, so 20 mA = 20 / 1000 A = 0.02 A" }
+
+# --- Ratio (base: ratio, 1) -------------------------------------------------
+
+[[unit]]
+from = "percent"
+to = "ratio"
+value = 75.0
+expected = 0.75
+source = { kind = "hand-calc", working = "NIST SP 811 (2008) §7.10.2: % = 0.01, so 75 % = 75 * 0.01 = 75 / 100 = 0.75" }
+note = "a duty cycle"
+
+# --- Torque (base: newton metre) --------------------------------------------
+
+[[unit]]
+from = "lbf_ft"
+to = "nm"
+value = 1.0
+expected = 1.3558179483314004
+source = { kind = "hand-calc", working = "NIST SP 811 (2008) B.8: lbf = 0.45359237 kg * 9.80665 m/s^2 = 4.4482216152605 N and ft = 0.3048 m, both exact; 1 lbf*ft = 4.4482216152605 N * 0.3048 m = 1.35581794833140040 N*m" }
+note = "SP 811 B.8 pound-force foot lists 1.355 818 E+00 N*m, rounded"
+
+# --- Power (base: kilowatt) -------------------------------------------------
+
+[[unit]]
+from = "w"
+to = "kw"
+value = 150000.0
+expected = 150.0
+source = { kind = "hand-calc", working = "SI Brochure 9th ed. (2019) Table 7: kilo = 10^3, so 150000 W = 150000 / 1000 kW = 150 kW" }
+
+[[unit]]
+from = "hp"
+to = "kw"
+value = 1.0
+expected = 0.7456998715822702
+tolerance = 1e-15
+source = { kind = "hand-calc", working = "NIST SP 811 (2008) B.8: ft = 0.3048 m and lbf = 4.4482216152605 N, both exact; 1 hp = 550 ft*lbf/s = 550 * 0.3048 m * 4.4482216152605 N / s = 167.64 * 4.4482216152605 W = 745.69987158227022 W = 0.74569987158227022 kW" }
+note = "SP 811 B.8 horsepower (550 ft*lbf/s), 7.456 999 E+02 W, rounded; legacy's dyno used 745.7"
+
+[[unit]]
+from = "ps"
+to = "kw"
+value = 1.0
+expected = 0.73549875
+source = { kind = "hand-calc", working = "NIST SP 811 (2008) B.8: kilogram-force = 9.806 65 E+00 N exactly; 1 PS = 75 kgf*m/s = 75 * 9.80665 W = 735.49875 W = 0.73549875 kW" }
+note = "SP 811 B.8 horsepower, metric, 7.354 988 E+02 W, rounded"
+
+# --- Acceleration (base: metre per second squared) --------------------------
+
+[[unit]]
+from = "gn"
+to = "mps2"
+value = 1.0
+expected = 9.80665
+source = { kind = "standard", doc = "NIST SP 811 (2008)", section = "Appendix B.8: standard acceleration of free fall (gn) to meter per second squared (m/s2), 9.806 65 E+00, exact" }
+
+# --- Mass per cylinder (base: gram per cylinder) ----------------------------
+
+[[unit]]
+from = "mg_per_cyl"
+to = "g_per_cyl"
+value = 350.0
+expected = 0.35
+source = { kind = "hand-calc", working = "SI Brochure 9th ed. (2019) Table 7: milli = 10^-3, so 350 mg/cyl = 350 / 1000 g/cyl = 0.35 g/cyl" }
+
+[[changelog]]
+date = 2026-10-22
+reason = "initial values"

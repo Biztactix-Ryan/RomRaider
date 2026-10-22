@@ -1,0 +1,34 @@
+---
+source: crates/rr-rom/tests/rom_size_mismatch.rs
+expression: rendered
+---
+=== 1kb, exact: `SMALL` declares 1024 bytes, image is 1024 bytes
+editable
+
+=== 1kb, one byte short: `SMALL` declares 1024 bytes, image is 1023 bytes
+rom.bin@0x3FF: error[DEF0029]: the image is 1023 bytes but definition `SMALL` declares a file size of 1024 bytes (1 KiB) (1 bytes short), so it may not be this ROM or not all of it: opened read-only, editing is disabled
+read-only: editing is disabled: the image is 1023 bytes, the definition declares 1024
+
+=== 1kb, one byte long: `SMALL` declares 1024 bytes, image is 1025 bytes
+rom.bin@0x400: error[DEF0029]: the image is 1025 bytes but definition `SMALL` declares a file size of 1024 bytes (1 KiB) (1 bytes too long), so it may not be this ROM or not all of it: opened read-only, editing is disabled
+read-only: editing is disabled: the image is 1025 bytes, the definition declares 1024
+
+=== 1kb, much shorter: `SMALL` declares 1024 bytes, image is 512 bytes
+rom.bin@0x200: error[DEF0029]: the image is 512 bytes but definition `SMALL` declares a file size of 1024 bytes (1 KiB) (512 bytes short), so it may not be this ROM or not all of it: opened read-only, editing is disabled
+read-only: editing is disabled: the image is 512 bytes, the definition declares 1024
+
+=== 512kb, one byte short: `LARGE` declares 524288 bytes, image is 524287 bytes
+rom.bin@0x7FFFF: error[DEF0029]: the image is 524287 bytes but definition `LARGE` declares a file size of 524288 bytes (512 KiB) (1 bytes short), so it may not be this ROM or not all of it: opened read-only, editing is disabled
+read-only: editing is disabled: the image is 524287 bytes, the definition declares 524288
+
+=== 512kb, one byte long: `LARGE` declares 524288 bytes, image is 524289 bytes
+rom.bin@0x80000: error[DEF0029]: the image is 524289 bytes but definition `LARGE` declares a file size of 524288 bytes (512 KiB) (1 bytes too long), so it may not be this ROM or not all of it: opened read-only, editing is disabled
+read-only: editing is disabled: the image is 524289 bytes, the definition declares 524288
+
+=== 512kb, much shorter: `LARGE` declares 524288 bytes, image is 32768 bytes
+rom.bin@0x8000: error[DEF0029]: the image is 32768 bytes (32 KiB) but definition `LARGE` declares a file size of 524288 bytes (512 KiB) (491520 bytes short), so it may not be this ROM or not all of it: opened read-only, editing is disabled
+read-only: editing is disabled: the image is 32768 bytes, the definition declares 524288
+
+=== 192kb, 160 KiB (the corpus case): `SIXTEEN BIT` declares 196608 bytes, image is 163840 bytes
+rom.bin@0x28000: error[DEF0029]: the image is 163840 bytes (160 KiB) but definition `SIXTEEN BIT` declares a file size of 196608 bytes (192 KiB) (32768 bytes short), so it may not be this ROM or not all of it: opened read-only, editing is disabled
+read-only: editing is disabled: the image is 163840 bytes, the definition declares 196608

@@ -1,0 +1,77 @@
+# SSM K-line simulator fixture (format: fixtures/README.md, "SSM simulator
+# fixtures"). Written from docs/legacy/ssm.md only (US-RR-12-4).
+schema = 1
+kind = "ssm-kline-sim"
+title = "ECU and TCU init (BF -> FF) on a KKL cable, with the echo"
+fixture_ids = ["LEG-SSM-07"]
+synthetic = "ECU IDs EC00000001 / EC00000002 and every capability byte are made up; no real car, ECU or ROM"
+
+# ECU init. Request: ssm.md section 3.2 ("80 <dst> F0 01 BF <cs>").
+# Reply: 40 bytes of init data (LL = 0x29, the smallest length legacy's
+# canned frames use, section 3.2): 3 bytes legacy does not interpret
+# (A2 10 0F, the ssm_info example's), the 5-byte ECU ID, then 32
+# capability bytes (init-data index 8 = ssm_info BYTE 9 onward).
+[[exchange]]
+name = "ecu-init"
+spec = "docs/legacy/ssm.md §1.4, §2.1, §2.2, §3.2"
+module = "ecu"
+command = "BF"
+state = "single-shot"
+tx = "80 10 F0 01 BF 40"
+tx_checksum = "80+10+F0+01+BF = 0x240; low 8 bits 40"
+rx = ["""80 F0 10 29 FF A2 10 0F EC 00 00 00 01 81 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 D8"""]
+rx_checksum = ["80+F0+10+29+FF+A2+10+0F+EC+00+00+00+01+81+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+01 = 0x4D8; low 8 bits D8"]
+# The tester's receive buffer: its own 6 request bytes (the K-line echo),
+# then the 46-byte reply. Legacy strips the first 6 bytes unchecked.
+wire = """80 10 F0 01 BF 40
+          80 F0 10 29 FF A2 10 0F EC 00 00 00 01 81 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+          00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 D8"""
+outcome = "ok"
+meaning = "ECU answers init: LL 0x29 = 41 = FF + 40 init bytes; frame 46 bytes; ECU ID EC00000001"
+
+[exchange.decoded]
+init_data = """A2 10 0F EC 00 00 00 01 81 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+               00 00 00 00 00 00 00 00 00 00 01"""
+ecu_id = "EC00000001"
+# supported = index < len(init_data) && init_data[index] & (1 << bit) != 0
+# (ssm.md section 3.2, "Capability bits"). Index 8 = 81 = 1000 0001.
+capability = [
+  { index = 8, bit = 0, supported = true },   # BYTE 9 bit 0, Engine Speed
+  { index = 8, bit = 7, supported = true },   # BYTE 9 bit 7, Engine Load (bit 7 works despite signed bytes)
+  { index = 8, bit = 6, supported = false },
+  { index = 39, bit = 0, supported = true },  # the last init byte (index = length - 1)
+  { index = 40, bit = 0, supported = false }, # past the end: not supported
+]
+
+# TCU init: destination 18 (ssm.md section 1.2, the hand-composed TX of
+# section 8.2); the reply's source is 18.
+[[exchange]]
+name = "tcu-init"
+spec = "docs/legacy/ssm.md §1.2, §3.2, §8.2"
+module = "tcu"
+command = "BF"
+state = "single-shot"
+tx = "80 18 F0 01 BF 48"
+tx_checksum = "80+18+F0+01+BF = 0x248; low 8 bits 48"
+rx = ["""80 F0 18 29 FF A2 10 0F EC 00 00 00 02 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+         00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 62"""]
+rx_checksum = ["80+F0+18+29+FF+A2+10+0F+EC+00+00+00+02+03+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00+00 = 0x462; low 8 bits 62"]
+wire = """80 18 F0 01 BF 48
+          80 F0 18 29 FF A2 10 0F EC 00 00 00 02 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+          00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 62"""
+outcome = "ok"
+meaning = "TCU answers init: ECU ID EC00000002, 40 init bytes"
+
+[exchange.decoded]
+init_data = """A2 10 0F EC 00 00 00 02 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+               00 00 00 00 00 00 00 00 00 00 00"""
+ecu_id = "EC00000002"
+capability = [
+  { index = 8, bit = 1, supported = true },
+  { index = 8, bit = 2, supported = false },
+]
+
+[[changelog]]
+date = 2026-10-22
+reason = "initial fixtures, US-RR-12-4"

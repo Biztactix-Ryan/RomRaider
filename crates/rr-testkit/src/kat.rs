@@ -123,7 +123,78 @@
 //! definition corpus, whose text has no licence and so is never committed:
 //! the SHA-256 of its UTF-8 text identifies it, `path` and `xpath` say where
 //! it occurs; [`crate::corpus::formulas`]). Decode and checksum fixtures must
-//! have an `[input]`. A fixture is exactly one of the three shapes.
+//! have an `[input]`. A fixture is exactly one of the six shapes.
+//!
+//! # Unit-conversion fixture
+//!
+//! ```toml
+//! schema = 1
+//! title = "Length and speed: the international mile"
+//!
+//! [[unit]]
+//! from = "mph"                    # a unit id of rr-core's unit registry (C5)
+//! to = "kmh"
+//! value = 1.0                     # the value in `from`
+//! expected = 1.609344             # the value in `to`; finite
+//! tolerance = 1e-15               # optional absolute tolerance on `expected`
+//! source = { kind = "standard", doc = "NIST SP 811 (2008)", section = "Appendix B.8, mile: 1.609 344 E+03 m (exact)" }
+//! note = "optional"
+//! ```
+//!
+//! A unit fixture (US-RR-21) pins down a conversion factor of the unit
+//! registry: each case is a value in one unit and what it is in another.
+//! Like an expression fixture it has no `[input]` and no `[definition]`.
+//! The ids are the registry's (rr-core's `units::by_id`), checked by
+//! rr-testkit's `units_kat` test, not here: the fixture types do not name
+//! rr-core.
+//!
+//! A case converting between an air/fuel ratio and lambda (`from = "afr"`,
+//! `to = "lambda"` or the reverse) also names the fuel whose
+//! stoichiometric ratio it uses, `fuel = "gasoline"` (an id of rr-core's
+//! `units::FUELS`, US-RR-21-5); no other case has one. The `units_kat`
+//! test checks both.
+//!
+//! # Timing fixture
+//!
+//! ```toml
+//! schema = 1
+//! title = "ISO 14230-2:1999 default timing parameters P1 to P4"
+//!
+//! [[timing]]
+//! name = "iso14230_2::P3_MIN"     # a constant under rr-core's timing::iso
+//! ms = 55                         # the value: exactly one of `ms` and `us`
+//! source = { kind = "standard", doc = "ISO 14230-2:1999 (first edition, 1999-03-15)", section = "4.5.1, Table 3, P3 minimum default" }
+//! note = "optional"
+//! ```
+//!
+//! A timing fixture (US-RR-14) pins down a protocol timing parameter a
+//! standard specifies: each case names a constant and gives its value as a
+//! whole number of milliseconds (`ms`) or microseconds (`us`). Like an
+//! expression fixture it has no `[input]` and no `[definition]`. The names
+//! are rr-core's (`timing::iso`), checked by rr-testkit's `timing_kat`
+//! test, not here: the fixture types do not name rr-core.
+//!
+//! # Codec fixture
+//!
+//! ```toml
+//! schema = 1
+//! title = "NCS codec vectors transcribed from the legacy test"
+//!
+//! [[codec]]
+//! op = "ncs-encode"               # the transform; names are the consuming test's, not checked here
+//! params = { scode = 0xC2C0823F } # optional, op-specific
+//! input = "FF FF 22 E4"           # hex bytes in
+//! output = "11 82 83 C9"          # hex bytes out
+//! source = { kind = "legacy-test", file = "legacy/src/test/java/com/romraider/maps/checksum/NcsCoDecTest.java", lines = "33,35,37,39-43" }
+//! note = "optional"
+//! ```
+//!
+//! A codec fixture (US-RR-14-8) pins down a byte-to-byte transform: each
+//! case is the bytes in, the operation and its parameters, and the bytes
+//! out. Like an expression fixture it has no `[input]` and no
+//! `[definition]`: each case carries its own bytes. The `op` names are the
+//! consuming test's (rr-testkit's `ncs_codec_kat` today), checked there, not
+//! here.
 //!
 //! # Sources
 //!
@@ -134,6 +205,22 @@
 //! | `stock-rom` | `rom`, `note`? | A stock-ROM invariant (e.g. the stock ROM verifies) |
 //! | `car-trace` | `trace`, `note`? | Observed in a recorded car trace |
 //! | `cross-source` | `sources` | Agreement between independent sources (e.g. RomRaider XML vs XDF) |
+//! | `legacy-test` | `file`, `lines` | Literal data transcribed from a legacy *test* file (`legacy/src/test/...`, the lines it is on); only in a `[[codec]]` case (US-RR-14-8) |
+//!
+//! # Citations
+//!
+//! ```toml
+//! [[citation]]                    # optional; required of a standard test-vector fixture
+//! kind = "standard"               # standard | legacy-test | legacy-algorithm
+//! doc = "ISO 14230-2"
+//! edition = "1999 (first edition, 1999-03-15)"
+//! section = "4.5.1, Table 3"
+//! ```
+//!
+//! A fixture may name the documents its values rest on in top-level
+//! `[[citation]]` tables ([`Citation`], US-RR-14-1). The validator rule
+//! `citation` requires one of a standard test-vector fixture and checks each
+//! ([`validate`]).
 
 use std::collections::BTreeMap;
 use std::fmt;
@@ -187,16 +274,20 @@ pub struct Kat {
     /// Optional free-text notes for reviewers.
     pub notes: Option<String>,
     /// The bytes the cases are evaluated against; `None` exactly for an
-    /// expression fixture, which has none.
+    /// expression, unit, timing or codec fixture, which has none.
     pub input: Option<Input>,
     /// The definition and expected answers.
     pub kind: KatKind,
     /// Why expected values changed, oldest first (empty for a fixture whose
     /// values never changed).
     pub changelog: Vec<ChangelogEntry>,
+    /// The documents the fixture's expected values rest on (`[[citation]]`,
+    /// US-RR-14-1); empty when it cites none. Required of a standard
+    /// test-vector fixture (validator rule `citation`).
+    pub citations: Vec<Citation>,
 }
 
-/// The three fixture shapes.
+/// The six fixture shapes.
 #[derive(Debug, Clone, PartialEq)]
 pub enum KatKind {
     /// `[[decode]]` cases: bytes → raw value → real value.
@@ -220,6 +311,24 @@ pub enum KatKind {
         /// At least one case.
         cases: Vec<ExprCase>,
     },
+    /// `[[unit]]` cases: a value in one unit → the value in another. No
+    /// input, no definition.
+    Unit {
+        /// At least one case.
+        cases: Vec<UnitCase>,
+    },
+    /// `[[timing]]` cases: a named timing parameter → its duration. No
+    /// input, no definition.
+    Timing {
+        /// At least one case.
+        cases: Vec<TimingCase>,
+    },
+    /// `[[codec]]` cases: bytes in, an operation and its parameters → bytes
+    /// out. No input, no definition.
+    Codec {
+        /// At least one case.
+        cases: Vec<CodecCase>,
+    },
 }
 
 #[derive(Deserialize)]
@@ -232,24 +341,113 @@ struct RawKat {
     decode: Option<Vec<DecodeCase>>,
     checksum: Option<Vec<ChecksumCase>>,
     expr: Option<Vec<ExprCase>>,
+    unit: Option<Vec<UnitCase>>,
+    timing: Option<Vec<TimingCase>>,
+    codec: Option<Vec<CodecCase>>,
     range: Option<RangeCase>,
     #[serde(default)]
     changelog: Vec<ChangelogEntry>,
+    #[serde(default)]
+    citation: Vec<Citation>,
 }
 
 impl TryFrom<RawKat> for Kat {
     type Error = String;
 
-    fn try_from(raw: RawKat) -> Result<Self, Self::Error> {
+    fn try_from(mut raw: RawKat) -> Result<Self, Self::Error> {
         let shapes = usize::from(raw.decode.is_some())
             + usize::from(raw.checksum.is_some())
-            + usize::from(raw.expr.is_some());
+            + usize::from(raw.expr.is_some())
+            + usize::from(raw.unit.is_some())
+            + usize::from(raw.timing.is_some())
+            + usize::from(raw.codec.is_some());
         if shapes > 1 {
             return Err(
-                "fixture has more than one of [[decode]], [[checksum]] and [[expr]] cases; \
-                 a fixture is one shape"
+                "fixture has more than one of [[decode]], [[checksum]], [[expr]], [[unit]], \
+                 [[timing]] and [[codec]] cases; a fixture is one shape"
                     .to_owned(),
             );
+        }
+        if let Some(cases) = raw.codec.take() {
+            if raw.definition.is_some() || raw.input.is_some() {
+                return Err(
+                    "a [[codec]] fixture has no [definition] or [input]: each case carries \
+                     its own `input` and `output` bytes"
+                        .to_owned(),
+                );
+            }
+            if raw.range.is_some() {
+                return Err(
+                    "[range] is the display range of a decode fixture's conversion; \
+                     only a fixture with [[decode]] cases has one"
+                        .to_owned(),
+                );
+            }
+            if cases.is_empty() {
+                return Err("`codec` is empty: add at least one [[codec]] case".to_owned());
+            }
+            return Ok(Self {
+                title: raw.title,
+                notes: raw.notes,
+                input: None,
+                kind: KatKind::Codec { cases },
+                changelog: raw.changelog,
+                citations: raw.citation,
+            });
+        }
+        if let Some(cases) = raw.timing.take() {
+            if raw.definition.is_some() || raw.input.is_some() {
+                return Err(
+                    "a [[timing]] fixture has no [definition] or [input]: each case's `name` \
+                     and value are the whole answer"
+                        .to_owned(),
+                );
+            }
+            if raw.range.is_some() {
+                return Err(
+                    "[range] is the display range of a decode fixture's conversion; \
+                     only a fixture with [[decode]] cases has one"
+                        .to_owned(),
+                );
+            }
+            if cases.is_empty() {
+                return Err("`timing` is empty: add at least one [[timing]] case".to_owned());
+            }
+            return Ok(Self {
+                title: raw.title,
+                notes: raw.notes,
+                input: None,
+                kind: KatKind::Timing { cases },
+                changelog: raw.changelog,
+                citations: raw.citation,
+            });
+        }
+        if let Some(cases) = raw.unit.take() {
+            if raw.definition.is_some() || raw.input.is_some() {
+                return Err(
+                    "a [[unit]] fixture has no [definition] or [input]: each case's `from`, \
+                     `to` and `value` are the whole question"
+                        .to_owned(),
+                );
+            }
+            if raw.range.is_some() {
+                return Err(
+                    "[range] is the display range of a decode fixture's conversion; \
+                     only a fixture with [[decode]] cases has one"
+                        .to_owned(),
+                );
+            }
+            if cases.is_empty() {
+                return Err("`unit` is empty: add at least one [[unit]] case".to_owned());
+            }
+            return Ok(Self {
+                title: raw.title,
+                notes: raw.notes,
+                input: None,
+                kind: KatKind::Unit { cases },
+                changelog: raw.changelog,
+                citations: raw.citation,
+            });
         }
         if raw.range.is_some() && raw.decode.is_none() {
             return Err(
@@ -301,7 +499,9 @@ impl TryFrom<RawKat> for Kat {
             }
             (None, None, None) => {
                 return Err(
-                    "fixture has no cases: add [[decode]], [[checksum]] or [[expr]]".to_owned(),
+                    "fixture has no cases: add [[decode]], [[checksum]], [[expr]], [[unit]], \
+                     [[timing]] or [[codec]]"
+                        .to_owned(),
                 );
             }
         };
@@ -318,6 +518,7 @@ impl TryFrom<RawKat> for Kat {
             input: raw.input,
             kind,
             changelog: raw.changelog,
+            citations: raw.citation,
         })
     }
 }
@@ -1006,6 +1207,214 @@ impl From<FormulaTier> for Tier {
     }
 }
 
+/// One `[[unit]]` case: `value` in unit `from` is `expected` in unit `to`.
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(try_from = "RawUnitCase")]
+pub struct UnitCase {
+    /// The unit `value` is in: an id of rr-core's unit registry.
+    pub from: String,
+    /// The unit `expected` is in: an id of rr-core's unit registry.
+    pub to: String,
+    /// The value converted. Finite.
+    pub value: f64,
+    /// `value` in `to`. Finite.
+    pub expected: f64,
+    /// Absolute tolerance on `expected` (exact if omitted).
+    pub tolerance: Option<f64>,
+    /// The fuel of an air/fuel ratio ↔ lambda case: an id of rr-core's
+    /// `units::FUELS`. `None` for every other case.
+    pub fuel: Option<String>,
+    /// Where `expected` came from. Required.
+    pub source: Source,
+    /// Optional free-text note.
+    pub note: Option<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawUnitCase {
+    from: String,
+    to: String,
+    value: f64,
+    expected: f64,
+    tolerance: Option<f64>,
+    fuel: Option<String>,
+    source: Source,
+    note: Option<String>,
+}
+
+impl TryFrom<RawUnitCase> for UnitCase {
+    type Error = String;
+
+    fn try_from(raw: RawUnitCase) -> Result<Self, Self::Error> {
+        if raw.from.trim().is_empty() || raw.to.trim().is_empty() {
+            return Err("[[unit]] case needs a non-empty `from` and `to` unit id".to_owned());
+        }
+        if raw.fuel.as_ref().is_some_and(|f| f.trim().is_empty()) {
+            return Err("[[unit]] case `fuel` is empty: name a fuel id or leave it out".to_owned());
+        }
+        if !raw.value.is_finite() || !raw.expected.is_finite() {
+            return Err(format!(
+                "[[unit]] case `value` ({}) and `expected` ({}) must be finite: a unit \
+                 conversion of a finite value is finite",
+                raw.value, raw.expected
+            ));
+        }
+        Ok(Self {
+            from: raw.from,
+            to: raw.to,
+            value: raw.value,
+            expected: raw.expected,
+            tolerance: raw.tolerance,
+            fuel: raw.fuel,
+            source: raw.source,
+            note: raw.note,
+        })
+    }
+}
+
+/// The unit a `[[timing]]` case's value is written in: its `ms` or `us` key.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum TimeUnit {
+    /// `ms`: whole milliseconds.
+    Millis,
+    /// `us`: whole microseconds.
+    Micros,
+}
+
+impl TimeUnit {
+    /// The fixture key, `ms` or `us`.
+    #[must_use]
+    pub const fn key(self) -> &'static str {
+        match self {
+            Self::Millis => "ms",
+            Self::Micros => "us",
+        }
+    }
+}
+
+/// One `[[timing]]` case: the timing parameter `name` is `amount` `unit`s.
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(try_from = "RawTimingCase")]
+pub struct TimingCase {
+    /// The constant: its path under rr-core's `timing::iso`
+    /// (`iso14230_2::P3_MIN`).
+    pub name: String,
+    /// The value, a whole number of `unit`s.
+    pub amount: u64,
+    /// Which key the value was written with.
+    pub unit: TimeUnit,
+    /// Where the value came from. Required.
+    pub source: Source,
+    /// Optional free-text note.
+    pub note: Option<String>,
+}
+
+impl TimingCase {
+    /// The value as a [`Duration`](std::time::Duration).
+    #[must_use]
+    pub const fn duration(&self) -> std::time::Duration {
+        match self.unit {
+            TimeUnit::Millis => std::time::Duration::from_millis(self.amount),
+            TimeUnit::Micros => std::time::Duration::from_micros(self.amount),
+        }
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawTimingCase {
+    name: String,
+    ms: Option<u64>,
+    us: Option<u64>,
+    source: Source,
+    note: Option<String>,
+}
+
+impl TryFrom<RawTimingCase> for TimingCase {
+    type Error = String;
+
+    fn try_from(raw: RawTimingCase) -> Result<Self, Self::Error> {
+        if raw.name.trim().is_empty() || raw.name.chars().any(char::is_whitespace) {
+            return Err(format!(
+                "[[timing]] case `name` {:?} must be a constant path without spaces, \
+                 like \"iso14230_2::P3_MIN\"",
+                raw.name
+            ));
+        }
+        let (amount, unit) = match (raw.ms, raw.us) {
+            (Some(ms), None) => (ms, TimeUnit::Millis),
+            (None, Some(us)) => (us, TimeUnit::Micros),
+            _ => {
+                return Err(format!(
+                    "[[timing]] case {:?} needs exactly one of `ms` and `us`",
+                    raw.name
+                ));
+            }
+        };
+        Ok(Self {
+            name: raw.name,
+            amount,
+            unit,
+            source: raw.source,
+            note: raw.note,
+        })
+    }
+}
+
+/// One `[[codec]]` case: operation `op` with `params` turns `input` into
+/// `output`.
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(try_from = "RawCodecCase")]
+pub struct CodecCase {
+    /// The transform (`ncs-encode`), named by the test that runs it.
+    pub op: String,
+    /// Operation-specific parameters (empty if omitted).
+    pub params: toml::Table,
+    /// The bytes in.
+    pub input: HexBytes,
+    /// The bytes out.
+    pub output: HexBytes,
+    /// Where `output` came from. Required.
+    pub source: Source,
+    /// Optional free-text note.
+    pub note: Option<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawCodecCase {
+    op: String,
+    #[serde(default)]
+    params: toml::Table,
+    input: HexBytes,
+    output: HexBytes,
+    source: Source,
+    note: Option<String>,
+}
+
+impl TryFrom<RawCodecCase> for CodecCase {
+    type Error = String;
+
+    fn try_from(raw: RawCodecCase) -> Result<Self, Self::Error> {
+        if raw.op.trim().is_empty() || raw.op.chars().any(char::is_whitespace) {
+            return Err(format!(
+                "[[codec]] case `op` {:?} must be an operation name without spaces, \
+                 like \"ncs-encode\"",
+                raw.op
+            ));
+        }
+        Ok(Self {
+            op: raw.op,
+            params: raw.params,
+            input: raw.input,
+            output: raw.output,
+            source: raw.source,
+            note: raw.note,
+        })
+    }
+}
+
 /// An expected raw value: an integer (covering the whole `i64` and `u64`
 /// ranges) or a float (for `f32`/`f64` storage).
 ///
@@ -1133,6 +1542,18 @@ pub enum Source {
         /// The sources that agree.
         sources: Vec<String>,
     },
+    /// `legacy-test`: literal data transcribed from a legacy test file
+    /// (US-RR-14-8). Not a value the Java application computed: the test
+    /// file's own literals, cited where they are. Only a `[[codec]]` case
+    /// may have one (validator rule `legacy-test`).
+    LegacyTest {
+        /// The test file, relative to the repository root, under
+        /// `legacy/src/test/`.
+        file: String,
+        /// The lines the data is on: comma-separated line numbers and
+        /// `first-last` ranges, ascending (`"33,35,37,39-43"`).
+        lines: String,
+    },
 }
 
 impl Source {
@@ -1145,6 +1566,132 @@ impl Source {
             Self::StockRom { .. } => "stock-rom",
             Self::CarTrace { .. } => "car-trace",
             Self::CrossSource { .. } => "cross-source",
+            Self::LegacyTest { .. } => "legacy-test",
+        }
+    }
+}
+
+/// Parses a `legacy-test` source's `lines`: comma-separated line numbers
+/// (from 1) and `first-last` ranges (`first <= last`), each starting after
+/// the previous one ends, e.g. `"33,35,37,39-43"`. Whitespace around items
+/// is ignored.
+///
+/// # Errors
+///
+/// A message naming the bad item, for an empty spec, a non-number, line 0,
+/// a backwards range or items out of order.
+pub fn parse_line_spec(spec: &str) -> Result<Vec<std::ops::RangeInclusive<u32>>, String> {
+    let mut out: Vec<std::ops::RangeInclusive<u32>> = Vec::new();
+    if spec.trim().is_empty() {
+        return Err("`lines` is empty: cite the line numbers the data is on".to_owned());
+    }
+    for item in spec.split(',') {
+        let item = item.trim();
+        let number = |text: &str| {
+            text.trim()
+                .parse::<u32>()
+                .ok()
+                .filter(|&n| n > 0)
+                .ok_or_else(|| {
+                    format!("`lines` item {item:?} is not a line number (from 1) or a range")
+                })
+        };
+        let range = match item.split_once('-') {
+            Some((first, last)) => number(first)?..=number(last)?,
+            None => {
+                let line = number(item)?;
+                line..=line
+            }
+        };
+        if range.start() > range.end() {
+            return Err(format!("`lines` range {item:?} runs backwards"));
+        }
+        if out.last().is_some_and(|prev| range.start() <= prev.end()) {
+            return Err(format!(
+                "`lines` item {item:?} does not come after the previous one: list lines in \
+                 ascending order, without overlap"
+            ));
+        }
+        out.push(range);
+    }
+    Ok(out)
+}
+
+// ---------------------------------------------------------------------------
+// Citation
+// ---------------------------------------------------------------------------
+
+/// One `[[citation]]` (US-RR-14-1): a document the fixture's expected values
+/// rest on, as structured fields. A case's [`Source`] says where its value
+/// came from (often a hand calculation); a citation says which document
+/// defines what was calculated (the formula, the algorithm, the table).
+///
+/// Every standard test-vector fixture needs at least one, and the validator
+/// rule `citation` checks each (see [`validate`] for what "vector fixture"
+/// means and which exceptions exist).
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(tag = "kind", rename_all = "kebab-case", deny_unknown_fields)]
+pub enum Citation {
+    /// `standard`: a published standard, or a published reference-vector
+    /// catalogue.
+    Standard {
+        /// The document, without its edition (`"ISO 14230-2"`).
+        doc: String,
+        /// The edition: a year (`"1999 (first edition, 1999-03-15)"`) or a
+        /// revision / version identifier (`"version 3"`).
+        edition: String,
+        /// The clause, table, figure or entry within it.
+        section: String,
+        /// Whether `edition` and `section` were read first-hand (default
+        /// `true`). `false` is a flagged exception: allowed only in the
+        /// fixtures the validator pins, and only with `via`.
+        #[serde(default = "verified_default")]
+        verified: bool,
+        /// The secondary sources the values were taken from instead, when
+        /// `verified = false` (each a citation with its own revision or
+        /// digest).
+        #[serde(default)]
+        via: Vec<String>,
+        /// Optional detail (why it is unverified, ...).
+        note: Option<String>,
+    },
+    /// `legacy-test`: the legacy *test* file whose literal data the fixture
+    /// transcribes (the NCS codec vectors, US-RR-14-8): `file` under
+    /// `legacy/src/test/`, `lines` as [`parse_line_spec`].
+    LegacyTest {
+        /// The test file, relative to the repository root.
+        file: String,
+        /// The lines the data is on.
+        lines: String,
+    },
+    /// `legacy-algorithm`: the legacy *application* code whose algorithm the
+    /// fixture's hand-worked values model, for an algorithm no published
+    /// standard defines (the checksum sums and XORs). It cites semantics,
+    /// never values (D-024: those are worked by hand). A flagged exception:
+    /// allowed only in the fixtures the validator pins.
+    LegacyAlgorithm {
+        /// The source file, relative to the repository root, under
+        /// `legacy/src/main/`.
+        file: String,
+        /// The lines of the algorithm.
+        lines: String,
+        /// Why no standard is cited. Required.
+        note: String,
+    },
+}
+
+const fn verified_default() -> bool {
+    true
+}
+
+impl Citation {
+    /// The TOML `kind` spelling.
+    #[must_use]
+    pub const fn kind(&self) -> &'static str {
+        match self {
+            Self::Standard { .. } => "standard",
+            Self::LegacyTest { .. } => "legacy-test",
+            Self::LegacyAlgorithm { .. } => "legacy-algorithm",
         }
     }
 }

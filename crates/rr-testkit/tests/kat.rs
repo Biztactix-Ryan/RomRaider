@@ -11,9 +11,9 @@ use std::path::PathBuf;
 
 use rr_testkit::fixtures::{FixtureError, SUPPORTED_SCHEMA, Tier};
 use rr_testkit::kat::{
-    self, Bitfield, ChecksumState, Definition, DefinitionRef, Encoding, Endian, Formula,
+    self, Bitfield, ChecksumState, CodecCase, Definition, DefinitionRef, Encoding, Endian, Formula,
     FormulaTier, HexBytes, Input, KatKind, Layout, Monotonicity, RawValue, Snippet, SnippetFormat,
-    Source, Storage,
+    Source, Storage, TimeUnit, TimingCase, UnitCase,
 };
 
 fn data(name: &str) -> PathBuf {
@@ -413,11 +413,11 @@ after = { hex = "00", valid = true, source = { kind = "hand-calc", working = "w"
         (DECODE_HEAD.to_owned(), "has no cases"),
         (
             format!("{DECODE_HEAD}{case}{checksum}"),
-            "more than one of [[decode]], [[checksum]] and [[expr]]",
+            "more than one of [[decode]], [[checksum]], [[expr]], [[unit]], [[timing]] and [[codec]]",
         ),
         (
             format!("{DECODE_HEAD}{case}{expr}"),
-            "more than one of [[decode]], [[checksum]] and [[expr]]",
+            "more than one of [[decode]], [[checksum]], [[expr]], [[unit]], [[timing]] and [[codec]]",
         ),
         (
             format!("schema = 1\ntitle = \"t\"\n[input]\nhex = \"00\"\n{expr}"),
@@ -719,4 +719,295 @@ fn rejects_a_malformed_or_misplaced_range() {
     );
     let message = shape_error(&expr);
     assert!(message.contains("[range]"), "{message}");
+}
+
+const UNIT_CASE: &str = r#"
+[[unit]]
+from = "mph"
+to = "kmh"
+value = 1
+expected = 1.609344
+tolerance = 1e-15
+source = { kind = "standard", doc = "NIST SP 811 (2008)", section = "Appendix B.8, mile" }
+note = "MF-42"
+"#;
+
+#[test]
+fn parses_a_unit_fixture() {
+    let text = format!("schema = 1\ntitle = \"units\"\n{UNIT_CASE}");
+    let kat = kat::parse("units.toml", &text).unwrap().data;
+    assert_eq!(kat.input, None);
+    let KatKind::Unit { cases } = kat.kind else {
+        panic!("expected a unit fixture, got {:?}", kat.kind);
+    };
+    assert_eq!(
+        cases,
+        [UnitCase {
+            from: "mph".to_owned(),
+            to: "kmh".to_owned(),
+            value: 1.0,
+            expected: 1.609_344,
+            tolerance: Some(1e-15),
+            fuel: None,
+            source: Source::Standard {
+                doc: "NIST SP 811 (2008)".to_owned(),
+                section: "Appendix B.8, mile".to_owned(),
+            },
+            note: Some("MF-42".to_owned()),
+        }]
+    );
+}
+
+#[test]
+fn parses_a_unit_case_with_a_fuel() {
+    let text = format!(
+        "schema = 1\ntitle = \"afr\"\n[[unit]]\nfrom = \"afr\"\nto = \"lambda\"\n\
+         fuel = \"gasoline\"\nvalue = 14.7\nexpected = 1.0\nsource = {HAND_CALC}\n"
+    );
+    let kat = kat::parse("afr.toml", &text).unwrap().data;
+    let KatKind::Unit { cases } = kat.kind else {
+        panic!("expected a unit fixture, got {:?}", kat.kind);
+    };
+    assert_eq!(cases[0].fuel.as_deref(), Some("gasoline"));
+    let message = shape_error(&text.replace("fuel = \"gasoline\"", "fuel = \"\""));
+    assert!(message.contains("`fuel` is empty"), "{message}");
+}
+
+#[test]
+fn rejects_a_malformed_or_misplaced_unit_fixture() {
+    let head = "schema = 1\ntitle = \"t\"\n";
+    let cases: [(String, &str); 9] = [
+        (format!("{head}unit = []\n"), "`unit` is empty"),
+        (
+            format!("{head}[input]\nhex = \"00\"\n{UNIT_CASE}"),
+            "a [[unit]] fixture has no [definition] or [input]",
+        ),
+        (
+            format!("{head}[definition.encoding]\nstorage = \"u8\"\nendian = \"big\"\n{UNIT_CASE}"),
+            "a [[unit]] fixture has no [definition] or [input]",
+        ),
+        (
+            format!("{DECODE_HEAD}[[decode]]\nraw = 1\nsource = {HAND_CALC}\n{UNIT_CASE}"),
+            "more than one of [[decode]], [[checksum]], [[expr]], [[unit]], [[timing]] and [[codec]]",
+        ),
+        (
+            format!("{head}{UNIT_CASE}{RANGE}"),
+            "only a fixture with [[decode]] cases has one",
+        ),
+        (
+            format!(
+                "{head}{}",
+                UNIT_CASE.replace("expected = 1.609344", "expected = nan")
+            ),
+            "must be finite",
+        ),
+        (
+            format!("{head}{}", UNIT_CASE.replace("value = 1", "value = inf")),
+            "must be finite",
+        ),
+        (
+            format!("{head}{}", UNIT_CASE.replace("to = \"kmh\"", "to = \" \"")),
+            "non-empty `from` and `to`",
+        ),
+        (
+            format!("{head}{}", UNIT_CASE.replace("note = ", "factor = ")),
+            "unknown field `factor`",
+        ),
+    ];
+    for (text, expected) in cases {
+        let message = shape_error(&text);
+        assert!(message.contains(expected), "{expected}: {message}");
+    }
+}
+
+const TIMING_CASE: &str = r#"
+[[timing]]
+name = "iso14230_2::P3_MIN"
+ms = 55
+source = { kind = "standard", doc = "ISO 14230-2:1999", section = "4.5.1, Table 3" }
+note = "MF-28"
+"#;
+
+#[test]
+fn parses_a_timing_fixture() {
+    let text = format!("schema = 1\ntitle = \"timing\"\n{TIMING_CASE}");
+    let kat = kat::parse("timing.toml", &text).unwrap().data;
+    assert_eq!(kat.input, None);
+    let KatKind::Timing { cases } = kat.kind else {
+        panic!("expected a timing fixture, got {:?}", kat.kind);
+    };
+    assert_eq!(
+        cases,
+        [TimingCase {
+            name: "iso14230_2::P3_MIN".to_owned(),
+            amount: 55,
+            unit: TimeUnit::Millis,
+            source: Source::Standard {
+                doc: "ISO 14230-2:1999".to_owned(),
+                section: "4.5.1, Table 3".to_owned(),
+            },
+            note: Some("MF-28".to_owned()),
+        }]
+    );
+    assert_eq!(cases[0].duration(), std::time::Duration::from_millis(55));
+
+    let micros = kat::parse("timing.toml", &text.replace("ms = 55", "us = 100"))
+        .unwrap()
+        .data;
+    let KatKind::Timing { cases } = micros.kind else {
+        panic!("expected a timing fixture, got {:?}", micros.kind);
+    };
+    assert_eq!(cases[0].unit, TimeUnit::Micros);
+    assert_eq!(cases[0].duration(), std::time::Duration::from_micros(100));
+}
+
+#[test]
+fn rejects_a_malformed_or_misplaced_timing_fixture() {
+    let head = "schema = 1\ntitle = \"t\"\n";
+    let cases: [(String, &str); 10] = [
+        (format!("{head}timing = []\n"), "`timing` is empty"),
+        (
+            format!("{head}[input]\nhex = \"00\"\n{TIMING_CASE}"),
+            "a [[timing]] fixture has no [definition] or [input]",
+        ),
+        (
+            format!(
+                "{head}[definition.encoding]\nstorage = \"u8\"\nendian = \"big\"\n{TIMING_CASE}"
+            ),
+            "a [[timing]] fixture has no [definition] or [input]",
+        ),
+        (
+            format!("{DECODE_HEAD}[[decode]]\nraw = 1\nsource = {HAND_CALC}\n{TIMING_CASE}"),
+            "more than one of [[decode]], [[checksum]], [[expr]], [[unit]], [[timing]] and [[codec]]",
+        ),
+        (
+            format!("{head}{UNIT_CASE}{TIMING_CASE}"),
+            "more than one of [[decode]], [[checksum]], [[expr]], [[unit]], [[timing]] and [[codec]]",
+        ),
+        (
+            format!("{head}{TIMING_CASE}{RANGE}"),
+            "only a fixture with [[decode]] cases has one",
+        ),
+        (
+            format!(
+                "{head}{}",
+                TIMING_CASE.replace("ms = 55", "ms = 55\nus = 55000")
+            ),
+            "exactly one of `ms` and `us`",
+        ),
+        (
+            format!("{head}{}", TIMING_CASE.replace("ms = 55\n", "")),
+            "exactly one of `ms` and `us`",
+        ),
+        (
+            format!("{head}{}", TIMING_CASE.replace("ms = 55", "ms = -1")),
+            "invalid value",
+        ),
+        (
+            format!(
+                "{head}{}",
+                TIMING_CASE.replace("iso14230_2::P3_MIN", "P3 MIN")
+            ),
+            "constant path without spaces",
+        ),
+    ];
+    for (text, expected) in cases {
+        let message = shape_error(&text);
+        assert!(message.contains(expected), "{expected}: {message}");
+    }
+}
+
+const CODEC_CASE: &str = r#"
+[[codec]]
+op = "ncs-crc16"
+params = { complement = false, store = "big" }
+input = "31 32 33 34"
+output = "AB CD"
+source = { kind = "legacy-test", file = "legacy/src/test/java/X.java", lines = "33,39-43" }
+note = "n"
+"#;
+
+#[test]
+fn parses_a_codec_fixture() {
+    let text = format!("schema = 1\ntitle = \"codec\"\n{CODEC_CASE}");
+    let kat = kat::parse("codec.toml", &text).unwrap().data;
+    assert_eq!(kat.input, None);
+    let KatKind::Codec { cases } = kat.kind else {
+        panic!("expected a codec fixture, got {:?}", kat.kind);
+    };
+    let mut params = toml::Table::new();
+    params.insert("complement".to_owned(), toml::Value::Boolean(false));
+    params.insert("store".to_owned(), toml::Value::String("big".to_owned()));
+    assert_eq!(
+        cases,
+        [CodecCase {
+            op: "ncs-crc16".to_owned(),
+            params,
+            input: HexBytes(b"1234".to_vec()),
+            output: HexBytes(vec![0xAB, 0xCD]),
+            source: Source::LegacyTest {
+                file: "legacy/src/test/java/X.java".to_owned(),
+                lines: "33,39-43".to_owned(),
+            },
+            note: Some("n".to_owned()),
+        }]
+    );
+    assert_eq!(cases[0].source.kind(), "legacy-test");
+}
+
+#[test]
+fn rejects_a_malformed_or_misplaced_codec_fixture() {
+    let head = "schema = 1\ntitle = \"t\"\n";
+    let cases: [(String, &str); 8] = [
+        (format!("{head}codec = []\n"), "`codec` is empty"),
+        (
+            format!("{head}[input]\nhex = \"00\"\n{CODEC_CASE}"),
+            "a [[codec]] fixture has no [definition] or [input]",
+        ),
+        (
+            format!("{DECODE_HEAD}[[decode]]\nraw = 1\nsource = {HAND_CALC}\n{CODEC_CASE}"),
+            "more than one of [[decode]], [[checksum]], [[expr]], [[unit]], [[timing]] and [[codec]]",
+        ),
+        (
+            format!("{head}{CODEC_CASE}{RANGE}"),
+            "only a fixture with [[decode]] cases has one",
+        ),
+        (
+            format!(
+                "{head}{}",
+                CODEC_CASE.replace("\"ncs-crc16\"", "\"ncs crc\"")
+            ),
+            "operation name without spaces",
+        ),
+        (
+            format!("{head}{}", CODEC_CASE.replace("output = \"AB CD\"\n", "")),
+            "missing field `output`",
+        ),
+        (
+            format!("{head}{}", CODEC_CASE.replace("\"AB CD\"", "\"ABC\"")),
+            "odd number of hex digits",
+        ),
+        (
+            format!("{head}{}", CODEC_CASE.replace("lines = ", "line = ")),
+            "unknown field `line`",
+        ),
+    ];
+    for (text, expected) in cases {
+        let message = shape_error(&text);
+        assert!(message.contains(expected), "{expected}: {message}");
+    }
+}
+
+#[test]
+fn legacy_line_specs_parse_in_ascending_order() {
+    assert_eq!(
+        kat::parse_line_spec("33, 35,39-43").unwrap(),
+        [33..=33, 35..=35, 39..=43]
+    );
+    assert_eq!(kat::parse_line_spec("7").unwrap(), [7..=7]);
+    for bad in [
+        "", " ", "0", "x", "3-", "5-4", "5,5", "10,9", "3-9,9", "1,,2", "-3",
+    ] {
+        assert!(kat::parse_line_spec(bad).is_err(), "{bad:?} parsed");
+    }
 }

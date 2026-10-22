@@ -1,0 +1,43 @@
+---
+source: crates/rr-rom/tests/ambiguous_rom.rs
+expression: rendered
+---
+=== two <rom>s of one file
+--- defs.xml
+   1 | <roms>
+   2 |   <rom><romid><xmlid>ROM A</xmlid><internalidaddress>100</internalidaddress><internalidstring>A2WC522N</internalidstring><filesize>1kb</filesize></romid></rom>
+   3 |   <rom><romid><xmlid>ROM A REV2</xmlid><internalidaddress>100</internalidaddress><internalidstring>A2WC522N</internalidstring><filesize>1kb</filesize></romid></rom>
+   4 | </roms>
+--- read
+--- rom.bin (ID "A2WC522N" at 0x100): no definition applied
+rom.bin@0x100: error[DEF0028]: the image's ROM ID matches 2 definitions, so none is applied: `ROM A` (defs.xml:2:3 [layer ROM A], ID at 0x100); `ROM A REV2` (defs.xml:3:3 [layer ROM A REV2], ID at 0x100)
+
+=== the same ROM in two files
+--- standard.xml
+   1 | <roms>
+   2 |   <rom><romid><xmlid>A2WC522N</xmlid><internalidaddress>100</internalidaddress><internalidstring>A2WC522N</internalidstring><filesize>1kb</filesize></romid></rom>
+   3 | </roms>
+--- metric.xml
+   1 | <roms>
+   2 |   <rom><romid><xmlid>A2WC522N</xmlid><internalidaddress>100</internalidaddress><internalidstring>A2WC522N</internalidstring><filesize>1kb</filesize></romid></rom>
+   3 | </roms>
+--- read
+metric.xml:2:3: warning[DEF0026]: `A2WC522N` is also defined in standard.xml:2:3; a `base` in this file means this one, a `base` in a file without one, and a lookup by name, the first
+--- rom.bin (ID "A2WC522N" at 0x100): no definition applied
+rom.bin@0x100: error[DEF0028]: the image's ROM ID matches 2 definitions, so none is applied: `A2WC522N` (standard.xml:2:3 [layer A2WC522N], ID at 0x100); `A2WC522N` (metric.xml:2:3 [layer A2WC522N@metric.xml], ID at 0x100)
+
+=== three candidates
+--- standard.xml
+   1 | <roms>
+   2 |   <rom><romid><xmlid>OTHER</xmlid><internalidaddress>100</internalidaddress><internalidstring>B3XD100A</internalidstring><filesize>1kb</filesize></romid></rom>
+   3 |   <rom><romid><xmlid>A2WC522N</xmlid><internalidaddress>100</internalidaddress><internalidstring>A2WC522N</internalidstring><filesize>1kb</filesize></romid></rom>
+   4 |   <rom><romid><xmlid>A2WC522N TEST</xmlid><internalidaddress>100</internalidaddress><internalidstring>A2WC522N</internalidstring><filesize>1kb</filesize></romid></rom>
+   5 | </roms>
+--- metric.xml
+   1 | <roms>
+   2 |   <rom><romid><xmlid>A2WC522N</xmlid><internalidaddress>100</internalidaddress><internalidstring>A2WC522N</internalidstring><filesize>1kb</filesize></romid></rom>
+   3 | </roms>
+--- read
+metric.xml:2:3: warning[DEF0026]: `A2WC522N` is also defined in standard.xml:3:3; a `base` in this file means this one, a `base` in a file without one, and a lookup by name, the first
+--- rom.bin (ID "A2WC522N" at 0x100): no definition applied
+rom.bin@0x100: error[DEF0028]: the image's ROM ID matches 3 definitions, so none is applied: `A2WC522N` (standard.xml:3:3 [layer A2WC522N], ID at 0x100); `A2WC522N TEST` (standard.xml:4:3 [layer A2WC522N TEST], ID at 0x100); `A2WC522N` (metric.xml:2:3 [layer A2WC522N@metric.xml], ID at 0x100)

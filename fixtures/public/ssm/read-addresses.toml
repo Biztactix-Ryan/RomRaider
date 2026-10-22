@@ -1,0 +1,100 @@
+# SSM K-line simulator fixture (format: fixtures/README.md, "SSM simulator
+# fixtures"). Written from docs/legacy/ssm.md only (US-RR-12-4).
+schema = 1
+kind = "ssm-kline-sim"
+title = "A8 read addresses: one address, three addresses, and a continuous run"
+fixture_ids = ["LEG-SSM-08", "LEG-SSM-09"]
+synthetic = "Values are made up; addresses are the ssm_info parameter addresses the page cites"
+
+# One address, read once. Request: ssm.md section 3.3, LL = 3N + 2 = 5,
+# then PP (the mode byte legacy calls "padding", section 3.1) = 00.
+# Receive buffer (N+6) + (3N+7) = 7 + 10 = 17 bytes (sections 1.4, 3.3).
+[[exchange]]
+name = "a8-one-address"
+spec = "docs/legacy/ssm.md §1.4, §3.1, §3.3"
+module = "ecu"
+command = "A8"
+state = "single-shot"
+tx = "80 10 F0 05 A8 00 00 00 08 35"
+tx_checksum = "80+10+F0+05+A8+00+00+00+08 = 0x235; low 8 bits 35"
+rx = ["80 F0 10 02 E8 64 CE"]
+rx_checksum = ["80+F0+10+02+E8+64 = 0x2CE; low 8 bits CE"]
+wire = "80 10 F0 05 A8 00 00 00 08 35  80 F0 10 02 E8 64 CE"
+outcome = "ok"
+meaning = "Coolant Temperature (000008) = 0x64 = 100, minus 40 = 60 degC"
+
+[exchange.decoded]
+pp = "00"
+addresses = ["000008"]
+values = ["64"]
+
+# Three addresses, read once: Coolant (000008) and the two bytes of Engine
+# Speed (00000E, 00000F, a 2-byte parameter expanded to consecutive
+# addresses, section 3.3). LL = 3*3 + 2 = 11 = 0x0B; reply LL = N + 1 = 4.
+# Buffer (3+6) + (9+7) = 25 bytes.
+[[exchange]]
+name = "a8-three-addresses"
+spec = "docs/legacy/ssm.md §1.4, §3.3"
+module = "ecu"
+command = "A8"
+state = "single-shot"
+tx = "80 10 F0 0B A8 00 00 00 08 00 00 0E 00 00 0F 58"
+tx_checksum = "80+10+F0+0B+A8+00+00+00+08+00+00+0E+00+00+0F = 0x258; low 8 bits 58"
+rx = ["80 F0 10 04 E8 64 0B B8 93"]
+rx_checksum = ["80+F0+10+04+E8+64+0B+B8 = 0x393; low 8 bits 93"]
+wire = "80 10 F0 0B A8 00 00 00 08 00 00 0E 00 00 0F 58  80 F0 10 04 E8 64 0B B8 93"
+outcome = "ok"
+meaning = "Coolant 0x64 = 60 degC; Engine Speed 0x0BB8 = 3000, /4 = 750 rpm"
+
+[exchange.decoded]
+pp = "00"
+addresses = ["000008", "00000E", "00000F"]
+values = ["64 0B B8"]
+
+# Continuous read (PP = 01, section 3.1, section 5 STATE_0): the request is
+# written once and echoed, and the first reply follows the echo.
+[[exchange]]
+name = "a8-continuous-first"
+spec = "docs/legacy/ssm.md §3.1, §5"
+module = "ecu"
+command = "A8"
+state = "continuous-first"
+tx = "80 10 F0 0B A8 01 00 00 08 00 00 0E 00 00 0F 59"
+tx_checksum = "80+10+F0+0B+A8+01+00+00+08+00+00+0E+00+00+0F = 0x259; low 8 bits 59"
+rx = ["80 F0 10 04 E8 64 0B B8 93"]
+rx_checksum = ["80+F0+10+04+E8+64+0B+B8 = 0x393; low 8 bits 93"]
+wire = "80 10 F0 0B A8 01 00 00 08 00 00 0E 00 00 0F 59  80 F0 10 04 E8 64 0B B8 93"
+outcome = "ok"
+meaning = "first frame of the stream, after the echo"
+
+[exchange.decoded]
+pp = "01"
+addresses = ["000008", "00000E", "00000F"]
+values = ["64 0B B8"]
+
+# The stream continues (section 5 STATE_1): nothing is written, so there is
+# no echo; the tester reads exactly N + 6 = 9 bytes per frame.
+[[exchange]]
+name = "a8-continuous-stream"
+spec = "docs/legacy/ssm.md §1.4, §5"
+module = "ecu"
+command = "A8"
+state = "continuous-stream"
+tx = ""
+rx = ["80 F0 10 04 E8 64 0B B8 93", "80 F0 10 04 E8 65 0C 80 5D"]
+rx_checksum = [
+  "80+F0+10+04+E8+64+0B+B8 = 0x393; low 8 bits 93",
+  "80+F0+10+04+E8+65+0C+80 = 0x35D; low 8 bits 5D",
+]
+wire = "80 F0 10 04 E8 64 0B B8 93  80 F0 10 04 E8 65 0C 80 5D"
+outcome = "ok"
+meaning = "two streamed frames: 60 degC / 750 rpm, then 61 degC / 0x0C80 = 3200, /4 = 800 rpm"
+
+[exchange.decoded]
+pp = "01"
+addresses = ["000008", "00000E", "00000F"]
+values = ["64 0B B8", "65 0C 80"]
+
+[[changelog]]
+date = 2026-10-22
+reason = "initial fixtures, US-RR-12-4"

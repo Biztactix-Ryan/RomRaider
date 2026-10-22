@@ -1,0 +1,37 @@
+error[E0594]: cannot assign to data in a `&` reference
+  --> tests/ui/frozen_definition/getters_lend_shared.rs:12:5
+   |
+12 |     *def.romid() = romid;
+   |     ^^^^^^^^^^^^ cannot assign
+
+error[E0594]: cannot assign to data in a `&` reference
+  --> tests/ui/frozen_definition/getters_lend_shared.rs:14:5
+   |
+14 |     def.tables()[0] = Arc::clone(&table);
+   |     ^^^^^^^^^^^^^^^ cannot assign
+
+error[E0596]: cannot borrow data in a `&` reference as mutable
+  --> tests/ui/frozen_definition/getters_lend_shared.rs:16:26
+   |
+16 |     let _ = Arc::get_mut(&mut def.tables()[0]);
+   |                          ^^^^^^^^^^^^^^^^^^^^ cannot borrow as mutable
+
+error[E0594]: cannot assign to data in an `Arc`
+  --> tests/ui/frozen_definition/getters_lend_shared.rs:19:9
+   |
+19 |         format.encoding = format.encoding.clone();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ cannot assign
+   |
+   = help: trait `DerefMut` is required to modify through a dereference, but it is not implemented for `Arc<CellFormat>`
+
+error[E0594]: cannot assign to `*address`, which is behind a `&` reference
+  --> tests/ui/frozen_definition/getters_lend_shared.rs:22:9
+   |
+22 |         *address = None;
+   |         ^^^^^^^^^^^^^^^ `address` is a `&` reference, so it cannot be written to
+
+error[E0594]: cannot assign to data in a `&` reference
+  --> tests/ui/frozen_definition/getters_lend_shared.rs:25:5
+   |
+25 |     index.candidates()[0] = candidate;
+   |     ^^^^^^^^^^^^^^^^^^^^^ cannot assign

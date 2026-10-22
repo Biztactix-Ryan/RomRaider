@@ -1,0 +1,79 @@
+# ISO 15765-2 (CAN transport) network-layer timeouts and STmin range
+# (US-RR-14, PROJECT.md T2 (d)).
+#
+# Transcribed by hand from ISO 15765-2:2004, first edition 2004-10-15:
+# clause 6.7.1 "Timing parameters", Table 16 "Network layer timing parameter
+# values" (the Timeout column, ms), and clause 6.5.5.5 "Definition of
+# SeparationTime (STmin) parameter", Table 15 "Definition of STmin values".
+# Never taken from rr-core or legacy code (D-024).
+#
+# Not transcribed: N_Br and N_Cs, which Table 16 gives no timeout, only a
+# performance requirement relative to the timeouts ((N_Br + N_Ar) < 0.9 x
+# N_Bs timeout, (N_Cs + N_As) < 0.9 x N_Cr timeout); and the ISO 15765-4
+# (OBD on CAN) timeouts, whose table was not checked in any edition.
+#
+# Checked against rr-core's timing::iso::iso15765_2 constants by
+# crates/rr-testkit/tests/timing_kat.rs.
+
+schema = 1
+title = "ISO 15765-2:2004 network layer timeouts (Table 16) and STmin range (Table 15)"
+notes = """
+6.7.1: a specified timeout is a lower limit; the real timeout shall occur no
+later than the specified value + 50 %. Table 15: STmin 00h to 7Fh is 0 to
+127 ms; F1h to F9h is 100 us to 900 us in 100 us steps; 80h to F0h and FAh
+to FFh are reserved, and a sender receiving one uses 7Fh, 127 ms (6.5.5.6).
+"""
+
+# The documents these values rest on, as structured fields (US-RR-14-1,
+# validator rule `citation`).
+[[citation]]
+kind = "standard"
+doc = "ISO 15765-2"
+edition = "2004 (first edition, 2004-10-15)"
+section = "6.7.1 Timing parameters, Table 16 \"Network layer timing parameter values\" (N_As, N_Ar, N_Bs, N_Cr timeouts)"
+
+[[citation]]
+kind = "standard"
+doc = "ISO 15765-2"
+edition = "2004 (first edition, 2004-10-15)"
+section = "6.5.5.5 Definition of SeparationTime (STmin) parameter, Table 15 \"Definition of STmin values\""
+
+[[timing]]
+name = "iso15765_2::N_AS_TIMEOUT"
+ms = 1000
+source = { kind = "standard", doc = "ISO 15765-2:2004 (first edition, 2004-10-15)", section = "6.7.1, Table 16: N_As, timeout" }
+
+[[timing]]
+name = "iso15765_2::N_AR_TIMEOUT"
+ms = 1000
+source = { kind = "standard", doc = "ISO 15765-2:2004 (first edition, 2004-10-15)", section = "6.7.1, Table 16: N_Ar, timeout" }
+
+[[timing]]
+name = "iso15765_2::N_BS_TIMEOUT"
+ms = 1000
+source = { kind = "standard", doc = "ISO 15765-2:2004 (first edition, 2004-10-15)", section = "6.7.1, Table 16: N_Bs, timeout" }
+
+[[timing]]
+name = "iso15765_2::N_CR_TIMEOUT"
+ms = 1000
+source = { kind = "standard", doc = "ISO 15765-2:2004 (first edition, 2004-10-15)", section = "6.7.1, Table 16: N_Cr, timeout" }
+
+[[timing]]
+name = "iso15765_2::STMIN_MAX"
+ms = 127
+source = { kind = "standard", doc = "ISO 15765-2:2004 (first edition, 2004-10-15)", section = "6.5.5.5, Table 15: 00h-7Fh, STmin range 0 ms - 127 ms" }
+note = "also the value used in place of a reserved STmin (6.5.5.6)"
+
+[[timing]]
+name = "iso15765_2::STMIN_SUB_MS_MIN"
+us = 100
+source = { kind = "standard", doc = "ISO 15765-2:2004 (first edition, 2004-10-15)", section = "6.5.5.5, Table 15: F1h-F9h, STmin range 100 us - 900 us (F1h is 100 us)" }
+
+[[timing]]
+name = "iso15765_2::STMIN_SUB_MS_MAX"
+us = 900
+source = { kind = "standard", doc = "ISO 15765-2:2004 (first edition, 2004-10-15)", section = "6.5.5.5, Table 15: F1h-F9h, STmin range 100 us - 900 us (F9h is 900 us)" }
+
+[[changelog]]
+date = 2026-10-22
+reason = "initial values"

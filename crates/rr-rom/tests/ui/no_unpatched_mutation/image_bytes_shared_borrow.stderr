@@ -1,0 +1,5 @@
+error[E0594]: cannot assign to data in a `&` reference
+ --> tests/ui/no_unpatched_mutation/image_bytes_shared_borrow.rs:7:5
+  |
+7 |     image.bytes()[0] = 0xFF;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^ cannot assign

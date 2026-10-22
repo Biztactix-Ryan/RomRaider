@@ -1,0 +1,413 @@
+# SAE J1979 service $01 PID vectors (US-RR-14-6, PROJECT.md T2 (d), D-024):
+# wideband oxygen sensor air-fuel equivalence ratio 2/65536 (256 A + B) (bytes A, B of 4).
+#
+# Formula sources. SAE J1979 and ISO 15031-5 are paywalled and were not
+# consulted; the formula is taken from two secondary sources that attribute
+# it to SAE J1979, which agree (see `notes`): Wikipedia's "OBD-II PIDs" table
+# and CSS Electronics' service 01 PID CSV. The response framing (0x41 = 0x01 +
+# 0x40, then the PID echoed, then the data bytes A, B, ...) is from the ELM327
+# datasheet (ELM327DSJ, pp. 31-32). The input is service-layer bytes only:
+# no transport framing (ISO 15765-2 PCI byte, ISO 14230 / 9141 header and
+# checksum).
+#
+# Which PIDs: the mode 01 PIDs legacy RomRaider's OBD logger offers
+# (<protocol id="OBD"> of the pinned logger definition, corpus tier,
+# defs/romraider/logger/logger_STD_EN_v290.xml:34769; the same PIDs in
+# logger_v370). Each PID and the line of its <parameter> there:
+# 24 line 35005, 25 line 35013, 26 line 35021, 27 line 35029, 28 line 35037,
+# 29 line 35045, 2A line 35053, 2B line 35061, 34 line 35125, 35 line 35133,
+# 36 line 35141, 37 line 35149, 38 line 35157, 39 line 35165, 3A line 35173,
+# 3B line 35181.
+#
+# Every value was worked from Wikipedia's formula in exact rational arithmetic
+# (Python fractions, in a throwaway authoring script kept outside the
+# repository, which also wrote each step into the working) and recomputed
+# from CSS's scale and offset as an independent check; the two ELM327
+# examples match the datasheet. Never with rr-core, rr-testkit or legacy
+# code. Review by recomputing a working by hand.
+# Each PID has a case with every data byte 0x00, one with every data byte
+# 0xFF, and at least one typical value.
+schema = 1
+title = "SAE J1979 service 01: wideband oxygen sensor air-fuel equivalence ratio 2/65536 (256 A + B) (bytes A, B of 4)"
+notes = """
+Standard: SAE J1979 (E/E Diagnostic Test Modes), service $01 (show current data), PIDs 24, 25, 26, 27, 28, 29, 2A, 2B, 34, 35, 36, 37, 38, 39, 3A, 3B.
+Edition and table not verified first-hand: SAE J1979 and ISO 15031-5 are paywalled. Wikipedia's
+"Further reading" lists SAE J1979 (2017-02-16, doi:10.4271/J1979_201702) and its Digital Annex
+SAE J1979-DA (2017-02-16, doi:10.4271/J1979DA_201702); neither was consulted.
+Via (secondary): Wikipedia, "OBD-II PIDs", revision 1374011962 (2026-09-09T07:43:07Z), section "Service 01 - Show current data", Formula column, rows 24, 25, 26, 27, 28, 29, 2A, 2B, 34, 35, 36, 37, 38, 39, 3A, 3B: 2/65536 (256 A + B).
+Via (secondary): CSS Electronics, "OBD2 PID table, service 01" CSV (https://canlogger.csselectronics.com/files/misc/obd2-pid-table-service-01.csv, retrieved 2026-10-22, SHA-256 3283f807111a5176bb13724477b62e20ee84386d4b031dc60301759e5be160d1), rows 24, 25, 26, 27, 28, 29, 2A, 2B, 34, 35, 36, 37, 38, 39, 3A, 3B: scale 0.00003051757813, offset 0.
+Framing: Elm Electronics ELM327 datasheet, revision ELM327DSJ, "Talking to the Vehicle", pp. 31-32: a mode 01 response is 0x41 (0x01 + 0x40), the PID echoed, then the data bytes.
+Each case's offset is the first data byte (A) of one response; the two bytes before it are 0x41 and the PID.
+Formula: lambda = 2/65536 * (256*A + B), 0 to 1.999969482421875. Bytes C, D are the sensor voltage (PIDs 24-2B, j1979-01-wideband-voltage-u32.toml) or current (PIDs 34-3B, j1979-01-wideband-current-u32.toml), same responses. CSS rounds the scale 2/65536 = 0.000030517578125 to 0.00003051757813.
+PIDs: 0x24 oxygen sensor 1 (lambda and voltage); 0x25 oxygen sensor 2 (lambda and voltage); 0x26 oxygen sensor 3 (lambda and voltage); 0x27 oxygen sensor 4 (lambda and voltage); 0x28 oxygen sensor 5 (lambda and voltage); 0x29 oxygen sensor 6 (lambda and voltage); 0x2A oxygen sensor 7 (lambda and voltage); 0x2B oxygen sensor 8 (lambda and voltage); 0x34 oxygen sensor 1 (lambda and current); 0x35 oxygen sensor 2 (lambda and current); 0x36 oxygen sensor 3 (lambda and current); 0x37 oxygen sensor 4 (lambda and current); 0x38 oxygen sensor 5 (lambda and current); 0x39 oxygen sensor 6 (lambda and current); 0x3A oxygen sensor 7 (lambda and current); 0x3B oxygen sensor 8 (lambda and current).
+"""
+
+# The document these values rest on (US-RR-14-1, validator rule `citation`).
+# Flagged exception: SAE J1979 is paywalled, so its edition and section were
+# not read first-hand (`verified = false`); the formula comes from the `via`
+# sources. Allowed only in the j1979-01-* fixtures.
+[[citation]]
+kind = "standard"
+doc = "SAE J1979"
+edition = "2017-02 (J1979_201702, as Wikipedia lists it; not consulted)"
+section = "service $01 (show current data), PIDs 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B"
+verified = false
+via = [
+  "Wikipedia, \"OBD-II PIDs\", revision 1374011962 (2026-09-09T07:43:07Z), section \"Service 01 - Show current data\", Formula column, rows 24, 25, 26, 27, 28, 29, 2A, 2B, 34, 35, 36, 37, 38, 39, 3A, 3B: 2/65536 (256 A + B).",
+  "CSS Electronics, \"OBD2 PID table, service 01\" CSV (https://canlogger.csselectronics.com/files/misc/obd2-pid-table-service-01.csv, retrieved 2026-10-22, SHA-256 3283f807111a5176bb13724477b62e20ee84386d4b031dc60301759e5be160d1), rows 24, 25, 26, 27, 28, 29, 2A, 2B, 34, 35, 36, 37, 38, 39, 3A, 3B: scale 0.00003051757813, offset 0.",
+]
+note = "SAE J1979 and ISO 15031-5 are paywalled and were not consulted. `edition` is the edition Wikipedia's \"Further reading\" lists (SAE J1979 and its Digital Annex SAE J1979-DA, both 2017-02-16, doi:10.4271/J1979_201702 and doi:10.4271/J1979DA_201702), not one these values were checked against; `section` is the service and PID, not a clause or table number, which is unknown. The formula is taken from the `via` sources, which attribute it to SAE J1979."
+
+[definition.encoding]
+storage = "u32"
+endian = "big"
+bitfield = { mask = 0xFFFF0000 }
+
+[definition.conversion]
+to_real = "x*2/65536"
+units = "lambda"
+
+[input]
+hex = """
+41 24 00 00 00 00  41 24 FF FF FF FF  41 24 80 00 40 00
+41 25 00 00 00 00  41 25 FF FF FF FF  41 25 73 33 30 00
+41 26 00 00 00 00  41 26 FF FF FF FF  41 26 8C CD 50 00
+41 27 00 00 00 00  41 27 FF FF FF FF  41 27 80 00 20 00
+41 28 00 00 00 00  41 28 FF FF FF FF  41 28 60 00 10 00
+41 29 00 00 00 00  41 29 FF FF FF FF  41 29 A0 00 70 00
+41 2A 00 00 00 00  41 2A FF FF FF FF  41 2A 7F FF 80 00
+41 2B 00 00 00 00  41 2B FF FF FF FF  41 2B 81 00 C0 00
+41 34 00 00 00 00  41 34 FF FF FF FF  41 34 80 00 80 00
+41 35 00 00 00 00  41 35 FF FF FF FF  41 35 73 33 7F 00
+41 36 00 00 00 00  41 36 FF FF FF FF  41 36 8C CD 81 00
+41 37 00 00 00 00  41 37 FF FF FF FF  41 37 60 00 80 80
+41 38 00 00 00 00  41 38 FF FF FF FF  41 38 A0 00 7E 80
+41 39 00 00 00 00  41 39 FF FF FF FF  41 39 7F FF 84 00
+41 3A 00 00 00 00  41 3A FF FF FF FF  41 3A 81 00 70 00
+41 3B 00 00 00 00  41 3B FF FF FF FF  41 3B 80 00 90 00
+"""
+
+[[decode]]
+offset = 2
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x24 response 41 24 00 00 00 00: A = 0x00 = 0*16 + 0 = 0, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*0 + 0 = 0; lambda = 0*2/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 8
+raw = 65535
+real = 1.999969482421875
+source = { kind = "hand-calc", working = "PID 0x24 response 41 24 FF FF FF FF: A = 0xFF = 15*16 + 15 = 255, B = 0xFF = 15*16 + 15 = 255 (C, D are another signal, masked out); raw = 256*255 + 255 = 65535; lambda = 65535*2/65536 = 131070/65536 = 1.999969482421875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 14
+raw = 32768
+real = 1.0
+source = { kind = "hand-calc", working = "PID 0x24 response 41 24 80 00 40 00: A = 0x80 = 8*16 + 0 = 128, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*128 + 0 = 32768; lambda = 32768*2/65536 = 65536/65536 = 1.0" }
+
+[[decode]]
+offset = 20
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x25 response 41 25 00 00 00 00: A = 0x00 = 0*16 + 0 = 0, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*0 + 0 = 0; lambda = 0*2/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 26
+raw = 65535
+real = 1.999969482421875
+source = { kind = "hand-calc", working = "PID 0x25 response 41 25 FF FF FF FF: A = 0xFF = 15*16 + 15 = 255, B = 0xFF = 15*16 + 15 = 255 (C, D are another signal, masked out); raw = 256*255 + 255 = 65535; lambda = 65535*2/65536 = 131070/65536 = 1.999969482421875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 32
+raw = 29491
+real = 0.899993896484375
+source = { kind = "hand-calc", working = "PID 0x25 response 41 25 73 33 30 00: A = 0x73 = 7*16 + 3 = 115, B = 0x33 = 3*16 + 3 = 51 (C, D are another signal, masked out); raw = 256*115 + 51 = 29491; lambda = 29491*2/65536 = 58982/65536 = 0.899993896484375" }
+
+[[decode]]
+offset = 38
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x26 response 41 26 00 00 00 00: A = 0x00 = 0*16 + 0 = 0, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*0 + 0 = 0; lambda = 0*2/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 44
+raw = 65535
+real = 1.999969482421875
+source = { kind = "hand-calc", working = "PID 0x26 response 41 26 FF FF FF FF: A = 0xFF = 15*16 + 15 = 255, B = 0xFF = 15*16 + 15 = 255 (C, D are another signal, masked out); raw = 256*255 + 255 = 65535; lambda = 65535*2/65536 = 131070/65536 = 1.999969482421875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 50
+raw = 36045
+real = 1.100006103515625
+source = { kind = "hand-calc", working = "PID 0x26 response 41 26 8C CD 50 00: A = 0x8C = 8*16 + 12 = 140, B = 0xCD = 12*16 + 13 = 205 (C, D are another signal, masked out); raw = 256*140 + 205 = 36045; lambda = 36045*2/65536 = 72090/65536 = 1.100006103515625" }
+
+[[decode]]
+offset = 56
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x27 response 41 27 00 00 00 00: A = 0x00 = 0*16 + 0 = 0, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*0 + 0 = 0; lambda = 0*2/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 62
+raw = 65535
+real = 1.999969482421875
+source = { kind = "hand-calc", working = "PID 0x27 response 41 27 FF FF FF FF: A = 0xFF = 15*16 + 15 = 255, B = 0xFF = 15*16 + 15 = 255 (C, D are another signal, masked out); raw = 256*255 + 255 = 65535; lambda = 65535*2/65536 = 131070/65536 = 1.999969482421875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 68
+raw = 32768
+real = 1.0
+source = { kind = "hand-calc", working = "PID 0x27 response 41 27 80 00 20 00: A = 0x80 = 8*16 + 0 = 128, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*128 + 0 = 32768; lambda = 32768*2/65536 = 65536/65536 = 1.0" }
+
+[[decode]]
+offset = 74
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x28 response 41 28 00 00 00 00: A = 0x00 = 0*16 + 0 = 0, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*0 + 0 = 0; lambda = 0*2/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 80
+raw = 65535
+real = 1.999969482421875
+source = { kind = "hand-calc", working = "PID 0x28 response 41 28 FF FF FF FF: A = 0xFF = 15*16 + 15 = 255, B = 0xFF = 15*16 + 15 = 255 (C, D are another signal, masked out); raw = 256*255 + 255 = 65535; lambda = 65535*2/65536 = 131070/65536 = 1.999969482421875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 86
+raw = 24576
+real = 0.75
+source = { kind = "hand-calc", working = "PID 0x28 response 41 28 60 00 10 00: A = 0x60 = 6*16 + 0 = 96, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*96 + 0 = 24576; lambda = 24576*2/65536 = 49152/65536 = 0.75" }
+
+[[decode]]
+offset = 92
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x29 response 41 29 00 00 00 00: A = 0x00 = 0*16 + 0 = 0, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*0 + 0 = 0; lambda = 0*2/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 98
+raw = 65535
+real = 1.999969482421875
+source = { kind = "hand-calc", working = "PID 0x29 response 41 29 FF FF FF FF: A = 0xFF = 15*16 + 15 = 255, B = 0xFF = 15*16 + 15 = 255 (C, D are another signal, masked out); raw = 256*255 + 255 = 65535; lambda = 65535*2/65536 = 131070/65536 = 1.999969482421875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 104
+raw = 40960
+real = 1.25
+source = { kind = "hand-calc", working = "PID 0x29 response 41 29 A0 00 70 00: A = 0xA0 = 10*16 + 0 = 160, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*160 + 0 = 40960; lambda = 40960*2/65536 = 81920/65536 = 1.25" }
+
+[[decode]]
+offset = 110
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x2A response 41 2A 00 00 00 00: A = 0x00 = 0*16 + 0 = 0, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*0 + 0 = 0; lambda = 0*2/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 116
+raw = 65535
+real = 1.999969482421875
+source = { kind = "hand-calc", working = "PID 0x2A response 41 2A FF FF FF FF: A = 0xFF = 15*16 + 15 = 255, B = 0xFF = 15*16 + 15 = 255 (C, D are another signal, masked out); raw = 256*255 + 255 = 65535; lambda = 65535*2/65536 = 131070/65536 = 1.999969482421875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 122
+raw = 32767
+real = 0.999969482421875
+source = { kind = "hand-calc", working = "PID 0x2A response 41 2A 7F FF 80 00: A = 0x7F = 7*16 + 15 = 127, B = 0xFF = 15*16 + 15 = 255 (C, D are another signal, masked out); raw = 256*127 + 255 = 32767; lambda = 32767*2/65536 = 65534/65536 = 0.999969482421875" }
+
+[[decode]]
+offset = 128
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x2B response 41 2B 00 00 00 00: A = 0x00 = 0*16 + 0 = 0, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*0 + 0 = 0; lambda = 0*2/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 134
+raw = 65535
+real = 1.999969482421875
+source = { kind = "hand-calc", working = "PID 0x2B response 41 2B FF FF FF FF: A = 0xFF = 15*16 + 15 = 255, B = 0xFF = 15*16 + 15 = 255 (C, D are another signal, masked out); raw = 256*255 + 255 = 65535; lambda = 65535*2/65536 = 131070/65536 = 1.999969482421875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 140
+raw = 33024
+real = 1.0078125
+source = { kind = "hand-calc", working = "PID 0x2B response 41 2B 81 00 C0 00: A = 0x81 = 8*16 + 1 = 129, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*129 + 0 = 33024; lambda = 33024*2/65536 = 66048/65536 = 1.0078125" }
+
+[[decode]]
+offset = 146
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x34 response 41 34 00 00 00 00: A = 0x00 = 0*16 + 0 = 0, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*0 + 0 = 0; lambda = 0*2/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 152
+raw = 65535
+real = 1.999969482421875
+source = { kind = "hand-calc", working = "PID 0x34 response 41 34 FF FF FF FF: A = 0xFF = 15*16 + 15 = 255, B = 0xFF = 15*16 + 15 = 255 (C, D are another signal, masked out); raw = 256*255 + 255 = 65535; lambda = 65535*2/65536 = 131070/65536 = 1.999969482421875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 158
+raw = 32768
+real = 1.0
+source = { kind = "hand-calc", working = "PID 0x34 response 41 34 80 00 80 00: A = 0x80 = 8*16 + 0 = 128, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*128 + 0 = 32768; lambda = 32768*2/65536 = 65536/65536 = 1.0" }
+
+[[decode]]
+offset = 164
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x35 response 41 35 00 00 00 00: A = 0x00 = 0*16 + 0 = 0, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*0 + 0 = 0; lambda = 0*2/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 170
+raw = 65535
+real = 1.999969482421875
+source = { kind = "hand-calc", working = "PID 0x35 response 41 35 FF FF FF FF: A = 0xFF = 15*16 + 15 = 255, B = 0xFF = 15*16 + 15 = 255 (C, D are another signal, masked out); raw = 256*255 + 255 = 65535; lambda = 65535*2/65536 = 131070/65536 = 1.999969482421875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 176
+raw = 29491
+real = 0.899993896484375
+source = { kind = "hand-calc", working = "PID 0x35 response 41 35 73 33 7F 00: A = 0x73 = 7*16 + 3 = 115, B = 0x33 = 3*16 + 3 = 51 (C, D are another signal, masked out); raw = 256*115 + 51 = 29491; lambda = 29491*2/65536 = 58982/65536 = 0.899993896484375" }
+
+[[decode]]
+offset = 182
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x36 response 41 36 00 00 00 00: A = 0x00 = 0*16 + 0 = 0, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*0 + 0 = 0; lambda = 0*2/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 188
+raw = 65535
+real = 1.999969482421875
+source = { kind = "hand-calc", working = "PID 0x36 response 41 36 FF FF FF FF: A = 0xFF = 15*16 + 15 = 255, B = 0xFF = 15*16 + 15 = 255 (C, D are another signal, masked out); raw = 256*255 + 255 = 65535; lambda = 65535*2/65536 = 131070/65536 = 1.999969482421875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 194
+raw = 36045
+real = 1.100006103515625
+source = { kind = "hand-calc", working = "PID 0x36 response 41 36 8C CD 81 00: A = 0x8C = 8*16 + 12 = 140, B = 0xCD = 12*16 + 13 = 205 (C, D are another signal, masked out); raw = 256*140 + 205 = 36045; lambda = 36045*2/65536 = 72090/65536 = 1.100006103515625" }
+
+[[decode]]
+offset = 200
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x37 response 41 37 00 00 00 00: A = 0x00 = 0*16 + 0 = 0, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*0 + 0 = 0; lambda = 0*2/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 206
+raw = 65535
+real = 1.999969482421875
+source = { kind = "hand-calc", working = "PID 0x37 response 41 37 FF FF FF FF: A = 0xFF = 15*16 + 15 = 255, B = 0xFF = 15*16 + 15 = 255 (C, D are another signal, masked out); raw = 256*255 + 255 = 65535; lambda = 65535*2/65536 = 131070/65536 = 1.999969482421875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 212
+raw = 24576
+real = 0.75
+source = { kind = "hand-calc", working = "PID 0x37 response 41 37 60 00 80 80: A = 0x60 = 6*16 + 0 = 96, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*96 + 0 = 24576; lambda = 24576*2/65536 = 49152/65536 = 0.75" }
+
+[[decode]]
+offset = 218
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x38 response 41 38 00 00 00 00: A = 0x00 = 0*16 + 0 = 0, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*0 + 0 = 0; lambda = 0*2/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 224
+raw = 65535
+real = 1.999969482421875
+source = { kind = "hand-calc", working = "PID 0x38 response 41 38 FF FF FF FF: A = 0xFF = 15*16 + 15 = 255, B = 0xFF = 15*16 + 15 = 255 (C, D are another signal, masked out); raw = 256*255 + 255 = 65535; lambda = 65535*2/65536 = 131070/65536 = 1.999969482421875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 230
+raw = 40960
+real = 1.25
+source = { kind = "hand-calc", working = "PID 0x38 response 41 38 A0 00 7E 80: A = 0xA0 = 10*16 + 0 = 160, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*160 + 0 = 40960; lambda = 40960*2/65536 = 81920/65536 = 1.25" }
+
+[[decode]]
+offset = 236
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x39 response 41 39 00 00 00 00: A = 0x00 = 0*16 + 0 = 0, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*0 + 0 = 0; lambda = 0*2/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 242
+raw = 65535
+real = 1.999969482421875
+source = { kind = "hand-calc", working = "PID 0x39 response 41 39 FF FF FF FF: A = 0xFF = 15*16 + 15 = 255, B = 0xFF = 15*16 + 15 = 255 (C, D are another signal, masked out); raw = 256*255 + 255 = 65535; lambda = 65535*2/65536 = 131070/65536 = 1.999969482421875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 248
+raw = 32767
+real = 0.999969482421875
+source = { kind = "hand-calc", working = "PID 0x39 response 41 39 7F FF 84 00: A = 0x7F = 7*16 + 15 = 127, B = 0xFF = 15*16 + 15 = 255 (C, D are another signal, masked out); raw = 256*127 + 255 = 32767; lambda = 32767*2/65536 = 65534/65536 = 0.999969482421875" }
+
+[[decode]]
+offset = 254
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x3A response 41 3A 00 00 00 00: A = 0x00 = 0*16 + 0 = 0, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*0 + 0 = 0; lambda = 0*2/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 260
+raw = 65535
+real = 1.999969482421875
+source = { kind = "hand-calc", working = "PID 0x3A response 41 3A FF FF FF FF: A = 0xFF = 15*16 + 15 = 255, B = 0xFF = 15*16 + 15 = 255 (C, D are another signal, masked out); raw = 256*255 + 255 = 65535; lambda = 65535*2/65536 = 131070/65536 = 1.999969482421875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 266
+raw = 33024
+real = 1.0078125
+source = { kind = "hand-calc", working = "PID 0x3A response 41 3A 81 00 70 00: A = 0x81 = 8*16 + 1 = 129, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*129 + 0 = 33024; lambda = 33024*2/65536 = 66048/65536 = 1.0078125" }
+
+[[decode]]
+offset = 272
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x3B response 41 3B 00 00 00 00: A = 0x00 = 0*16 + 0 = 0, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*0 + 0 = 0; lambda = 0*2/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 278
+raw = 65535
+real = 1.999969482421875
+source = { kind = "hand-calc", working = "PID 0x3B response 41 3B FF FF FF FF: A = 0xFF = 15*16 + 15 = 255, B = 0xFF = 15*16 + 15 = 255 (C, D are another signal, masked out); raw = 256*255 + 255 = 65535; lambda = 65535*2/65536 = 131070/65536 = 1.999969482421875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 284
+raw = 32768
+real = 1.0
+source = { kind = "hand-calc", working = "PID 0x3B response 41 3B 80 00 90 00: A = 0x80 = 8*16 + 0 = 128, B = 0x00 = 0*16 + 0 = 0 (C, D are another signal, masked out); raw = 256*128 + 0 = 32768; lambda = 32768*2/65536 = 65536/65536 = 1.0" }
+
+[[changelog]]
+date = 2026-10-22
+reason = "initial values"
+author = "US-RR-14-6"

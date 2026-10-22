@@ -33,16 +33,19 @@ and marked as synthetic ([Synthetic ROMs](#synthetic-roms)).
 
 | Path | What |
 |------|------|
-| [`fixtures/kat/*.toml`](kat/) | Seed KAT fixtures, one storage type or scaling per file, named `<storage>-<endian>.toml` (`u16-be.toml`, `i24-le.toml`, `u8-be.toml`), plus `bitfield-*`, `scaling-*` and `u20-movi20.toml`; and expression fixtures, `expr-*.toml` ([`expr-jep-precedence.toml`](kat/expr-jep-precedence.toml): JEP operator precedence and `^` semantics, US-RR-20-2; [`expr-corpus.toml`](kat/expr-corpus.toml): hand-checked formulas of the definition corpus, named by hash, US-RR-20-10; [`expr-bitwise-functions.toml`](kat/expr-bitwise-functions.toml): `BitWise`, `& \| << >>` and the standard functions, which the corpus does not use). |
+| [`fixtures/kat/*.toml`](kat/) | Seed KAT fixtures, one storage type or scaling per file, named `<storage>-<endian>.toml` (`u16-be.toml`, `i24-le.toml`, `u8-be.toml`), plus `bitfield-*`, `scaling-*` and `u20-movi20.toml`; and expression fixtures, `expr-*.toml` ([`expr-jep-precedence.toml`](kat/expr-jep-precedence.toml): JEP operator precedence and `^` semantics, US-RR-20-2; [`expr-corpus.toml`](kat/expr-corpus.toml): hand-checked formulas of the definition corpus, named by hash, US-RR-20-10; [`expr-bitwise-functions.toml`](kat/expr-bitwise-functions.toml): `BitWise`, `& \| << >>` and the standard functions, which the corpus does not use); and unit fixtures, `units-*.toml` ([`units-defined-factors.toml`](kat/units-defined-factors.toml): a cited known answer for every conversion factor of rr-core's unit registry, US-RR-21-1; [`units-afr-lambda.toml`](kat/units-afr-lambda.toml): air/fuel ratio ↔ lambda for each fuel's stoichiometric ratio, US-RR-21-5); and timing fixtures, `timing-<standard>.toml` (US-RR-14-5): the default timing parameters of ISO 9141-2:1994 (5-baud init W0–W4), ISO 14230-2:1999 (P1–P4, including P3min = 55 ms, MF-28), ISO 15765-2:2004 (N_As/N_Ar/N_Bs/N_Cr timeouts, STmin range) and ISO 15765-3:2004 (P2CAN_Server, P2*CAN_Server), each backing a constant of `rr_core::timing::iso`; and SAE J1979 service $01 PID vectors, `j1979-01-<signal>-<storage>.toml` (US-RR-14-6), ordinary `[[decode]]` fixtures described in [J1979 PID vectors](#j1979-pid-vectors); and checksum reference vectors, `checksum-*.toml` (US-RR-14-7): `[[checksum]]` fixtures for every sum, XOR and CRC variant the checksum engine plans, described in [Checksum reference vectors](#checksum-reference-vectors); and [`ncs-codec-legacy.toml`](kat/ncs-codec-legacy.toml) (US-RR-14-8): the NCS (Nissan) codec's encode, decode and CRC-16 vectors, a `[[codec]]` fixture transcribed as data from the legacy test file, described in [`[[codec]]` cases](#codec-cases). |
 | [`defs-kat/romraider/*.toml`](defs-kat/romraider/) | Definition-reader KATs (US-RR-29-2): one per RomRaider table kind (`table-1d`, `table-2d`, `table-3d`, `table-switch`, `table-bitwise-switch`) and `inheritance` (`base` / `omit`), each a minimal ECU-definition XML and the typed document it must resolve to, written by hand. Not schema-1 byte KATs: see [Definition-reader fixtures](#definition-reader-fixtures). |
 | [`crates/rr-testkit/tests/data/kat/*.toml`](../crates/rr-testkit/tests/data/kat/) | Samples for rr-testkit's own schema tests: a checksum fixture, a decode fixture with an inline conversion, and one that uses a ROM and definition reference. They are not seed fixtures, but the validator checks them too. |
 | [`crates/rr-testkit/src/kat.rs`](../crates/rr-testkit/src/kat.rs) | The schema-1 types (serde model). Its module docs are the format reference. |
 | [`crates/rr-testkit/src/kat/validate.rs`](../crates/rr-testkit/src/kat/validate.rs) | The validator rules. Its module docs are the reference for every rule. |
+| [`public/ssm/*.toml`](public/ssm/) | SSM K-line simulator fixtures (US-RR-12-4): byte-exact exchanges written from [`docs/legacy/ssm.md`](../docs/legacy/ssm.md) for the ECU simulator (US-RR-36) and the SSM codec (US-RR-47). Synthetic, text only. See [SSM simulator fixtures](#ssm-simulator-fixtures). |
 | [`public/synthetic/`](public/synthetic/) | Generated synthetic ROM images (`<plan>.bin`), their manifests (`<plan>.manifest.toml`) and `SHA256SUMS`. Never edit by hand: see [Synthetic ROMs](#synthetic-roms). |
 | [`corpus-manifest.toml`](corpus-manifest.toml) | Manifest of the external stock-ROM corpus (D-025): path, size, SHA-256 and file-name fields of every image, metadata only. Images that are not a raw ROM of a standard size carry a `suspect` table (kind, reason, embedded-image offset); tests consuming the corpus must branch on it. Its `[defs]` table pins the ECU-definition corpus the same way (D-028: upstream, commit, licence position, every file's path, size and SHA-256, and the `logger_v370.zip` pin), metadata only. It lists ROM IDs by design, so it lives outside `public/` and `kat/`. Never edit by hand: `cargo xtask gen-corpus-manifest --mirror <dir> --defs-mirror <dir>` regenerates it and `--check` verifies it (format in [`xtask/src/corpus_manifest.rs`](../xtask/src/corpus_manifest.rs)). |
 | [`defs-known-bad.toml`](defs-known-bad.toml) | The known-bad registry of the pinned definition corpus (US-RR-29-1, D-028): each pinned ECU definition whose Error diagnostics are the file's own defect, with its manifest SHA-256 (a corpus bump forces a re-review), every Error exactly (code, `line:col`, layer), the reason, and what legacy RomRaider did with it (checked in `legacy/`); and the root elements of pinned XML the ECU-definition reader does not read (`logger`, `dyno`), each with the reader that will. Metadata only. Edited by hand and reviewed; `crates/rr-defs/tests/corpus_romraider_loads.rs` validates it on every run (unknown keys, unpinned files, SHA mismatches, non-Error codes) and its corpus-tier test fails on any Error not listed, and on any listed Error no longer reported. |
 | [`corpus-formulas.toml`](corpus-formulas.toml) | Every distinct formula of the pinned definition corpus (US-RR-20-10, D-028): the ECU `<scaling expression\|to_byte>` and logger `<conversion expr>` attributes, deduplicated by exact text, each as its SHA-256, occurrence count, kinds and first location (corpus-relative path and positional XPath), plus counts. Metadata only, never formula text. Never edit by hand: `RR_CORPUS_DIR=<dir> cargo run -p rr-testkit --example gen-corpus-formulas` regenerates it, and the corpus-tier test `corpus_formula_metadata_is_current` (CI `corpus` job) checks it (format in [`crates/rr-testkit/src/corpus/formulas.rs`](../crates/rr-testkit/src/corpus/formulas.rs)). |
+| [`corpus-unit-strings.txt`](corpus-unit-strings.txt) | Every distinct `units` attribute value of the pinned definition corpus (US-RR-21-5, D-028): the ECU `<scaling units>` labels and logger `<conversion units>` strings, one per line as `<sources> \|<string>\|` (`defs` and/or `v370`). Metadata only: short labels, never formulas. rr-core's units tests read every string with `units::legacy_unit` and pin which ones warn (`UNT0001`). Never edit by hand: `RR_CORPUS_DIR=<dir> RR_UPDATE_UNIT_STRINGS=1 cargo nextest run -p rr-defs --test corpus_unit_strings` regenerates it, and that corpus-tier test (CI `corpus` job) fails when it is stale. |
 | [`corpus-coverage.toml`](corpus-coverage.toml) | Which corpus images have a pinned ECU definition (US-RR-16-6, D-028): for every manifest image, the definition files whose `<romid>` matches its bytes (legacy RomRaider matching) with their `xmlid`s, or `no-definition`; the ROM ID read from the image; totals by region; the 2004 ADM Liberty flags. Metadata only, never definition content. Never edit by hand: `cargo xtask gen-corpus-coverage` regenerates it from a fetched corpus and `--check` verifies it (CI `corpus` job; format in [`xtask/src/corpus_coverage.rs`](../xtask/src/corpus_coverage.rs)). |
+| [`corpus-rom-resolution.toml`](corpus-rom-resolution.toml) | Which definition each non-suspect corpus image resolves to through rr-defs' ROM-ID index (US-RR-34-1, EC-03, D-028): each pinned ECU-definition file taken as a set on its own (legacy loaded one file at a time; the pinned tree's standard, metric and MerpMod copies of one ROM loaded together are ambiguous by design), and for every image every file that matches it exactly once, with the `xmlid` it resolves to without Error (`base_from` when its base had to come from `ecu/standard/ecu_defs.xml`, MF-17) and the size check of opening the image through it (`ok`, `undeclared`, or `mismatch` with both sizes); `unique` or `no-definition`, and totals. It agrees with `corpus-coverage.toml` image by image, but for the differences the test lists with reasons. Metadata only. Never edit by hand: `RR_CORPUS_DIR=<dir> RR_UPDATE_ROM_RESOLUTION=1 cargo nextest run -p rr-rom --test corpus_rom_resolution` regenerates it; the corpus-tier test of [`crates/rr-rom/tests/corpus_rom_resolution.rs`](../crates/rr-rom/tests/corpus_rom_resolution.rs) (CI `corpus` job) fails when it is stale or any image is ambiguous or fails to resolve, and its no-corpus test checks its shape and its agreement with the coverage report on every run. |
 | [`.github/workflows/fixtures.yml`](../.github/workflows/fixtures.yml) | The CI jobs that run the validator and check the synthetic ROMs on Linux and Windows. |
 
 The seed set must cover every storage type in every byte order the codec
@@ -129,10 +132,11 @@ typo cannot quietly drop a value. Here is the format in brief.
 | `title` | yes | One line saying what the fixture pins down. |
 | `notes` | no | Free text for reviewers: the formula, the edge cases, why each value is interesting. |
 | `[definition]` | for `[[decode]]` | How to read the bytes. |
-| `[input]` | for `[[decode]]` and `[[checksum]]` | The bytes. An `[[expr]]` fixture has none. |
-| `[[decode]]`, `[[checksum]]` or `[[expr]]` | yes, exactly one of the three | The expected values. A fixture is one shape, never two. |
+| `[input]` | for `[[decode]]` and `[[checksum]]` | The bytes. An `[[expr]]`, `[[unit]]`, `[[timing]]` or `[[codec]]` fixture has none. |
+| `[[decode]]`, `[[checksum]]`, `[[expr]]`, `[[unit]]`, `[[timing]]` or `[[codec]]` | yes, exactly one of the six | The expected values. A fixture is one shape, never two. |
 | `[range]` | no, `[[decode]]` fixtures only | The conversion's display range. See [`[range]`](#range). |
 | `[[changelog]]` | no | One entry each time an expected value changes. See [Changing an expected value](#changing-an-expected-value). |
+| `[[citation]]` | for a standard test-vector fixture | The documents the values rest on, as structured fields. See [`[[citation]]`](#citation-standard-test-vector-fixtures). |
 
 ### `[definition]`
 
@@ -219,9 +223,46 @@ table's range; rr-core's unit tests cover those.
 
 `before` and `after` each need their own `source`.
 
-The validator does not check the `algorithm` name yet. No checksum algorithm
-registry exists, and no seed checksum fixture exists either; the only
-checksum fixture is the schema sample.
+The validator does not check the `algorithm` name or its `params`: no
+checksum algorithm registry exists yet (US-RR-35). The seed checksum
+fixtures are the reference vectors below.
+
+### Checksum reference vectors
+
+The checksum and CRC reference vectors (US-RR-14-7, PROJECT.md T2 (d)) are
+`[[checksum]]` fixtures, one family per file:
+[`checksum-sum-bytes.toml`](kat/checksum-sum-bytes.toml) (byte sums mod 2^8
+and 2^16, with an initial value),
+[`checksum-sum-words.toml`](kat/checksum-sum-words.toml) (16- and 32-bit word
+sums, big- and little-endian, one's and two's complement, Subaru's
+0x5AA5A55A total), [`checksum-xor.toml`](kat/checksum-xor.toml) (byte and
+32-bit word XOR) and [`checksum-crc.toml`](kat/checksum-crc.toml) (CRC-16
+ARC, IBM-3740, XMODEM, KERMIT, MODBUS, IBM-SDLC, and CRC-32/ISO-HDLC). Each
+file's header comment names the legacy algorithms (`file:line`) whose
+arithmetic it pins. Conventions:
+
+- They share one input: eight `0xFF` bytes, ASCII `"123456789"` (the CRC
+  check input), and a four-byte zero slot at offset 17 where every case stores
+  its result. `before` is that zero slot as given; `after` is the fixed value.
+- `algorithm` is `sum`, `xor` or `crc`, and `params` spell out the arithmetic:
+  the half-open region `start`/`end`, the `store` byte order, and for a sum
+  `word`, `endian`, `width`, `init`, `negate` (`ones`, `twos`) or `target`
+  (store `target - sum`); for a CRC the Rocksoft model parameters (`width`,
+  `poly`, `init`, `refin`, `refout`, `xorout`) and the `catalogue` name. A
+  region that is not a whole number of words needs `pad = "zero"` (legacy has
+  no padding convention; see `checksum-sum-words.toml`).
+- Sum and XOR values have no published standard: each is a `hand-calc`. CRC
+  check values are `standard` sources citing the CRC RevEng catalogue entry
+  (page, last-updated date, retrieval date, and the entry's parameter line);
+  the CRCs of empty and all-0xFF input are worked bit by bit.
+
+`crates/rr-testkit/tests/checksum_kat.rs` runs every vector through a small
+reference implementation of its own (no rr-core, rr-rom or legacy code),
+checks that every variant of its `PLANNED` list has a vector and that each
+family has empty, all-0xFF, wrapping and odd-length vectors, and that every
+CRC check value cites the catalogue entry matching its parameters. The
+reference implementation is a cross-check, not a source: the values were
+worked by hand or transcribed first.
 
 ### `[[expr]]` cases
 
@@ -255,6 +296,186 @@ working with the case's values substituted, as for any other hand
 calculation. Never paste the formula text into the fixture, a comment or a
 note.
 
+### `[[unit]]` cases
+
+A unit fixture pins down a conversion factor of rr-core's unit registry
+(`rr_core::units`, concept C5, US-RR-21): a value in one unit and what it is
+in another. Like an expression fixture it has no `[input]` and no
+`[definition]`.
+
+| Key | Meaning |
+|-----|---------|
+| `from` | The unit `value` is in: a unit id of the registry (`mph`, `fahrenheit`, `psi_gauge`), not a legacy unit string. |
+| `to` | The unit `expected` is in, of the same dimension. |
+| `value` | The value converted. Finite. |
+| `expected` | `value` in `to`. Finite. |
+| `tolerance` | An absolute tolerance on `expected`: finite and non-negative. Leave it out when the converted value is exact; an exact case is compared bit for bit. A factor with no finite decimal form (psi, hp) needs a few ulps. |
+| `fuel` | Only for a case between an air/fuel ratio and lambda (`from = "afr"`, `to = "lambda"`, or the reverse), which needs it: the fuel whose stoichiometric ratio converts it, an id of `rr_core::units::FUELS` (`gasoline`, `methanol`). Say where the ratio comes from in the working or the file's comment. |
+| `source` | Required. See [Sources](#sources). A factor a standard lists as exact is `standard` (NIST SP 811 Appendix B.8 marks exact factors in bold); one derived from exact definitions (1 psi = 1 lbf / 1 in²) is `hand-calc`, with the definitions in the working. |
+| `note` | Optional. Say what a wrong conversion would give, for example "a pure factor with no offset would give 0". |
+
+`crates/rr-testkit/tests/units_kat.rs` converts every `[[unit]]` case of every
+fixture with `rr_core::units::convert` (or, for a case with a `fuel`,
+`afr_to_lambda` / `lambda_to_afr`); a case whose ids name no registry unit or
+fuel fails there, and so does a fuel with no case.
+
+**Every conversion factor needs a cited known answer** (US-RR-21-1): the same
+test fails, naming the unit or fuel, unless
+
+- every registry unit that is not its dimension's base unit has a case
+  converting between it and that base unit, in either direction (not through
+  a third unit), at a value that is not 0 on the unit's side; an affine unit
+  (kelvin, degree Fahrenheit) needs two such cases at different points;
+- that case's `source` names its reference: NIST SP 811, the SI Brochure,
+  NIST Handbook 44 or ISO 80000, in a `standard`'s `doc` or `section` or in a
+  `hand-calc` working (`"SI Brochure 9th ed. (2019) Table 7: milli = 10^-3,
+  so 250 mm = 250 / 1000 m = 0.25 m"`);
+- every fuel has a case whose source cites Heywood for a pure compound, or,
+  for a ratio that is legacy's convention (gasoline, diesel, LPG, CNG), says
+  `no SI/NIST-equivalent reference` instead of inventing one;
+- the case is exact, or its tolerance is within a relative 1e-12.
+
+So a new unit or fuel cannot be added without its known answer.
+
+### `[[timing]]` cases
+
+A timing fixture pins down a protocol timing parameter a published standard
+specifies (US-RR-14-5, PROJECT.md T2 (d)): each case names a constant of
+`rr_core::timing::iso` and gives its value. Like an expression fixture it has
+no `[input]` and no `[definition]`. One standard per file,
+`timing-<standard>.toml`.
+
+| Key | Meaning |
+|-----|---------|
+| `name` | The constant's path under `rr_core::timing::iso`, the standard's module and the parameter: `iso14230_2::P3_MIN`, `iso15765_2::N_BS_TIMEOUT`. |
+| `ms` or `us` | The value, a whole number of milliseconds or microseconds: exactly one of the two. |
+| `source` | Required, and a `standard`: `doc` names the document and its edition as `<document>:<year>` (`"ISO 14230-2:1999 (first edition, 1999-03-15)"`), `section` the clause and table or figure the value is printed in (`"4.5.1, Table 3: P3, minimum, default"`). |
+| `note` | Optional. |
+
+`crates/rr-testkit/tests/timing_kat.rs` checks every case against the
+constant it names (so changing either alone fails), that every constant has
+exactly one case, and that every source is a `standard` citing an edition
+year and a section. Transcribe only values read in the cited edition and
+clause; a parameter you cannot pin to one is left out and said so in the
+file's comment, never written from memory or from legacy code.
+
+### `[[codec]]` cases
+
+A codec fixture pins down a byte-to-byte transform: each case is the bytes
+in, an operation with its parameters, and the bytes out. Like an expression
+fixture it has no `[input]` and no `[definition]`: each case carries its own
+bytes. Today there is one, [`kat/ncs-codec-legacy.toml`](kat/ncs-codec-legacy.toml)
+(US-RR-14-8): the NCS (Nissan) data codec and its CRC-16, transcribed from
+the legacy test file, for the NCS codec of US-RR-78.
+
+| Key | Meaning |
+|-----|---------|
+| `op` | The operation, no spaces: `ncs-encode`, `ncs-decode`, `ncs-crc16`. The names are the consuming test's, checked there, not by the validator. |
+| `params` | Optional, operation-specific: `scode` (the 32-bit code) for `ncs-encode` / `ncs-decode`; `complement` and `store` (`big` / `little`, the byte order of the 16-bit result in `output`) for `ncs-crc16`. |
+| `input`, `output` | Hex bytes, as in `[input] hex`. |
+| `source` | Required. For a transcribed legacy test vector, `legacy-test` ([Sources](#sources)). |
+| `note` | Optional. |
+
+`crates/rr-testkit/tests/ncs_codec_kat.rs` checks the NCS file: one case per
+legacy `@Test` method (six, pinned, and counted in the legacy file), each
+citing lines that exist, include its test method and hold the transcribed
+literals; it re-derives the four CRC outputs with its own implementation of
+the CRC RevEng catalogue's CRC-16/MCRF4XX (the complement is
+CRC-16/IBM-SDLC); and, since the encode and decode outputs cannot be
+re-derived without porting the legacy routine, it checks only what holds
+without one (decode inverts encode on the vector; equal plaintext words give
+equal ciphertext words). The legacy file is read as text; nothing runs it.
+
+### J1979 PID vectors
+
+The SAE J1979 service $01 vectors (US-RR-14-6, PROJECT.md T2 (d)) are
+`[[decode]]` fixtures with a few extra conventions, one scaling per file,
+`j1979-01-<signal>-<storage>.toml`:
+
+- `[input] hex` is positive service $01 responses, one per case: `0x41`
+  (`0x01 + 0x40`), the PID echoed, then the data bytes A, B, ... Service-layer
+  bytes only, no transport framing. Each case's `offset` is its byte A.
+- The encoding is big-endian over all the PID's data bytes; a PID that
+  carries two signals (oxygen sensor voltage and trim, wideband lambda and
+  voltage or current, secondary trims of two banks) has one fixture per
+  signal, picking its bytes with a `bitfield`, on the same responses.
+- The conversion is the J1979 formula in `x`, with `units`.
+- Each PID has a case with every data byte `0x00`, one with every data byte
+  `0xFF`, and at least one typical value (a signed PID also its largest and
+  smallest value).
+- `notes` cites the formula: a `Standard: SAE J1979 ...` line, then a
+  `Via (secondary): ...` line per source with its revision or retrieval date
+  and the rows used, and a `Framing:` line. SAE J1979 and ISO 15031-5 are
+  paywalled; the seed vectors take each formula from two secondary sources
+  that agree (Wikipedia's "OBD-II PIDs" at a pinned revision, CSS
+  Electronics' service 01 PID table) and say so. A PID whose sources
+  disagree is left out (PID 54, signedness), as are the bit-encoded and
+  enumerated PIDs, which have no formula.
+
+The PIDs are those with a formula that legacy RomRaider's OBD logger offers
+(the pinned logger definition's `<protocol id="OBD">`; each file's header
+comment gives the line of each PID). `crates/rr-testkit/tests/j1979_kat.rs`
+checks the framing, decodes every vector through rr-core's encoding and
+conversion, and checks that every file cites its sources. Its US-RR-14-4
+test pins the PID list against the headers' (82 PIDs), requires each
+signal of each PID (two for 14–1B, 24–2B, 34–3B and 55–58, with disjoint
+bitfields covering every data bit) to have its all-`0x00`, all-`0xFF` and
+typical vectors, and requires the cases at the signal's lowest and highest
+raw value to expect the `<lo> to <hi>` range on the `Formula:` line of
+`notes`, so keep that line's form. The generic seed tests decode and convert
+them too.
+
+### `[[citation]]` (standard test-vector fixtures)
+
+A standard test-vector fixture (US-RR-14) cites the documents its values
+rest on in one or more top-level `[[citation]]` tables, as structured fields
+(US-RR-14-1, validator rule `citation`). A case's `source` says where its
+value came from (often a hand calculation); a citation says which document
+defines what was calculated. A vector fixture is one whose file name starts
+with `timing-`, `j1979-`, `checksum-` or `ncs-codec-`
+(`validate::VECTOR_PREFIXES`), or any `[[timing]]` or `[[codec]]` fixture
+whatever its name. Other fixtures may carry citations too; the rule then
+checks them the same way but does not require one.
+
+```toml
+[[citation]]
+kind = "standard"
+doc = "ISO 14230-2"                       # the document, without its edition
+edition = "1999 (first edition, 1999-03-15)"  # a four-digit year, or `version 3` / `rev. B`
+section = "4.5.1 Value entering, Table 3" # the clause, table, figure or entry
+```
+
+| `kind` | Fields | Use it for |
+|--------|--------|------------|
+| `standard` | `doc`, `edition`, `section` (all non-empty; `edition` names a year 1900–2099 or a `rev`/`revision`/`version`/`issue` identifier), `verified`? (default `true`), `via`?, `note`? | A published standard or reference-vector catalogue (ISO, SAE, the CRC RevEng catalogue). |
+| `legacy-test` | `file` (under `legacy/src/test/`), `lines` | Only in a `[[codec]]` fixture: the legacy test file the vectors are transcribed from (the NCS codec vectors). |
+| `legacy-algorithm` | `file` (under `legacy/src/main/`), `lines`, `note` | Flagged exception, below. |
+
+Per case, in a vector fixture: a `standard` source's `doc` must start with
+the `doc` of one of its `standard` citations (`"ISO 14230-2:1999 (first
+edition, ...)"` starts with `"ISO 14230-2"`), and a `legacy-test` source's
+`file` must be the `file` of a `legacy-test` citation. A `hand-calc` case is
+covered by the fixture's citations. That a cited legacy file exists and has
+the cited lines is checked by `crates/rr-testkit/tests/vector_citations.rs`
+(the validator reads fixtures only).
+
+Two flagged exceptions, each pinned to named files in `validate.rs` so that
+nothing else can use them:
+
+- **`verified = false`** (`UNVERIFIED_CITATION_PREFIXES`: `j1979-01-*`
+  only). SAE J1979 is paywalled: the PID formulas come from secondary
+  sources, and the edition and section were not read first-hand. Such a
+  citation must list those sources in `via` (each with its revision or
+  digest), and says in `note` what is and is not known. `edition` is the
+  edition Wikipedia lists, not one the values were checked against;
+  `section` is the service and PID, not a clause or table number.
+- **`legacy-algorithm`** (`LEGACY_ALGORITHM_FIXTURES`:
+  `checksum-sum-bytes.toml`, `checksum-sum-words.toml`, `checksum-xor.toml`).
+  No published standard defines these sums and XORs, so there is no standard
+  to cite; the values are worked by hand, and the citation is the legacy
+  code whose algorithm they model, for its semantics only (D-024). The
+  `note` says so.
+
 ### Conventions from the seed set
 
 - Start the file with a short comment saying how the values were derived and
@@ -273,8 +494,8 @@ note.
 
 ## Sources
 
-Every expected value has `source = { kind = "...", ... }`: each `[[decode]]`
-and `[[expr]]` case, each checksum `before` and `after`, and the `[range]`. A missing source is rule
+Every expected value has `source = { kind = "...", ... }`: each `[[decode]]`,
+`[[expr]]`, `[[unit]]`, `[[timing]]` and `[[codec]]` case, each checksum `before` and `after`, and the `[range]`. A missing source is rule
 `missing-source`. Pick the kind that matches where the number really came
 from. If two kinds apply, use `cross-source`, or pick the stronger one and
 mention the other in `note`.
@@ -286,13 +507,16 @@ mention the other in `note`.
 | `stock-rom` | `rom` (non-empty), `note`? | The value follows from a stock ROM invariant. For example: the stock ROM verifies, so its stored checksum is correct; or fix-checksums on a stock ROM is a no-op. `rom` is the ROM ID or file digest. The ROM itself stays in the corpus. |
 | `car-trace` | `trace` (non-empty), `note`? | The value was observed on a real car, in a recorded trace. `trace` names the trace file or ID. Scrub VINs and serials first ([SECURITY.md, PII Handling](../.project/SECURITY.md#pii-handling)). |
 | `cross-source` | `sources` (at least two distinct, non-empty) | Two or more independent sources agree, for example the RomRaider ECU XML and a TunerPro XDF for the same table. Each entry names one source. Two names for the same source do not count. |
+| `legacy-test` | `file`, `lines` | Only in a `[[codec]]` case: the value is literal data of a legacy *test* file, transcribed by hand (US-RR-14 "NCS codec vectors transcribed as data from the legacy test file"). `file` is the path from the repository root, under `legacy/src/test/`; `lines` the lines the data is on, ascending numbers and ranges (`"33,35,37,39-43"`). Not a value the Java application computed: the test's own literals, which a consuming test can find on the cited lines. Say in the file header that the values are transcribed, and flag any vector that looks like legacy bug behaviour (cross-reference the Must-Fix ledger). |
 
 **Never a source:**
 
 - the code under test, or anything derived from it (rr-core, or rr-testkit's
   own decoder, once there is one), even "run once and copied";
 - the Java RomRaider application. The validator rejects any source text that
-  contains the word `java`, in any case, as rule `forbidden-source`. The check
+  contains the word `java`, in any case, as rule `forbidden-source` (a
+  `legacy-test` source's `file` path, which names a `.java` test file by
+  design, is not searched). The check
   only finds the word, so values copied from Java's output without saying so
   are for the reviewer to catch.
 
@@ -327,8 +551,10 @@ must:
    within a relative 1e-9. For an `[[expr]]` case, the working must contain
    `value` the same way, or, for a value that is not finite, the word `NaN`
    (any case) or `inf` / `infinity` (written `-inf` for `-inf`). For a
+   `[[unit]]` case, the working must contain `expected` the same way, and for
+   a `[[timing]]` case its `ms` or `us` value. For a `[[codec]]` case and a
    checksum `before` or `after`, the working must
-   contain the stored checksum, either as an integer (the bytes read big- or
+   contain the stored checksum (the codec `output`), either as an integer (the bytes read big- or
    little-endian) or as its bytes in hex (`00 0A`, `0x000A`). For a
    `[range]`, the working must contain all four values: `real_min` and
    `real_max` (within its `tolerance`, or else a relative 1e-9),
@@ -364,6 +590,9 @@ The full list, with rule codes, is in
 - `empty-source`: the required fields of `standard`, `stock-rom` and
   `car-trace` sources must not be empty.
 - `cross-source`: a `cross-source` needs at least two distinct sources.
+- `legacy-test`: a `legacy-test` source only in a `[[codec]]` case, with a
+  `file` under `legacy/src/test/` (relative, `/`-separated, no `.` or `..`)
+  and `lines` as ascending numbers and ranges.
 - `real-without-conversion` (also for a `[range]`) and `tolerance`.
 - `range`: a `[range]` must agree with itself. `real_min` and `real_max` are
   finite and `real_min <= real_max` (a swapped pair is the MF-13 mistake);
@@ -375,6 +604,10 @@ The full list, with rule codes, is in
   ROM input.
 - `checksum-width`: `before.hex` and `after.hex` must be the same length.
 - `changelog-reason`: a changelog `reason` must not be empty.
+- `citation`: a standard test-vector fixture needs a `[[citation]]`, each
+  case's `standard` source and `legacy-test` source names a cited document,
+  and every citation is well formed (see
+  [`[[citation]]`](#citation-standard-test-vector-fixtures)).
 
 The validator checks the shape of the fixture and where its values came from,
 not whether the values are correct. The independent reference codec
@@ -408,14 +641,19 @@ expected-value change:
   different bytes, a different ROM, or a different encoding);
 - a base `[[decode]]` case (`offset`, `raw`, `real`, `tolerance`),
   `[[checksum]]` case (`algorithm`, `params`, `offset`, and the `hex` and
-  `valid` of `before` and `after`) or `[[expr]]` case (`formula`, `x`,
-  `value`, `tolerance`, compared bit for bit, so a `nan` case matches itself)
+  `valid` of `before` and `after`), `[[expr]]` case (`formula`, `x`,
+  `value`, `tolerance`, compared bit for bit, so a `nan` case matches itself),
+  `[[unit]]` case (`from`, `to`, `fuel`, `value`, `expected`, `tolerance`)
+  `[[timing]]` case (`name` and the duration; `ms = 1` rewritten as
+  `us = 1000` is not a change) or `[[codec]]` case (`op`, `params`, `input`,
+  `output`)
   no longer has an identical case. That is, it was changed or removed. A
   moved `offset` is a change, so swapping two cases' offsets is caught;
 - a base `[range]` (`real_min`, `raw_at_min`, `real_max`, `raw_at_max`,
   `monotonicity`, `tolerance`) was changed or removed. Adding one is not a
   change;
-- the fixture switched between `[[decode]]`, `[[checksum]]` and `[[expr]]`.
+- the fixture switched between `[[decode]]`, `[[checksum]]`, `[[expr]]`,
+  `[[unit]]`, `[[timing]]` and `[[codec]]`.
 
 When one of these happens, the new version must **add** a `[[changelog]]`
 entry. Without one, the validator reports `changed-without-changelog` and
@@ -546,6 +784,50 @@ the fixtures cover every table kind and axis type. `cargo xtask
 validate-fixtures` does not read this directory: its rules are those of the
 byte-decoding fixtures in `kat/`. Review them as any fixture
 ([Review](#review)): recompute each `working` by hand from the XML.
+
+## SSM simulator fixtures
+
+[`public/ssm/`](public/ssm/) holds SSM (Subaru Select Monitor) exchanges on
+a K-line, written from [`docs/legacy/ssm.md`](../docs/legacy/ssm.md) only
+(task US-RR-12-4): init, `A8` address reads (once and continuous), `A0`
+block reads, `B8` and `B0` writes with their acknowledgements, reset, and
+error cases. They are the starting scripts of the ECU simulator (US-RR-36)
+and test vectors for the SSM codec (US-RR-47). Every ECU ID, address and
+value is made up; nothing comes from a real car or ROM, and the ROM-leak
+guard scans this directory like the rest of `public/`.
+
+Each file has `schema = 1`, `kind = "ssm-kline-sim"`, a `title`, the
+`fixture_ids` of ssm.md's "Fixtures to write" list it serves, a `synthetic`
+note saying what is made up, `[[changelog]]` entries, and one
+`[[exchange]]` per request/reply cycle:
+
+| Key | Meaning |
+|-----|---------|
+| `name`, `spec` | Case name; the ssm.md sections it follows (`docs/legacy/ssm.md §3.3, §1.4`) |
+| `module` | `ecu` (address `10`) or `tcu` (`18`) |
+| `command` | `BF`, `A8`, `A0`, `B8` or `B0` |
+| `state` | `single-shot` (request written, echo, one reply), `continuous-first` (an `A8` with `PP = 01`: request, echo, first frame) or `continuous-stream` (no request, frames only) |
+| `tx`, `tx_checksum` | The request as the tester writes it (empty for a stream), and its checksum working |
+| `rx`, `rx_checksum` | The frames the module sends, and each one's checksum working (none for a cut-short frame) |
+| `wire` | Every byte on the K-line in order, which is what the tester's receive buffer holds: the echo of `tx`, then `rx` |
+| `outcome` | `ok`, or `error` with `error` (`bad-checksum`, `short-reply`, `silent`, `echo-mismatch`, `no-echo`), `legacy` (what the Java does, per ssm.md) and `rr` (what the port must do) |
+| `meaning` | What an `ok` exchange means, in words |
+| `[exchange.decoded]` | The decoded content, by command: `pp` and `addresses` / `values` (`A8`, one `values` entry per frame); `pp`, `address`, `count`, `data` (`A0`); `address`, `value` (`B8`); `address`, `data` (`B0`); `init_data`, `ecu_id`, `capability` (`BF`) |
+
+Bytes are space-separated hex. A checksum working lists every byte before
+the checksum, then the sum and its low 8 bits:
+`80+10+F0+01+BF = 0x240; low 8 bits 40`.
+
+[`crates/rr-testkit/tests/ssm_fixtures.rs`](../crates/rr-testkit/tests/ssm_fixtures.rs)
+checks every exchange against ssm.md's rules, implemented there
+independently of any codec: header, IDs, `LL` = frame length − 5, the
+8-bit sum and its working, response code = command + `40`, each command's
+parameter layout and limits (`A8` N ≤ 84, `A0` count 1–254, `B0` n ≤ 251),
+the reply that belongs to each request, the ECU ID and capability bits,
+the echo (`wire` = `tx` then `rx`), the `A8` buffer size
+`(N+6) + (3N+7)`, and that each error case has exactly the defect it
+names. It also checks that the cited ssm.md sections and fixture IDs
+exist. `cargo xtask validate-fixtures` does not read this directory.
 
 ## Synthetic ROMs
 

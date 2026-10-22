@@ -18,7 +18,10 @@
 //!   of story US-RR-20 (task US-RR-20-5) holds on every run; likewise every
 //!   non-test source file of the layer module (the resolver
 //!   `layer/resolve.rs`, the merge policies and `explain`), for story
-//!   US-RR-22 (task US-RR-22-6);
+//!   US-RR-22 (task US-RR-22-6); and every non-test source file of the
+//!   patch journal (`journal.rs`, the sidecar `journal/sidecar.rs`) and of
+//!   the byte image its guarantees rest on (`image.rs`, `apply_patch`), for
+//!   story US-RR-31 (task US-RR-31-5);
 //! * the workflow runs on `pull_request` (every base branch, with no
 //!   trigger-level `paths:` filter, so the required check `mutants-ok`
 //!   reports on every pull request: task US-RR-4-8), on a weekly `schedule`
@@ -159,6 +162,10 @@ const REQUIRED_GLOBS: &[&str] = &[
     "crates/rr-core/src/layer/**",
     "crates/rr-core/src/pattern.rs",
     "crates/rr-core/src/pattern/**",
+    "crates/rr-core/src/units.rs",
+    "crates/rr-core/src/units/**",
+    "crates/rr-rom/src/image.rs",
+    "crates/rr-rom/src/image/**",
     "crates/rr-rom/src/journal.rs",
     "crates/rr-rom/src/journal/**",
     "crates/rr-rom/src/checksum.rs",
@@ -273,6 +280,34 @@ const LAYER: GatedModule = GatedModule {
         "layer", "resolv", "lineage", "registry", "explain", "merge", "field", "nested", "keyed",
         "appended",
     ],
+};
+
+/// The patch journal (story US-RR-31, criterion "cargo-mutants reports zero
+/// surviving mutants in the journal module"; task US-RR-31-5): `Patch`,
+/// `Journal` (undo, redo, grouping) and the sidecar that saves and replays
+/// it. The keywords cover the module and its main types.
+const JOURNAL: GatedModule = GatedModule {
+    name: "journal",
+    root: "crates/rr-rom/src/journal.rs",
+    dir: "crates/rr-rom/src/journal",
+    anchor: "crates/rr-rom/src/journal/sidecar.rs",
+    anchor_role: "sidecar",
+    keywords: &[
+        "journal", "patch", "sidecar", "undo", "redo", "group", "origin", "replay", "override",
+    ],
+};
+
+/// The byte image (story US-RR-31, task US-RR-31-5): every journal mutation
+/// goes through `Image::apply_patch` (length, bounds and stale-byte
+/// checks), so a surviving mutant there breaks the journal's guarantees as
+/// surely as one in `journal.rs`.
+const IMAGE: GatedModule = GatedModule {
+    name: "image",
+    root: "crates/rr-rom/src/image.rs",
+    dir: "crates/rr-rom/src/image",
+    anchor: "crates/rr-rom/src/image.rs",
+    anchor_role: "byte image",
+    keywords: &["image", "apply_patch", "window", "applyerror"],
 };
 
 /// Every non-test source file of module `m`, as repository-relative paths
@@ -932,6 +967,149 @@ fn layer_check_rejects_ungated_or_excluded_resolver() {
         ))
         .is_empty()
     );
+}
+
+/// US-RR-31-5: the patch journal (sidecar included) and the byte image it
+/// mutates through are gated with no exclusion, so their zero-survivor
+/// result is enforced by every run.
+#[test]
+fn mutants_config_gates_the_whole_journal_and_image_without_exclusions() {
+    let src = mutants_toml();
+    for (m, expected) in [
+        (&JOURNAL, &["journal.rs", "journal/sidecar.rs"][..]),
+        (&IMAGE, &["image.rs"][..]),
+    ] {
+        let files = module_files(m);
+        for f in expected {
+            let f = format!("crates/rr-rom/src/{f}");
+            assert!(
+                files.contains(&f),
+                "{f} not found by module_files: {files:?}"
+            );
+        }
+        let problems = module_problems(m, &src, &files);
+        assert!(
+            problems.is_empty(),
+            ".cargo/mutants.toml does not gate the {} module (US-RR-31-5), files {files:?}:\n{}",
+            m.name,
+            problems.join("\n")
+        );
+    }
+}
+
+#[test]
+fn journal_and_image_checks_reject_ungated_or_excluded_files() {
+    let src = mutants_toml();
+    let journal = module_files(&JOURNAL);
+    let image = module_files(&IMAGE);
+    let edited = |edit: &dyn Fn(&str) -> String| {
+        let changed = edit(&src);
+        assert_ne!(changed, src, "mutation did not apply");
+        changed
+    };
+    let j = |edit: &dyn Fn(&str) -> String| module_problems(&JOURNAL, &edited(edit), &journal);
+    let i = |edit: &dyn Fn(&str) -> String| module_problems(&IMAGE, &edited(edit), &image);
+    assert_flags(
+        &j(&|s| s.replacen("    \"crates/rr-rom/src/journal/**\",\n", "", 1)),
+        "journal file `crates/rr-rom/src/journal/sidecar.rs` is not gated",
+    );
+    assert_flags(
+        &j(&|s| s.replacen("    \"crates/rr-rom/src/journal.rs\",\n", "", 1)),
+        "journal file `crates/rr-rom/src/journal.rs` is not gated",
+    );
+    assert_flags(
+        &i(&|s| s.replacen("    \"crates/rr-rom/src/image.rs\",\n", "", 1)),
+        "image file `crates/rr-rom/src/image.rs` is not gated",
+    );
+    // Dropping a required glob also fails the config check itself.
+    assert_flags(
+        &config_problems(&edited(&|s| {
+            s.replacen("    \"crates/rr-rom/src/image/**\",\n", "", 1)
+        })),
+        "`examine_globs` does not gate `crates/rr-rom/src/image/**`",
+    );
+    for (glob, file) in [
+        ("crates/rr-rom/src/journal/sidecar.rs", "journal/sidecar.rs"),
+        ("sidecar.rs", "journal/sidecar.rs"),
+        ("crates/rr-rom/src/journal", "journal/sidecar.rs"),
+        ("crates/rr-rom/src/journal.rs", "journal.rs"),
+        ("crates/rr-rom/**", "journal.rs"),
+        ("s?decar.rs", "journal/sidecar.rs"),
+    ] {
+        assert_flags(
+            &j(&|s| {
+                s.replacen(
+                    "exclude_globs = []",
+                    &format!("exclude_globs = [\"{glob}\"]"),
+                    1,
+                )
+            }),
+            &format!(
+                "`exclude_globs` entry `{glob}` excludes journal file `crates/rr-rom/src/{file}`"
+            ),
+        );
+    }
+    for glob in ["crates/rr-rom/src/image.rs", "image.rs", "crates/rr-rom/**"] {
+        assert_flags(
+            &i(&|s| {
+                s.replacen(
+                    "exclude_globs = []",
+                    &format!("exclude_globs = [\"{glob}\"]"),
+                    1,
+                )
+            }),
+            &format!("`exclude_globs` entry `{glob}` excludes image file"),
+        );
+    }
+    for entry in [
+        "replace Journal::undo",
+        "crates/rr-rom/src/journal/",
+        "replace Patch::new",
+        "replay",
+    ] {
+        assert_flags(
+            &j(&|s| {
+                s.replacen(
+                    "exclude_re = [\n",
+                    &format!("exclude_re = [\n    \"{entry}\",\n"),
+                    1,
+                )
+            }),
+            &format!("`exclude_re` entry `{entry}` names the journal module"),
+        );
+    }
+    assert_flags(
+        &i(&|s| {
+            s.replacen(
+                "exclude_re = [\n",
+                "exclude_re = [\n    \"replace Image::apply_patch\",\n",
+                1,
+            )
+        }),
+        "`exclude_re` entry `replace Image::apply_patch` names the image module",
+    );
+    assert_flags(
+        &j(&|s| format!("{s}skip_calls = [\"undo\"]\n")),
+        "`skip_calls` entry `undo` names",
+    );
+    assert_flags(
+        &module_problems(&JOURNAL, &src, &[]),
+        "the journal sidecar `crates/rr-rom/src/journal/sidecar.rs` is missing",
+    );
+    assert_flags(
+        &module_problems(&IMAGE, &src, &[]),
+        "the image byte image `crates/rr-rom/src/image.rs` is missing",
+    );
+    // Unrelated exclusions stay allowed.
+    let other = |s: &str| {
+        s.replacen(
+            "exclude_globs = []",
+            "exclude_globs = [\"crates/rr-core/src/diag/**\"]",
+            1,
+        )
+    };
+    assert!(j(&other).is_empty());
+    assert!(i(&other).is_empty());
 }
 
 #[test]

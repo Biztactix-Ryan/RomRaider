@@ -1,0 +1,130 @@
+# Checksum reference vectors: additive sums of single bytes (US-RR-14-7,
+# PROJECT.md T2 (d), D-024).
+#
+# There is no published standard for a byte sum, so every expected value is
+# worked by hand below (the working shows each addition and each wrap). No
+# code was run to produce them: not rr-core, not rr-testkit, not legacy, not
+# a throwaway script or calculator. crates/rr-testkit/tests/checksum_kat.rs
+# re-derives every case with its own small reference implementation on every
+# test run, so an arithmetic slip here fails a test.
+#
+# Families pinned (the arithmetic of the checksum engine, US-RR-35 and
+# PROJECT.md D-009; legacy semantics cited, values never taken from it):
+# * 8-bit byte sum: the SSM and NCS frame checksums
+#   (legacy/src/main/java/com/romraider/io/protocol/ssm/iso9141/SSMChecksumCalculator.java:31-37,
+#   legacy/src/main/java/com/romraider/io/protocol/ncs/iso14230/NCSChecksumCalculator.java:31-37);
+# * 16-bit sum of unsigned bytes with an initial value: Motronic single and
+#   double (legacy/src/main/java/com/romraider/maps/checksum/ChecksumMOTRONICSINGLE.java:49-50
+#   for `initial`, :86-93 for the sum into a Java short, i.e. mod 2^16;
+#   ChecksumMOTRONICDOUBLE.java:53-54 chains a second range with the first
+#   result as its initial value).
+schema = 1
+title = "Byte sums mod 2^8 and mod 2^16 (with initial value): ASCII 123456789, all-0xFF, empty, wrap"
+notes = """
+Shared layout of the checksum vector fixtures (checksum-*.toml), one input:
+  bytes  0..8   FF FF FF FF FF FF FF FF   all-0xFF block
+  bytes  8..17  31 32 33 34 35 36 37 38 39  ASCII "123456789", the standard check input
+  bytes 17..21  00 00 00 00   the stored-checksum slot, zero as given
+Every case reads its region and stores its result at offset 17. `before` is the
+zero slot as given (valid only when the expected checksum is itself zero);
+`after` is the slot once the checksum is fixed.
+
+algorithm = "sum", params:
+  start, end  the summed region, half-open [start, end) (legacy Motronic's end is
+              inclusive, ChecksumMOTRONICSINGLE.java:88; the vectors use half-open)
+  word        bytes per addend: 1 here (each byte unsigned, 0..255)
+  width       accumulator bits: the sum is taken mod 2^width
+  init        initial value of the accumulator (default 0; Motronic `initial`)
+  store       byte order of the stored result, which is width/8 bytes ("big" for
+              every legacy store)
+
+ASCII "123456789" = 0x31..0x39 = 49..57; their sum is 49+50+51+52+53+54+55+56+57 =
+9*53 = 477 = 0x1DD.
+"""
+
+# The documents these values rest on (US-RR-14-1, validator rule `citation`).
+# Flagged exception: no published standard defines these sums, so the
+# citations are the legacy code whose algorithm the hand-worked values model
+# (`legacy-algorithm`, allowed only in the checksum sum and XOR fixtures).
+[[citation]]
+kind = "legacy-algorithm"
+file = "legacy/src/main/java/com/romraider/io/protocol/ssm/iso9141/SSMChecksumCalculator.java"
+lines = "31-37"
+note = "SSM frame checksum: 8-bit byte sum. No published standard defines this checksum, so no standard is cited: the values are worked by hand (each case's `working`) and re-derived by checksum_kat.rs; this cites the legacy algorithm they model, for its semantics only (D-024, US-RR-35)."
+
+[[citation]]
+kind = "legacy-algorithm"
+file = "legacy/src/main/java/com/romraider/io/protocol/ncs/iso14230/NCSChecksumCalculator.java"
+lines = "31-37"
+note = "NCS frame checksum: 8-bit byte sum. No published standard defines this checksum, so no standard is cited: the values are worked by hand (each case's `working`) and re-derived by checksum_kat.rs; this cites the legacy algorithm they model, for its semantics only (D-024, US-RR-35)."
+
+[[citation]]
+kind = "legacy-algorithm"
+file = "legacy/src/main/java/com/romraider/maps/checksum/ChecksumMOTRONICSINGLE.java"
+lines = "49-50,86-93"
+note = "Motronic single: 16-bit sum of unsigned bytes with an initial value. No published standard defines this checksum, so no standard is cited: the values are worked by hand (each case's `working`) and re-derived by checksum_kat.rs; this cites the legacy algorithm they model, for its semantics only (D-024, US-RR-35)."
+
+[[citation]]
+kind = "legacy-algorithm"
+file = "legacy/src/main/java/com/romraider/maps/checksum/ChecksumMOTRONICDOUBLE.java"
+lines = "53-54"
+note = "Motronic double: a second range chained with the first result as its initial value. No published standard defines this checksum, so no standard is cited: the values are worked by hand (each case's `working`) and re-derived by checksum_kat.rs; this cites the legacy algorithm they model, for its semantics only (D-024, US-RR-35)."
+
+[input]
+hex = """
+FF FF FF FF FF FF FF FF
+31 32 33 34 35 36 37 38 39
+00 00 00 00
+"""
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 8, end = 17, word = 1, width = 8, store = "big" }
+offset = 17
+before = { hex = "00", valid = false, source = { kind = "hand-calc", working = "stored byte 17 = 0x00 = 0*16 + 0 = 0; the sum is 0xDD = 221, and 0 != 221, so it does not verify" } }
+after = { hex = "DD", valid = true, source = { kind = "hand-calc", working = "0x31+0x32+0x33+0x34+0x35+0x36+0x37+0x38+0x39 = 49+50+51+52+53+54+55+56+57 = 477 = 0x1DD; 477 mod 256 = 477 - 256 = 221 = 0xDD" } }
+note = "the 0x100 carry is dropped: a 16-bit accumulator would store 01 DD"
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 0, end = 4, word = 1, width = 8, store = "big" }
+offset = 17
+before = { hex = "00", valid = false, source = { kind = "hand-calc", working = "stored byte 17 = 0x00 = 0*16 + 0 = 0; the sum is 0xFC = 252, and 0 != 252, so it does not verify" } }
+after = { hex = "FC", valid = true, source = { kind = "hand-calc", working = "all-0xFF: 0xFF*4 = 255*4 = 1020 = 0x3FC; 1020 mod 256 = 1020 - 3*256 = 252 = 0xFC" } }
+note = "wraps three times; a signed-byte sum would give -4 = 0xFC too, so this case does not catch sign handling (the 16-bit cases do)"
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 8, end = 8, word = 1, width = 8, store = "big" }
+offset = 17
+before = { hex = "00", valid = true, source = { kind = "hand-calc", working = "empty region [8, 8): sum = 0 + 0 = 0; stored byte 17 = 0x00 = 0, and 0 = 0, so it verifies" } }
+after = { hex = "00", valid = true, source = { kind = "hand-calc", working = "empty region [8, 8): 8 - 8 = 0 addends, so sum = init = 0 + 0 = 0 = 0x00" } }
+note = "an empty range sums to the initial value"
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 8, end = 17, word = 1, width = 16, store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the sum is 0x01DD = 477, and 0 != 477, so it does not verify" } }
+after = { hex = "01 DD", valid = true, source = { kind = "hand-calc", working = "49+50+51+52+53+54+55+56+57 = 477 = 1*256 + 221 = 0x01DD (no wrap: 477 < 65536), stored big-endian 01 DD" } }
+note = "an 8-bit accumulator would lose the 01"
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 8, end = 17, word = 1, width = 16, init = 0xFE40, store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the sum is 0x001D = 29, and 0 != 29, so it does not verify" } }
+after = { hex = "00 1D", valid = true, source = { kind = "hand-calc", working = "init 0xFE40 = 65088; 65088 + 477 = 65565; 65565 mod 65536 = 65565 - 65536 = 29 = 0x001D, stored big-endian 00 1D" } }
+note = "the initial value is added before the wrap; ignoring init gives 01 DD"
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 0, end = 8, word = 1, width = 16, store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the sum is 0x07F8 = 2040, and 0 != 2040, so it does not verify" } }
+after = { hex = "07 F8", valid = true, source = { kind = "hand-calc", working = "all-0xFF: 255*8 = 2040 = 7*256 + 248 = 0x07F8, stored big-endian 07 F8" } }
+note = "bytes are unsigned: summing them as signed bytes (-1 each) gives -8 = 0xFFF8"
+
+[[changelog]]
+date = 2026-10-22
+reason = "initial values"

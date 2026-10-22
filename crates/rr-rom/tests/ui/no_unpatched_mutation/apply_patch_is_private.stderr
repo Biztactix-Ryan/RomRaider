@@ -1,0 +1,31 @@
+error[E0624]: method `apply_patch` is private
+  --> tests/ui/no_unpatched_mutation/apply_patch_is_private.rs:10:19
+   |
+10 |       let _ = image.apply_patch(0, &[0x00], &[0xFF]);
+   |                     ^^^^^^^^^^^ private method
+   |
+  ::: src/image.rs
+   |
+   | /     pub(crate) fn apply_patch(
+   | |         &mut self,
+   | |         at: usize,
+   | |         old: &[u8],
+   | |         new: &[u8],
+   | |     ) -> Result<(), ApplyError> {
+   | |_______________________________- private method defined here
+
+error[E0624]: method `apply_patch` is private
+  --> tests/ui/no_unpatched_mutation/apply_patch_is_private.rs:14:22
+   |
+14 |       let _ = released.apply_patch(0, &[0x00], &[0xFF]);
+   |                        ^^^^^^^^^^^ private method
+   |
+  ::: src/image.rs
+   |
+   | /     pub(crate) fn apply_patch(
+   | |         &mut self,
+   | |         at: usize,
+   | |         old: &[u8],
+   | |         new: &[u8],
+   | |     ) -> Result<(), ApplyError> {
+   | |_______________________________- private method defined here

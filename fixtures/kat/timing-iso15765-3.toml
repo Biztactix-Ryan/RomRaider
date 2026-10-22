@@ -1,0 +1,45 @@
+# ISO 15765-3 (UDS on CAN) default-session server response times
+# (US-RR-14, PROJECT.md T2 (d)).
+#
+# Transcribed by hand from ISO 15765-3:2004, first edition 2004-10-15,
+# clause 6.3.2 "Application layer timing parameter definitions", Table 2
+# "Application layer timing parameter definitions for the defaultSession",
+# the Max. column. Never taken from rr-core or legacy code (D-024).
+#
+# Not transcribed: P2CAN_Client and P2*CAN_Client (P2CAN_Server_max or
+# P2*CAN_Server_max plus a network-dependent delta, so not constants), and
+# P3CAN_Client_Phys / _Func (defined as P2CAN_Server_max).
+#
+# Checked against rr-core's timing::iso::iso15765_3 constants by
+# crates/rr-testkit/tests/timing_kat.rs.
+
+schema = 1
+title = "ISO 15765-3:2004 server response times P2CAN_Server and P2*CAN_Server (Table 2)"
+notes = """
+P2CAN_Server: the server starts its response within this long of receiving a
+request. P2*CAN_Server: after a negative response with code 78h (response
+pending), the server starts its response within this long. Both have a
+minimum of 0.
+"""
+
+# The documents these values rest on, as structured fields (US-RR-14-1,
+# validator rule `citation`).
+[[citation]]
+kind = "standard"
+doc = "ISO 15765-3"
+edition = "2004 (first edition, 2004-10-15)"
+section = "6.3.2 Application layer timing parameter definitions, Table 2 (defaultSession, Max. column)"
+
+[[timing]]
+name = "iso15765_3::P2_CAN_SERVER_MAX"
+ms = 50
+source = { kind = "standard", doc = "ISO 15765-3:2004 (first edition, 2004-10-15)", section = "6.3.2, Table 2: P2CAN_Server, max." }
+
+[[timing]]
+name = "iso15765_3::P2_STAR_CAN_SERVER_MAX"
+ms = 5000
+source = { kind = "standard", doc = "ISO 15765-3:2004 (first edition, 2004-10-15)", section = "6.3.2, Table 2: P2*CAN_Server, max." }
+
+[[changelog]]
+date = 2026-10-22
+reason = "initial values"

@@ -80,6 +80,13 @@ jobs:
       # mutants.yml, so it runs on every push and pull request.
       - name: cargo xtask check-mutants-exclusions
         run: cargo xtask check-mutants-exclusions
+      # The legacy behaviour catalogue (docs/legacy, US-RR-12): every area has
+      # its page and README row, every legacy file:line reference resolves, is
+      # in range and names lines that mention what the text says, and every
+      # described behaviour carries a reference (US-RR-12-1; rules in
+      # xtask/src/legacy_docs.rs, wiring in xtask/tests/legacy_docs_ci_config.rs).
+      - name: cargo xtask check-legacy-docs
+        run: cargo xtask check-legacy-docs
       # Runs clippy on generated planted violations (target/lint-selftest)
       # with this workspace's lints + clippy.toml; fails unless every safety
       # lint fires exactly where planted (US-RR-3-1, US-RR-3-2, US-RR-18-4).
@@ -374,6 +381,32 @@ jobs:
       - name: cargo xtask leak-guard (every tracked file)
         run: git ls-files -z | xargs -0 cargo xtask leak-guard --
 
+  # Performance budgets (story US-RR-34, task US-RR-34-9; MF-18, MF-40,
+  # EC-10): crates/rr-defs/benches/resolve_lookup.rs in the release (`bench`)
+  # profile with `--check`. Resolving a generated 5000-table definition with a
+  # fresh resolver must take under 200 ms, and finding a 4 MiB image's
+  # definition in a 2000-definition ROM-ID index under 5 ms. Each measurement
+  # is the best of several runs and fails only above its budget x 1.5 (the
+  # bench's TOLERANCE: a shared runner is slower than a desktop by more than
+  # best-of-N removes); over budget but within that is a ::warning. Its own
+  # job on one Linux runner, not a test in the `test` matrix: no test depends
+  # on timing. No RR_CORPUS_DIR, so the bench's corpus report is skipped.
+  # Wiring is checked by xtask/tests/perf_budget_ci_config.rs.
+  perf-budget:
+    name: perf budgets (resolve, ROM-ID lookup)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install toolchain
+        run: rustup toolchain install --no-self-update && rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: perf-budget
+          save-if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rust-rewrite' }}
+      - name: Resolve and lookup budgets (cargo bench --check)
+        run: cargo bench -p rr-defs --bench resolve_lookup --locked -- --check
+
   # External stock-ROM corpus (story US-RR-11, task US-RR-11-8; D-025;
   # INFRASTRUCTURE.md "Stock-ROM corpus in CI"). `cargo xtask fetch-corpus`
   # downloads the ~500 images from the public upstream at the manifest's
@@ -506,11 +539,34 @@ jobs:
           tool: cargo-nextest
       - name: Corpus-tier tests (cargo nextest)
         run: cargo nextest run --workspace --locked --run-ignored all --no-tests=fail -E 'test(/::requires_RR_CORPUS_DIR$/)'
+      # US-RR-21-3: the unit-string test's logger half needs logger_v370.zip,
+      # which CI never has (D-028). Re-run that one test showing its output,
+      # and turn the skip into a workflow warning and a step-summary line
+      # rather than a silent pass. The logger's strings are still read in
+      # every `test` job by rr-core's no-corpus test, from the committed
+      # fixtures/corpus-unit-strings.txt.
+      - name: Corpus unit strings (logger_v370.zip)
+        run: |
+          set -o pipefail
+          log="$RUNNER_TEMP/corpus-unit-strings.log"
+          cargo nextest run -p rr-defs --test corpus_unit_strings --locked --run-ignored all --no-tests=fail --success-output immediate 2>&1 | tee "$log"
+          if grep -q '\[units\] logger_v370.zip: SKIPPED' "$log"; then
+            msg="logger_v370.zip is not available to CI (D-028): its unit strings were not re-extracted from the corpus, only read from the committed fixtures/corpus-unit-strings.txt"
+            echo "::warning title=Corpus unit strings::$msg"
+            {
+              echo "### Corpus unit strings"
+              echo
+              echo "SKIPPED (logger half): $msg"
+            } >> "$GITHUB_STEP_SUMMARY"
+          elif ! grep -q '\[units\] logger_v370.zip: [0-9]* member(s) scanned' "$log"; then
+            echo "::error::corpus_unit_strings printed no logger_v370.zip line"
+            exit 1
+          fi
 
   ci-ok:
     name: ci-ok
     if: always()
-    needs: [fmt, clippy, test, deny, t6, snapshots, faketime, corpus, leak-guard, fuzz-regressions]
+    needs: [fmt, clippy, test, deny, t6, snapshots, faketime, corpus, leak-guard, fuzz-regressions, perf-budget]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:

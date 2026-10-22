@@ -9,19 +9,23 @@
 //! Every fixture file must first load with [`crate::kat::parse`] (schema,
 //! shape, unknown keys, hex, ...). On top of that, each violation below is
 //! reported with the file, the case (`[[decode]] #2 (offset 2)`,
-//! `` [[checksum]] #1 `after` ``, `` [[expr]] #3 (`2+3*4`) ``, `[range]`,
+//! `` [[checksum]] #1 `after` ``, `` [[expr]] #3 (`2+3*4`) ``,
+//! `[[unit]] #1 (1 mph -> kmh)`, `[[timing]] #3 (iso14230_2::P3_MIN)`,
+//! `[[codec]] #2 (ncs-crc16)`, `[range]`,
 //! `[[changelog]] #1`; cases count from 1) and a rule code:
 //!
 //! | Rule | Rejected when |
 //! |------|---------------|
 //! | `load` | The file does not load as a schema-1 fixture. |
-//! | `missing-source` | An expected value (a `[[decode]]` or `[[expr]]` case, a `[[checksum]]` case's `before` / `after`, or the `[range]`) has no `source`. |
+//! | `missing-source` | An expected value (a `[[decode]]`, `[[expr]]`, `[[unit]]`, `[[timing]]` or `[[codec]]` case, a `[[checksum]]` case's `before` / `after`, or the `[range]`) has no `source`. |
 //! | `hand-calc-working` | A `hand-calc` source has no `working`, or its `working` breaks the rule below. |
 //! | `empty-source` | A `standard` source has an empty `doc` or `section`; a `stock-rom` an empty `rom`; a `car-trace` an empty `trace`. |
 //! | `cross-source` | A `cross-source` source cites fewer than two distinct, non-empty sources. |
-//! | `forbidden-source` | A source cites Java (the word `java`, any case): values taken from the Java application, or from the code under test, are not a source (D-024). |
+//! | `forbidden-source` | A source cites Java (the word `java`, any case): values taken from the Java application, or from the code under test, are not a source (D-024). A `legacy-test` source's `file` path is not searched: it names a legacy test file by design (next rule). |
+//! | `legacy-test` | A `legacy-test` source (literal data transcribed from a legacy test file, US-RR-14-8) is used outside a `[[codec]]` case; or its `file` is not a relative, `/`-separated path under `legacy/src/test/` (no `.` or `..` parts, no backslash); or its `lines` is not ascending line numbers and `first-last` ranges ([`super::parse_line_spec`]). That the file exists and the lines hold the data is the consuming test's check (rr-testkit's `ncs_codec_kat`). |
+//! | `citation` | A standard test-vector fixture ([`is_vector_fixture`]: file name starting with one of [`VECTOR_PREFIXES`], or any `[[timing]]` or `[[codec]]` fixture) has no `[[citation]]`; or one of its cases has a `standard` source whose `doc` does not start with a cited `standard` document's `doc`, or a `legacy-test` source whose `file` is not a cited `legacy-test` file. In any fixture, a `[[citation]]` is malformed: a `standard` one with an empty `doc`, `edition` or `section`, or an `edition` naming no year (four digits, 1900-2099) and no `rev` / `revision` / `version` / `issue` identifier; `verified = false` outside [`UNVERIFIED_CITATION_PREFIXES`] or without `via`; a `legacy-test` one outside a `[[codec]]` fixture or not under `legacy/src/test/`; a `legacy-algorithm` one outside [`LEGACY_ALGORITHM_FIXTURES`], not under `legacy/src/main/` or without a `note`; or bad `lines`. That a cited legacy file exists and has the lines is rr-testkit's `vector_citations` test (this validator reads fixtures only). A `standard` citation that mentions Java is `forbidden-source`. |
 //! | `real-without-conversion` | A case has `real`, or the fixture has a `[range]`, but its inline `[definition]` has no `[definition.conversion]`. |
-//! | `tolerance` | `tolerance` is negative or not finite, or is given without `real` (decode) or with a `value` that is not finite (expr). |
+//! | `tolerance` | `tolerance` is negative or not finite, or is given without `real` (decode) or with a `value` that is not finite (expr). Also for a `[[unit]]` case's `tolerance` on `expected`. |
 //! | `range` | A `[range]` contradicts itself: `real_min` or `real_max` is not finite, `real_min` is above `real_max`, or its `monotonicity` disagrees with where the extremes are (`increasing` needs `real_min < real_max` with `raw_at_min` below `raw_at_max`, `decreasing` the same with `raw_at_min` above `raw_at_max`, `constant` needs `real_min == real_max`). |
 //! | `offset-out-of-range` | With `hex` input: a decode cell (inline `encoding`, default layout) or a stored checksum does not fit inside the input. |
 //! | `checksum-width` | A checksum case's `before.hex` and `after.hex` differ in length. |
@@ -49,15 +53,20 @@
 //!    rounding of 1e-9 relative); for an `[[expr]]` case, the expected
 //!    `value` the same way, or for a value that is not finite the word `NaN`
 //!    (any case) or `inf` / `infinity` (preceded by `-` for `-inf`); for a
+//!    `[[unit]]` case, the expected `expected` the same way; for a
+//!    `[[timing]]` case, its `ms` or `us` value exactly; for a
+//!    `[[codec]]` case, its `output` the way a checksum's stored bytes are
+//!    (next); for a
 //!    checksum `before` / `after` it must contain the stored checksum, either
 //!    as an integer (bytes read big- or little-endian) or as its bytes in hex
 //!    (`00 0A`, `0x000A`); for a `[range]` it must contain `real_min` and
 //!    `real_max` (within its `tolerance`, else up to 1e-9 relative) and
 //!    `raw_at_min` and `raw_at_max`;
 //! 5. show an intermediate value: at least one number that is not the
-//!    result (not the expected `raw` / `real` / `value`, not one of the four
-//!    values of a `[range]`, or not the stored checksum read big- or
-//!    little-endian; `0x01F4` *is* 500).
+//!    result (not the expected `raw` / `real` / `value` / `expected`, not a
+//!    timing case's `ms` / `us`, not one of the four
+//!    values of a `[range]`, or not the stored checksum or codec `output`
+//!    read big- or little-endian; `0x01F4` *is* 500).
 //!
 //! So `"500"` (no equation), `"x = 500"` (one number),
 //! `"raw = 500, real = 50.0"` and `"0x01F4 = 500 = 50.0"` (no formula),
@@ -83,7 +92,9 @@
 //!   `[[checksum]]` case (`algorithm`, `params`, `offset`, `before` / `after`
 //!   `hex` and `valid`) or `[[expr]]` case (`formula` or `formula_ref`, `x`,
 //!   `params`, `value`, `tolerance`, compared bit for bit so a `nan` matches
-//!   itself) has no
+//!   itself), `[[unit]]` case (`from`, `to`, `value`, `expected`,
+//!   `tolerance`), `[[timing]]` case (`name` and its `ms` / `us`) or
+//!   `[[codec]]` case (`op`, `params`, `input`, `output`) has no
 //!   identical case in the new version, i.e. it was
 //!   changed or removed (a moved `offset` is a change, so swapping two
 //!   cases' offsets is caught). Cases are matched as a multiset, so adding
@@ -91,9 +102,10 @@
 //! * a base `[range]` (`real_min`, `raw_at_min`, `real_max`, `raw_at_max`,
 //!   `monotonicity`, `tolerance`) was changed or removed (adding one is not
 //!   a change);
-//! * the fixture switched between decode, checksum and expr cases.
+//! * the fixture switched between decode, checksum, expr, unit, timing and
+//!   codec cases.
 //!
-//! Sources, notes and titles may change freely. When expected values changed,
+//! Sources, citations, notes and titles may change freely. When expected values changed,
 //! the new version must **add** a `[[changelog]]` entry, else
 //! `changed-without-changelog`. An added entry is one not in the base
 //! version whose `reason` is not blank and is not the reason of a base
@@ -118,8 +130,9 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use super::{
-    ChangelogEntry, ChecksumCase, ChecksumState, DecodeCase, Definition, ExprCase, Formula,
-    HexBytes, Input, Kat, KatKind, Layout, Monotonicity, RangeCase, RawValue, Source, Storage,
+    ChangelogEntry, ChecksumCase, ChecksumState, Citation, CodecCase, DecodeCase, Definition,
+    ExprCase, Formula, HexBytes, Input, Kat, KatKind, Layout, Monotonicity, RangeCase, RawValue,
+    Source, Storage, TimingCase, UnitCase,
 };
 
 /// The rule a [`Violation`] breaks (see the module docs for each).
@@ -137,6 +150,11 @@ pub enum Rule {
     CrossSource,
     /// A source citing Java (D-024).
     ForbiddenSource,
+    /// A misplaced or malformed `legacy-test` source.
+    LegacyTest,
+    /// A standard test-vector fixture without a structured citation, or a
+    /// malformed or misplaced `[[citation]]` (US-RR-14-1).
+    Citation,
     /// `real` without a conversion in the inline definition.
     RealWithoutConversion,
     /// A bad or orphaned `tolerance`.
@@ -164,6 +182,8 @@ impl Rule {
             Self::EmptySource => "empty-source",
             Self::CrossSource => "cross-source",
             Self::ForbiddenSource => "forbidden-source",
+            Self::LegacyTest => "legacy-test",
+            Self::Citation => "citation",
             Self::RealWithoutConversion => "real-without-conversion",
             Self::Tolerance => "tolerance",
             Self::Range => "range",
@@ -421,6 +441,18 @@ fn expr_location(index: usize, formula: &dyn fmt::Display) -> String {
     format!("[[expr]] #{} (`{formula}`)", index + 1)
 }
 
+fn unit_location(index: usize, value: &dyn fmt::Display, from: &str, to: &str) -> String {
+    format!("[[unit]] #{} ({value} {from} -> {to})", index + 1)
+}
+
+fn timing_location(index: usize, name: &str) -> String {
+    format!("[[timing]] #{} ({name})", index + 1)
+}
+
+fn codec_location(index: usize, op: &str) -> String {
+    format!("[[codec]] #{} ({op})", index + 1)
+}
+
 const RANGE_LOCATION: &str = "[range]";
 
 // ---------------------------------------------------------------------------
@@ -474,6 +506,31 @@ fn raw_source_checks(path: &Path, table: &toml::Table, out: &mut Vec<Violation>)
         };
         raw_source(path, &location, case.get("source"), out);
     }
+    for (index, case) in cases("unit").into_iter().enumerate() {
+        let text = |key: &str| case.get(key).and_then(toml::Value::as_str);
+        let value = case
+            .get("value")
+            .and_then(|v| v.as_float().or_else(|| v.as_integer().map(|n| n as f64)));
+        let location = match (value, text("from"), text("to")) {
+            (Some(value), Some(from), Some(to)) => unit_location(index, &value, from, to),
+            _ => format!("[[unit]] #{}", index + 1),
+        };
+        raw_source(path, &location, case.get("source"), out);
+    }
+    for (index, case) in cases("timing").into_iter().enumerate() {
+        let location = match case.get("name").and_then(toml::Value::as_str) {
+            Some(name) => timing_location(index, name),
+            None => format!("[[timing]] #{}", index + 1),
+        };
+        raw_source(path, &location, case.get("source"), out);
+    }
+    for (index, case) in cases("codec").into_iter().enumerate() {
+        let location = match case.get("op").and_then(toml::Value::as_str) {
+            Some(op) => codec_location(index, op),
+            None => format!("[[codec]] #{}", index + 1),
+        };
+        raw_source(path, &location, case.get("source"), out);
+    }
     if let Some(range) = table.get("range").and_then(toml::Value::as_table) {
         raw_source(path, RANGE_LOCATION, range.get("source"), out);
     }
@@ -514,6 +571,9 @@ enum Expected<'a> {
     Decode(&'a DecodeCase),
     Checksum(&'a ChecksumState),
     Expr(&'a ExprCase),
+    Unit(&'a UnitCase),
+    Timing(&'a TimingCase),
+    Codec(&'a CodecCase),
     Range(&'a RangeCase),
 }
 
@@ -566,6 +626,36 @@ fn check_fixture(path: &Path, kat: &Kat, out: &mut Vec<Violation>) {
                 check_expr_case(path, &location, case, out);
             }
         }
+        KatKind::Unit { cases } => {
+            for (index, case) in cases.iter().enumerate() {
+                let location = unit_location(index, &case.value, &case.from, &case.to);
+                check_source(path, &location, &case.source, &Expected::Unit(case), out);
+                if let Some(tolerance) = case.tolerance
+                    && (!tolerance.is_finite() || tolerance < 0.0)
+                {
+                    out.push(Violation::new(
+                        path,
+                        Some(&location),
+                        Rule::Tolerance,
+                        format!(
+                            "`tolerance` must be a finite, non-negative number, got {tolerance}"
+                        ),
+                    ));
+                }
+            }
+        }
+        KatKind::Timing { cases } => {
+            for (index, case) in cases.iter().enumerate() {
+                let location = timing_location(index, &case.name);
+                check_source(path, &location, &case.source, &Expected::Timing(case), out);
+            }
+        }
+        KatKind::Codec { cases } => {
+            for (index, case) in cases.iter().enumerate() {
+                let location = codec_location(index, &case.op);
+                check_source(path, &location, &case.source, &Expected::Codec(case), out);
+            }
+        }
     }
     for (index, entry) in kat.changelog.iter().enumerate() {
         if entry.reason.trim().is_empty() {
@@ -575,6 +665,306 @@ fn check_fixture(path: &Path, kat: &Kat, out: &mut Vec<Violation>) {
                 Rule::ChangelogReason,
                 "changelog `reason` is empty: say why the expected value changed",
             ));
+        }
+    }
+    check_citations(path, kat, out);
+}
+
+// ---------------------------------------------------------------------------
+// Citations (US-RR-14-1)
+// ---------------------------------------------------------------------------
+
+/// File-name prefixes of the standard test-vector fixtures (US-RR-14): the
+/// ISO timing parameters, the SAE J1979 PID vectors, the checksum and CRC
+/// reference vectors and the transcribed NCS codec vectors. A fixture whose
+/// file name starts with one of these, or any `[[timing]]` or `[[codec]]`
+/// fixture whatever its name, is a vector fixture
+/// ([`is_vector_fixture`]) and must cite its documents (rule `citation`).
+pub const VECTOR_PREFIXES: &[&str] = &["timing-", "j1979-", "checksum-", "ncs-codec-"];
+
+/// The flagged exception for SAE J1979: fixtures whose file name starts with
+/// one of these may carry a `standard` citation with `verified = false`
+/// (with `via` sources). SAE J1979 is paywalled; its PID formulas were taken
+/// from secondary sources and its edition and section were not read
+/// first-hand (US-RR-14-6). Nothing else may.
+pub const UNVERIFIED_CITATION_PREFIXES: &[&str] = &["j1979-01-"];
+
+/// The flagged exception for checksums no standard defines: only these
+/// fixture files may carry a `legacy-algorithm` citation (the legacy code
+/// whose algorithm their hand-worked sums and XORs model, US-RR-14-7).
+pub const LEGACY_ALGORITHM_FIXTURES: &[&str] = &[
+    "checksum-sum-bytes.toml",
+    "checksum-sum-words.toml",
+    "checksum-xor.toml",
+];
+
+/// Whether the fixture at `path` is a standard test-vector fixture: its file
+/// name starts with one of [`VECTOR_PREFIXES`], or it is a `[[timing]]` or
+/// `[[codec]]` fixture (shapes that exist only for vector fixtures).
+#[must_use]
+pub fn is_vector_fixture(path: &Path, kat: &Kat) -> bool {
+    let name = file_name(path);
+    VECTOR_PREFIXES
+        .iter()
+        .any(|prefix| name.starts_with(prefix))
+        || matches!(kat.kind, KatKind::Timing { .. } | KatKind::Codec { .. })
+}
+
+fn file_name(path: &Path) -> String {
+    path.file_name()
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_default()
+}
+
+/// Whether `edition` names an edition: a year from 1900 to 2099 written as
+/// four digits (`1999`, `2004-10-15`), or a revision, version or issue
+/// identifier (`version 3`, `rev. B`).
+fn names_edition(edition: &str) -> bool {
+    let lower = edition.to_lowercase();
+    let year = lower
+        .split(|c: char| !c.is_ascii_digit())
+        .any(|run| run.len() == 4 && matches!(run.parse::<u32>(), Ok(1900..=2099)));
+    let words: Vec<&str> = lower.split_whitespace().collect();
+    let revision = words.windows(2).any(|pair| {
+        matches!(pair[0], "rev" | "rev." | "revision" | "version" | "issue")
+            && pair[1].chars().any(|c| c.is_ascii_alphanumeric())
+    });
+    year || revision
+}
+
+/// Every case source of `kat`, with its location.
+fn case_sources(kat: &Kat) -> Vec<(String, &Source)> {
+    let mut out = Vec::new();
+    match &kat.kind {
+        KatKind::Decode { cases, range, .. } => {
+            for (index, case) in cases.iter().enumerate() {
+                out.push((decode_location(index, case.offset), &case.source));
+            }
+            if let Some(range) = range {
+                out.push((RANGE_LOCATION.to_owned(), &range.source));
+            }
+        }
+        KatKind::Checksum { cases, .. } => {
+            for (index, case) in cases.iter().enumerate() {
+                for (state, value) in [("before", &case.before), ("after", &case.after)] {
+                    out.push((checksum_location(index, state), &value.source));
+                }
+            }
+        }
+        KatKind::Expr { cases } => {
+            for (index, case) in cases.iter().enumerate() {
+                out.push((expr_location(index, &case.formula), &case.source));
+            }
+        }
+        KatKind::Unit { cases } => {
+            for (index, case) in cases.iter().enumerate() {
+                let location = unit_location(index, &case.value, &case.from, &case.to);
+                out.push((location, &case.source));
+            }
+        }
+        KatKind::Timing { cases } => {
+            for (index, case) in cases.iter().enumerate() {
+                out.push((timing_location(index, &case.name), &case.source));
+            }
+        }
+        KatKind::Codec { cases } => {
+            for (index, case) in cases.iter().enumerate() {
+                out.push((codec_location(index, &case.op), &case.source));
+            }
+        }
+    }
+    out
+}
+
+/// The `citation` rule (module docs).
+fn check_citations(path: &Path, kat: &Kat, out: &mut Vec<Violation>) {
+    let name = file_name(path);
+    let mut push = |location: Option<&str>, rule: Rule, message: String| {
+        out.push(Violation::new(path, location, rule, message));
+    };
+    let empty = |field: &str| field.trim().is_empty();
+    for (index, citation) in kat.citations.iter().enumerate() {
+        let location = format!("[[citation]] #{} ({})", index + 1, citation.kind());
+        let location = Some(location.as_str());
+        match citation {
+            Citation::Standard {
+                doc,
+                edition,
+                section,
+                verified,
+                via,
+                note,
+            } => {
+                if empty(doc) || empty(edition) || empty(section) {
+                    push(
+                        location,
+                        Rule::Citation,
+                        "a `standard` citation needs a non-empty `doc`, `edition` and `section`"
+                            .to_owned(),
+                    );
+                } else if !names_edition(edition) {
+                    push(
+                        location,
+                        Rule::Citation,
+                        format!(
+                            "`edition` {edition:?} names no edition: give its year (four \
+                             digits) or its revision / version identifier"
+                        ),
+                    );
+                }
+                if !verified {
+                    if !UNVERIFIED_CITATION_PREFIXES
+                        .iter()
+                        .any(|prefix| name.starts_with(prefix))
+                    {
+                        push(
+                            location,
+                            Rule::Citation,
+                            format!(
+                                "`verified = false` is a flagged exception allowed only in the \
+                                 fixtures {UNVERIFIED_CITATION_PREFIXES:?}* (SAE J1979, \
+                                 paywalled); read the cited edition and section first-hand"
+                            ),
+                        );
+                    }
+                    if via.is_empty() || via.iter().any(|v| empty(v)) {
+                        push(
+                            location,
+                            Rule::Citation,
+                            "an unverified citation (`verified = false`) needs `via`: the \
+                             secondary sources its values were taken from, none empty"
+                                .to_owned(),
+                        );
+                    }
+                }
+                let texts = [Some(doc), Some(edition), Some(section), note.as_ref()]
+                    .into_iter()
+                    .flatten()
+                    .chain(via);
+                if texts.into_iter().any(|text| mentions_java(text)) {
+                    push(
+                        location,
+                        Rule::ForbiddenSource,
+                        "citation cites Java: a `standard` citation names a published \
+                         document, never the Java application (D-024)"
+                            .to_owned(),
+                    );
+                }
+            }
+            Citation::LegacyTest { file, lines } => {
+                if !matches!(kat.kind, KatKind::Codec { .. }) {
+                    push(
+                        location,
+                        Rule::Citation,
+                        "a `legacy-test` citation is only for a [[codec]] fixture (the \
+                         transcribed legacy test vectors, US-RR-14-8)"
+                            .to_owned(),
+                    );
+                }
+                if !legacy_path_ok(file, "legacy/src/test/") {
+                    push(
+                        location,
+                        Rule::Citation,
+                        format!(
+                            "`legacy-test` citation `file` {file:?} must be a relative, \
+                             `/`-separated path to a file under `legacy/src/test/`"
+                        ),
+                    );
+                }
+                if let Err(problem) = super::parse_line_spec(lines) {
+                    push(location, Rule::Citation, problem);
+                }
+            }
+            Citation::LegacyAlgorithm { file, lines, note } => {
+                if !LEGACY_ALGORITHM_FIXTURES.contains(&name.as_str()) {
+                    push(
+                        location,
+                        Rule::Citation,
+                        format!(
+                            "a `legacy-algorithm` citation is a flagged exception allowed only \
+                             in {LEGACY_ALGORITHM_FIXTURES:?} (checksums no standard defines); \
+                             cite a published standard"
+                        ),
+                    );
+                }
+                if !legacy_path_ok(file, "legacy/src/main/") {
+                    push(
+                        location,
+                        Rule::Citation,
+                        format!(
+                            "`legacy-algorithm` citation `file` {file:?} must be a relative, \
+                             `/`-separated path to a file under `legacy/src/main/`"
+                        ),
+                    );
+                }
+                if let Err(problem) = super::parse_line_spec(lines) {
+                    push(location, Rule::Citation, problem);
+                }
+                if empty(note) {
+                    push(
+                        location,
+                        Rule::Citation,
+                        "a `legacy-algorithm` citation needs a `note` saying why no standard \
+                         is cited"
+                            .to_owned(),
+                    );
+                }
+            }
+        }
+    }
+    if !is_vector_fixture(path, kat) {
+        return;
+    }
+    if kat.citations.is_empty() {
+        push(
+            None,
+            Rule::Citation,
+            format!(
+                "a standard test-vector fixture (file name {VECTOR_PREFIXES:?}*, or a [[timing]] \
+                 or [[codec]] fixture) needs a [[citation]]: the document, edition and section \
+                 its values rest on (`kind = \"standard\"`), or the legacy test file and lines \
+                 it transcribes (`kind = \"legacy-test\"`)"
+            ),
+        );
+    }
+    // Per case: a `standard` source names a cited document; a `legacy-test`
+    // source a cited test file.
+    for (location, source) in case_sources(kat) {
+        match source {
+            Source::Standard { doc, .. } => {
+                let cited = kat.citations.iter().any(|citation| {
+                    matches!(citation, Citation::Standard { doc: cited, .. }
+                        if !cited.trim().is_empty() && doc.trim().starts_with(cited.trim()))
+                });
+                if !cited {
+                    push(
+                        Some(&location),
+                        Rule::Citation,
+                        format!(
+                            "source document {doc:?} is not cited: add a `standard` \
+                             [[citation]] whose `doc` it starts with"
+                        ),
+                    );
+                }
+            }
+            // Outside a [[codec]] fixture the source is already rule
+            // `legacy-test`.
+            Source::LegacyTest { file, .. } if matches!(kat.kind, KatKind::Codec { .. }) => {
+                let cited = kat.citations.iter().any(|citation| {
+                    matches!(citation, Citation::LegacyTest { file: cited, .. } if cited == file)
+                });
+                if !cited {
+                    push(
+                        Some(&location),
+                        Rule::Citation,
+                        format!(
+                            "legacy test file {file:?} is not cited: add a `legacy-test` \
+                             [[citation]] with that `file`"
+                        ),
+                    );
+                }
+            }
+            _ => {}
         }
     }
 }
@@ -850,6 +1240,23 @@ fn check_source(
                 );
             }
         }
+        Source::LegacyTest { file, lines } => {
+            if !matches!(expected, Expected::Codec(_)) {
+                push(
+                    Rule::LegacyTest,
+                    "a `legacy-test` source is only for a [[codec]] case (the transcribed \
+                     legacy test vectors, US-RR-14-8); elsewhere a value needs a Java-free \
+                     source (D-024)"
+                        .to_owned(),
+                );
+            }
+            if let Err(problem) = check_legacy_file(file) {
+                push(Rule::LegacyTest, problem);
+            }
+            if let Err(problem) = super::parse_line_spec(lines) {
+                push(Rule::LegacyTest, problem);
+            }
+        }
     }
     if source_texts(source).iter().any(|text| mentions_java(text)) {
         push(
@@ -875,7 +1282,32 @@ fn source_texts(source: &Source) -> Vec<&str> {
             .flatten()
             .collect(),
         Source::CrossSource { sources } => sources.iter().map(String::as_str).collect(),
+        // The file path names a legacy test file by design (rule
+        // `legacy-test` checks it); the line numbers are numbers.
+        Source::LegacyTest { .. } => Vec::new(),
     }
+}
+
+/// The `legacy-test` rule on a source's `file`: a relative, `/`-separated
+/// path under `legacy/src/test/`, with no empty, `.` or `..` part.
+fn check_legacy_file(file: &str) -> Result<(), String> {
+    const ROOT: &str = "legacy/src/test/";
+    if !legacy_path_ok(file, ROOT) {
+        return Err(format!(
+            "`legacy-test` source `file` {file:?} must be a relative, `/`-separated path \
+             to a file under `{ROOT}` (a legacy test file, not application code)"
+        ));
+    }
+    Ok(())
+}
+
+/// Whether `file` is a relative, `/`-separated path to a file under `root`
+/// (which ends in `/`), with no empty, `.` or `..` part and no backslash.
+fn legacy_path_ok(file: &str, root: &str) -> bool {
+    let parts_ok = file
+        .split('/')
+        .all(|part| !part.is_empty() && part != "." && part != "..");
+    file.starts_with(root) && file.len() > root.len() && !file.contains('\\') && parts_ok
 }
 
 /// Whether `text` contains the word `java` (any case, not part of a longer
@@ -980,6 +1412,31 @@ fn check_working(working: &str, expected: &Expected<'_>) -> Result<(), String> {
                 ));
             }
         }
+        Expected::Unit(case) => {
+            if !mentions_float(&numbers, case.expected, case.tolerance.unwrap_or(0.0)) {
+                return Err(format!(
+                    "`hand-calc` working {working:?} does not arrive at the expected value {} {}",
+                    case.expected, case.to
+                ));
+            }
+        }
+        Expected::Codec(case) => {
+            if !mentions_checksum(working, &numbers, &case.output) {
+                return Err(format!(
+                    "`hand-calc` working {working:?} does not arrive at the expected output {}",
+                    show_hex(&case.output)
+                ));
+            }
+        }
+        Expected::Timing(case) => {
+            if !mentions_int(&numbers, i128::from(case.amount)) {
+                return Err(format!(
+                    "`hand-calc` working {working:?} does not arrive at the expected value {} {}",
+                    case.amount,
+                    case.unit.key()
+                ));
+            }
+        }
     }
     if numbers.iter().all(|&n| is_result(n, expected)) {
         return Err(format!(
@@ -1013,8 +1470,11 @@ fn is_result(n: Num, expected: &Expected<'_>) -> bool {
             case.value.is_finite()
                 && mentions_float(&one, case.value, case.tolerance.unwrap_or(0.0))
         }
-        Expected::Checksum(state) => {
-            let bytes = state.hex.as_bytes();
+        Expected::Unit(case) => mentions_float(&one, case.expected, case.tolerance.unwrap_or(0.0)),
+        Expected::Timing(case) => mentions_int(&one, i128::from(case.amount)),
+        Expected::Checksum(ChecksumState { hex, .. })
+        | Expected::Codec(CodecCase { output: hex, .. }) => {
+            let bytes = hex.as_bytes();
             bytes.len() <= 16 && {
                 let big = bytes
                     .iter()
@@ -1318,6 +1778,39 @@ fn expr_key(case: &ExprCase) -> ExprKey<'_> {
     )
 }
 
+/// The expected-value part of a unit case, floats by their bits.
+type UnitKey<'a> = (&'a str, &'a str, Option<&'a str>, u64, u64, Option<u64>);
+
+/// The [`UnitKey`] of `case`.
+fn unit_key(case: &UnitCase) -> UnitKey<'_> {
+    (
+        &case.from,
+        &case.to,
+        case.fuel.as_deref(),
+        case.value.to_bits(),
+        case.expected.to_bits(),
+        case.tolerance.map(f64::to_bits),
+    )
+}
+
+/// The expected-value part of a timing case: its name and the duration
+/// (so rewriting `ms = 1` as `us = 1000` is not a change).
+type TimingKey<'a> = (&'a str, std::time::Duration);
+
+/// The [`TimingKey`] of `case`.
+fn timing_key(case: &TimingCase) -> TimingKey<'_> {
+    (&case.name, case.duration())
+}
+
+/// The expected-value part of a codec case: everything but its source and
+/// note.
+type CodecKey<'a> = (&'a str, &'a toml::Table, &'a HexBytes, &'a HexBytes);
+
+/// The [`CodecKey`] of `case`.
+fn codec_key(case: &CodecCase) -> CodecKey<'_> {
+    (&case.op, &case.params, &case.input, &case.output)
+}
+
 fn checksum_key(case: &ChecksumCase) -> ChecksumKey<'_> {
     (
         &case.algorithm,
@@ -1438,8 +1931,48 @@ pub fn check_change(path: &Path, base_label: &str, base: &Kat, head: &Kat) -> Op
                 ));
             }
         }
+        (KatKind::Unit { cases: base_cases }, KatKind::Unit { cases: head_cases }) => {
+            let base_keys: Vec<_> = base_cases.iter().map(unit_key).collect();
+            let head_keys: Vec<_> = head_cases.iter().map(unit_key).collect();
+            for index in unmatched(&base_keys, &head_keys) {
+                let case = &base_cases[index];
+                changes.push(format!(
+                    "{} (expected = {}, tolerance = {:?}) was changed or removed",
+                    unit_location(index, &case.value, &case.from, &case.to),
+                    case.expected,
+                    case.tolerance
+                ));
+            }
+        }
+        (KatKind::Timing { cases: base_cases }, KatKind::Timing { cases: head_cases }) => {
+            let base_keys: Vec<_> = base_cases.iter().map(timing_key).collect();
+            let head_keys: Vec<_> = head_cases.iter().map(timing_key).collect();
+            for index in unmatched(&base_keys, &head_keys) {
+                let case = &base_cases[index];
+                changes.push(format!(
+                    "{} ({} = {}) was changed or removed",
+                    timing_location(index, &case.name),
+                    case.unit.key(),
+                    case.amount
+                ));
+            }
+        }
+        (KatKind::Codec { cases: base_cases }, KatKind::Codec { cases: head_cases }) => {
+            let base_keys: Vec<_> = base_cases.iter().map(codec_key).collect();
+            let head_keys: Vec<_> = head_cases.iter().map(codec_key).collect();
+            for index in unmatched(&base_keys, &head_keys) {
+                let case = &base_cases[index];
+                changes.push(format!(
+                    "{} (output {}) was changed or removed",
+                    codec_location(index, &case.op),
+                    show_hex(&case.output)
+                ));
+            }
+        }
         _ => changes.push(
-            "the fixture switched between [[decode]], [[checksum]] and [[expr]] cases".to_owned(),
+            "the fixture switched between [[decode]], [[checksum]], [[expr]], [[unit]], \
+             [[timing]] and [[codec]] cases"
+                .to_owned(),
         ),
     }
     if changes.is_empty() {

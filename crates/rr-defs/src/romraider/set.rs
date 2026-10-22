@@ -388,6 +388,10 @@ impl DefinitionSet {
     /// The first `<rom>`, in set order, whose own identification matches
     /// `image`, as legacy picked the definition of an image it opened
     /// (`editor/ecu/OpenImageWorker.java:219-250`).
+    ///
+    /// A second match is not noticed, legacy's EC-03 bug: to open an image,
+    /// use [`RomIdIndex`](crate::resolve::RomIdIndex), which refuses an
+    /// image more than one definition matches.
     #[must_use]
     pub fn identify(&self, image: &[u8]) -> Option<RomRef> {
         self.roms()

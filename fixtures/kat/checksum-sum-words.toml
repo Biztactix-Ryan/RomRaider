@@ -1,0 +1,279 @@
+# Checksum reference vectors: additive sums of 16- and 32-bit words, big- and
+# little-endian, plain, one's and two's complement, and the Subaru
+# "sum to 0x5AA5A55A" form (US-RR-14-7, PROJECT.md T2 (d), D-024).
+#
+# There is no published standard for these sums, so every expected value is
+# worked by hand below (each word, each addition, each wrap). No code was run
+# to produce them: not rr-core, not rr-testkit, not legacy, not a throwaway
+# script or calculator. crates/rr-testkit/tests/checksum_kat.rs re-derives
+# every case with its own small reference implementation on every test run.
+#
+# Families pinned (the arithmetic of the checksum engine, US-RR-35, D-009;
+# legacy semantics cited, values never taken from it):
+# * 32-bit big-endian word sum mod 2^32: Nissan std/alt/alt2 `sumt`
+#   (legacy/src/main/java/com/romraider/maps/checksum/CalculateSTD.java:47-50,
+#   CalculateALT2.java:49-54, stored big-endian by NissanChecksum.java:78);
+# * Subaru: stored = 0x5AA5A55A - (32-bit big-endian word sum), so the words
+#   plus the stored value total 0x5AA5A55A
+#   (legacy/src/main/java/com/romraider/maps/RomChecksum.java:101-116,
+#   Settings.java:131 CHECK_TOTAL = 0x5AA5A55A); an empty range [0, 0) is
+#   legacy's "disabled" entry, whose stored value is CHECK_TOTAL itself
+#   (RomChecksum.java:55-57 and 82-86);
+# * 16-bit big-endian word sum mod 2^16: Nissan alt2 calibration and code
+#   sums (CalculateALT2.java:61-84) and the GM E38 segment sum, which is then
+#   two's-complemented, ((sum & 0xFFFF) ^ 0xFFFF) + 1 (ChecksumE38PCM.java:213-220);
+# * one's complement and the little-endian forms: the `negate` and `endian`
+#   options of US-RR-35's `Sum{width, endian, init, negate}`; no legacy
+#   algorithm uses them, but the engine offers them.
+#
+# Odd-length ranges: legacy has no padding convention. Its word loops step
+# by the word size and read a whole word at each step (CalculateSTD.java:47-49,
+# RomChecksum.java:103-104, ChecksumE38PCM.java:215-216), so a range whose
+# length is not a multiple of the word reads the bytes just past `end`, and
+# throws past the end of the image (RomAttributeParser.java:141-153). The
+# vectors marked `pad = "zero"` pin the convention the engine adopts if it
+# accepts such a range at all: the last partial word is completed with 0x00
+# bytes at the higher addresses (so 0x39 is the big-endian word 0x3900 and
+# the little-endian word 0x0039). Whether to accept such ranges or reject them
+# is US-RR-35's call; a range without `pad` must be a whole number of words.
+schema = 1
+title = "Word sums (16/32-bit, big/little-endian, negated, Subaru 0x5AA5A55A): ASCII, all-0xFF, empty, wrap, odd length"
+notes = """
+Shared layout of the checksum vector fixtures (checksum-*.toml), one input:
+  bytes  0..8   FF FF FF FF FF FF FF FF   all-0xFF block
+  bytes  8..17  31 32 33 34 35 36 37 38 39  ASCII "123456789"
+  bytes 17..21  00 00 00 00   the stored-checksum slot, zero as given
+Every case reads its region and stores its result at offset 17. `before` is the
+zero slot as given (valid only when the expected checksum is itself zero);
+`after` is the slot once the checksum is fixed.
+
+algorithm = "sum", params:
+  start, end  the summed region, half-open [start, end)
+  word        bytes per addend: 2 or 4, read unsigned in `endian` byte order
+  endian      "big" | "little"
+  width       accumulator bits; the sum is taken mod 2^width
+  negate      "none" (default) | "ones": store ~sum = (2^width - 1) - sum |
+              "twos": store -sum mod 2^width = (sum ^ (2^width - 1)) + 1
+  target      instead of negate: store (target - sum) mod 2^width, so the
+              region's words plus the stored value total `target` (Subaru)
+  pad         "zero": a last partial word is completed with 0x00 bytes
+  store       byte order of the stored result, width/8 bytes
+
+Words of "12345678" (bytes 8..16):
+  16-bit big-endian    0x3132 0x3334 0x3536 0x3738 = 12594 13108 13622 14136
+  16-bit little-endian 0x3231 0x3433 0x3635 0x3837 = 12849 13363 13877 14391
+  32-bit big-endian    0x31323334 0x35363738 = 825373492 892745528
+  32-bit little-endian 0x34333231 0x38373635 = 875770417 943142453
+"""
+
+# The documents these values rest on (US-RR-14-1, validator rule `citation`).
+# Flagged exception: no published standard defines these sums, so the
+# citations are the legacy code whose algorithm the hand-worked values model
+# (`legacy-algorithm`, allowed only in the checksum sum and XOR fixtures).
+[[citation]]
+kind = "legacy-algorithm"
+file = "legacy/src/main/java/com/romraider/maps/checksum/CalculateSTD.java"
+lines = "47-50"
+note = "Nissan std `sumt`: 32-bit big-endian word sum mod 2^32. No published standard defines this checksum, so no standard is cited: the values are worked by hand (each case's `working`) and re-derived by checksum_kat.rs; this cites the legacy algorithm they model, for its semantics only (D-024, US-RR-35)."
+
+[[citation]]
+kind = "legacy-algorithm"
+file = "legacy/src/main/java/com/romraider/maps/checksum/CalculateALT2.java"
+lines = "49-54,61-84"
+note = "Nissan alt2 `sumt` and its 16-bit calibration and code sums. No published standard defines this checksum, so no standard is cited: the values are worked by hand (each case's `working`) and re-derived by checksum_kat.rs; this cites the legacy algorithm they model, for its semantics only (D-024, US-RR-35)."
+
+[[citation]]
+kind = "legacy-algorithm"
+file = "legacy/src/main/java/com/romraider/maps/checksum/NissanChecksum.java"
+lines = "78"
+note = "Nissan: the 32-bit sum stored big-endian. No published standard defines this checksum, so no standard is cited: the values are worked by hand (each case's `working`) and re-derived by checksum_kat.rs; this cites the legacy algorithm they model, for its semantics only (D-024, US-RR-35)."
+
+[[citation]]
+kind = "legacy-algorithm"
+file = "legacy/src/main/java/com/romraider/maps/RomChecksum.java"
+lines = "55-57,82-86,101-116"
+note = "Subaru: stored = 0x5AA5A55A - word sum; an empty range is the disabled entry. No published standard defines this checksum, so no standard is cited: the values are worked by hand (each case's `working`) and re-derived by checksum_kat.rs; this cites the legacy algorithm they model, for its semantics only (D-024, US-RR-35)."
+
+[[citation]]
+kind = "legacy-algorithm"
+file = "legacy/src/main/java/com/romraider/Settings.java"
+lines = "131"
+note = "Subaru CHECK_TOTAL = 0x5AA5A55A. No published standard defines this checksum, so no standard is cited: the values are worked by hand (each case's `working`) and re-derived by checksum_kat.rs; this cites the legacy algorithm they model, for its semantics only (D-024, US-RR-35)."
+
+[[citation]]
+kind = "legacy-algorithm"
+file = "legacy/src/main/java/com/romraider/maps/checksum/ChecksumE38PCM.java"
+lines = "213-220"
+note = "GM E38 segment sum: 16-bit big-endian word sum, two's-complemented. No published standard defines this checksum, so no standard is cited: the values are worked by hand (each case's `working`) and re-derived by checksum_kat.rs; this cites the legacy algorithm they model, for its semantics only (D-024, US-RR-35)."
+
+[input]
+hex = """
+FF FF FF FF FF FF FF FF
+31 32 33 34 35 36 37 38 39
+00 00 00 00
+"""
+
+# --- 16-bit words -----------------------------------------------------------
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 8, end = 16, word = 2, endian = "big", width = 16, store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the sum is 0xD0D4 = 53460, and 0 != 53460, so it does not verify" } }
+after = { hex = "D0 D4", valid = true, source = { kind = "hand-calc", working = "0x3132 + 0x3334 + 0x3536 + 0x3738 = 12594 + 13108 + 13622 + 14136 = 53460 = 208*256 + 212 = 0xD0D4 (no wrap), stored big-endian D0 D4" } }
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 8, end = 16, word = 2, endian = "little", width = 16, store = "little" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the sum is 0xD4D0 = 54480, and 0 != 54480, so it does not verify" } }
+after = { hex = "D0 D4", valid = true, source = { kind = "hand-calc", working = "0x3231 + 0x3433 + 0x3635 + 0x3837 = 12849 + 13363 + 13877 + 14391 = 54480 = 212*256 + 208 = 0xD4D0, stored little-endian D0 D4" } }
+note = "the same stored bytes as the big-endian case only because no byte column carries (0x31+0x33+0x35+0x37 = 0xD0); the wrap cases below differ"
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 6, end = 10, word = 2, endian = "big", width = 16, store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the sum is 0x3131 = 12593, and 0 != 12593, so it does not verify" } }
+after = { hex = "31 31", valid = true, source = { kind = "hand-calc", working = "bytes FF FF 31 32: 0xFFFF + 0x3132 = 65535 + 12594 = 78129; 78129 mod 65536 = 78129 - 65536 = 12593 = 0x3131, stored big-endian 31 31" } }
+note = "wraps; a 32-bit accumulator would give 0x00013131"
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 6, end = 10, word = 2, endian = "little", width = 16, store = "little" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the sum is 0x3230 = 12848, and 0 != 12848, so it does not verify" } }
+after = { hex = "30 32", valid = true, source = { kind = "hand-calc", working = "bytes FF FF 31 32: 0xFFFF + 0x3231 = 65535 + 12849 = 78384; 78384 mod 65536 = 78384 - 65536 = 12848 = 0x3230, stored little-endian 30 32" } }
+note = "the carry crosses byte columns, so this is not the byte swap of the big-endian 0x3131"
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 0, end = 6, word = 2, endian = "big", width = 16, store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the sum is 0xFFFD = 65533, and 0 != 65533, so it does not verify" } }
+after = { hex = "FF FD", valid = true, source = { kind = "hand-calc", working = "all-0xFF: 0xFFFF*3 = 65535*3 = 196605; 196605 mod 65536 = 196605 - 2*65536 = 65533 = 0xFFFD, stored big-endian FF FD" } }
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 8, end = 17, word = 2, endian = "big", width = 16, pad = "zero", store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the sum is 0x09D4 = 2516, and 0 != 2516, so it does not verify" } }
+after = { hex = "09 D4", valid = true, source = { kind = "hand-calc", working = "9 bytes: last word 39 + pad 00 = 0x3900 = 14592; 53460 + 14592 = 68052; 68052 mod 65536 = 68052 - 65536 = 2516 = 9*256 + 212 = 0x09D4, stored big-endian 09 D4" } }
+note = "odd length, zero padding at the higher address; padding at the lower address (0x0039) gives 0xD10D"
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 8, end = 17, word = 2, endian = "little", width = 16, pad = "zero", store = "little" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the sum is 0xD509 = 54537, and 0 != 54537, so it does not verify" } }
+after = { hex = "09 D5", valid = true, source = { kind = "hand-calc", working = "9 bytes: last word 39 + pad 00 read little-endian = 0x0039 = 57; 54480 + 57 = 54537 = 213*256 + 9 = 0xD509, stored little-endian 09 D5" } }
+note = "odd length, zero padding; the low byte column carries (0xD0 + 0x39 = 0x109)"
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 8, end = 16, word = 2, endian = "big", width = 16, negate = "twos", store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the checksum is 0x2F2C = 12076, and 0 != 12076, so it does not verify" } }
+after = { hex = "2F 2C", valid = true, source = { kind = "hand-calc", working = "sum 0xD0D4 = 53460; two's complement (0xD0D4 ^ 0xFFFF) + 1 = 0x2F2B + 1 = 0x2F2C = 65536 - 53460 = 12076, stored big-endian 2F 2C" } }
+note = "the GM E38 segment-sum form; check: 0xD0D4 + 0x2F2C = 0x10000, i.e. the words plus the stored value sum to 0 mod 2^16"
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 8, end = 16, word = 2, endian = "big", width = 16, negate = "ones", store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the checksum is 0x2F2B = 12075, and 0 != 12075, so it does not verify" } }
+after = { hex = "2F 2B", valid = true, source = { kind = "hand-calc", working = "sum 0xD0D4 = 53460; one's complement 0xD0D4 ^ 0xFFFF = 65535 - 53460 = 12075 = 0x2F2B, stored big-endian 2F 2B" } }
+note = "one less than the two's complement"
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 8, end = 8, word = 2, endian = "big", width = 16, negate = "twos", store = "big" }
+offset = 17
+before = { hex = "00 00", valid = true, source = { kind = "hand-calc", working = "empty region: sum 0; (0 ^ 0xFFFF) + 1 = 0x10000, mod 65536 = 0; stored 00 00 = 0*256 + 0 = 0, so it verifies" } }
+after = { hex = "00 00", valid = true, source = { kind = "hand-calc", working = "empty region: sum = 0; two's complement (0x0000 ^ 0xFFFF) + 1 = 0x10000; 65536 mod 65536 = 0 = 0x0000" } }
+note = "the +1 carries out of 16 bits; keeping it would need 17 bits"
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 8, end = 8, word = 2, endian = "big", width = 16, negate = "ones", store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the checksum is 0xFFFF = 65535, and 0 != 65535, so it does not verify" } }
+after = { hex = "FF FF", valid = true, source = { kind = "hand-calc", working = "empty region: sum = 0; one's complement 0x0000 ^ 0xFFFF = 65535 - 0 = 65535 = 0xFFFF, stored FF FF" } }
+
+# --- 32-bit words -----------------------------------------------------------
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 8, end = 16, word = 4, endian = "big", width = 32, store = "big" }
+offset = 17
+before = { hex = "00 00 00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..21 = 00 00 00 00 = 0*16777216 + 0 = 0; the sum is 0x66686A6C = 1718119020, and 0 != 1718119020, so it does not verify" } }
+after = { hex = "66 68 6A 6C", valid = true, source = { kind = "hand-calc", working = "0x31323334 + 0x35363738 = 825373492 + 892745528 = 1718119020 = 0x66686A6C (column by column 31+35 = 66, 32+36 = 68, 33+37 = 6A, 34+38 = 6C, no carries), stored big-endian 66 68 6A 6C" } }
+note = "the Nissan sumt form"
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 8, end = 16, word = 4, endian = "little", width = 32, store = "little" }
+offset = 17
+before = { hex = "00 00 00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..21 = 00 00 00 00 = 0*16777216 + 0 = 0; the sum is 0x6C6A6866 = 1818912870, and 0 != 1818912870, so it does not verify" } }
+after = { hex = "66 68 6A 6C", valid = true, source = { kind = "hand-calc", working = "0x34333231 + 0x38373635 = 875770417 + 943142453 = 1818912870 = 0x6C6A6866, stored little-endian 66 68 6A 6C" } }
+note = "same stored bytes as the big-endian case because no column carries; the wrap cases below differ"
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 4, end = 12, word = 4, endian = "big", width = 32, store = "big" }
+offset = 17
+before = { hex = "00 00 00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..21 = 00 00 00 00 = 0*16777216 + 0 = 0; the sum is 0x31323333 = 825373491, and 0 != 825373491, so it does not verify" } }
+after = { hex = "31 32 33 33", valid = true, source = { kind = "hand-calc", working = "bytes FF FF FF FF 31 32 33 34: 0xFFFFFFFF + 0x31323334 = 4294967295 + 825373492 = 5120340787; mod 2^32: 5120340787 - 4294967296 = 825373491 = 0x31323333, stored big-endian 31 32 33 33" } }
+note = "wraps: adding 0xFFFFFFFF mod 2^32 is subtracting 1"
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 4, end = 12, word = 4, endian = "little", width = 32, store = "little" }
+offset = 17
+before = { hex = "00 00 00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..21 = 00 00 00 00 = 0*16777216 + 0 = 0; the sum is 0x34333230 = 875770416, and 0 != 875770416, so it does not verify" } }
+after = { hex = "30 32 33 34", valid = true, source = { kind = "hand-calc", working = "bytes FF FF FF FF 31 32 33 34: 0xFFFFFFFF + 0x34333231 = 4294967295 + 875770417 = 5170737712; mod 2^32: 5170737712 - 4294967296 = 875770416 = 0x34333230, stored little-endian 30 32 33 34" } }
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 0, end = 8, word = 4, endian = "big", width = 32, store = "big" }
+offset = 17
+before = { hex = "00 00 00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..21 = 00 00 00 00 = 0*16777216 + 0 = 0; the sum is 0xFFFFFFFE = 4294967294, and 0 != 4294967294, so it does not verify" } }
+after = { hex = "FF FF FF FE", valid = true, source = { kind = "hand-calc", working = "all-0xFF: 0xFFFFFFFF*2 = 4294967295*2 = 8589934590; mod 2^32: 8589934590 - 4294967296 = 4294967294 = 0xFFFFFFFE, stored big-endian FF FF FF FE" } }
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 8, end = 17, word = 4, endian = "big", width = 32, pad = "zero", store = "big" }
+offset = 17
+before = { hex = "00 00 00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..21 = 00 00 00 00 = 0*16777216 + 0 = 0; the sum is 0x9F686A6C = 2674420332, and 0 != 2674420332, so it does not verify" } }
+after = { hex = "9F 68 6A 6C", valid = true, source = { kind = "hand-calc", working = "9 bytes: last word 39 + pad 00 00 00 = 0x39000000 = 57*16777216 = 956301312; 1718119020 + 956301312 = 2674420332 = 0x9F686A6C (0x66 + 0x39 = 0x9F), stored big-endian 9F 68 6A 6C" } }
+note = "odd length, zero padding at the higher addresses"
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 8, end = 17, word = 4, endian = "little", width = 32, pad = "zero", store = "little" }
+offset = 17
+before = { hex = "00 00 00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..21 = 00 00 00 00 = 0*16777216 + 0 = 0; the sum is 0x6C6A689F = 1818912927, and 0 != 1818912927, so it does not verify" } }
+after = { hex = "9F 68 6A 6C", valid = true, source = { kind = "hand-calc", working = "9 bytes: last word 39 + pad 00 00 00 read little-endian = 0x00000039 = 57; 1818912870 + 57 = 1818912927 = 0x6C6A689F, stored little-endian 9F 68 6A 6C" } }
+note = "odd length, zero padding"
+
+# --- Subaru: words plus stored value total 0x5AA5A55A ------------------------
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 8, end = 16, word = 4, endian = "big", width = 32, target = 0x5AA5A55A, store = "big" }
+offset = 17
+before = { hex = "00 00 00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..21 = 00 00 00 00 = 0*16777216 + 0 = 0; 0x5AA5A55A - 0 - 0x66686A6C = 1520805210 - 1718119020 != 0, so it does not verify" } }
+after = { hex = "F4 3D 3A EE", valid = true, source = { kind = "hand-calc", working = "0x5AA5A55A - 0x66686A6C mod 2^32 = 1520805210 - 1718119020 + 4294967296 = 4097653486 = 0xF43D3AEE (bytes 5A-6C = EE borrow 1, A5-6A-1 = 3A, A5-68 = 3D, 5A-66 = F4 borrow out); check 0x66686A6C + 0xF43D3AEE = 0x15AA5A55A, mod 2^32 = 0x5AA5A55A" } }
+note = "the Subaru form; plain two's complement (target 0) would store 0x99979594"
+
+[[checksum]]
+algorithm = "sum"
+params = { start = 8, end = 8, word = 4, endian = "big", width = 32, target = 0x5AA5A55A, store = "big" }
+offset = 17
+before = { hex = "00 00 00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..21 = 00 00 00 00 = 0*16777216 + 0 = 0; 0x5AA5A55A - 0 - 0 = 1520805210 != 0, so it does not verify" } }
+after = { hex = "5A A5 A5 5A", valid = true, source = { kind = "hand-calc", working = "empty region: sum = 0; 0x5AA5A55A - 0 = 90*16777216 + 165*65536 + 165*256 + 90 = 1520805210 = 0x5AA5A55A, stored big-endian 5A A5 A5 5A" } }
+note = "the value legacy's disabled entry (start = end = 0) holds"
+
+[[changelog]]
+date = 2026-10-22
+reason = "initial values"

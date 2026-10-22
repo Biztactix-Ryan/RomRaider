@@ -43,6 +43,14 @@
 //! `RR_CORPUS_DIR`, the committed manifest or the committed report), so CI
 //! fails when `fixtures/corpus-coverage.toml` is stale.
 //!
+//! For task US-RR-21-3, after the corpus-tier tests, a step
+//! [`UNIT_STRINGS_STEP`] re-runs the corpus unit-string test showing its
+//! output, under `set -o pipefail`, and reports its logger half: a
+//! workflow `::warning` and a step-summary line when it printed that
+//! `logger_v370.zip` was skipped (CI never has it, D-028), and a failure
+//! when it printed neither that nor the members it scanned
+//! ([`unit_strings_problems`]).
+//!
 //! For task US-RR-16-2 (the definitions are fetched and hash-verified
 //! alongside the ROMs, D-028), [`defs_env_problems`] asserts that nothing
 //! in the workflow sets `RR_CORPUS_SOURCE`, `RR_DEFS_SOURCE` or
@@ -117,6 +125,19 @@ const TESTS_STEP: &str = "Corpus-tier tests (cargo nextest)";
 /// Every corpus-tier test, forced to run (an ignored one fails in
 /// `require_tier`), and an empty selection fails.
 const TESTS_CMD: &str = "cargo nextest run --workspace --locked --run-ignored all --no-tests=fail -E 'test(/::requires_RR_CORPUS_DIR$/)'";
+
+/// US-RR-21-3: the step reporting the unit-string test's logger half.
+const UNIT_STRINGS_STEP: &str = "Corpus unit strings (logger_v370.zip)";
+/// Lines that step's script must contain, each exactly (trimmed).
+const UNIT_STRINGS_LINES: &[&str] = &[
+    "set -o pipefail",
+    "cargo nextest run -p rr-defs --test corpus_unit_strings --locked --run-ignored all --no-tests=fail --success-output immediate 2>&1 | tee \"$log\"",
+    "if grep -q '\\[units\\] logger_v370.zip: SKIPPED' \"$log\"; then",
+    "echo \"::warning title=Corpus unit strings::$msg\"",
+    "} >> \"$GITHUB_STEP_SUMMARY\"",
+    "elif ! grep -q '\\[units\\] logger_v370.zip: [0-9]* member(s) scanned' \"$log\"; then",
+    "exit 1",
+];
 
 fn cache_key() -> String {
     format!("{KEY_PREFIX}${{{{ hashFiles('{COMMITTED_PATH}') }}}}")
@@ -396,6 +417,7 @@ fn corpus_problems(src: &str, doc_minutes: Option<u64>) -> Vec<String> {
     }
 
     problems.extend(verification_problems(&steps, fetch, save));
+    problems.extend(unit_strings_problems(&steps));
     problems.extend(defs_env_problems(src));
 
     for (i, s) in steps.iter().enumerate() {
@@ -603,6 +625,37 @@ fn verification_problems(
                     s.run_scripts()
                 ));
             }
+        }
+    }
+    problems
+}
+
+/// US-RR-21-3: problems with the [`UNIT_STRINGS_STEP`] of the `corpus`
+/// job's `steps`: missing, before the corpus-tier tests (so before the
+/// fetch and the nextest install), or missing a line of
+/// [`UNIT_STRINGS_LINES`].
+fn unit_strings_problems(steps: &[Job<'_>]) -> Vec<String> {
+    let find = |name: &str| steps.iter().position(|s| s.id == name);
+    let Some(i) = find(UNIT_STRINGS_STEP) else {
+        return vec![format!("`{JOB}` has no step `{UNIT_STRINGS_STEP}`")];
+    };
+    let mut problems = Vec::new();
+    if find(TESTS_STEP).is_none_or(|t| t > i) {
+        problems.push(format!(
+            "`{JOB}`: `{UNIT_STRINGS_STEP}` runs before `{TESTS_STEP}`"
+        ));
+    }
+    let scripts = steps[i].run_scripts();
+    if scripts.len() != 1 {
+        problems.push(format!(
+            "`{JOB}` step `{UNIT_STRINGS_STEP}` has not exactly one script ({scripts:?})"
+        ));
+    }
+    for want in UNIT_STRINGS_LINES {
+        if !steps[i].content_lines().any(|l| l == *want) {
+            problems.push(format!(
+                "`{JOB}` step `{UNIT_STRINGS_STEP}` lacks the line `{want}`"
+            ));
         }
     }
     problems
@@ -1102,6 +1155,66 @@ fn ci_corpus_check_rejects_weakened_coverage_check() {
             format!("{}{step}{}", &without[..fetch], &without[fetch..])
         }),
         "coverage report is checked before the corpus is fetched and saved",
+    );
+}
+
+/// US-RR-21-3: the logger half of the unit-string test cannot be skipped
+/// silently: the reporting step cannot be dropped, moved before the
+/// corpus-tier tests, or lose its output, its pipefail, its warning or its
+/// failure when the test printed no logger line.
+#[test]
+fn ci_corpus_check_rejects_weakened_unit_strings_report() {
+    let doc = documented_budget_minutes(&infra_doc());
+    let m = |edit: &dyn Fn(&str) -> String| workflow::mutated(|s| corpus_problems(s, doc), edit);
+    let head = format!("      - name: {UNIT_STRINGS_STEP}\n");
+    // The step's text in `s`: from its `- name:` to the blank line after.
+    let span = |s: &str| {
+        let start = s.find(&head).unwrap_or(0);
+        let end = s[start..].find("\n\n").map_or(s.len(), |e| start + e + 1);
+        (start, end)
+    };
+
+    assert_flags(
+        &m(&|s| s.replace(&head, "      - name: Something else\n")),
+        "has no step `Corpus unit strings (logger_v370.zip)`",
+    );
+    for (line, edited) in [
+        ("set -o pipefail", "true"),
+        (
+            UNIT_STRINGS_LINES[1],
+            &UNIT_STRINGS_LINES[1].replace(" --success-output immediate", "")[..],
+        ),
+        (
+            UNIT_STRINGS_LINES[1],
+            &UNIT_STRINGS_LINES[1].replace(" | tee \"$log\"", " > \"$log\"; cat \"$log\"")[..],
+        ),
+        (UNIT_STRINGS_LINES[3], "echo \"$msg\""),
+        (UNIT_STRINGS_LINES[4], "}"),
+        ("exit 1", "echo none"),
+    ] {
+        let before = format!("{line}\n");
+        let after = format!("{edited}\n");
+        assert_flags(
+            &m(&|s| {
+                let (start, end) = span(s);
+                let step = s[start..end].replacen(&before, &after, 1);
+                format!("{}{step}{}", &s[..start], &s[end..])
+            }),
+            &format!("lacks the line `{line}`"),
+        );
+    }
+    // Moved before the corpus-tier tests.
+    assert_flags(
+        &m(&|s| {
+            let (start, end) = span(s);
+            let step = &s[start..end];
+            let without = format!("{}{}", &s[..start], &s[end..]);
+            let tests = without
+                .find(&format!("      - name: {TESTS_STEP}\n"))
+                .unwrap_or(0);
+            format!("{}{step}{}", &without[..tests], &without[tests..])
+        }),
+        "runs before `Corpus-tier tests (cargo nextest)`",
     );
 }
 

@@ -1,0 +1,243 @@
+# SAE J1979 service $01 PID vectors (US-RR-14-6, PROJECT.md T2 (d), D-024):
+# narrowband oxygen sensor short term fuel trim 100/128 B - 100 (byte B of 2).
+#
+# Formula sources. SAE J1979 and ISO 15031-5 are paywalled and were not
+# consulted; the formula is taken from two secondary sources that attribute
+# it to SAE J1979, which agree (see `notes`): Wikipedia's "OBD-II PIDs" table
+# and CSS Electronics' service 01 PID CSV. The response framing (0x41 = 0x01 +
+# 0x40, then the PID echoed, then the data bytes A, B, ...) is from the ELM327
+# datasheet (ELM327DSJ, pp. 31-32). The input is service-layer bytes only:
+# no transport framing (ISO 15765-2 PCI byte, ISO 14230 / 9141 header and
+# checksum).
+#
+# Which PIDs: the mode 01 PIDs legacy RomRaider's OBD logger offers
+# (<protocol id="OBD"> of the pinned logger definition, corpus tier,
+# defs/romraider/logger/logger_STD_EN_v290.xml:34769; the same PIDs in
+# logger_v370). Each PID and the line of its <parameter> there:
+# 14 line 34900, 15 line 34907, 16 line 34914, 17 line 34921, 18 line 34928,
+# 19 line 34935, 1A line 34942, 1B line 34949.
+#
+# Every value was worked from Wikipedia's formula in exact rational arithmetic
+# (Python fractions, in a throwaway authoring script kept outside the
+# repository, which also wrote each step into the working) and recomputed
+# from CSS's scale and offset as an independent check; the two ELM327
+# examples match the datasheet. Never with rr-core, rr-testkit or legacy
+# code. Review by recomputing a working by hand.
+# Each PID has a case with every data byte 0x00, one with every data byte
+# 0xFF, and at least one typical value.
+schema = 1
+title = "SAE J1979 service 01: narrowband oxygen sensor short term fuel trim 100/128 B - 100 (byte B of 2)"
+notes = """
+Standard: SAE J1979 (E/E Diagnostic Test Modes), service $01 (show current data), PIDs 14, 15, 16, 17, 18, 19, 1A, 1B.
+Edition and table not verified first-hand: SAE J1979 and ISO 15031-5 are paywalled. Wikipedia's
+"Further reading" lists SAE J1979 (2017-02-16, doi:10.4271/J1979_201702) and its Digital Annex
+SAE J1979-DA (2017-02-16, doi:10.4271/J1979DA_201702); neither was consulted.
+Via (secondary): Wikipedia, "OBD-II PIDs", revision 1374011962 (2026-09-09T07:43:07Z), section "Service 01 - Show current data", Formula column, rows 14, 15, 16, 17, 18, 19, 1A, 1B: 100/128 B - 100 (if B == $FF, sensor is not used in trim calculation).
+Via (secondary): CSS Electronics, "OBD2 PID table, service 01" CSV (https://canlogger.csselectronics.com/files/misc/obd2-pid-table-service-01.csv, retrieved 2026-10-22, SHA-256 3283f807111a5176bb13724477b62e20ee84386d4b031dc60301759e5be160d1), rows 14, 15, 16, 17, 18, 19, 1A, 1B: scale 0.78125, offset -100.
+Framing: Elm Electronics ELM327 datasheet, revision ELM327DSJ, "Talking to the Vehicle", pp. 31-32: a mode 01 response is 0x41 (0x01 + 0x40), the PID echoed, then the data bytes.
+Each case's offset is the first data byte (A) of one response; the two bytes before it are 0x41 and the PID.
+Formula: trim = 100/128 * B - 100 %, -100 to 99.21875 %. Byte A is the voltage (j1979-01-o2-voltage-u16.toml, same responses). B = 0xFF means the sensor is not used in the trim calculation (Wikipedia, same row): the 0xFF case pins the formula's value, which a decoder must report as not used rather than as a trim.
+PIDs: 0x14 oxygen sensor 1; 0x15 oxygen sensor 2; 0x16 oxygen sensor 3; 0x17 oxygen sensor 4; 0x18 oxygen sensor 5; 0x19 oxygen sensor 6; 0x1A oxygen sensor 7; 0x1B oxygen sensor 8.
+"""
+
+# The document these values rest on (US-RR-14-1, validator rule `citation`).
+# Flagged exception: SAE J1979 is paywalled, so its edition and section were
+# not read first-hand (`verified = false`); the formula comes from the `via`
+# sources. Allowed only in the j1979-01-* fixtures.
+[[citation]]
+kind = "standard"
+doc = "SAE J1979"
+edition = "2017-02 (J1979_201702, as Wikipedia lists it; not consulted)"
+section = "service $01 (show current data), PIDs 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B"
+verified = false
+via = [
+  "Wikipedia, \"OBD-II PIDs\", revision 1374011962 (2026-09-09T07:43:07Z), section \"Service 01 - Show current data\", Formula column, rows 14, 15, 16, 17, 18, 19, 1A, 1B: 100/128 B - 100 (if B == $FF, sensor is not used in trim calculation).",
+  "CSS Electronics, \"OBD2 PID table, service 01\" CSV (https://canlogger.csselectronics.com/files/misc/obd2-pid-table-service-01.csv, retrieved 2026-10-22, SHA-256 3283f807111a5176bb13724477b62e20ee84386d4b031dc60301759e5be160d1), rows 14, 15, 16, 17, 18, 19, 1A, 1B: scale 0.78125, offset -100.",
+]
+note = "SAE J1979 and ISO 15031-5 are paywalled and were not consulted. `edition` is the edition Wikipedia's \"Further reading\" lists (SAE J1979 and its Digital Annex SAE J1979-DA, both 2017-02-16, doi:10.4271/J1979_201702 and doi:10.4271/J1979DA_201702), not one these values were checked against; `section` is the service and PID, not a clause or table number, which is unknown. The formula is taken from the `via` sources, which attribute it to SAE J1979."
+
+[definition.encoding]
+storage = "u16"
+endian = "big"
+bitfield = { mask = 0xFF }
+
+[definition.conversion]
+to_real = "x*100/128-100"
+units = "%"
+
+[input]
+hex = """
+41 14 00 00  41 14 FF FF  41 14 90 80
+41 15 00 00  41 15 FF FF  41 15 2D 85
+41 16 00 00  41 16 FF FF  41 16 B4 7A
+41 17 00 00  41 17 FF FF  41 17 64 80
+41 18 00 00  41 18 FF FF  41 18 C8 80
+41 19 00 00  41 19 FF FF  41 19 0A 90
+41 1A 00 00  41 1A FF FF  41 1A 50 70
+41 1B 00 00  41 1B FF FF  41 1B 96 80
+"""
+
+[[decode]]
+offset = 2
+raw = 0
+real = -100.0
+source = { kind = "hand-calc", working = "PID 0x14 response 41 14 00 00: B = 0x00 = 0*16 + 0 = 0 (A is another signal, masked out); raw = B = 0; trim = 0*100/128 - 100 = 0/128 - 100 = 0.0 - 100 = -100.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 6
+raw = 255
+real = 99.21875
+source = { kind = "hand-calc", working = "PID 0x14 response 41 14 FF FF: B = 0xFF = 15*16 + 15 = 255 (A is another signal, masked out); raw = B = 255; trim = 255*100/128 - 100 = 25500/128 - 100 = 199.21875 - 100 = 99.21875" }
+note = "boundary: every data byte 0xFF; B = 0xFF: sensor not used in trim calculation; the formula value is not a trim"
+
+[[decode]]
+offset = 10
+raw = 128
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x14 response 41 14 90 80: B = 0x80 = 8*16 + 0 = 128 (A is another signal, masked out); raw = B = 128; trim = 128*100/128 - 100 = 12800/128 - 100 = 100.0 - 100 = 0.0" }
+
+[[decode]]
+offset = 14
+raw = 0
+real = -100.0
+source = { kind = "hand-calc", working = "PID 0x15 response 41 15 00 00: B = 0x00 = 0*16 + 0 = 0 (A is another signal, masked out); raw = B = 0; trim = 0*100/128 - 100 = 0/128 - 100 = 0.0 - 100 = -100.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 18
+raw = 255
+real = 99.21875
+source = { kind = "hand-calc", working = "PID 0x15 response 41 15 FF FF: B = 0xFF = 15*16 + 15 = 255 (A is another signal, masked out); raw = B = 255; trim = 255*100/128 - 100 = 25500/128 - 100 = 199.21875 - 100 = 99.21875" }
+note = "boundary: every data byte 0xFF; B = 0xFF: sensor not used in trim calculation; the formula value is not a trim"
+
+[[decode]]
+offset = 22
+raw = 133
+real = 3.90625
+source = { kind = "hand-calc", working = "PID 0x15 response 41 15 2D 85: B = 0x85 = 8*16 + 5 = 133 (A is another signal, masked out); raw = B = 133; trim = 133*100/128 - 100 = 13300/128 - 100 = 103.90625 - 100 = 3.90625" }
+
+[[decode]]
+offset = 26
+raw = 0
+real = -100.0
+source = { kind = "hand-calc", working = "PID 0x16 response 41 16 00 00: B = 0x00 = 0*16 + 0 = 0 (A is another signal, masked out); raw = B = 0; trim = 0*100/128 - 100 = 0/128 - 100 = 0.0 - 100 = -100.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 30
+raw = 255
+real = 99.21875
+source = { kind = "hand-calc", working = "PID 0x16 response 41 16 FF FF: B = 0xFF = 15*16 + 15 = 255 (A is another signal, masked out); raw = B = 255; trim = 255*100/128 - 100 = 25500/128 - 100 = 199.21875 - 100 = 99.21875" }
+note = "boundary: every data byte 0xFF; B = 0xFF: sensor not used in trim calculation; the formula value is not a trim"
+
+[[decode]]
+offset = 34
+raw = 122
+real = -4.6875
+source = { kind = "hand-calc", working = "PID 0x16 response 41 16 B4 7A: B = 0x7A = 7*16 + 10 = 122 (A is another signal, masked out); raw = B = 122; trim = 122*100/128 - 100 = 12200/128 - 100 = 95.3125 - 100 = -4.6875" }
+
+[[decode]]
+offset = 38
+raw = 0
+real = -100.0
+source = { kind = "hand-calc", working = "PID 0x17 response 41 17 00 00: B = 0x00 = 0*16 + 0 = 0 (A is another signal, masked out); raw = B = 0; trim = 0*100/128 - 100 = 0/128 - 100 = 0.0 - 100 = -100.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 42
+raw = 255
+real = 99.21875
+source = { kind = "hand-calc", working = "PID 0x17 response 41 17 FF FF: B = 0xFF = 15*16 + 15 = 255 (A is another signal, masked out); raw = B = 255; trim = 255*100/128 - 100 = 25500/128 - 100 = 199.21875 - 100 = 99.21875" }
+note = "boundary: every data byte 0xFF; B = 0xFF: sensor not used in trim calculation; the formula value is not a trim"
+
+[[decode]]
+offset = 46
+raw = 128
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x17 response 41 17 64 80: B = 0x80 = 8*16 + 0 = 128 (A is another signal, masked out); raw = B = 128; trim = 128*100/128 - 100 = 12800/128 - 100 = 100.0 - 100 = 0.0" }
+
+[[decode]]
+offset = 50
+raw = 0
+real = -100.0
+source = { kind = "hand-calc", working = "PID 0x18 response 41 18 00 00: B = 0x00 = 0*16 + 0 = 0 (A is another signal, masked out); raw = B = 0; trim = 0*100/128 - 100 = 0/128 - 100 = 0.0 - 100 = -100.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 54
+raw = 255
+real = 99.21875
+source = { kind = "hand-calc", working = "PID 0x18 response 41 18 FF FF: B = 0xFF = 15*16 + 15 = 255 (A is another signal, masked out); raw = B = 255; trim = 255*100/128 - 100 = 25500/128 - 100 = 199.21875 - 100 = 99.21875" }
+note = "boundary: every data byte 0xFF; B = 0xFF: sensor not used in trim calculation; the formula value is not a trim"
+
+[[decode]]
+offset = 58
+raw = 128
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x18 response 41 18 C8 80: B = 0x80 = 8*16 + 0 = 128 (A is another signal, masked out); raw = B = 128; trim = 128*100/128 - 100 = 12800/128 - 100 = 100.0 - 100 = 0.0" }
+
+[[decode]]
+offset = 62
+raw = 0
+real = -100.0
+source = { kind = "hand-calc", working = "PID 0x19 response 41 19 00 00: B = 0x00 = 0*16 + 0 = 0 (A is another signal, masked out); raw = B = 0; trim = 0*100/128 - 100 = 0/128 - 100 = 0.0 - 100 = -100.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 66
+raw = 255
+real = 99.21875
+source = { kind = "hand-calc", working = "PID 0x19 response 41 19 FF FF: B = 0xFF = 15*16 + 15 = 255 (A is another signal, masked out); raw = B = 255; trim = 255*100/128 - 100 = 25500/128 - 100 = 199.21875 - 100 = 99.21875" }
+note = "boundary: every data byte 0xFF; B = 0xFF: sensor not used in trim calculation; the formula value is not a trim"
+
+[[decode]]
+offset = 70
+raw = 144
+real = 12.5
+source = { kind = "hand-calc", working = "PID 0x19 response 41 19 0A 90: B = 0x90 = 9*16 + 0 = 144 (A is another signal, masked out); raw = B = 144; trim = 144*100/128 - 100 = 14400/128 - 100 = 112.5 - 100 = 12.5" }
+
+[[decode]]
+offset = 74
+raw = 0
+real = -100.0
+source = { kind = "hand-calc", working = "PID 0x1A response 41 1A 00 00: B = 0x00 = 0*16 + 0 = 0 (A is another signal, masked out); raw = B = 0; trim = 0*100/128 - 100 = 0/128 - 100 = 0.0 - 100 = -100.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 78
+raw = 255
+real = 99.21875
+source = { kind = "hand-calc", working = "PID 0x1A response 41 1A FF FF: B = 0xFF = 15*16 + 15 = 255 (A is another signal, masked out); raw = B = 255; trim = 255*100/128 - 100 = 25500/128 - 100 = 199.21875 - 100 = 99.21875" }
+note = "boundary: every data byte 0xFF; B = 0xFF: sensor not used in trim calculation; the formula value is not a trim"
+
+[[decode]]
+offset = 82
+raw = 112
+real = -12.5
+source = { kind = "hand-calc", working = "PID 0x1A response 41 1A 50 70: B = 0x70 = 7*16 + 0 = 112 (A is another signal, masked out); raw = B = 112; trim = 112*100/128 - 100 = 11200/128 - 100 = 87.5 - 100 = -12.5" }
+
+[[decode]]
+offset = 86
+raw = 0
+real = -100.0
+source = { kind = "hand-calc", working = "PID 0x1B response 41 1B 00 00: B = 0x00 = 0*16 + 0 = 0 (A is another signal, masked out); raw = B = 0; trim = 0*100/128 - 100 = 0/128 - 100 = 0.0 - 100 = -100.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 90
+raw = 255
+real = 99.21875
+source = { kind = "hand-calc", working = "PID 0x1B response 41 1B FF FF: B = 0xFF = 15*16 + 15 = 255 (A is another signal, masked out); raw = B = 255; trim = 255*100/128 - 100 = 25500/128 - 100 = 199.21875 - 100 = 99.21875" }
+note = "boundary: every data byte 0xFF; B = 0xFF: sensor not used in trim calculation; the formula value is not a trim"
+
+[[decode]]
+offset = 94
+raw = 128
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x1B response 41 1B 96 80: B = 0x80 = 8*16 + 0 = 128 (A is another signal, masked out); raw = B = 128; trim = 128*100/128 - 100 = 12800/128 - 100 = 100.0 - 100 = 0.0" }
+
+[[changelog]]
+date = 2026-10-22
+reason = "initial values"
+author = "US-RR-14-6"

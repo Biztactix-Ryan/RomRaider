@@ -133,7 +133,7 @@ fn write_once_global_in_the_encoding_module_fails() {
         &[
             ("crates/rr-core/src/encoding/codec.rs", ONCE),
             ("crates/rr-core/src/encoding.rs", "const OK: u8 = 0;\n"),
-            ("crates/rr-core/src/diag.rs", ONCE),
+            ("crates/rr-core/src/clock.rs", ONCE),
         ],
         "",
     )
@@ -154,8 +154,74 @@ fn write_once_global_in_the_encoding_module_fails() {
         ),
         "{stderr}"
     );
-    assert!(!stderr.contains("diag.rs"), "{stderr}");
+    assert!(!stderr.contains("clock.rs"), "{stderr}");
     assert!(stderr.contains("1 problem(s)"), "{stderr}");
+}
+
+/// US-RR-34-5, the review leg of "resolved Definitions are immutable": a
+/// lock, cell, atomic or once-cell field planted in a frozen resolved type
+/// (`resolve.rs`, the ROM-ID index) or in a type one embeds (rr-defs'
+/// `CellFormat`, rr-core's `Provenance`) fails `cargo xtask check-globals`,
+/// each named by file, line and type. `Mutex`, `RwLock`, the atomics and
+/// `OnceLock` are `Sync` and `RefUnwindSafe`, so resolve.rs's compile-time
+/// assertion alone would let them through. The same field in a module that
+/// may hold state (the clock) passes.
+#[test]
+fn interior_mutability_planted_in_a_resolved_definition_fails() {
+    const DEFINITION: &str = "\
+use std::cell::Cell;
+use std::sync::Mutex;
+pub struct Definition {
+    tables: Vec<u8>,
+    cache: Mutex<Vec<u8>>,
+    hits: Cell<u32>,
+}
+";
+    const INDEX: &str = "\
+pub struct RomIdIndex {
+    last: std::sync::atomic::AtomicUsize,
+    built: std::sync::OnceLock<u8>,
+}
+";
+    const FORMAT: &str = "pub struct CellFormat {\n    memo: std::sync::RwLock<u8>,\n}\n";
+    const PROVENANCE: &str = "pub struct Provenance {\n    seen: core::cell::RefCell<u8>,\n}\n";
+    let root = planted(
+        "frozen-definition",
+        &[
+            ("crates/rr-defs/src/resolve.rs", DEFINITION),
+            ("crates/rr-defs/src/resolve/index.rs", INDEX),
+            ("crates/rr-defs/src/romraider/scaling.rs", FORMAT),
+            ("crates/rr-core/src/diag.rs", PROVENANCE),
+            ("crates/rr-core/src/clock.rs", DEFINITION),
+        ],
+        "",
+    )
+    .unwrap();
+    let out = std::process::Command::new(env!("CARGO_BIN_EXE_xtask"))
+        .arg("check-globals")
+        .arg("--root")
+        .arg(&root)
+        .arg("--allowlist")
+        .arg(root.join("allow.toml"))
+        .output()
+        .unwrap();
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(!out.status.success(), "check-globals passed: {stderr}");
+    for want in [
+        "crates/rr-defs/src/resolve.rs:1: lock or cell in a stateless module `Cell`",
+        "crates/rr-defs/src/resolve.rs:2: lock or cell in a stateless module `Mutex`",
+        "crates/rr-defs/src/resolve.rs:5: lock or cell in a stateless module `Mutex`",
+        "crates/rr-defs/src/resolve.rs:6: lock or cell in a stateless module `Cell`",
+        "crates/rr-defs/src/resolve/index.rs:2: lock or cell in a stateless module `atomic`",
+        "crates/rr-defs/src/resolve/index.rs:2: lock or cell in a stateless module `AtomicUsize`",
+        "crates/rr-defs/src/resolve/index.rs:3: lock or cell in a stateless module `OnceLock`",
+        "crates/rr-defs/src/romraider/scaling.rs:2: lock or cell in a stateless module `RwLock`",
+        "crates/rr-core/src/diag.rs:2: lock or cell in a stateless module `RefCell`",
+    ] {
+        assert!(stderr.contains(want), "missing {want:?} in:\n{stderr}");
+    }
+    assert!(!stderr.contains("clock.rs"), "{stderr}");
+    assert!(stderr.contains("9 problem(s)"), "{stderr}");
 }
 
 /// US-RR-3-3, as CI runs it: the `cargo xtask check-globals` binary exits

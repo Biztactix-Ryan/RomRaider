@@ -91,6 +91,8 @@ fn required_paths_include_the_gated_files_in_the_tree() {
         "crates/rr-core/tests/t6_token_compile_fail.rs",
         "crates/rr-core/tests/ui/always/construct_rom_write.rs",
         "crates/rr-core/tests/ui/sealed/mint_without_authority.stderr",
+        "crates/rr-rom/tests/ui/no_unpatched_mutation_pass/patch_api.rs",
+        "crates/rr-defs/tests/ui/frozen_definition_pass/read_only_api.rs",
         "xtask/tests/t6_write_gating.rs",
         "xtask/tests/t6_ci_config.rs",
         // derived: manifests that could enable confirmation-authority
@@ -103,6 +105,7 @@ fn required_paths_include_the_gated_files_in_the_tree() {
         // modules owned before they exist
         "crates/rr-core/src/encoding.rs",
         "crates/rr-core/src/expr/mod.rs",
+        "crates/rr-rom/src/image.rs",
         "crates/rr-rom/src/journal.rs",
         "crates/rr-rom/src/checksum/mod.rs",
         "crates/rr-rom/src/save.rs",

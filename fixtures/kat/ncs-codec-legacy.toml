@@ -1,0 +1,165 @@
+# NCS codec vectors: the Nissan (NCS) data codec and its CRC-16, transcribed
+# as data from the legacy test file (US-RR-14-8, PROJECT.md T2, D-024).
+#
+# Source: legacy/src/test/java/com/romraider/maps/checksum/NcsCoDecTest.java,
+# every @Test method (six, lines 39-83). Each case cites the lines its data is
+# on: the plaintext literal `text` (:33), the code `scode` (:35), the
+# ciphertext literal `encoded` (:37) and the test method with its assertion.
+#
+# D-024: no expected value here comes from running Java. Every value is the
+# legacy test file's own literal data, copied by hand: the hex strings at :33
+# and :37, and the integer literals in the assertions (:48, :54, :62, :73).
+# The one exception, the residue case's input, is laid out from literals the
+# same way the test lays it out (see that case's note). No code was run to
+# produce any value: not rr-core, not rr-testkit, not legacy, not a script.
+# The legacy file is reference text only; nothing in the project builds or
+# runs it.
+#
+# What the code under the test does (legacy/src/main/java/com/romraider/
+# maps/checksum/NcsCoDec.java, read only, never a source of values):
+# * `ncs-encode` / `ncs-decode` (nisEncode / nisDecode, :43-63): a keyed
+#   transform of each 32-bit big-endian word on its own, with the 32-bit code
+#   `scode` as the key (encode :85-93, decode :70-78, mixing functions mess1 /
+#   mess2 :96-112, after fenugrec's nissutils nislib.c). The input must be a
+#   whole number of 4-byte words: ByteBuffer.getInt (:47, :60) throws on a
+#   trailing partial word. Legacy's only caller is the J2534 NCS reflash test
+#   tool (io/j2534/api/TestJ2534NCS.java:524-613).
+# * `ncs-crc16` (calcCrc, :118-134): register 0xFFFF, each byte LSB first,
+#   shifted right with 0x8408 (0x1021 reflected) fed back, no final XOR. That
+#   is CRC-16/MCRF4XX of the CRC RevEng catalogue (width=16 poly=0x1021
+#   init=0xffff refin=true refout=true xorout=0x0000), and its complement is
+#   CRC-16/IBM-SDLC (X.25, xorout=0xffff), whose residue is 0xF0B8.
+#   params: complement = whether the result is bitwise complemented (the
+#   test's `~calcCrc`), store = the byte order `output` holds the 16-bit
+#   result in ("big": most significant byte first, as the test's literals
+#   read; "little": byte-swapped, the test's `le` at :61).
+#
+# crates/rr-testkit/tests/ncs_codec_kat.rs loads this file, checks that it is
+# complete against the legacy test (six cases, one per @Test, pinned), that
+# each cited line holds the transcribed literal, and re-derives the four CRC
+# outputs with its own implementation of the catalogue's CRC model. The encode
+# and decode outputs are not independently re-derived: there is no NCS codec
+# in Rust yet (US-RR-78) and a port of the legacy routine would not be an
+# independent check. The test checks what holds without one: decode is the
+# inverse of encode on these bytes, and equal plaintext words give equal
+# ciphertext words (the codec is word by word).
+#
+# Legacy bugs: none of these vectors looks like legacy bug behaviour. No
+# Must-Fix entry in PROJECT.md concerns NcsCoDec (MF-28, the NCS ECU-ID
+# sleep, is comms timing and unrelated); the CRC is a catalogued CRC and the
+# round trip holds. Not covered by legacy, so not pinned here: input that is
+# not a whole number of words (legacy throws), and any second code or
+# plaintext. NcsCoDec.main (:139-180) prints two more CRCs (:159-168) but
+# asserts nothing, so it has no expected value to transcribe.
+schema = 1
+title = "NCS codec (Nissan): encode, decode and CRC-16 vectors transcribed from legacy NcsCoDecTest"
+notes = """
+One plaintext (128 bytes, 32 words), one code, one ciphertext. Plaintext and
+ciphertext are written as 4-byte words, 8 per line; the test writes each as one
+unbroken hex string (:33, :37).
+scode = 0xC2C0823F (:35), the 32-bit key of every encode and decode case.
+
+Cases, one per legacy @Test, in file order:
+  1 testEncodeData                       :39-43  encode(text) = encoded
+  2 testEncodedDataCrc                   :45-49  crc(encoded) = 0xD10D
+  3 testBitwiseComplementCrc             :51-55  ~crc(encoded) = 0x2EF2
+  4 testBitwiseComplementCrcLitteEndian  :57-63  swap(~crc(encoded)) = 0xF22E
+  5 testResidue                          :65-74  crc(encoded ++ F2 2E) = 0xF0B8
+  6 testDecodeData                       :76-83  decode(encoded) = text
+"""
+
+# The legacy test file and lines these vectors are transcribed from
+# (US-RR-14-1, validator rule `citation`).
+[[citation]]
+kind = "legacy-test"
+file = "legacy/src/test/java/com/romraider/maps/checksum/NcsCoDecTest.java"
+lines = "33,35,37,39-83"
+
+[[codec]]
+op = "ncs-encode"
+params = { scode = 0xC2C0823F }
+input = """
+FFFF22E4 000115F8 000116A0 00011724 000117C8 0002B9C4 E00180F8 84F82008
+8B1B62F0 E7EC9625 D9142620 96236560 62637205 645C6043 0274901D 7501655C
+029C7605 60530624 D20D420B 75019013 D60C029C 9011A004 0624E4AC 644CB18B
+E5127F20 4F266EF6 6DF66CF6 6BF66AF6 000B69F6 97B48105 0848035E FFFF22E4
+"""
+output = """
+118283C9 B4953B9B 63A23EE3 EE224177 089344AB 4C466E96 F606B299 7EDEE912
+9E7B3774 98905B95 D0C75576 E88B5EBC BB0065BB 03DFCB52 79839C25 2FADBD8A
+8C111944 9FBD8C25 107BC5FB 5961EB1E 7FA50CC2 A0BF7DC5 B2414339 FD0B213B
+321AAC72 1891B7AB 6F0A837B 0D088F7B 185ADF86 263BC56D BAB2D6D0 118283C9
+"""
+source = { kind = "legacy-test", file = "legacy/src/test/java/com/romraider/maps/checksum/NcsCoDecTest.java", lines = "33,35,37,39-43" }
+note = "testEncodeData: input is `text` (:33), output is `encoded` (:37), asserted equal to nisEncode(text, scode) at :42"
+
+[[codec]]
+op = "ncs-crc16"
+params = { complement = false, store = "big" }
+input = """
+118283C9 B4953B9B 63A23EE3 EE224177 089344AB 4C466E96 F606B299 7EDEE912
+9E7B3774 98905B95 D0C75576 E88B5EBC BB0065BB 03DFCB52 79839C25 2FADBD8A
+8C111944 9FBD8C25 107BC5FB 5961EB1E 7FA50CC2 A0BF7DC5 B2414339 FD0B213B
+321AAC72 1891B7AB 6F0A837B 0D088F7B 185ADF86 263BC56D BAB2D6D0 118283C9
+"""
+output = "D1 0D"
+source = { kind = "legacy-test", file = "legacy/src/test/java/com/romraider/maps/checksum/NcsCoDecTest.java", lines = "33,35,37,45-49" }
+note = "testEncodedDataCrc: the CRC of nisEncode(text, scode), which case 1 pins as `encoded` (:37); 0xD10D asserted at :48"
+
+[[codec]]
+op = "ncs-crc16"
+params = { complement = true, store = "big" }
+input = """
+118283C9 B4953B9B 63A23EE3 EE224177 089344AB 4C466E96 F606B299 7EDEE912
+9E7B3774 98905B95 D0C75576 E88B5EBC BB0065BB 03DFCB52 79839C25 2FADBD8A
+8C111944 9FBD8C25 107BC5FB 5961EB1E 7FA50CC2 A0BF7DC5 B2414339 FD0B213B
+321AAC72 1891B7AB 6F0A837B 0D088F7B 185ADF86 263BC56D BAB2D6D0 118283C9
+"""
+output = "2E F2"
+source = { kind = "legacy-test", file = "legacy/src/test/java/com/romraider/maps/checksum/NcsCoDecTest.java", lines = "33,35,37,51-55" }
+note = "testBitwiseComplementCrc: ~0xD10D = 0x2EF2, asserted at :54; this is CRC-16/IBM-SDLC of the same bytes"
+
+[[codec]]
+op = "ncs-crc16"
+params = { complement = true, store = "little" }
+input = """
+118283C9 B4953B9B 63A23EE3 EE224177 089344AB 4C466E96 F606B299 7EDEE912
+9E7B3774 98905B95 D0C75576 E88B5EBC BB0065BB 03DFCB52 79839C25 2FADBD8A
+8C111944 9FBD8C25 107BC5FB 5961EB1E 7FA50CC2 A0BF7DC5 B2414339 FD0B213B
+321AAC72 1891B7AB 6F0A837B 0D088F7B 185ADF86 263BC56D BAB2D6D0 118283C9
+"""
+output = "F2 2E"
+source = { kind = "legacy-test", file = "legacy/src/test/java/com/romraider/maps/checksum/NcsCoDecTest.java", lines = "33,35,37,57-63" }
+note = "testBitwiseComplementCrcLitteEndian (sic): the complement byte-swapped at :61, asserted 0xF22E at :62; read most significant byte first that is F2 2E, the complement 0x2EF2 stored little-endian"
+
+[[codec]]
+op = "ncs-crc16"
+params = { complement = false, store = "big" }
+input = """
+118283C9 B4953B9B 63A23EE3 EE224177 089344AB 4C466E96 F606B299 7EDEE912
+9E7B3774 98905B95 D0C75576 E88B5EBC BB0065BB 03DFCB52 79839C25 2FADBD8A
+8C111944 9FBD8C25 107BC5FB 5961EB1E 7FA50CC2 A0BF7DC5 B2414339 FD0B213B
+321AAC72 1891B7AB 6F0A837B 0D088F7B 185ADF86 263BC56D BAB2D6D0 118283C9
+F2 2E
+"""
+output = "F0 B8"
+source = { kind = "legacy-test", file = "legacy/src/test/java/com/romraider/maps/checksum/NcsCoDecTest.java", lines = "33,35,37,54,65-74" }
+note = "testResidue: `encoded` followed by the complement 0x2EF2 (:54) low byte first, F2 then 2E (:71-72); 0xF0B8 asserted at :73, the CRC-16/IBM-SDLC (X.25) residue"
+
+[[codec]]
+op = "ncs-decode"
+params = { scode = 0xC2C0823F }
+input = """
+118283C9 B4953B9B 63A23EE3 EE224177 089344AB 4C466E96 F606B299 7EDEE912
+9E7B3774 98905B95 D0C75576 E88B5EBC BB0065BB 03DFCB52 79839C25 2FADBD8A
+8C111944 9FBD8C25 107BC5FB 5961EB1E 7FA50CC2 A0BF7DC5 B2414339 FD0B213B
+321AAC72 1891B7AB 6F0A837B 0D088F7B 185ADF86 263BC56D BAB2D6D0 118283C9
+"""
+output = """
+FFFF22E4 000115F8 000116A0 00011724 000117C8 0002B9C4 E00180F8 84F82008
+8B1B62F0 E7EC9625 D9142620 96236560 62637205 645C6043 0274901D 7501655C
+029C7605 60530624 D20D420B 75019013 D60C029C 9011A004 0624E4AC 644CB18B
+E5127F20 4F266EF6 6DF66CF6 6BF66AF6 000B69F6 97B48105 0848035E FFFF22E4
+"""
+source = { kind = "legacy-test", file = "legacy/src/test/java/com/romraider/maps/checksum/NcsCoDecTest.java", lines = "33,35,37,76-83" }
+note = "testDecodeData: nisDecode of nisEncode(text, scode), which case 1 pins as `encoded` (:37), asserted equal to `text` (:33) at :82"

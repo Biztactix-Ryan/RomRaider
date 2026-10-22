@@ -89,6 +89,7 @@ pub const GATED_MODULES: &[(&str, &str, &str)] = &[
     ),
     ("rr-core", "encoding", "T7 mutation-gated module"),
     ("rr-core", "expr", "T7 mutation-gated module"),
+    ("rr-rom", "image", "rr-rom write path: byte image"),
     ("rr-rom", "save", "rr-rom write path: save"),
     ("rr-rom", "journal", "rr-rom write path: journal"),
     ("rr-rom", "checksum", "rr-rom write path: checksum"),

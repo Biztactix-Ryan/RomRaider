@@ -1,0 +1,236 @@
+# Checksum reference vectors: CRCs in the Rocksoft parameter model
+# (US-RR-14-7, PROJECT.md T2 (d), D-024).
+#
+# Sources:
+# * The check values (the CRC of ASCII "123456789") are transcribed from Greg
+#   Cook's "Catalogue of parametrised CRC algorithms" (CRC RevEng),
+#   https://reveng.sourceforge.io/crc-catalogue/16.htm (CRC-16 entries) and
+#   https://reveng.sourceforge.io/crc-catalogue/17plus.htm (CRC-32/ISO-HDLC),
+#   both pages "Last updated 11 December 2024", retrieved 2026-10-22. Each
+#   case's `params` are the entry's width/poly/init/refin/refout/xorout as
+#   printed there.
+# * The parameter model (WIDTH, POLY, INIT, REFIN, REFOUT, XOROUT, CHECK of
+#   "123456789") is Ross N. Williams, "A Painless Guide to CRC Error Detection
+#   Algorithms", version 3, 19 August 1993, section 15 "A Parameterized Model
+#   For CRC Algorithms"; its "CRC-16" example (section 15, Check BB3D) and its
+#   "CRC-32" entry (section 16, Check CBF43926) agree with the catalogue.
+# * The empty-input and all-0xFF values are not printed in either source; they
+#   are worked by hand from the model, bit by bit, in each case's working (an
+#   empty input leaves the register at INIT; REFIN/REFOUT are worked with the
+#   equivalent right-shifting register and reflected poly, Williams section 11).
+# No code was run to produce any value: not rr-core, not rr-testkit, not
+# legacy, not a throwaway script or calculator.
+# crates/rr-testkit/tests/checksum_kat.rs re-derives every case with its own
+# bit-by-bit implementation of the model on every test run.
+#
+# Families pinned (US-RR-35's `Crc16`; legacy semantics cited, values never
+# taken from it): the GM E38 CVN is CRC-16/ARC. Its 256-entry table is the
+# reflected table of poly 0x8005 (entry 1 = 0xC0C1, entry 0x80 = 0xA001,
+# legacy/src/main/java/com/romraider/maps/checksum/ChecksumE38PCM.java:162-181),
+# driven LSB-first with the register's low byte (:186-192), initial value 0
+# and no final XOR (:224), chained over two ranges with the first result as
+# the second's initial value (:224-225), byte-swapped (:199-211, :226) and
+# stored big-endian (:84-85): that is the CRC stored little-endian (second
+# case below). The other CRC-16 parameter sets are the `Crc16` options the
+# engine offers (CRC-16/IBM-3740 a.k.a. CCITT-FALSE, XMODEM, KERMIT, MODBUS,
+# IBM-SDLC); CRC-32/ISO-HDLC is the reference for widths above 16. No other
+# legacy ROM checksum uses a CRC. The legacy NCS block CRC (NcsCoDec.calcCrc,
+# legacy/src/main/java/com/romraider/maps/checksum/NcsCoDec.java:118-134:
+# register 0xFFFF, LSB first, reflected poly 0x8408, no final XOR, i.e. the
+# catalogue's CRC-16/MCRF4XX) is complemented and stored low byte first by its
+# caller (legacy/src/main/java/com/romraider/io/j2534/api/TestJ2534NCS.java:
+# 573-581); the complement of CRC-16/MCRF4XX is CRC-16/IBM-SDLC (same width,
+# poly, init and reflection, xorout 0xFFFF; catalogue checks 0x6F91 and
+# ~0x6F91 = 0x906E), so it is the IBM-SDLC case stored little-endian (US-RR-14-3).
+schema = 1
+title = "CRC-16 (ARC, IBM-3740, XMODEM, KERMIT, MODBUS, IBM-SDLC) and CRC-32/ISO-HDLC: check values, empty and all-0xFF inputs"
+notes = """
+Shared layout of the checksum vector fixtures (checksum-*.toml), one input:
+  bytes  0..8   FF FF FF FF FF FF FF FF   all-0xFF block
+  bytes  8..17  31 32 33 34 35 36 37 38 39  ASCII "123456789", the catalogue's check input
+  bytes 17..21  00 00 00 00   the stored-checksum slot, zero as given
+Every case reads its region and stores its result at offset 17. `before` is the
+zero slot as given (valid only when the expected CRC is itself zero); `after`
+is the slot once the CRC is fixed.
+
+algorithm = "crc", params:
+  catalogue   the RevEng catalogue name of the parameter set
+  width, poly, init, refin, refout, xorout   the Rocksoft model parameters
+  start, end  the region, half-open [start, end)
+  store       byte order of the stored CRC, width/8 bytes
+"""
+
+# The documents these values rest on, as structured fields (US-RR-14-1,
+# validator rule `citation`).
+[[citation]]
+kind = "standard"
+doc = "Greg Cook, Catalogue of parametrised CRC algorithms (CRC RevEng)"
+edition = "last updated 2024-12-11 (retrieved 2026-10-22)"
+section = "https://reveng.sourceforge.io/crc-catalogue/16.htm entries CRC-16/ARC, CRC-16/IBM-3740, CRC-16/XMODEM, CRC-16/KERMIT, CRC-16/MODBUS, CRC-16/IBM-SDLC; https://reveng.sourceforge.io/crc-catalogue/17plus.htm entry CRC-32/ISO-HDLC"
+
+[[citation]]
+kind = "standard"
+doc = "Ross N. Williams, A Painless Guide to CRC Error Detection Algorithms"
+edition = "version 3, 1993-08-19"
+section = "15 \"A Parameterized Model For CRC Algorithms\" (the model and its CRC-16 example); 16 (the CRC-32 parameter set); 11 (the reflected, right-shifting register)"
+
+[input]
+hex = """
+FF FF FF FF FF FF FF FF
+31 32 33 34 35 36 37 38 39
+00 00 00 00
+"""
+
+# --- check values: "123456789", from the catalogue ----------------------------
+
+[[checksum]]
+algorithm = "crc"
+params = { catalogue = "CRC-16/ARC", width = 16, poly = 0x8005, init = 0x0000, refin = true, refout = true, xorout = 0x0000, start = 8, end = 17, store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the CRC is the catalogue check 0xBB3D = 47933, and 0 != 47933, so it does not verify" } }
+after = { hex = "BB 3D", valid = true, source = { kind = "standard", doc = "Greg Cook, Catalogue of parametrised CRC algorithms (CRC RevEng), https://reveng.sourceforge.io/crc-catalogue/16.htm, last updated 2024-12-11, retrieved 2026-10-22", section = "CRC-16/ARC: width=16 poly=0x8005 init=0x0000 refin=true refout=true xorout=0x0000 check=0xbb3d residue=0x0000" } }
+note = "Williams (1993) section 15's worked parameter set \"CRC-16\" has the same parameters and Check BB3D"
+
+[[checksum]]
+algorithm = "crc"
+params = { catalogue = "CRC-16/ARC", width = 16, poly = 0x8005, init = 0x0000, refin = true, refout = true, xorout = 0x0000, start = 8, end = 17, store = "little" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the CRC is the catalogue check 0xBB3D = 47933, and 0 != 47933, so it does not verify" } }
+after = { hex = "3D BB", valid = true, source = { kind = "standard", doc = "Greg Cook, Catalogue of parametrised CRC algorithms (CRC RevEng), https://reveng.sourceforge.io/crc-catalogue/16.htm, last updated 2024-12-11, retrieved 2026-10-22", section = "CRC-16/ARC: width=16 poly=0x8005 init=0x0000 refin=true refout=true xorout=0x0000 check=0xbb3d residue=0x0000" } }
+note = "the GM E38 CVN byte order (byte-swapped, then stored big-endian); storing it big-endian gives BB 3D"
+
+[[checksum]]
+algorithm = "crc"
+params = { catalogue = "CRC-16/IBM-3740", width = 16, poly = 0x1021, init = 0xFFFF, refin = false, refout = false, xorout = 0x0000, start = 8, end = 17, store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the CRC is the catalogue check 0x29B1 = 10673, and 0 != 10673, so it does not verify" } }
+after = { hex = "29 B1", valid = true, source = { kind = "standard", doc = "Greg Cook, Catalogue of parametrised CRC algorithms (CRC RevEng), https://reveng.sourceforge.io/crc-catalogue/16.htm, last updated 2024-12-11, retrieved 2026-10-22", section = "CRC-16/IBM-3740 (alias CRC-16/AUTOSAR, CRC-16/CCITT-FALSE): width=16 poly=0x1021 init=0xffff refin=false refout=false xorout=0x0000 check=0x29b1 residue=0x0000" } }
+note = "Williams (1993) section 16 lists these parameters as \"CRC-16/CITT\" with Check unknown"
+
+[[checksum]]
+algorithm = "crc"
+params = { catalogue = "CRC-16/XMODEM", width = 16, poly = 0x1021, init = 0x0000, refin = false, refout = false, xorout = 0x0000, start = 8, end = 17, store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the CRC is the catalogue check 0x31C3 = 12739, and 0 != 12739, so it does not verify" } }
+after = { hex = "31 C3", valid = true, source = { kind = "standard", doc = "Greg Cook, Catalogue of parametrised CRC algorithms (CRC RevEng), https://reveng.sourceforge.io/crc-catalogue/16.htm, last updated 2024-12-11, retrieved 2026-10-22", section = "CRC-16/XMODEM: width=16 poly=0x1021 init=0x0000 refin=false refout=false xorout=0x0000 check=0x31c3 residue=0x0000" } }
+note = "Williams (1993) section 16's \"XMODEM\" is a different, reflected set (poly 8408); the catalogue's is used"
+
+[[checksum]]
+algorithm = "crc"
+params = { catalogue = "CRC-16/KERMIT", width = 16, poly = 0x1021, init = 0x0000, refin = true, refout = true, xorout = 0x0000, start = 8, end = 17, store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the CRC is the catalogue check 0x2189 = 8585, and 0 != 8585, so it does not verify" } }
+after = { hex = "21 89", valid = true, source = { kind = "standard", doc = "Greg Cook, Catalogue of parametrised CRC algorithms (CRC RevEng), https://reveng.sourceforge.io/crc-catalogue/16.htm, last updated 2024-12-11, retrieved 2026-10-22", section = "CRC-16/KERMIT: width=16 poly=0x1021 init=0x0000 refin=true refout=true xorout=0x0000 check=0x2189 residue=0x0000" } }
+
+[[checksum]]
+algorithm = "crc"
+params = { catalogue = "CRC-16/MODBUS", width = 16, poly = 0x8005, init = 0xFFFF, refin = true, refout = true, xorout = 0x0000, start = 8, end = 17, store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the CRC is the catalogue check 0x4B37 = 19255, and 0 != 19255, so it does not verify" } }
+after = { hex = "4B 37", valid = true, source = { kind = "standard", doc = "Greg Cook, Catalogue of parametrised CRC algorithms (CRC RevEng), https://reveng.sourceforge.io/crc-catalogue/16.htm, last updated 2024-12-11, retrieved 2026-10-22", section = "CRC-16/MODBUS: width=16 poly=0x8005 init=0xffff refin=true refout=true xorout=0x0000 check=0x4b37 residue=0x0000" } }
+
+[[checksum]]
+algorithm = "crc"
+params = { catalogue = "CRC-16/IBM-SDLC", width = 16, poly = 0x1021, init = 0xFFFF, refin = true, refout = true, xorout = 0xFFFF, start = 8, end = 17, store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the CRC is the catalogue check 0x906E = 36974, and 0 != 36974, so it does not verify" } }
+after = { hex = "90 6E", valid = true, source = { kind = "standard", doc = "Greg Cook, Catalogue of parametrised CRC algorithms (CRC RevEng), https://reveng.sourceforge.io/crc-catalogue/16.htm, last updated 2024-12-11, retrieved 2026-10-22", section = "CRC-16/IBM-SDLC: width=16 poly=0x1021 init=0xffff refin=true refout=true xorout=0xffff check=0x906e residue=0xf0b8" } }
+note = "the one CRC-16 here with a final XOR"
+
+[[checksum]]
+algorithm = "crc"
+params = { catalogue = "CRC-16/IBM-SDLC", width = 16, poly = 0x1021, init = 0xFFFF, refin = true, refout = true, xorout = 0xFFFF, start = 8, end = 17, store = "little" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the CRC is the catalogue check 0x906E = 36974, and 0 != 36974, so it does not verify" } }
+after = { hex = "6E 90", valid = true, source = { kind = "standard", doc = "Greg Cook, Catalogue of parametrised CRC algorithms (CRC RevEng), https://reveng.sourceforge.io/crc-catalogue/16.htm, last updated 2024-12-11, retrieved 2026-10-22", section = "CRC-16/IBM-SDLC: width=16 poly=0x1021 init=0xffff refin=true refout=true xorout=0xffff check=0x906e residue=0xf0b8" } }
+note = "the NCS block CRC byte order: 0x906E stored low byte first is 6E 90 (storing it big-endian gives 90 6E, case above)"
+
+[[checksum]]
+algorithm = "crc"
+params = { catalogue = "CRC-32/ISO-HDLC", width = 32, poly = 0x04C11DB7, init = 0xFFFFFFFF, refin = true, refout = true, xorout = 0xFFFFFFFF, start = 8, end = 17, store = "big" }
+offset = 17
+before = { hex = "00 00 00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..21 = 00 00 00 00 = 0*16777216 + 0 = 0; the CRC is the catalogue check 0xCBF43926 = 3421780262, and 0 != 3421780262, so it does not verify" } }
+after = { hex = "CB F4 39 26", valid = true, source = { kind = "standard", doc = "Greg Cook, Catalogue of parametrised CRC algorithms (CRC RevEng), https://reveng.sourceforge.io/crc-catalogue/17plus.htm, last updated 2024-12-11, retrieved 2026-10-22", section = "CRC-32/ISO-HDLC (alias CRC-32, PKZIP): width=32 poly=0x04c11db7 init=0xffffffff refin=true refout=true xorout=0xffffffff check=0xcbf43926 residue=0xdebb20e3" } }
+note = "Williams (1993) section 16's \"CRC-32\" has the same parameters and Check CBF43926"
+
+# --- empty input: the register stays at INIT ----------------------------------
+
+[[checksum]]
+algorithm = "crc"
+params = { catalogue = "CRC-16/ARC", width = 16, poly = 0x8005, init = 0x0000, refin = true, refout = true, xorout = 0x0000, start = 8, end = 8, store = "big" }
+offset = 17
+before = { hex = "00 00", valid = true, source = { kind = "hand-calc", working = "empty region: CRC = reflect(init 0x0000) ^ xorout 0x0000 = 0 ^ 0 = 0; stored 00 00 = 0*256 + 0 = 0, so it verifies" } }
+after = { hex = "00 00", valid = true, source = { kind = "hand-calc", working = "no bytes, so the register stays at INIT = 0x0000; REFOUT reflects it: reflect(0x0000) = 0x0000; XOROUT: 0x0000 ^ 0x0000 = 0 (Williams 1993 section 15 model)" } }
+
+[[checksum]]
+algorithm = "crc"
+params = { catalogue = "CRC-16/IBM-3740", width = 16, poly = 0x1021, init = 0xFFFF, refin = false, refout = false, xorout = 0x0000, start = 8, end = 8, store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the CRC is 0xFFFF = 65535, and 0 != 65535, so it does not verify" } }
+after = { hex = "FF FF", valid = true, source = { kind = "hand-calc", working = "no bytes, so the register stays at INIT = 0xFFFF; REFOUT false; XOROUT: 0xFFFF ^ 0x0000 = 65535 = 0xFFFF (Williams 1993 section 15 model)" } }
+note = "a non-zero INIT shows through on empty input; an implementation that skips INIT gives 00 00"
+
+[[checksum]]
+algorithm = "crc"
+params = { catalogue = "CRC-16/IBM-SDLC", width = 16, poly = 0x1021, init = 0xFFFF, refin = true, refout = true, xorout = 0xFFFF, start = 8, end = 8, store = "big" }
+offset = 17
+before = { hex = "00 00", valid = true, source = { kind = "hand-calc", working = "empty region: CRC = reflect(0xFFFF) ^ 0xFFFF = 0xFFFF ^ 0xFFFF = 0; stored 00 00 = 0*256 + 0 = 0, so it verifies" } }
+after = { hex = "00 00", valid = true, source = { kind = "hand-calc", working = "no bytes, so the register stays at INIT = 0xFFFF; REFOUT: reflect(0xFFFF) = 0xFFFF; XOROUT: 0xFFFF ^ 0xFFFF = 0 = 0x0000 (Williams 1993 section 15 model)" } }
+note = "INIT and XOROUT cancel; skipping XOROUT gives FF FF"
+
+[[checksum]]
+algorithm = "crc"
+params = { catalogue = "CRC-32/ISO-HDLC", width = 32, poly = 0x04C11DB7, init = 0xFFFFFFFF, refin = true, refout = true, xorout = 0xFFFFFFFF, start = 8, end = 8, store = "big" }
+offset = 17
+before = { hex = "00 00 00 00", valid = true, source = { kind = "hand-calc", working = "empty region: CRC = reflect(0xFFFFFFFF) ^ 0xFFFFFFFF = 0xFFFFFFFF ^ 0xFFFFFFFF = 0; stored 00 00 00 00 = 0*16777216 + 0 = 0, so it verifies" } }
+after = { hex = "00 00 00 00", valid = true, source = { kind = "hand-calc", working = "no bytes, so the register stays at INIT = 0xFFFFFFFF; REFOUT: reflect(0xFFFFFFFF) = 0xFFFFFFFF; XOROUT: 0xFFFFFFFF ^ 0xFFFFFFFF = 0 = 0x00000000 (Williams 1993 section 15 model)" } }
+
+# --- all-0xFF input, worked bit by bit ------------------------------------------
+
+[[checksum]]
+algorithm = "crc"
+params = { catalogue = "CRC-16/XMODEM", width = 16, poly = 0x1021, init = 0x0000, refin = false, refout = false, xorout = 0x0000, start = 0, end = 1, store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the CRC is 0x1EF0 = 7920, and 0 != 7920, so it does not verify" } }
+after = { hex = "1E F0", valid = true, source = { kind = "hand-calc", working = "MSB-first, poly 0x1021: register 0x0000 ^ (0xFF << 8) = 0xFF00; shift 1 (top bit 1): 0xFE00 ^ 0x1021 = 0xEE21; 2 (1): 0xDC42 ^ 0x1021 = 0xCC63; 3 (1): 0x98C6 ^ 0x1021 = 0x88E7; 4 (1): 0x11CE ^ 0x1021 = 0x01EF; 5 (0): 0x03DE; 6 (0): 0x07BC; 7 (0): 0x0F78; 8 (0): 0x1EF0; REFOUT false, XOROUT 0: CRC = 0x1EF0 = 7920" } }
+note = "one all-ones byte; also the last entry of the MSB-first table of poly 0x1021"
+
+[[checksum]]
+algorithm = "crc"
+params = { catalogue = "CRC-16/XMODEM", width = 16, poly = 0x1021, init = 0x0000, refin = false, refout = false, xorout = 0x0000, start = 0, end = 2, store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the CRC is 0x1D0F = 7439, and 0 != 7439, so it does not verify" } }
+after = { hex = "1D 0F", valid = true, source = { kind = "hand-calc", working = "after byte 1 the register is 0x1EF0 (case above); byte 2: 0x1EF0 ^ 0xFF00 = 0xE1F0; shift 1 (top 1): 0xC3E0 ^ 0x1021 = 0xD3C1; 2 (1): 0xA782 ^ 0x1021 = 0xB7A3; 3 (1): 0x6F46 ^ 0x1021 = 0x7F67; 4 (0): 0xFECE; 5 (1): 0xFD9C ^ 0x1021 = 0xEDBD; 6 (1): 0xDB7A ^ 0x1021 = 0xCB5B; 7 (1): 0x96B6 ^ 0x1021 = 0x8697; 8 (1): 0x0D2E ^ 0x1021 = 0x1D0F = 7439" } }
+note = "two all-ones bytes: the register carries from byte 1 into byte 2, so this catches a per-byte reset"
+
+[[checksum]]
+algorithm = "crc"
+params = { catalogue = "CRC-16/ARC", width = 16, poly = 0x8005, init = 0x0000, refin = true, refout = true, xorout = 0x0000, start = 0, end = 1, store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the CRC is 0x4040 = 16448, and 0 != 16448, so it does not verify" } }
+after = { hex = "40 40", valid = true, source = { kind = "hand-calc", working = "REFIN/REFOUT, so LSB-first with reflected poly 0xA001: register 0x0000 ^ 0xFF = 0x00FF; shift 1 (low bit 1): 0x007F ^ 0xA001 = 0xA07E; 2 (0): 0x503F; 3 (1): 0x281F ^ 0xA001 = 0x881E; 4 (0): 0x440F; 5 (1): 0x2207 ^ 0xA001 = 0x8206; 6 (0): 0x4103; 7 (1): 0x2081 ^ 0xA001 = 0x8080; 8 (0): 0x4040; XOROUT 0: CRC = 0x4040 = 16448" } }
+note = "also the last entry of the reflected table of poly 0x8005 (the E38 table)"
+
+[[checksum]]
+algorithm = "crc"
+params = { catalogue = "CRC-16/MODBUS", width = 16, poly = 0x8005, init = 0xFFFF, refin = true, refout = true, xorout = 0x0000, start = 0, end = 1, store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the CRC is 0x00FF = 255, and 0 != 255, so it does not verify" } }
+after = { hex = "00 FF", valid = true, source = { kind = "hand-calc", working = "LSB-first with reflected poly 0xA001: register 0xFFFF ^ 0x00FF = 0xFF00; its low 8 bits are 0, so the 8 shifts never apply the poly: 0xFF00 >> 8 = 0x00FF; XOROUT 0: CRC = 0x00FF = 255" } }
+note = "the byte cancels INIT's low byte; ARC (init 0) gives 0x4040 on the same byte"
+
+[[checksum]]
+algorithm = "crc"
+params = { catalogue = "CRC-16/IBM-3740", width = 16, poly = 0x1021, init = 0xFFFF, refin = false, refout = false, xorout = 0x0000, start = 0, end = 1, store = "big" }
+offset = 17
+before = { hex = "00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..19 = 00 00 = 0*256 + 0 = 0; the CRC is 0xFF00 = 65280, and 0 != 65280, so it does not verify" } }
+after = { hex = "FF 00", valid = true, source = { kind = "hand-calc", working = "MSB-first, poly 0x1021: register 0xFFFF ^ (0xFF << 8) = 0x00FF; its top 8 bits are 0, so the 8 shifts never apply the poly (the register before shift 8 is 0x7F80): 0x00FF << 8 = 0xFF00; XOROUT 0: CRC = 0xFF00 = 65280" } }
+note = "XMODEM (init 0) gives 0x1EF0 on the same byte"
+
+[[changelog]]
+date = 2026-10-22
+reason = "initial values"
+
+[[changelog]]
+date = 2026-10-22
+reason = "US-RR-14-3: add CRC-16/IBM-SDLC stored little-endian, the legacy NCS block CRC byte order"

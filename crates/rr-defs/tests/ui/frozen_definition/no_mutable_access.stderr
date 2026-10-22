@@ -1,0 +1,149 @@
+error[E0616]: field `tables` of struct `Definition` is private
+  --> tests/ui/frozen_definition/no_mutable_access.rs:13:9
+   |
+13 |     def.tables.clear();
+   |         ^^^^^^ private field
+   |
+help: a method `tables` also exists, call it with parentheses
+   |
+13 |     def.tables().clear();
+   |               ++
+
+error[E0616]: field `romid` of struct `Definition` is private
+  --> tests/ui/frozen_definition/no_mutable_access.rs:14:9
+   |
+14 |     def.romid.file_size = Some(0);
+   |         ^^^^^ private field
+
+error[E0616]: field `candidates` of struct `RomIdIndex` is private
+  --> tests/ui/frozen_definition/no_mutable_access.rs:15:11
+   |
+15 |     index.candidates.clear();
+   |           ^^^^^^^^^^ private field
+   |
+help: a method `candidates` also exists, call it with parentheses
+   |
+15 |     index.candidates().clear();
+   |                     ++
+
+error[E0599]: no method named `romid_mut` found for struct `Definition` in the current scope
+  --> tests/ui/frozen_definition/no_mutable_access.rs:17:17
+   |
+17 |     let _ = def.romid_mut();
+   |                 ^^^^^^^^^
+   |
+help: there is a method `romid` with a similar name
+   |
+17 -     let _ = def.romid_mut();
+17 +     let _ = def.romid();
+   |
+
+error[E0599]: no method named `tables_mut` found for struct `Definition` in the current scope
+  --> tests/ui/frozen_definition/no_mutable_access.rs:18:17
+   |
+18 |     let _ = def.tables_mut();
+   |                 ^^^^^^^^^^
+   |
+help: there is a method `tables` with a similar name
+   |
+18 -     let _ = def.tables_mut();
+18 +     let _ = def.tables();
+   |
+
+error[E0599]: no method named `table_mut` found for struct `Definition` in the current scope
+  --> tests/ui/frozen_definition/no_mutable_access.rs:19:17
+   |
+19 |     let _ = def.table_mut("rev limit");
+   |                 ^^^^^^^^^
+   |
+help: there is a method `table` with a similar name
+   |
+19 -     let _ = def.table_mut("rev limit");
+19 +     let _ = def.table("rev limit");
+   |
+
+error[E0599]: no method named `candidates_mut` found for struct `RomIdIndex` in the current scope
+  --> tests/ui/frozen_definition/no_mutable_access.rs:20:19
+   |
+20 |     let _ = index.candidates_mut();
+   |                   ^^^^^^^^^^^^^^
+   |
+help: there is a method `candidates` with a similar name
+   |
+20 -     let _ = index.candidates_mut();
+20 +     let _ = index.candidates();
+   |
+
+error[E0608]: cannot index into a value of type `Definition`
+  --> tests/ui/frozen_definition/no_mutable_access.rs:22:8
+   |
+22 |     def["rev limit"] = Arc::clone(&def.tables()[0]);
+   |        ^^^^^^^^^^^^^
+
+error[E0308]: mismatched types
+  --> tests/ui/frozen_definition/no_mutable_access.rs:24:25
+   |
+24 |     let _: &mut RomId = def.romid();
+   |            ----------   ^^^^^^^^^^^ types differ in mutability
+   |            |
+   |            expected due to this
+   |
+   = note: expected mutable reference `&mut RomId`
+                      found reference `&RomId`
+
+error[E0308]: mismatched types
+  --> tests/ui/frozen_definition/no_mutable_access.rs:25:32
+   |
+25 |     let _: &mut [Arc<Table>] = def.tables();
+   |            -----------------   ^^^^^^^^^^^^ types differ in mutability
+   |            |
+   |            expected due to this
+   |
+   = note: expected mutable reference `&mut [Arc<Table>]`
+                      found reference `&[Arc<Table>]`
+
+error[E0599]: no method named `cells_mut` found for reference `&Table` in the current scope
+  --> tests/ui/frozen_definition/no_mutable_access.rs:29:19
+   |
+29 |     let _ = table.cells_mut();
+   |                   ^^^^^^^^^
+   |
+help: there is a method `cells` with a similar name
+   |
+29 -     let _ = table.cells_mut();
+29 +     let _ = table.cells();
+   |
+
+error[E0599]: no method named `axes_mut` found for reference `&Table` in the current scope
+  --> tests/ui/frozen_definition/no_mutable_access.rs:30:19
+   |
+30 |     let _ = table.axes_mut();
+   |                   ^^^^^^^^
+   |
+help: there is a method `axes` with a similar name
+   |
+30 -     let _ = table.axes_mut();
+30 +     let _ = table.axes();
+   |
+
+error[E0616]: field `min` of struct `Scaling` is private
+  --> tests/ui/frozen_definition/no_mutable_access.rs:31:21
+   |
+31 |     let _ = scaling.min;
+   |                     ^^^ private field
+   |
+help: a method `min` also exists, call it with parentheses
+   |
+31 |     let _ = scaling.min();
+   |                        ++
+
+error[E0616]: field `xmlid` of struct `Candidate` is private
+  --> tests/ui/frozen_definition/no_mutable_access.rs:32:23
+   |
+32 |     let _ = candidate.xmlid;
+   |                       ^^^^^ private field
+   |
+help: a method `xmlid` also exists, call it with parentheses
+   |
+32 |     let _ = candidate.xmlid();
+   |                            ++

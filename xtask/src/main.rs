@@ -9,7 +9,7 @@ use xtask::deps::{DepGraph, check};
 use xtask::{
     codeowners, corpus_coverage, corpus_manifest, coverage_gate, deny_selftest, diagnostics_doc,
     fetch_corpus, fixtures_selftest, fuzz, fuzz_issue, gates_selftest, gen_synthetic, globals,
-    leak_guard, lint_selftest, mutants_exclusions, mutants_scope, mutants_selftest,
+    leak_guard, legacy_docs, lint_selftest, mutants_exclusions, mutants_scope, mutants_selftest,
     reference_isolation, release_artifacts, validate_fixtures, writes,
 };
 
@@ -42,6 +42,18 @@ enum Cmd {
     /// Encoding it cross-checks (US-RR-10, T2(b)).
     CheckReferenceIsolation {
         /// Workspace root to scan (defaults to this workspace).
+        #[arg(long)]
+        root: Option<PathBuf>,
+    },
+    /// Check the legacy behaviour catalogue (docs/legacy): every US-RR-12
+    /// area has its page and README row, every legacy file:line reference
+    /// resolves and points at what the text names, and every described
+    /// behaviour carries a reference (US-RR-12-1), and every "Fixtures to
+    /// write" ID maps to an existing file or a tracked task in
+    /// docs/legacy/fixtures-map.toml (US-RR-12-2; rules in
+    /// xtask/src/legacy_docs.rs).
+    CheckLegacyDocs {
+        /// Repository root (defaults to this workspace).
         #[arg(long)]
         root: Option<PathBuf>,
     },
@@ -1500,6 +1512,44 @@ fn main() -> Result<ExitCode> {
                 eprintln!("coverage-gate: {p}");
             }
             eprintln!("coverage-gate: {} problem(s)", report.problems.len());
+            Ok(ExitCode::FAILURE)
+        }
+        Cmd::CheckLegacyDocs { root } => {
+            let root =
+                root.unwrap_or_else(|| PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/..")));
+            let report = legacy_docs::run(&root, &legacy_docs::Config::pinned())?;
+            if report.problems.is_empty() {
+                let total = |f: fn(&legacy_docs::PageStats) -> usize| {
+                    report.pages.values().map(f).sum::<usize>()
+                };
+                println!(
+                    "check-legacy-docs: ok ({} page(s), {} reference(s), {} resolved and in range, {} content-checked, {} pinned, {}/{} behaviour unit(s) referenced; {} fixture ID(s) mapped: {} to files only, {} to files and a task, {} to a task only, {} task(s); {} ledger citation(s) of {} entries (of {} MF, {} EC), {}/{} bug statement(s) cited, {} ledgered issue(s))",
+                    report.pages.len(),
+                    total(|p| p.refs),
+                    total(|p| p.resolved),
+                    total(|p| p.content_checked),
+                    total(|p| p.pinned),
+                    total(|p| p.referenced_units),
+                    total(|p| p.units),
+                    report.fixtures.ids,
+                    report.fixtures.kat_only,
+                    report.fixtures.both,
+                    report.fixtures.task_only,
+                    report.fixtures.tasks,
+                    report.ledger.citations,
+                    report.ledger.cited,
+                    report.ledger.mf,
+                    report.ledger.ec,
+                    report.ledger.bug_units_cited,
+                    report.ledger.bug_units,
+                    report.ledger.ledgered_rows,
+                );
+                return Ok(ExitCode::SUCCESS);
+            }
+            for p in &report.problems {
+                eprintln!("check-legacy-docs: {p}");
+            }
+            eprintln!("check-legacy-docs: {} problem(s)", report.problems.len());
             Ok(ExitCode::FAILURE)
         }
         Cmd::CheckMutantsExclusions { root, config } => {

@@ -37,7 +37,19 @@
 //! layers, so a resolved-document cache there would make one load depend on
 //! what was loaded before it. The pattern module (C2) is another: a
 //! compiled pattern is plain data, and a cache of compiled patterns keyed by
-//! text would be shared state between unrelated loads. Such a finding is
+//! text would be shared state between unrelated loads. So is the units
+//! module (C5): its registry is `const` data, where legacy kept gauge
+//! defaults in a static map. So is the timing module (US-RR-14): its
+//! standard timings are `const`, where a mutable default would let one
+//! link's settings change another's. So is rr-defs'
+//! resolve module (US-RR-34-6): a resolved `Definition` is frozen, and a
+//! cell inside one would let one open ROM change another's definition,
+//! and its ROM-ID index (US-RR-34-7) is built once per set and only read.
+//! So are the modules whose types a resolved `Definition` embeds, rr-defs'
+//! `romraider` reader and rr-core's `diag` (US-RR-34-5): the type system
+//! does not tell a `Mutex` or atomic field from plain data (both are
+//! `Sync` and `RefUnwindSafe`), so this rule is what keeps one out.
+//! Such a finding is
 //! [`Kind::StaticInStatelessModule`]; `const` items stay allowed.
 //!
 //! A stateless module also names no lock, cell, atomic or lazy/once type
@@ -105,6 +117,33 @@ pub const STATELESS_PATHS: &[&str] = &[
     // cache; a per-text cache of compiled patterns belongs to the caller.
     "crates/rr-core/src/pattern.rs",
     "crates/rr-core/src/pattern/",
+    // Units (C5, US-RR-21): the registry is `const` data; legacy kept gauge
+    // defaults in a static map keyed by unit string
+    // (`logger/ecu/definition/xml/ConverterMaxMinDefaults.java:26`).
+    "crates/rr-core/src/units.rs",
+    "crates/rr-core/src/units/",
+    // Standard timings (US-RR-14, MF-28): ISO default timing parameters are
+    // `const`; a mutable default would let one link's settings change
+    // another's.
+    "crates/rr-core/src/timing.rs",
+    "crates/rr-core/src/timing/",
+    // Frozen definitions (US-RR-34-6): a resolved `Definition` is plain,
+    // immutable data shared between threads; the parts a resolver shares
+    // are kept by the resolver value, never a global.
+    "crates/rr-defs/src/resolve.rs",
+    "crates/rr-defs/src/resolve/",
+    // What a frozen `Definition` and its ROM-ID index embed (US-RR-34-5):
+    // rr-defs' typed definition parts (`CellFormat`, `Formula`,
+    // `Identification`, `RomRef`, ...) and rr-core's `Provenance` / `Span`.
+    // The compile-time `Send + Sync + RefUnwindSafe` check in resolve.rs
+    // cannot see a `Mutex`, `RwLock`, atomic or `OnceLock` field (all four
+    // are `Sync` and `RefUnwindSafe`); this rule does, in every module a
+    // resolved type's fields come from (encoding, expr, conversion and
+    // pattern are listed above).
+    "crates/rr-defs/src/romraider.rs",
+    "crates/rr-defs/src/romraider/",
+    "crates/rr-core/src/diag.rs",
+    "crates/rr-core/src/diag/",
 ];
 
 /// Whether `path` (relative to the workspace root, `/`-separated) is under
@@ -771,7 +810,8 @@ mod tests {
     }
 
     #[test]
-    fn stateless_paths_cover_the_encoding_expr_conversion_layer_and_pattern_modules_only() {
+    fn stateless_paths_cover_the_encoding_expr_conversion_layer_pattern_units_resolve_and_definition_modules_only()
+     {
         for p in [
             "crates/rr-core/src/encoding.rs",
             "crates/rr-core/src/encoding/codec.rs",
@@ -785,6 +825,19 @@ mod tests {
             "crates/rr-core/src/pattern.rs",
             "crates/rr-core/src/pattern/parse.rs",
             "crates/rr-core/src/pattern/parse/tests.rs",
+            "crates/rr-core/src/units.rs",
+            "crates/rr-core/src/units/registry.rs",
+            "crates/rr-core/src/timing.rs",
+            "crates/rr-core/src/timing/iso.rs",
+            "crates/rr-defs/src/resolve.rs",
+            "crates/rr-defs/src/resolve/tests.rs",
+            "crates/rr-defs/src/resolve/index.rs",
+            "crates/rr-defs/src/resolve/index/tests.rs",
+            "crates/rr-defs/src/romraider.rs",
+            "crates/rr-defs/src/romraider/set.rs",
+            "crates/rr-defs/src/romraider/scaling.rs",
+            "crates/rr-core/src/diag.rs",
+            "crates/rr-core/src/diag/codes.rs",
         ] {
             assert!(is_stateless_path(p), "{p}");
         }
@@ -799,7 +852,16 @@ mod tests {
             "crates/rr-core/src/layered/list.rs",
             "crates/rr-core/src/patterns.rs",
             "crates/rr-core/src/pattern_x/bytes.rs",
-            "crates/rr-core/src/diag.rs",
+            "crates/rr-core/src/unit.rs",
+            "crates/rr-core/src/units_x/registry.rs",
+            "crates/rr-core/src/timings.rs",
+            "crates/rr-core/src/timing_x/iso.rs",
+            "crates/rr-core/src/diagnostics.rs",
+            "crates/rr-core/src/clock.rs",
+            "crates/rr-core/src/clock/virtual_clock.rs",
+            "crates/rr-defs/src/resolver.rs",
+            "crates/rr-defs/src/romraider_x.rs",
+            "crates/rr-defs/src/xml.rs",
             "crates/rr-testkit/src/encoding_oracle.rs",
             "xtask/src/globals.rs",
         ] {
@@ -853,7 +915,7 @@ thread_local! { static T: u8 = 0; }
                 ("TABLE", Kind::StaticInStatelessModule),
             ])
         );
-        let mut elsewhere = got("crates/rr-core/src/diag.rs");
+        let mut elsewhere = got("crates/rr-core/src/clock.rs");
         elsewhere.sort();
         assert_eq!(
             elsewhere,
@@ -928,7 +990,7 @@ fn eval(e: &Expr) -> f64 {
             "{f}"
         );
         // Elsewhere the same source holds no global, so nothing.
-        assert_eq!(got("crates/rr-core/src/diag.rs"), []);
+        assert_eq!(got("crates/rr-core/src/clock.rs"), []);
     }
 
     #[test]

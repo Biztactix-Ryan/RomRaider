@@ -1,0 +1,155 @@
+error[E0277]: `Cell<u32>` cannot be shared between threads safely
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:15:14
+   |
+15 |     frozen::<Cell<u32>>();
+   |              ^^^^^^^^^ `Cell<u32>` cannot be shared between threads safely
+   |
+   = help: the trait `Sync` is not implemented for `Cell<u32>`
+   = note: if you want to do aliasing and mutation between multiple threads, use `std::sync::RwLock` or `std::sync::atomic::AtomicU32` instead
+note: required by a bound in `frozen`
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:12:27
+   |
+12 | const fn frozen<T: Send + Sync + UnwindSafe + RefUnwindSafe>() {}
+   |                           ^^^^ required by this bound in `frozen`
+
+error[E0277]: the type `UnsafeCell<u32>` may contain interior mutability and a reference may not be safely transferable across a catch_unwind boundary
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:15:14
+   |
+15 |     frozen::<Cell<u32>>();
+   |              ^^^^^^^^^ `UnsafeCell<u32>` may contain interior mutability and a reference may not be safely transferable across a catch_unwind boundary
+   |
+   = help: within `Cell<u32>`, the trait `RefUnwindSafe` is not implemented for `UnsafeCell<u32>`
+note: required because it appears within the type `Cell<u32>`
+  --> $RUST/core/src/cell.rs
+note: required by a bound in `frozen`
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:12:47
+   |
+12 | const fn frozen<T: Send + Sync + UnwindSafe + RefUnwindSafe>() {}
+   |                                               ^^^^^^^^^^^^^ required by this bound in `frozen`
+
+error[E0277]: `RefCell<u32>` cannot be shared between threads safely
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:16:14
+   |
+16 |     frozen::<RefCell<u32>>();
+   |              ^^^^^^^^^^^^ `RefCell<u32>` cannot be shared between threads safely
+   |
+   = help: the trait `Sync` is not implemented for `RefCell<u32>`
+   = note: if you want to do aliasing and mutation between multiple threads, use `std::sync::RwLock` instead
+note: required by a bound in `frozen`
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:12:27
+   |
+12 | const fn frozen<T: Send + Sync + UnwindSafe + RefUnwindSafe>() {}
+   |                           ^^^^ required by this bound in `frozen`
+
+error[E0277]: the type `UnsafeCell<u32>` may contain interior mutability and a reference may not be safely transferable across a catch_unwind boundary
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:16:14
+   |
+16 |     frozen::<RefCell<u32>>();
+   |              ^^^^^^^^^^^^ `UnsafeCell<u32>` may contain interior mutability and a reference may not be safely transferable across a catch_unwind boundary
+   |
+   = help: within `RefCell<u32>`, the trait `RefUnwindSafe` is not implemented for `UnsafeCell<u32>`
+note: required because it appears within the type `RefCell<u32>`
+  --> $RUST/core/src/cell.rs
+note: required by a bound in `frozen`
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:12:47
+   |
+12 | const fn frozen<T: Send + Sync + UnwindSafe + RefUnwindSafe>() {}
+   |                                               ^^^^^^^^^^^^^ required by this bound in `frozen`
+
+error[E0277]: the type `UnsafeCell<isize>` may contain interior mutability and a reference may not be safely transferable across a catch_unwind boundary
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:16:14
+   |
+16 |     frozen::<RefCell<u32>>();
+   |              ^^^^^^^^^^^^ `UnsafeCell<isize>` may contain interior mutability and a reference may not be safely transferable across a catch_unwind boundary
+   |
+   = help: within `RefCell<u32>`, the trait `RefUnwindSafe` is not implemented for `UnsafeCell<isize>`
+note: required because it appears within the type `Cell<isize>`
+  --> $RUST/core/src/cell.rs
+note: required because it appears within the type `RefCell<u32>`
+  --> $RUST/core/src/cell.rs
+note: required by a bound in `frozen`
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:12:47
+   |
+12 | const fn frozen<T: Send + Sync + UnwindSafe + RefUnwindSafe>() {}
+   |                                               ^^^^^^^^^^^^^ required by this bound in `frozen`
+
+error[E0277]: `OnceCell<u32>` cannot be shared between threads safely
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:17:14
+   |
+17 |     frozen::<OnceCell<u32>>();
+   |              ^^^^^^^^^^^^^ `OnceCell<u32>` cannot be shared between threads safely
+   |
+   = help: the trait `Sync` is not implemented for `OnceCell<u32>`
+   = note: if you want to do aliasing and mutation between multiple threads, use `std::sync::OnceLock` instead
+note: required by a bound in `frozen`
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:12:27
+   |
+12 | const fn frozen<T: Send + Sync + UnwindSafe + RefUnwindSafe>() {}
+   |                           ^^^^ required by this bound in `frozen`
+
+error[E0277]: the type `UnsafeCell<Option<u32>>` may contain interior mutability and a reference may not be safely transferable across a catch_unwind boundary
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:17:14
+   |
+17 |     frozen::<OnceCell<u32>>();
+   |              ^^^^^^^^^^^^^ `UnsafeCell<Option<u32>>` may contain interior mutability and a reference may not be safely transferable across a catch_unwind boundary
+   |
+   = help: within `OnceCell<u32>`, the trait `RefUnwindSafe` is not implemented for `UnsafeCell<Option<u32>>`
+note: required because it appears within the type `OnceCell<u32>`
+  --> $RUST/core/src/cell/once.rs
+note: required by a bound in `frozen`
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:12:47
+   |
+12 | const fn frozen<T: Send + Sync + UnwindSafe + RefUnwindSafe>() {}
+   |                                               ^^^^^^^^^^^^^ required by this bound in `frozen`
+
+error[E0277]: `UnsafeCell<u32>` cannot be shared between threads safely
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:18:14
+   |
+18 |     frozen::<UnsafeCell<u32>>();
+   |              ^^^^^^^^^^^^^^^ `UnsafeCell<u32>` cannot be shared between threads safely
+   |
+   = help: the trait `Sync` is not implemented for `UnsafeCell<u32>`
+note: required by a bound in `frozen`
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:12:27
+   |
+12 | const fn frozen<T: Send + Sync + UnwindSafe + RefUnwindSafe>() {}
+   |                           ^^^^ required by this bound in `frozen`
+
+error[E0277]: the type `UnsafeCell<u32>` may contain interior mutability and a reference may not be safely transferable across a catch_unwind boundary
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:18:14
+   |
+18 |     frozen::<UnsafeCell<u32>>();
+   |              ^^^^^^^^^^^^^^^ `UnsafeCell<u32>` may contain interior mutability and a reference may not be safely transferable across a catch_unwind boundary
+   |
+   = help: the trait `RefUnwindSafe` is not implemented for `UnsafeCell<u32>`
+note: required by a bound in `frozen`
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:12:47
+   |
+12 | const fn frozen<T: Send + Sync + UnwindSafe + RefUnwindSafe>() {}
+   |                                               ^^^^^^^^^^^^^ required by this bound in `frozen`
+
+error[E0277]: `Rc<u32>` cannot be sent between threads safely
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:19:14
+   |
+19 |     frozen::<Rc<u32>>();
+   |              ^^^^^^^ `Rc<u32>` cannot be sent between threads safely
+   |
+   = help: the trait `Send` is not implemented for `Rc<u32>`
+note: required by a bound in `frozen`
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:12:20
+   |
+12 | const fn frozen<T: Send + Sync + UnwindSafe + RefUnwindSafe>() {}
+   |                    ^^^^ required by this bound in `frozen`
+
+error[E0277]: `Rc<u32>` cannot be shared between threads safely
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:19:14
+   |
+19 |     frozen::<Rc<u32>>();
+   |              ^^^^^^^ `Rc<u32>` cannot be shared between threads safely
+   |
+   = help: the trait `Sync` is not implemented for `Rc<u32>`
+note: required by a bound in `frozen`
+  --> tests/ui/frozen_definition/interior_mutability_fails_the_bound.rs:12:27
+   |
+12 | const fn frozen<T: Send + Sync + UnwindSafe + RefUnwindSafe>() {}
+   |                           ^^^^ required by this bound in `frozen`

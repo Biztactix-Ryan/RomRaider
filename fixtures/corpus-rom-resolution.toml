@@ -1,0 +1,4297 @@
+# Definition resolution of the stock-ROM corpus (US-RR-34-1, EC-03, D-025, D-028).
+# GENERATED: do not edit.
+#   regenerate: RR_CORPUS_DIR=<dir> RR_UPDATE_ROM_RESOLUTION=1 \
+#                 cargo nextest run -p rr-rom --test corpus_rom_resolution
+#   check:      the corpus-tier test of crates/rr-rom/tests/corpus_rom_resolution.rs
+#               (CI `corpus` job); its no-corpus test checks this file's shape and
+#               that it agrees with fixtures/corpus-coverage.toml.
+# Definition set: each pinned ECU-definition file on its own, as legacy RomRaider
+# read, matched and inherited within one file at a time. The pinned tree holds
+# alternative copies of the same ROMs (ecu/standard and ecu/metric ecu_defs.xml,
+# the MerpMod variants, per-ROM files), which loaded together are ambiguous by
+# design (EC-03), so they are never one set here.
+# For every non-suspect [roms] image of fixtures/corpus-manifest.toml, in
+# manifest order: every file whose ROM-ID index (rr_defs::resolve::RomIdIndex)
+# matches the image, each with the one <rom> xmlid it resolves to (with no
+# Error; base_from: its base is not in its own file and was found in that
+# one, MF-17) and the image's size check against it (rr_rom::open::OpenRom:
+# ok, undeclared, or mismatch with the declared and image sizes: the image
+# opens read-only); status "unique" (no file matches it twice) or
+# "no-definition". Agrees with fixtures/corpus-coverage.toml image by image,
+# but for the differences listed in the test's KNOWN_DIFFERENCES.
+# Metadata only (D-028): paths, xmlids and sizes; no ROM bytes and no
+# definition content. Format: crates/rr-rom/tests/corpus_rom_resolution.rs.
+
+schema = 1
+roms_commit = "639f3c73c1bd8efee48347bd71bb064211b95242"
+defs_commit = "0b0c0c42acea0d89ffd8b50378ae13ae32b5b43d"
+
+[summary]
+images = 501
+suspect = 2
+non_suspect = 499
+unique = 455
+no_definition = 44
+ambiguous = 0
+definition_files = 245
+matches = 1351
+size_ok = 1117
+size_undeclared = 0
+size_mismatch = 234
+
+[[roms]]
+path = "ADM/Forester/A2WC400H-2005-ADM-Subaru-Forester-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC400H", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC400H", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC400H", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC400H", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/A2WC400M-2005-ADM-Subaru-Forester-XT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC400M", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC400M", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC400M", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC400M", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/A2WC420H-2005-ADM-Subaru-Forester-XT-AT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "ADM/Forester/A2WC420M-2005-ADM-Subaru-Forester-XT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC420M", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC420M", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC420M", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC420M", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/A2ZJ500H-2004-ADM-Subaru-Forester-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJ500H", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJ500H", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJ500H", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJ500H", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/A2ZJ500M-2004-ADM-Subaru-Forester-XT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJ500M", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJ500M", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJ500M", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJ500M", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/A2ZJA00Q-2005-ADM-Forester-XT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJA00Q", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJA00Q", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJA00Q", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJA00Q", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/A4RL100K-2003-ADM-Forester-Turbo.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4RL100K", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4RL100K", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4RL100K", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4RL100K", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "ADM/Forester/A4SE700F-2001-02-ADM-Subaru-Forester-Turbo-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SE700F", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SE700F", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SE700F", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SE700F", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "ADM/Forester/A4SE700J-2001-02-ADM-Forester-Turbo.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SE700J", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SE700J", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SE700J", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SE700J", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "ADM/Forester/A8DH100E-2006-SADM-Subaru-Forester-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_A8DH100E.xml", xmlid = "A8DH100E", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/A8DH100H-2006-ADM-Subaru-Forester-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DH100H", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DH100H", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DH100H", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DH100H", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/A8DH100M-2006-ADM-Forester-XT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DH100M", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DH100M", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DH100M", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DH100M", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/A8DK100E-2007-SADM-Subaru-Forester-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DK100E", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DK100E", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DK100E", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DK100E", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/A8DK100H-2007-ADM-Forester-XT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DK100H", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DK100H", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DK100H", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DK100H", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/A8DK100M-2007-ADM-Subaru-Forester-XT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DK100M", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DK100M", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DK100M", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DK100M", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/A8DK100Q-2008-SADM-Subaru-Forester-XT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_A8DK100Q.xml", xmlid = "A8DK100Q", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/AZ1G100T-2009-SADM-Subaru-Forester-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1G100T.xml", xmlid = "AZ1G100T", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/AZ1G111T-2011-SADM-Subaru-Forester-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1G111T.xml", xmlid = "AZ1G111T", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/AZ1J500T-2011-SADM-Subaru-Forester-S.Edition-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1J500T.xml", xmlid = "AZ1J500T", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/AZ1J500V-2011-ADM-Subaru-Forester-S-Edition-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2011_AUDM_S_Edition_5AT-AZ1J500V_Rev3.xml", xmlid = "AZ1J500V", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/E2UE101J-2006-07-ADM-Subaru-Forester-2.5-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2UE101J", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2UE101J", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2UE101J", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2UE101J", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/E2UE102J-2006-07-ADM-Subaru-Forester-2.5-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2UE102J", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2UE102J", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2UE102J", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2UE102J", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/E2VG211E-2006-ADM-Subaru-Forester-2.5-MT-AT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "ADM/Forester/E2VG212E-2006-ADM-Forester-2.5.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2VG212E", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2VG212E", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2VG212E", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2VG212E", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/EP5D202N-2012-ADM-Subaru-Forester-2.5-FB-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EP5D202N.xml", xmlid = "EP5D202N", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/EZ1G107M-2009-ADM-Subaru-Forester-2.5-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "EZ1G107M", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "EZ1G107M", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "EZ1G107M", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "EZ1G107M", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Forester/EZ1G108N-2009-ADM-Subaru-Forester-2.5i-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EZ1G108N.xml", xmlid = "EZ1G108N", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/A4RG060P-2001-02-ADM-Subaru-Impreza-STi.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4RG060P", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4RG060P", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4RG060P", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4RG060P", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/A4RM100F-2005-ADM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4RM100F", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4RM100F", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4RM100F", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4RM100F", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "ADM/Impreza/A4RM100G-2003-ADM-Subaru-Impreza-STi-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4RM100G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4RM100G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4RM100G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4RM100G", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "ADM/Impreza/A4RM200K-2005-SADM-Subaru-Impreza-WRX-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4RM200K", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4RM200K", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4RM200K", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4RM200K", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/A4RN300I-2004-ADM-Subaru-Impreza-STi.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4RN300I", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4RN300I", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4RN300I", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4RN300I", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/A4SE700I-2001-02-ADM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SE700I", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SE700I", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SE700I", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SE700I", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/A4SE900I-2001-02-ADM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SE900I", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SE900I", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SE900I", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SE900I", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/A4TE001I-2003-ADM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TE001I", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TE001I", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TE001I", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TE001I", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/A4TH000N-2004-ADM-Subaru-Impreza-WRX-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TH000N", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TH000N", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TH000N", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TH000N", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "ADM/Impreza/A4TH000O-2004-ADM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TH000O", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TH000O", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TH000O", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TH000O", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "ADM/Impreza/A4TH100H-2005-ADM-Subaru-Impreza-WRX-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TH100H", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TH100H", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TH100H", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TH100H", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/A4TH100L-2005-ADM-Subaru-Impreza-WRX-WRP10-limited.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TH100L", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TH100L", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TH100L", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TH100L", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/A8DH200O-2006-ADM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DH200O", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DH200O", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DH200O", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DH200O", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/A8DH200U-2006-SADM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DH200U", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DH200U", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DH200U", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DH200U", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/A8DH200V-2006-ADM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DH200V", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DH200V", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DH200V", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DH200V", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/A8DK100L-2007-ADM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DK100L", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DK100L", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DK100L", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DK100L", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/A8DK100O-2007-ADM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DK100O", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DK100O", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DK100O", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DK100O", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/A8DK100U-2007-SADM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DK100U", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DK100U", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DK100U", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DK100U", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/A8DK100V-2007-ADM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DK100V", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DK100V", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DK100V", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DK100V", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/AZ1E400C-2008-ADM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1E400C", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1E400C", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1E400C", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1E400C", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/AZ1E400E-2008-ADM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1E400E", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1E400E", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1E400E", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1E400E", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/AZ1G200J-2008-SADM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1G200J", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1G200J", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1G200J", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1G200J", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/AZ1G400W-2009-ADM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1G400W", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1G400W", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1G400W", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1G400W", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/AZ1G400Y-2009-SADM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2009SADMWRXMTAZ1G400Y_v2.xml", xmlid = "AZ1G400Y", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/AZ1G800D-2011-SADM-Subaru-Impreza-WRX-MT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "ADM/Impreza/AZ1G800L-2011-SADM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2011SadmSTiMT-AZ1G800L.xml", xmlid = "AZ1G800L", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/AZ1G900C-2011-ADM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/adm-2011_WRX_ecu_defs-REV1.xml", xmlid = "AZ1G900C", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/AZ1L100C-2014-ADM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1L100C.xml", xmlid = "AZ1L100C", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/AZ1P000L-2015-SADM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1P000L.xml", xmlid = "AZ1P000L", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Impreza/AZ1P000M-2015-SADM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1P000M.xml", xmlid = "AZ1P000M", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/A2UG001G-2008-ADM-Subaru-Liberty-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2UG001G", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2UG001G", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2UG001G", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2UG001G", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/A2UG002T-2007-ADM-Subaru-Liberty-GT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2UG002T", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2UG002T", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2UG002T", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2UG002T", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/A2UI000Y-2008-ADM-Subaru-Liberty-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2UI000Y", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2UI000Y", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2UI000Y", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2UI000Y", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/A2UI000Z-2008-ADM-Liberty-GT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2UI000Z", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2UI000Z", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2UI000Z", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2UI000Z", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/A2WD001G-2004-ADM-Liberty-GT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WD001G", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WD001G", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WD001G", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WD001G", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/A2WD002T-2005-ADM-Liberty-GT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WD002T", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WD002T", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WD002T", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WD002T", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/A2WD010G-2004-ADM-Subaru-Liberty-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WD010G", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WD010G", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WD010G", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WD010G", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/A2WD010T-2005-ADM-Subaru-Liberty-GT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WD010T", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WD010T", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WD010T", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WD010T", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/A2WD010Y-2006-ADM-Subaru-Liberty-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WD010Y", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WD010Y", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WD010Y", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WD010Y", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/A2WD010Z-2006-ADM-Subaru-Liberty-GT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WD010Z", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WD010Z", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WD010Z", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WD010Z", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/A2WD012G-2004-ADM-Subaru-Liberty-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WD012G", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WD012G", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WD012G", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WD012G", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/A2WD012T-2005-ADM-Subaru-Liberty-GT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WD012T", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WD012T", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WD012T", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WD012T", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/A2ZJ800G-2004-ADM-Subaru-Liberty-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJ800G", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJ800G", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJ800G", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJ800G", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/A2ZJC00G-2004-ADM-Subaru-Liberty-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJC00G", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJC00G", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJC00G", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJC00G", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/A2ZJD00G-2004-ADM-Subaru-Liberty-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJD00G", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJD00G", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJD00G", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJD00G", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/A2ZJD02G-2004-ADM-Liberty-GT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJD02G", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJD02G", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJD02G", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJD02G", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/A4SH701K-2002-ADM-Liberty-B4.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SH701K", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SH701K", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SH701K", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SH701K", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "ADM/Legacy/A4SHA10R-2003-ADM-Liberty-B4.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SHA10R", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SHA10R", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SHA10R", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SHA10R", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "ADM/Legacy/AE5F301D-2010-ADM-Subaru-Liberty-GT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AE5F301D", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AE5F301D", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AE5F301D", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AE5F301D", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/AE5I500F-2012-ADM-Subaru-Liberty-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5I500F.xml", xmlid = "AE5I500F", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/D0XJ001T-2006-ADM-Subaru-Liberty-3.0R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "D0XJ001T", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "D0XJ001T", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "D0XJ001T", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "D0XJ001T", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/D2UH001M-2007-ADM-Liberty-3.0R.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "D2UH001M", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "D2UH001M", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "D2UH001M", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "D2UH001M", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/D2UJ001T-2008-ADM-Subaru-Liberty-3.0R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR D2UJ001T.xml", xmlid = "D2UJ001T", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/D2WD603H-2005-ADM-Subaru-Liberty-3.0R-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "D2WD603H", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "D2WD603H", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "D2WD603H", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "D2WD603H", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/D2WD610H-2004-ADM-Subaru-Liberty-3.0R-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/D2WD610A.xml", xmlid = "D2WD610H", size = "ok" },
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "D2WD610H", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "D2WD610H", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "D2WD610H", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "D2WD610H", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/D2ZY110H-2005-ADM-Subaru-Liberty-3.0R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_D2ZY110H.xml", xmlid = "D2ZY110H", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/E2TB102M-2008-ADM-Liberty-2.5i.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2TB102M", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2TB102M", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2TB102M", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2TB102M", size = "ok" },
+]
+
+[[roms]]
+path = "ADM/Legacy/E2UE102G-2006-07-ADM-Subaru-Legacy-2.5i-AT-MT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "ADM/Outback/D2ZS002D-2004-ADM-Subaru-Outback-3.0R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_D2ZS002D.xml", xmlid = "D2ZS002D", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Forester/A2WC401F-2004-EDM-Forester-XT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC401F", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC401F", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC401F", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC401F", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Forester/A2WC420F-2004-EDM-Forester-XT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC420F", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC420F", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC420F", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC420F", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Forester/A2ZJ500F-2004-EDM-Forester-XT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJ500F", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJ500F", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJ500F", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJ500F", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Forester/A2ZJA00P-2005-EDM-Subaru-Forester-XT-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJA00P", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJA00P", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJA00P", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJA00P", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Forester/A2ZJA10P-2005-EDM-Forester-XT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJA10P", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJA10P", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJA10P", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJA10P", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Forester/A4RL100J-2003-EDM-Forester-Turbo.HEX"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4RL100J", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4RL100J", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4RL100J", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4RL100J", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "EDM/Forester/A4SE700E-2001-02-EDM-Forester-Turbo.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SE700E", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SE700E", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SE700E", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SE700E", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "EDM/Forester/A8DH100F-2006-EDM-Forester-XT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DH100F", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DH100F", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DH100F", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DH100F", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Forester/A8DH100P-2006-EDM-Forester-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DH100P", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DH100P", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DH100P", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DH100P", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Forester/A8DH101P-2006-EDM-Subaru-Forester-XT-AT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "EDM/Forester/A8DK100F-2007-EDM-Forester-XT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DK100F", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DK100F", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DK100F", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DK100F", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Forester/AZ1G101M-2009-10-EDM-Subaru-Forester-XT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1G101M", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1G101M", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1G101M", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1G101M", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Forester/AZ1G101N-2009-10-EDM-Forester-XT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1G101N", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1G101N", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1G101N", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1G101N", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Forester/AZ1G900O-2011-EDM-Subaru-Forester-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1G900O.xml", xmlid = "AZ1G900O", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Forester/AZ1G900P-2011-EDM-Subaru-Forester-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2011EDMForesterXTAT-AZ1G900P.xml", xmlid = "AZ1G900P", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Forester/EP5D004L-2011-EDM-Subaru-Forester-2.0X-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EP5F400C.xml", xmlid = "EP5F400c", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Forester/EP5D700X-2013-EDM-Subaru-Forester-2.0X-AT.hex.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EP5D700X.xml", xmlid = "EP5D700X", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Forester/EZ1G108N-2009-EDM-Subaru-Forester-2.5i-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EZ1G108N.xml", xmlid = "EZ1G108N", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Forester/JP3F522A-2011-EDM-Subaru-Forester-2.0T-Diesel-MT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "EDM/Impreza/A4RG060Q-2001-02-EDM-Subaru-Impreza-STi-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4RG060Q", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4RG060Q", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4RG060Q", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4RG060Q", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/A4RG060Q-2002-EDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4RG060Q", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4RG060Q", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4RG060Q", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4RG060Q", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "EDM/Impreza/A4RM100H-2003-EDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4RM100H", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4RM100H", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4RM100H", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4RM100H", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "EDM/Impreza/A4RN1000-2001-02-EDM-Subaru-Impreza-STi.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4RN1000", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4RN1000", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4RN1000", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4RN1000", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/A4RN200H-2003-EDM-Subaru-Impreza-STi-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4RN200H", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4RN200H", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4RN200H", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4RN200H", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "EDM/Impreza/A4RN300G-2005-EDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4RN300G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4RN300G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4RN300G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4RN300G", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "EDM/Impreza/A4SE300D-2001-02-EDM-Subaru-Impreza-WRX-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SE300D", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SE300D", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SE300D", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SE300D", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "EDM/Impreza/A4SE700D-2001-02-EDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SE700D", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SE700D", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SE700D", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SE700D", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "EDM/Impreza/A4SE700D-2001-EDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SE700D", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SE700D", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SE700D", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SE700D", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/A4SE900D-2001-EDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SE900D", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SE900D", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SE900D", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SE900D", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/A4TE001G-2003-EDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TE001G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TE001G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TE001G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TE001G", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "EDM/Impreza/A4TE100G-2003-EDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TE100G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TE100G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TE100G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TE100G", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "EDM/Impreza/A4TE300D-2005-EDM-Subaru-Impreza-WRX-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TE300D", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TE300D", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TE300D", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TE300D", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/A8DH200Y-2006-EDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_A8DH200Y.xml", xmlid = "A8DH200Y", size = "ok" },
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DH200Y", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DH200Y", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DH200Y", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DH200Y", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/A8DH200Z-2006-EDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DH200Z", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DH200Z", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DH200Z", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DH200Z", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/A8DH2Z1Z-2006-EDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DH20  ", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DH20  ", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DH20  ", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DH20  ", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/A8DK100Y-2007-EDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DK100Y", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DK100Y", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DK100Y", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DK100Y", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/A8DK100Z-2007-EDM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DK100Z", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DK100Z", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DK100Z", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DK100Z", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/AZ1E400U-2008-EDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1E400U", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1E400U", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1E400U", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1E400U", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/AZ1G201G-2008-EDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1G201G", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1G201G", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1G201G", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1G201G", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/AZ1G202G-2008-EDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1G202G", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1G202G", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1G202G", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1G202G", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/AZ1G400U-2009-EDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1G400U", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1G400U", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1G400U", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1G400U", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/AZ1G700K-2012-EDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1G700K.xml", xmlid = "AZ1G700K", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/AZ1J400H-2011-EDM-Subaru-Impreza-STI-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1J400H.xml", xmlid = "AZ1J400H", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/AZ1J500G-2011-EDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2011EdmImprezaSTi-AZ1J500G_v3.xml", xmlid = "AZ1J500G", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/AZ1L100G-2013-EDM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1L100G.xml", xmlid = "AZ1L100G", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/AZ1L100K-2014-EDM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1L100K.xml", xmlid = "AZ1L100K", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/AZ1N100G-2014-EDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1N100G.xml", xmlid = "AZ1N100G", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/AZ1N100M-2014-EDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1N100M.xml", xmlid = "AZ1N100M", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/AZ1P000G-2016-EDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1P000G.xml", xmlid = "AZ1P000G", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/EP5F300H-2013-EDM-Subaru-Impreza-2.0-FB-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EP5F300H.xml", xmlid = "EP5F300H", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/EP5F301I-2013-EDM-Subaru-Impreza-2.0i-CVT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EP5F301I.xml", xmlid = "EP5F301I", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/JZ2F401A-2009-10-EDM-Subaru-Impreza-2.0T-Diesel-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/JZ2F401A_rom_def.xml", xmlid = "JZ2F401A", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Impreza/JZ2F411A-2009-11-EDM-Subaru-Impreza-2.0T-Diesel-MT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "EDM/Impreza/JZ2F430A-2011-EDM-Subaru-Impreza-2.0T-Diesel-MT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "EDM/Impreza/JZ2F441A-2010-EDM-Subaru-Impreza-2.0T-Diesel-MT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "EDM/Impreza/Z1G20000-2008-09-EDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "Z1G20000", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "Z1G20000", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "Z1G20000", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "Z1G20000", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Legacy/AE5F301C-2010-EDM-Legacy-GT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/AE5F301C_v1a.xml", xmlid = "AE5F301C", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Legacy/AE5F301H-2010-EDM-Subaru-Legacy-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5F301H.xml", xmlid = "AE5F301H", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Legacy/AE5M100G-2013-EDM-Subaru-Legacy-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5M100G.xml", xmlid = "AE5M100G", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Legacy/D0XJ001R-2006-EDM-Legacy-3.0R.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "D0XJ001R", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "D0XJ001R", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "D0XJ001R", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "D0XJ001R", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Legacy/D2TB201R-2008-EDM-Legacy-3.0R.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "D2TB201R", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "D2TB201R", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "D2TB201R", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "D2TB201R", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Legacy/D2UH003R-2007-EDM-Subaru-Legacy-3.0R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_D2UH003R.xml", xmlid = "D2UH003R", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Legacy/D2UJ003R-2007-EDM-Subaru-Legacy-3.0R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_D2UJ003R.xml", xmlid = "D2UJ003R", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Legacy/D2WD701C-2005-EDM-Legacy-3.0R-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_D2WD701C.xml", xmlid = "D2WD701C", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Legacy/D2ZS002C-2004-EDM-Subaru-Legacy-3.0R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_D2ZS002C.xml", xmlid = "D2ZS002C", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Legacy/D2ZZ001E-2005-EDM-Subaru-Legacy-3.0R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "D2ZZ001E", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "D2ZZ001E", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "D2ZZ001E", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "D2ZZ001E", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Legacy/E2TB101L-2008-EDM-Subaru-Legacy-2.5i-AT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "EDM/Legacy/E2WD201C-2005-EDM-Subaru-Legacy-2.5i-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_E2WD201C.xml", xmlid = "E2WD201C", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Outback/D0XJ002S-2006-EDM-Subaru-Outback-3.0R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_D0XJ002S.xml", xmlid = "D0XJ002S", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Outback/DE5F301H-2011-EDM-Subaru-Outback-3.6-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_DE5F301H.xml", xmlid = "DE5F301H", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Outback/E2WD200C-2005-EDM-Subaru-Outback-2.5i-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_V2_E2WD200C.xml", xmlid = "E2WD200C", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Outback/E2ZD508C-2004-EDM-Outback-2.5i.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2ZD508C", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2ZD508C", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2ZD508C", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2ZD508C", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Outback/EE5I500A-2011-EDM-Subaru-Outback-2.5i-AT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "EDM/Tribeca/DE5I500M-2012-EDM-Subaru-Tribeca-3.6R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_DE5I500M.xml", xmlid = "DE5I500M", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/Tribeca/DZ1G001F-2009-EDM-Subaru-Tribeca-B9-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "DZ1G001F", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "DZ1G001F", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "DZ1G001F", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "DZ1G001F", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/XV/EP5G401z-2013-EDM-Subaru-XVCVT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EP5G401z.xml", xmlid = "EP5G401z", size = "ok" },
+]
+
+[[roms]]
+path = "EDM/XV/EP5L000p-2014-EDM-Subaru-XV-2.5-FB-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EP5L000p.xml", xmlid = "EP5L000p", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Exiga/AZ1H102W-2008-JDM-Subaru-Exiga-2.0GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1H102W", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1H102W", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1H102W", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1H102W", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Exiga/AZ1L100X-2013-JDM-Subaru-Exiga-2.0-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1L100X.xml", xmlid = "AZ1L100X", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Forester/A2WC000E-2004-JDM-Forester-STi.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2004JDMForesterSTiMT-A2WC000E_v1.xml", xmlid = "A2WC000E", size = "ok" },
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC000E", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC000E", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC000E", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC000E", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Forester/A2WC011E-2004-07-JDM-Forester-STi.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2005JDMForesterSTiMT-A2WC011E_v1.xml", xmlid = "A2WC011E", size = "ok" },
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC011E", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC011E", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC011E", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC011E", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Forester/A2WC012E-2004-07-JDM-Forester-STi.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC012E", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC012E", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC012E", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC012E", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Forester/A2WC013E-2004-07-JDM-Subaru-Forester-STi-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC013E", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC013E", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC013E", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC013E", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Forester/A4RI200I-2001-02-JDM-Subaru-Forester-Turbo-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4RI200I", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4RI200I", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4RI200I", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4RI200I", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Forester/A4RI300I-2001-02-JDM-Subaru-Forester-Turbo-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4RI300I", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4RI300I", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4RI300I", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4RI300I", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Forester/A4RI401I-2001-02-JDM-Forester-Turbo.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4RI401I", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4RI401I", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4RI401I", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4RI401I", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Forester/AF5G200A-2013-JDM-Forester-SJG-DIT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "JDM/Forester/AZ1G105L-2009-JDM-Subaru-Forester-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1G105L", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1G105L", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1G105L", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1G105L", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Forester/AZ1J200N-2010-JDM-Subaru-Forester-XT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1J200N.XML", xmlid = "AZ1J200N", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Forester/AZ1J500L-2011-JDM-Subaru-Forester-XT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1J500L.xml", xmlid = "AZ1J500L", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Forester/EP5D003Q-2011-JDM-Subaru-Forester-2.0-XS-MT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "JDM/Impreza/A2TB100U-2008-JDM-Subaru-Impreza-SGT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2TB100U", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2TB100U", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2TB100U", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2TB100U", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/A2TB100V-2008-JDM-Subaru-Impreza-SGT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2TB100V", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2TB100V", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2TB100V", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2TB100V", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4RG050N-2001-02-JDM-Subaru-Impreza-STi-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4RG050N", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4RG050N", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4RG050N", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4RG050N", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4RG050R-2001-02-JDM-Subaru-Impreza-STi-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4RG050R", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4RG050R", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4RG050R", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4RG050R", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4RG051N-2001-02-JDM-Subaru-Impreza-STi-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4RG051N", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4RG051N", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4RG051N", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4RG051N", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4RG052N-2002-JDM-Subaru-Impreza-STI-S202.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4RG052N", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4RG052N", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4RG052N", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4RG052N", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4SD501A-2001-02-JDM-Subaru-Impreza-WRX-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SD501A", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SD501A", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SD501A", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SD501A", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4SD800A-2001-02-JDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SD800A", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SD800A", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SD800A", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SD800A", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4SD800B-2001-02-JDM-Subaru-Impreza-STi-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SD800B", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SD800B", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SD800B", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SD800B", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4SD900A-2001-02-JDM-Subaru-Impreza-WRX-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SD900A", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SD900A", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SD900A", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SD900A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4SD900B-2001-02-JDM-Subaru-Impreza-STi.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SD900B", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SD900B", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SD900B", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SD900B", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4SDA00P-2001-02-JDM-Subaru-Impreza-STi-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SDA00P", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SDA00P", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SDA00P", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SDA00P", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4SDA00Q-2001-02-JDM-Subaru-Impreza-STi-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SDA00Q", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SDA00Q", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SDA00Q", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SDA00Q", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4SDA01B-2001-02-JDM-Subaru-Impreza-STi.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SDA01B", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SDA01B", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SDA01B", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SDA01B", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4SDA01Q-2001-02-JDM-Subaru-Impreza-STi.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SDA01Q", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SDA01Q", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SDA01Q", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SDA01Q", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4TE000A-2003-JDM-Subaru-Impreza-WRX-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TE000A", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TE000A", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TE000A", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TE000A", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4TE001B-2003-JDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TE001B", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TE001B", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TE001B", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TE001B", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4TE002B-2003-JDM-Subaru-Impreza-STi.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TE002B", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TE002B", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TE002B", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TE002B", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4TE002C-2003-JDM-Subaru-Impreza-STI-SpecC.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TE002C", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TE002C", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TE002C", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TE002C", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4TE200A-2004-JDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TE200A", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TE200A", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TE200A", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TE200A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4TJ111B-2005-JDM-Subaru-Impreza-STi.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TJ111B", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TJ111B", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TJ111B", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TJ111B", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4TJ111C-2005-JDM-Subaru-Impreza-STi-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TJ111C", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TJ111C", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TJ111C", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TJ111C", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4TJ120S-2005-JDM-Subaru-Impreza-STI-S203.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TJ120S", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TJ120S", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TJ120S", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TJ120S", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4TJ121B-2005-JDM-Subaru-Impreza-STi.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TJ121B", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TJ121B", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TJ121B", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TJ121B", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4TJ121C-2006-JDM-Subaru-Impreza-STI-SpecC-TypeRA.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TJ121C", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TJ121C", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TJ121C", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TJ121C", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4TJ121S-2005-JDM-Subaru-Impreza-STI-S204.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TJ121S", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TJ121S", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TJ121S", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TJ121S", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Impreza/A4TJ1X00-20xx-JDM-Subaru-Impreza-STi-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/Group_N_Defs_Rev_2.xml", xmlid = "A4TJ1X00", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TJ1X00", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TJ1X00", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TJ1X00", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TJ1X00", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Impreza/AE5I500N-2011-JDM-Subaru-Impreza-STI-AT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "JDM/Impreza/AZ1G300F-2008-JDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1G300F", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1G300F", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1G300F", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1G300F", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/AZ1G301F-2008-JDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1G301F", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1G301F", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1G301F", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1G301F", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/AZ1G500F-2009-JDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1G500F", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1G500F", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1G500F", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1G500F", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/AZ1G500Z-2010-JDM-Subaru-Impreza-STI-R205.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1G500Z.xml", xmlid = "AZ1G500Z", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/AZ1G501K-2009-JDM-Subaru-Impreza-STI-SpecC.hex"
+status = "no-definition"
+
+[[roms]]
+path = "JDM/Impreza/AZ1G502L-2009-JDM-Subaru-Impreza-STI-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1G502L", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1G502L", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1G502L", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1G502L", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/AZ1G800F-2011-JDM-Subaru-Impreza-STI-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2011JDMImprezaSTiAT-AZ1G800F_v1.xml", xmlid = "AZ1G800F", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/AZ1G800S-2012-JDM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1G800S.xml", xmlid = "AZ1G800S", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/AZ1G800T-2011-JDM-Subaru-Impreza-WRX-spec.C-MT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "JDM/Impreza/AZ1G800V-2012-JDM-Subaru-Impreza-STI-S206.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2012_JDM_STi6MT-AZ1G800V.xml", xmlid = "AZ1G800V", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/AZ1J500J-2011-JDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2011JDMSTiAT-AZ1J500J_v3.xml", xmlid = "AZ1J500J", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/AZ1J500X-2010-JDM-Subaru-Impreza-Exiga-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/Exiga_RR.xml", xmlid = "AZ1J500X", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/AZ1K000T-2012-JDM-Subaru-Impreza-STI-SpecC.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1K000T.xml", xmlid = "AZ1K000T", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/AZ1L100T-2014-JDM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1L100T.xml", xmlid = "AZ1L100T", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/AZ1N100S-2015-JDM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1N100S.xml", xmlid = "AZ1N100S", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/AZ1P100S-2016-JDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1P100S.xml", xmlid = "AZ1P100S", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Impreza/AZ1P100T-2016-JDM-Subaru-Impreza-STI-S207.hex"
+status = "no-definition"
+
+[[roms]]
+path = "JDM/Impreza/LV9N100B-2015-JDM-Subaru-Impreza-WRX-S4.hex"
+status = "no-definition"
+
+[[roms]]
+path = "JDM/Legacy/A2PG420A-2007-JDM-Subaru-Legacy-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2PG420A", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2PG420A", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2PG420A", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2PG420A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2SB000A-2008-JDM-Subaru-Legacy-GT-spec.B-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2SB000A", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2SB000A", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2SB000A", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2SB000A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2TB100A-2008-JDM-Legacy-GT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2TB100A", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2TB100A", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2TB100A", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2TB100A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2TB100B-2007-JDM-Subaru-Legacy-GT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2TB100B", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2TB100B", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2TB100B", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2TB100B", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2TB100K-2007-JDM-Subaru-Legacy-GT-spec.B-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2TB100K", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2TB100K", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2TB100K", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2TB100K", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2TB100Y-2007-JDM-Legacy-GT-TunedbySTI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2TB100Y", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2TB100Y", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2TB100Y", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2TB100Y", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2UG000B-2006-JDM-Legacy-GT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2UG000B", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2UG000B", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2UG000B", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2UG000B", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2UG000k-2006-JDM-Subaru-Legacy-GT-spec.B-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2006JDMLegacySpecBMT-A2UG000K.xml", xmlid = "A2UG000k", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2UH000A-2006-JDM-Subaru-Legacy-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2UH000A", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2UH000A", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2UH000A", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2UH000A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2UI000K-2007-JDM-Subaru-Legacy-GT-spec.B-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2UI000K", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2UI000K", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2UI000K", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2UI000K", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2WD000A-2004-JDM-Subaru-Legacy-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WD000A", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WD000A", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WD000A", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WD000A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2WD001A-2004-JDM-Legacy-GT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WD001A", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WD001A", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WD001A", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WD001A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2WD001B-2004-JDM-Subaru-Legacy-GT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WD001B", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WD001B", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WD001B", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WD001B", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2WD010A-2004-JDM-Subaru-Legacy-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WD010A", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WD010A", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WD010A", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WD010A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2WD010B-2004-JDM-Subaru-Legacy-GT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WD010B", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WD010B", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WD010B", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WD010B", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2WD012A-2004-JDM-Subaru-Legacy-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WD012A", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WD012A", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WD012A", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WD012A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2WD012B-2004-JDM-Legacy-GT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WD012B", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WD012B", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WD012B", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WD012B", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2ZJ600B-2004-JDM-Legacy-GT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJ600B", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJ600B", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJ600B", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJ600B", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2ZJ601A-2004-JDM-Subaru-Legacy-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJ601A", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJ601A", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJ601A", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJ601A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2ZJ800A-2004-JDM-Legacy-GT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJ800A", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJ800A", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJ800A", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJ800A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2ZJC00A-2005-JDM-Legacy-2.0-GT-Auto.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_A2ZJC00A.xml", xmlid = "A2ZJC00A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2ZJC00A-2005-JDM-Subaru-Legacy-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_A2ZJC00A.xml", xmlid = "A2ZJC00A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2ZJC00B-2004-JDM-Subaru-Legacy-GT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJC00B", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJC00B", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJC00B", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJC00B", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2ZJD00A-2004-JDM-Subaru-Legacy-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJD00A", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJD00A", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJD00A", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJD00A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2ZJD00B-2004-JDM-Subaru-Legacy-GT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJD00B", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJD00B", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJD00B", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJD00B", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/A2ZJD02A-2003-JDM-Legacy-2.0-GT-Auto.hex"
+status = "no-definition"
+
+[[roms]]
+path = "JDM/Legacy/A4SH701G-2002-JDM-Subaru-Legacy-BH-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SH701G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SH701G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SH701G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SH701G", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Legacy/A4SHB00G-2002-JDM-Subaru-Legacy-BH-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SHB00G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SHB00G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SHB00G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SHB00G", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Legacy/A4SHB00H-2002-JDM-Legacy-B4.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SHB00H", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SHB00H", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SHB00H", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SHB00H", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Legacy/A4SHC00G-2002-JDM-Legacy-B4.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SHC00G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SHC00G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SHC00G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SHC00G", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Legacy/A4SHC00H-2002-03-JDM-Subaru-Legacy-2.0TT-MT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "JDM/Legacy/A4SHC01G-2002-JDM-Legacy-B4-MTAT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SHC01G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SHC01G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SHC01G", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SHC01G", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "JDM/Legacy/AE5F300A-2012-JDM-Subaru-Legacy-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5F300A.xml", xmlid = "AE5F300A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/AE5F300B-2009-JDM-Subaru-Legacy-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/AE5F300B.xml", xmlid = "AE5F300B", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/AE5I001A-2011-JDM-Subaru-Legacy-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5I001A.xml", xmlid = "AE5I001A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/AE5I500G-2011-JDM-Subaru-Legacy-GT-AT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "JDM/Legacy/D2PH410Q-2007-JDM-Subaru-Legacy-3.0R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_D2PH410Q.xml", xmlid = "D2PH410Q", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/D2SB001Q-2008-JDM-Subaru-Legacy-3.0R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_D2SB001Q.xml", xmlid = "D2SB001Q", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/D2UK001Q-2007-JDM-Subaru-Legacy-3.0R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "D2UK001Q", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "D2UK001Q", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "D2UK001Q", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "D2UK001Q", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/D2WD200A-2004-JDM-Legacy-3.0R.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "D2WD200A", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "D2WD200A", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "D2WD200A", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "D2WD200A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/D2WD610A-2005-JDM-Subaru-Legacy-3.0R-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/D2WD610A.xml", xmlid = "D2WD610A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/D2ZR003A-2003-JDM-Subaru-Legacy-3.0R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_D2ZR003A.xml", xmlid = "D2ZR003A", size = "mismatch", declared = 1048576, image = 524288 },
+]
+
+[[roms]]
+path = "JDM/Legacy/D2ZU002A-2004-JDM-Subaru-Legacy-3.0R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_D2ZU002A.xml", xmlid = "D2ZU002A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/D2ZU200A-2004-JDM-Subaru-Legacy-3.0R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "D2ZU200A", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "D2ZU200A", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "D2ZU200A", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "D2ZU200A", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/E2SB001K-2008-JDM-Subaru-Legacy-2.5i-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2SB001K", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2SB001K", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2SB001K", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2SB001K", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Legacy/E2UD001E-2007-JDM-Legacy-2.0-sohc-B-sport-Auto.hex"
+status = "no-definition"
+
+[[roms]]
+path = "JDM/Legacy/E2ZD308E-2004-JDM-Legacy-2.0.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2ZD308E", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2ZD308E", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2ZD308E", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2ZD308E", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Outback/A2SB000Y-2008-JDM-Subaru-Outback-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2SB000Y", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2SB000Y", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2SB000Y", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2SB000Y", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Outback/D0XJ001Q-2005-JDM-Subaru-Outback-3.0R-AT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "JDM/Outback/D2WD606A-2005-JDM-Subaru-Outback-3.0R-MT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "JDM/Outback/E2SB002L-2008-JDM-Subaru-Outback-2.5i-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_E2SB002L.xml", xmlid = "E2SB002L", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Outback/E2WD500D-2005-JDM-Outback-2.5i.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2WD500D", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2WD500D", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2WD500D", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2WD500D", size = "ok" },
+]
+
+[[roms]]
+path = "JDM/Outback/EE5K000K-2011-JDM-Subaru-Outback-2.5i-AT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "USDM/Baja/A2WC400L-2005-USDM-Subaru-Baja-Turbo-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2005USDMBajaTurboMT-A2WC400L_v1.xml", xmlid = "A2WC400L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Baja/A2WC50-A2WC50ZU-2004-USDM-Subaru-Baja-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2004USDMBajaXTAT-A2WC50  .xml", xmlid = "A2WC50  ", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Baja/A2WC500K-2005-USDM-Baja-Turbo.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2004USDMBajaXTAT-A2WC50  .xml", xmlid = "A2WC500K", size = "ok" },
+  { file = "ecu/A2WC501K.xml", xmlid = "A2WC500K", size = "ok" },
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC500K", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC500K", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC500K", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC500K", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Baja/A2WC500L-2005-USDM-Baja-Turbo.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC500L", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC500L", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC500L", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC500L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Baja/A2WC501K-2005-USDM-Subaru-Baja-Turbo-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/A2WC501K.xml", xmlid = "A2WC501K", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Baja/A2WC501L-2005-USDM-Baja-Turbo.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC501L", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC501L", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC501L", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC501L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Baja/A2WF100L-2006-USDM-Subaru-Baja-Turbo-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WF100L", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WF100L", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WF100L", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WF100L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Baja/A2WF101K-2006-USDM-Subaru-Baja-Turbo-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WF101K", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WF101K", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WF101K", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WF101K", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Baja/A2WF101L-2006-USDM-Baja-Turbo.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WF101L", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WF101L", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WF101L", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WF101L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Baja/A2ZJ500K-2004-USDM-Baja-Turbo.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJ500K", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJ500K", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJ500K", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJ500K", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Baja/A2ZJ500L-2004-USDM-Subaru-Baja-Turbo-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJ500L", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJ500L", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJ500L", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJ500L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/A2WC400D-2005-USDM-Forester-XT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC400D", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC400D", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC400D", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC400D", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/A2WC400I-2005-USDM-Subaru-Forester-XT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC400I", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC400I", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC400I", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC400I", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/A2WC410D-2005-USDM-Subaru-Forester-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC410D", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC410D", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC410D", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC410D", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/A2WC410I-2005-USDM-Subaru-Forester-XT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC410I", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC410I", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC410I", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC410I", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/A2WC411I-2005-USDM-Subaru-Forester-XT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC411I", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC411I", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC411I", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC411I", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/A2WC412D-2005-USDM-Subaru-Forester-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC412D", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC412D", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC412D", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC412D", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/A2WC412I-2005-USDM-Subaru-Forester-XT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC412I", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC412I", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC412I", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC412I", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/A2ZJ201D-2004-USDM-Forester-XT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJ201D", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJ201D", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJ201D", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJ201D", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/A2ZJ500I-2004-USDM-Subaru-Forester-XT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJ500I", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJ500I", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJ500I", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJ500I", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/A2ZJ512I-2004-USDM-Forester-XT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJ512I", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJ512I", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJ512I", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJ512I", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/A8DH100I-2006-USDM-Subaru-Forester-XT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DH100I", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DH100I", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DH100I", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DH100I", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/A8DH101I-2006-USDM-Subaru-Forester-XT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DH101I", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DH101I", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DH101I", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DH101I", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/A8DK100D-2007-USDM-Subaru-Forester-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DK100D", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DK100D", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DK100D", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DK100D", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/A8DK100I-2007-2008-USDM-Forester-XT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DK100I", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DK100I", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DK100I", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DK100I", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/AE5IB40R-2011-USDM-Subaru-Forester-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5IB40R.xml", xmlid = "AE5IB40R", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/AE5L500R-2013-USDM-Subaru-Forester-XT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5L500R.xml", xmlid = "AE5L500R", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/AZ1G101R-2009-USDM-Subaru-Forester-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1G101R", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1G101R", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1G101R", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1G101R", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/AZ1G601R-2010-USDM-Subaru-Forester-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1G601R.xml", xmlid = "AZ1G601R", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/E2TB011I-2008-USDM-Subaru-Forester-2.5-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2TB011I", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2TB011I", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2TB011I", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2TB011I", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/E2UG001I-2007-USDM-Subaru-Forester-2.5i-MT-AT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "USDM/Forester/E2VG211D-2006-USDM-Subaru-Forester-2.5-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2VG211D", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2VG211D", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2VG211D", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2VG211D", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/E2VG212D-2006-USDM-Subaru-Forester-2.5i-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_E2VG212D.xml", xmlid = "E2VG212D", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/E2VG221D-2007-USDM-Subaru-Forester-2.5-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2VG221D", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2VG221D", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2VG221D", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2VG221D", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/E2ZJ101H-2005-USDM-Subaru-Forester-XS-MT-AT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "USDM/Forester/E2ZJ121H-2005-USDM-Subaru-Forester-2.5-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2ZJ121H", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2ZJ121H", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2ZJ121H", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2ZJ121H", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/EP5D201D-2011-USDM-Subaru-Forester-2.5i-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EP5D201D.xml", xmlid = "EP5D201D", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/EP5D202A-2011-USDM-Subaru-Forester-2.0X-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EP5D202A.xml", xmlid = "EP5D202A", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/EP5G211a-2012-USDM-Subaru-Forester-2.5-FB-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EP5G211a.xml", xmlid = "EP5G211a", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/EZ1G108K-2009-USDM-Subaru-Forester-2.5i-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EZ1G108K.xml", xmlid = "EZ1G108K", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/EZ1G109J-2009-USDM-Subaru-Forester-2.5i-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EZ1G109J.xml", xmlid = "EZ1G109J", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/EZ1G109K-2009-USDM-Subaru-Forester-2.5-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "EZ1G109K", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "EZ1G109K", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "EZ1G109K", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "EZ1G109K", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/EZ1G110J-2010-USDM-Subaru-Forester-2.5i-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EZ1G110J.xml", xmlid = "EZ1G110J", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/EZ1GB00J-2009-USDM-Subaru-Forester-2.5i-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EZ1GB00J.xml", xmlid = "EZ1GB00J", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/EZ1GB10J-2010-USDM-Subaru-Forester-2.5i-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EZ1GB10J.xml", xmlid = "EZ1GB10J", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Forester/EZ1GB10K-2010-USDM-Subaru-Forester-2.5i-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EZ1GB10K.xml", xmlid = "EZ1GB10K", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A2UG000J-2007-USDM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2UG000J", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2UG000J", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2UG000J", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2UG000J", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A2UJ000J-2007-USDM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2UJ000J", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2UJ000J", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2UJ000J", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2UJ000J", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A2UJ000J-2007-USDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2UJ000J", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2UJ000J", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2UJ000J", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2UJ000J", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A2ZJ500J-2004-USDM-Subaru-Impreza-STi.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/A2WC501K.xml", xmlid = "A2ZJ500J", size = "ok" },
+  { file = "ecu/D2TB102Prr.xml", xmlid = "A2ZJ500J", size = "ok" },
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJ500J", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJ500J", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJ500J", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJ500J", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A2ZJ700J-2004-USDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJ700J", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJ700J", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJ700J", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJ700J", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A2ZJ710J-2004-USDM-Subaru-Impreza-STi.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJ710J", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJ710J", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJ710J", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJ710J", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A2ZJB10J-2005-USDM-Subaru-Impreza-STi.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJB10J", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJB10J", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJB10J", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJB10J", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A2ZJB11J-2005-USDM-Subaru-Impreza-STi-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJB11J", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJB11J", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJB11J", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJB11J", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A2ZJE11J-2006-USDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2ZJE11J", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2ZJE11J", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2ZJE11J", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2ZJE11J", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4SG900C-2002-USDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SG900C", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SG900C", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SG900C", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SG900C", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4SGA00C-2002-USDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SGA00C", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SGA00C", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SGA00C", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SGA00C", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4SGC00C-2002-USDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SGC00C", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SGC00C", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SGC00C", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SGC00C", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4SGD10C-2002-USDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SGD10C", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SGD10C", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SGD10C", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SGD10C", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4SGE00C-2002-USDM-Subaru-Impreza-WRX-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SGE00C", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SGE00C", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SGE00C", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SGE00C", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4SGE01C-2002-USDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4SGE01C", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4SGE01C", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4SGE01C", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4SGE01C", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4TC101L-2003-USDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TC101L", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TC101L", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TC101L", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TC101L", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4TC300K-2003-USDM-Subaru-Impreza-WRX-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TC300K", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TC300K", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TC300K", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TC300K", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4TC300L-2003-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TC300L", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TC300L", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TC300L", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TC300L", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4TC400L-2003-USDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TC400L", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TC400L", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TC400L", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TC400L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4TC401L-2003-USDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TC401L", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TC401L", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TC401L", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TC401L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4TF300E-2004-USDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TF300E", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TF300E", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TF300E", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TF300E", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4TF300F-2004-USDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TF300F", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TF300F", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TF300F", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TF300F", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4TF400E-2004-USDM-Subaru-Impreza-WRX-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TF400E", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TF400E", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TF400E", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TF400E", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4TF500F-2004-USDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TF500F", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TF500F", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TF500F", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TF500F", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4TF510E-2004-USDM-Subaru-Impreza-WRX-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TF510E", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TF510E", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TF510E", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TF510E", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4TF510F-2004-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TF510F", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TF510F", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TF510F", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TF510F", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4TF520F-2004-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TF520F", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TF520F", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TF520F", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TF520F", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4TF520F-2004-USDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TF520F", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TF520F", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TF520F", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TF520F", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4TF800E-2005-USDM-Subaru-Impreza-WRX-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TF800E", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TF800E", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TF800E", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TF800E", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4TF800F-2005-USDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TF800F", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TF800F", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TF800F", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TF800F", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A4TF810F-2005-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A4TF810F", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A4TF810F", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A4TF810F", size = "mismatch", declared = 196608, image = 163840 },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A4TF810F", size = "mismatch", declared = 196608, image = 163840 },
+]
+
+[[roms]]
+path = "USDM/Impreza/A8DH200W-2006-USDM-Subaru-Impreza-WRX-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DH200W", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DH200W", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DH200W", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DH200W", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A8DH200X-2006-USDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DH200X", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DH200X", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DH200X", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DH200X", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A8DH201X-2006-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DH201X", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DH201X", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DH201X", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DH201X", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A8DH202X-2006-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DH202X", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DH202X", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DH202X", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DH202X", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A8DK100W-2007-USDM-Subaru-Impreza-WRX-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DK100W", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DK100W", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DK100W", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DK100W", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A8DK100X-2007-USDM-Subaru-Impreza-WRX.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DK100X", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DK100X", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DK100X", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DK100X", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/A8DK101X-2007-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A8DK101X", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A8DK101X", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A8DK101X", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A8DK101X", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5I910V-2011-USDM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/ROMRAIDER-AE5I910V-v0.97.xml", xmlid = "AE5I910V", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5IA10L-2011-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2011USDMWRXMT-AE5IA10L_v1.xml", xmlid = "AE5IA10L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5IB00L-2011-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/AE51B00L_RomRaider.xml", xmlid = "AE5IB00L", size = "ok" },
+  { file = "ecu/RR_AE5IB00L.xml", xmlid = "AE5IB00L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5IB00V-2011-USDM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2011USDMSTiMTAE5IB00V_v1.xml", xmlid = "AE5IB00V", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5IB40L-2011-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5IB40L.xml", xmlid = "AE5IB40L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5IB40V-2011-USDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5IB40V.xml", xmlid = "AE5IB40V", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5K500L-2012-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2012UsdmWrxMt-AE5K500L_v1.xml", xmlid = "AE5K500L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5K500V-2012-USDM-Subaru-Impreza-STI.Hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2012UsdmSTiMT-AE5K500V_v2.xml", xmlid = "AE5K500V", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5K611L-2012-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "USDM/Impreza/AE5K611V-2012-USDM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2012UsdmSTiMT-AE5K611V_v1.xml", xmlid = "AE5K611V", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5K700L-2012-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "USDM/Impreza/AE5K700V-2012-USDM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5K700V_ecuf.xml", xmlid = "AE5K700V", base_from = "ecu/standard/ecu_defs.xml", size = "ok" },
+  { file = "ecu/RR_AE5K800V.xml", xmlid = "AE5K700V", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5K800L-2012-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5K800L.xml", xmlid = "AE5K800L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5K800V-2012-USDM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5K800V.xml", xmlid = "AE5K800V", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5L500L-2013-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5L500L.xml", xmlid = "AE5L500L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5L500V-2013-USDM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/AE5L500V_RR.xml", xmlid = "AE5L500V", base_from = "ecu/standard/ecu_defs.xml", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5L600L-2013-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5L600L.xml", xmlid = "AE5L600L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5L700V-2013-USDM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5L700V.xml", xmlid = "AE5L700V", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5Q100L-2014-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5Q100L.xml", xmlid = "AE5Q100L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5Q100V-2014-USDM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5Q100V.xml", xmlid = "AE5Q100V", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5Q200L-2014-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5Q200L.xml", xmlid = "AE5Q200L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5R100V-2015-USDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5R100V.xml", xmlid = "AE5R100V", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AE5T110V-2016-USDM-Subaru-Impreza-STI-MT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "USDM/Impreza/AE5T200V-2016-USDM-Subaru-Impreza-STI-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5T200V.xml", xmlid = "AE5T200V", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AZ1E401A-2008-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1E401A", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1E401A", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1E401A", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1E401A", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AZ1E401B-2008-USDM-Subaru-Impreza-WRX-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1E401B", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1E401B", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1E401B", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1E401B", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AZ1G201I-2008-2009-USDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1G201I", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1G201I", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1G201I", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1G201I", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AZ1G202I-2008-09-USDM-Subaru-Impreza-STI-MT.HEX"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1G202I", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1G202I", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1G202I", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1G202I", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AZ1G401V-2009-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1G401V", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1G401V", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1G401V", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1G401V", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AZ1G701I-2010-USDM-Subaru-Impreza-STI.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "AZ1G701I", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "AZ1G701I", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "AZ1G701I", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "AZ1G701I", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AZ1G701V-2010-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2010_USDM_WRX_MT_AZ1G701V_v2.xml", xmlid = "AZ1G701V", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AZ1G702I-2010-USDM-Subaru-Impreza-STi-SE.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2010_USDM_STi_SE_AZ1G702I_v2.xml", xmlid = "AZ1G702I", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/AZ1G710V-2010-USDM-Subaru-Impreza-WRX-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AZ1G710V.xml", xmlid = "AZ1G710V", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/E2UE102L-2007-USDM-Subaru-Impreza-2.5i.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2UE102L", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2UE102L", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2UE102L", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2UE102L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/E2UE202L-2006-USDM-Subaru-Impreza-2.5i.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2UE202L", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2UE202L", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2UE202L", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2UE202L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/E2UG001L-2007-USDM-Subaru-Impreza-2.5i-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_E2UG001L.xml", xmlid = "E2UG001L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/E2UG002L-2007-USDM-Subaru-Impreza-2.5i-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2007UsdmImpreza2.5i-E2UG002L_v1.xml", xmlid = "E2UG002L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/E2VH101C-2006-USDM-Subaru-Impreza-2.5i-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2VH101C", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2VH101C", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2VH101C", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2VH101C", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/E2VH102C-2006-USDM-Subaru-Impreza-2.5i.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2VH102C", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2VH102C", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2VH102C", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2VH102C", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/E2VH111C-2006-USDM-Subaru-Impreza-2.5i-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2VH111C", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2VH111C", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2VH111C", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2VH111C", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/E2VH112C-2006-USDM-Subaru-Impreza-2.5i-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2VH112C", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2VH112C", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2VH112C", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2VH112C", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/E2VH202C-2006-USDM-Subaru-Impreza-2.5i-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2VH202C", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2VH202C", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2VH202C", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2VH202C", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/E2ZJ101G-2005-USDM-Subaru-Impreza-2.5RS.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2ZJ101G", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2ZJ101G", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2ZJ101G", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2ZJ101G", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/E2ZJ103G-2005-USDM-Subaru-Impreza-2.5RS-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2ZJ103G", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2ZJ103G", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2ZJ103G", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2ZJ103G", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/E2ZJ111G-2005-USDM-Subaru-Impreza-2.5RS-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2ZJ111G", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2ZJ111G", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2ZJ111G", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2ZJ111G", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/E2ZJ113G-2005-USDM-Subaru-Impreza-2.5RS-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2ZJ113G", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2ZJ113G", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2ZJ113G", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2ZJ113G", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/E2ZJ123G-2005-USDM-Subaru-Impreza-2.5RS-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2ZJ123G", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2ZJ123G", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2ZJ123G", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2ZJ123G", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/E2ZJ133G-2005-USDM-Subaru-Impreza-2.5RS-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2ZJ133G", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2ZJ133G", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2ZJ133G", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2ZJ133G", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/EE5I910G-2011-USDM-Subaru-Impreza-2.5i-MT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "USDM/Impreza/EE5I910H-2011-USDM-Subaru-Impreza-2.5i-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EE5I910H .xml", xmlid = "EE5I910H", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/EE5I910T-2011-USDM-Subaru-Impreza-2.5i-MT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "USDM/Impreza/EP5G601B-2012-USDM-Subaru-Impreza-2.0i-CVT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EP5G601B.xml", xmlid = "EP5G601B", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/EP5I200F-2013-USDM-Subaru-Impreza-2.0i-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EP5I200F.xml", xmlid = "EP5I200F", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/EZ1E102G-2008-USDM-Subaru-Impreza-2.5i.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "EZ1E102G", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "EZ1E102G", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "EZ1E102G", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "EZ1E102G", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/EZ1E401G-2008-09-USDM-Subaru-Impreza-2.5i-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "EZ1E401G", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "EZ1E401G", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "EZ1E401G", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "EZ1E401G", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/EZ1E401H-2008-09-USDM-Subaru-Impreza-2.5i-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/EZ1E401Hrrrrrr.xml", xmlid = "EZ1E401H", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/EZ1G701H-2010-USDM-Subaru-Impreza-2.5i-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EZ1G701H.xml", xmlid = "EZ1G701H", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/EZ1GB00G-2008-USDM-Subaru-Impreza-2.5i-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EZ1GB00G.xml", xmlid = "EZ1GB00G", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/EZ1GB00H-2008-USDM-Subaru-Impreza-2.5i-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EZ1GB00H.xml", xmlid = "EZ1GB00H", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/EZ1GB10G-2010-USDM-Subaru-Impreza-2.5i-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EZ1GB10G.xml", xmlid = "EZ1GB10G", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Impreza/EZ1GB10H-2010-USDM-Subaru-Impreza-2.5i-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EZ1GB10H.xml", xmlid = "EZ1GB10H", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/A2TB000N-2008-USDM-Subaru-Legacy-GT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2TB000N", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2TB000N", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2TB000N", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2TB000N", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/A2TB001C-2008-USDM-Subaru-Legacy(Outback)-GT(XT)-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2TB001C", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2TB001C", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2TB001C", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2TB001C", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/A2TB001L-2008-USDM-Subaru-Legacy-GT-spec.B-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2TB001L", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2TB001L", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2TB001L", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2TB001L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/A2TB001N-2008-09-USDM-Subaru-Legacy(Outback)-GT(XT)-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2TB001N", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2TB001N", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2TB001N", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2TB001N", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/A2TB002C-2009-USDM-Subaru-Legacy-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_A2TB002C.xml", xmlid = "A2TB002C", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/A2UG000C-2007-USDM-Subaru-Legacy-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2UG000C", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2UG000C", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2UG000C", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2UG000C", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/A2UG000L-2007-USDM-Subaru-Legacy-GT-spec.B-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2UG000L", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2UG000L", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2UG000L", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2UG000L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/A2UG000N-2007-USDM-Subaru-Legacy-GT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2UG000N", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2UG000N", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2UG000N", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2UG000N", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/A2UI001L-2007-USDM-Subaru-Legacy-GT-spec.B-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2UI001L", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2UI001L", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2UI001L", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2UI001L", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/A2WC500C-2005-USDM-Subaru-Legacy-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC500C", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC500C", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC500C", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC500C", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/A2WC500N-2005-USDM-Legacy-GT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC500N", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC500N", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC500N", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC500N", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/A2WC510C-2005-USDM-Legacy-GT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC510C", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC510C", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC510C", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC510C", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/A2WC510N-2005-USDM-Subaru-Legacy-GT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC510N", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC510N", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC510N", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC510N", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/A2WC511N-2005-USDM-Subaru-Legacy-GT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC511N", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC511N", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC511N", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC511N", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/A2WC521C-2005-USDM-Legacy-GT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC521C", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC521C", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC521C", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC521C", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/A2WC521N-2005-USDM-Legacy-GT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC521N", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC521N", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC521N", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC521N", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/A2WC522N-2005-USDM-Legacy-GT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC522N", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC522N", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC522N", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC522N", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/A2WF200C-2006-USDM-Subaru-Legacy-GT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WF200C", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WF200C", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WF200C", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WF200C", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/A2WF200N-2006-USDM-Legacy-GT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WF200N", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WF200N", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WF200N", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WF200N", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/AE5F301E-2010-USDM-Subaru-Legacy-GT-MT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "USDM/Legacy/AE5K410E-2012-USDM-Subaru-Legacy-GT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_AE5K410E.xml", xmlid = "AE5K410E", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/D2TB101P-2008-USDM-Subaru-Legacy-3.0R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_D2TB101P.xml", xmlid = "D2TB101P", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/DE5F201B-2010-USDM-Subaru-Legacy-3.6R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_DE5F201B.xml", xmlid = "DE5F201B", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/DE5K800B-2012-USDM-Subaru-Legacy-3.6R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_DE5K800B.xml", xmlid = "DE5K800B", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/DE5M301C-2013-USDM-Subaru-Legacy-3.6R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_DE5M301C.xml", xmlid = "DE5M301C", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/DE5Q100C-2014-USDM-Subaru-Legacy-3.6R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_DE5Q100C.xml", xmlid = "DE5Q100C", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/E2UE101B-2007-USDM-Subaru-Legacy-2.5i-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_E2UE101B.xml", xmlid = "E2UE101B", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/E2VG204B-2006-USDM-Subaru-Legacy-2.5i-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2006USDMLegacy2.5iMT-E2VG204B_v1.xml", xmlid = "E2VG204B", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/E2VG221B-2006-USDM-Subaru-Legacy-2.5i-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2006Legacy2.5i-E2VG221B_v1.xml", xmlid = "E2VG221B", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/E2VL002B-2006-USDM-Subaru-Legacy-2.5i-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_E2VL002B.xml", xmlid = "E2VL002B", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/E2ZJ101B-2005-USDM-Subaru-Legacy-2.5i-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2005Legacy25i-E2ZJ101B_v1.xml", xmlid = "E2ZJ101B", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/E2ZJ141B-2005-USDM-Subaru-Legacy-2.5i-AT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2005Legacy25i-E2ZJ141B_v1.xml", xmlid = "E2ZJ141B", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/E2ZJ173B-2005-USDM-Subaru-Legacy-2.5i-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2005Legacy25i-E2ZJ173B_v2.xml", xmlid = "E2ZJ173B", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/E2ZK001A-2005-USDM-Subaru-Legacy-2.5i-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_E2ZK001A.xml", xmlid = "E2ZK001A", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/E2ZK003A-2005-USDM-Subaru-Legacy-2.5i-AT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "USDM/Legacy/E6PF101A-2004-USDM-Subaru-Legacy-2.5i-MT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_E6PF101A.xml", xmlid = "E6PF101A", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/E6PF103A-2004-USDM-Subaru-Legacy-2.5i-AT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_E6PF103A.xml", xmlid = "E6PF103A", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/EE5F200W-2010-USDM-Subaru-Legacy-2.5i-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EE5F200W.xml", xmlid = "EE5F200W", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/EE5F300A-2010-USDM-Subaru-Legacy-2.5i-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EE5F300A.xml", xmlid = "EE5F300A", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/EE5I920T-2010-USDM-Subaru-Legacy-Elite-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EE5i920T.xml", xmlid = "EE5I920T", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/EE5K412T-2012-USDM-Subaru-Legacy-2.5i-AT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "USDM/Legacy/EE5K801W-2012-USDM-Subaru-Legacy-2.5i-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EE5K801W.xml", xmlid = "EE5K801W", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/EZ1D301A-2008-USDM-Legacy-2.5-PZEV.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2008USDMLegacy2.5PZEVMT-EZ1D301A_v1.xml", xmlid = "EZ1D301A", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/EZ1D302B-2009-USDM-Subaru-Legacy-2.5i-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "EZ1D302B", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "EZ1D302B", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "EZ1D302B", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "EZ1D302B", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/EZ1D303B-2008-USDM-Subaru-Legacy-2.5i-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EZ1D303B.xml", xmlid = "EZ1D303B", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Legacy/EZ1GD00A-2009-USDM-Subaru-Legacy-2.5i-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EZ1GD00A.xml", xmlid = "EZ1GD00A", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Outback/A2WC500R-2005-USDM-Subaru-Outback-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC500R", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC500R", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC500R", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC500R", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Outback/A2WC500S-2005-USDM-Subaru-Outback-XT-MT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "USDM/Outback/A2WC510R-2005-USDM-Subaru-Outback-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC510R", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC510R", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC510R", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC510R", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Outback/A2WC510S-2005-USDM-Subaru-Outback-XT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC510S", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC510S", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC510S", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC510S", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Outback/A2WC511R-2005-USDM-Outback-XT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC511R", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC511R", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC511R", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC511R", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Outback/A2WC521R-2005-USDM-Subaru-Outback-XT-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC521R", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC521R", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC521R", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC521R", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Outback/A2WC522S-2005-USDM-Subaru-Outback-XT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WC522S", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WC522S", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WC522S", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WC522S", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Outback/A2WF200R-2006-USDM-Outback-XT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WF200R", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WF200R", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WF200R", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WF200R", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Outback/A2WF200S-2006-USDM-Subaru-Outback-XT-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "A2WF200S", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "A2WF200S", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "A2WF200S", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "A2WF200S", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Outback/D0XJ001P-2006-USDM-Subaru-Outback-3.0R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_D0XJ001P.xml", xmlid = "D0XJ001P", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Outback/D2ZX004B-2005-USDM-Subaru-Outback-3.0R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_D2ZX004B.xml", xmlid = "D2ZX004B", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Outback/D2ZX110B-2005-USDM-Subaru-Outback-3.0R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_D2ZX110B.xml", xmlid = "D2ZX110B", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Outback/D6JM000B-2001-USDM-Subaru-Outback-3.0R-VDC-AT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "USDM/Outback/DE5F810G-2011-USDM-Subaru-Outback-3.6-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_DE5F810B.xml", xmlid = "DE5F810G", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Outback/DE5IB40B-2011-USDM-Subaru-Outback-3.6R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_DE5IB40B.xml", xmlid = "DE5IB40B", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Outback/E2UE102B-2007-USDM-Subaru-Outback-2.5i-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/2007Outback25i-E2UE102B.xml", xmlid = "E2UE102B", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Outback/E2UG001B-2007-USDM-Subaru-Outback-2.5i-AT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "USDM/Outback/E2VG222B-2006-USDM-Outback-2.5i.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "E2VG222B", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "E2VG222B", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "E2VG222B", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "E2VG222B", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Outback/E2ZI103A-2005-USDM-Subaru-Outback-2.5i-MT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_E2ZI103A.xml", xmlid = "E2ZI103A", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Outback/E2ZJ112B-2005-USDM-Subaru-Outback-2.5i-MT-AT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "USDM/Outback/E2ZK002A-2005-USDM-Subaru-Outback-2.5i-AT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "USDM/Outback/E6PF102A-2004-USDM-Subaru-Outback-2.5i-MT-AT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "USDM/Outback/EE5IA11T-2011-USDM-Subaru-Outback-2.5i-CVT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EE5IA11T.xml", xmlid = "EE5IA11T", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Outback/EE5IB20W-2011-USDM-Subaru-Outback-2.5i-MT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "USDM/Outback/EE5IB41T-2012-USDM-Subaru-Outback-2.5i-CVT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EE5IB41T.xml", xmlid = "EE5IB41T", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Outback/EZ1D105B-2008-USDM-Subaru-Outback-2.5i-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EZ1D105B.xml", xmlid = "EZ1D105B", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Tribeca/DE5F810K-2011-USDM-Subaru-Tribeca-3.6L-AT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "USDM/Tribeca/DE5K411K-2012-USDM-Subaru-Tribeca-3.6-AT.hex"
+status = "no-definition"
+
+[[roms]]
+path = "USDM/Tribeca/DE5L510K-2013-USDM-Subaru-Tribeca-3.0R-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_DE5L510K.xml", xmlid = "DE5L510K", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/Tribeca/DZ1E402B-2009-USDM-Subaru-Tribeca-3.6L-AT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/metric/ecu_defs.xml", xmlid = "DZ1E402B", size = "ok" },
+  { file = "ecu/standard/MerpMod/Testing/AZ1G202G.MeRpMoD.Switch.Testing.v01.50.d20.9.21.1036.xml", xmlid = "DZ1E402B", size = "ok" },
+  { file = "ecu/standard/ecu_defs.xml", xmlid = "DZ1E402B", size = "ok" },
+  { file = "ecu/standard/ecu_defs_merpmod.xml", xmlid = "DZ1E402B", size = "ok" },
+]
+
+[[roms]]
+path = "USDM/XV/EP5F300T-2012-USDM-Subaru-XV-2.5i-CVT.hex"
+status = "unique"
+definitions = [
+  { file = "ecu/RR_EP5F300t.xml", xmlid = "EP5F300t", size = "ok" },
+]

@@ -95,7 +95,7 @@ fn ci_fuzz_replay_check_rejects_weakened_job() {
     let run = format!("        run: {REPLAY}\n");
 
     assert_flags(
-        &m(&|s| s.replace(", fuzz-regressions]", "]")),
+        &m(&|s| s.replace(", fuzz-regressions,", ",")),
         "`ci-ok.needs` does not include `fuzz-regressions`",
     );
     assert_flags(

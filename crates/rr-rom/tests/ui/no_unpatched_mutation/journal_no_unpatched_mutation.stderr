@@ -1,0 +1,35 @@
+error[E0616]: field `image` of struct `Journal` is private
+  --> tests/ui/no_unpatched_mutation/journal_no_unpatched_mutation.rs:14:13
+   |
+14 |     journal.image = Image::new(vec![0xFF, 0xFF]);
+   |             ^^^^^ private field
+
+error[E0616]: field `cursor` of struct `Journal` is private
+  --> tests/ui/no_unpatched_mutation/journal_no_unpatched_mutation.rs:15:13
+   |
+15 |     journal.cursor = 0;
+   |             ^^^^^^ private field
+
+error[E0599]: no method named `image_mut` found for struct `Journal` in the current scope
+  --> tests/ui/no_unpatched_mutation/journal_no_unpatched_mutation.rs:17:21
+   |
+17 |     let _ = journal.image_mut();
+   |                     ^^^^^^^^^
+   |
+help: there is a method `image` with a similar name
+   |
+17 -     let _ = journal.image_mut();
+17 +     let _ = journal.image();
+   |
+
+error[E0608]: cannot index into a value of type `Journal`
+  --> tests/ui/no_unpatched_mutation/journal_no_unpatched_mutation.rs:19:12
+   |
+19 |     journal[0] = 0xFF;
+   |            ^^^
+
+error[E0616]: field `new` of struct `rr_rom::journal::Patch` is private
+  --> tests/ui/no_unpatched_mutation/journal_no_unpatched_mutation.rs:23:39
+   |
+23 |     journal.applied()[0].patches()[0].new = vec![0xFF].into_boxed_slice();
+   |                                       ^^^ private field

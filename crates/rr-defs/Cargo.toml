@@ -26,6 +26,16 @@ serde.workspace = true
 # Snapshots of the reader's unknown-element/attribute warnings
 # (tests/unknown_warnings.rs, US-RR-29-3).
 insta.workspace = true
+# Compile-fail suite (tests/frozen_definition.rs, US-RR-34-5): a resolved
+# `Definition` and its ROM-ID index cannot be changed from outside.
+trybuild.workspace = true
+
+# Resolve and ROM-ID lookup against their budgets (US-RR-34-9; MF-18, MF-40,
+# EC-10): a plain std-only benchmark like rr-core's expr_eval. `-- --check`
+# fails over budget; only ci.yml's `perf-budget` job runs it.
+[[bench]]
+name = "resolve_lookup"
+harness = false
 
 [lints]
 workspace = true

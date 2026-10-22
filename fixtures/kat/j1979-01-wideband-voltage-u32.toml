@@ -1,0 +1,243 @@
+# SAE J1979 service $01 PID vectors (US-RR-14-6, PROJECT.md T2 (d), D-024):
+# wideband oxygen sensor voltage 8/65536 (256 C + D) V (bytes C, D of 4).
+#
+# Formula sources. SAE J1979 and ISO 15031-5 are paywalled and were not
+# consulted; the formula is taken from two secondary sources that attribute
+# it to SAE J1979, which agree (see `notes`): Wikipedia's "OBD-II PIDs" table
+# and CSS Electronics' service 01 PID CSV. The response framing (0x41 = 0x01 +
+# 0x40, then the PID echoed, then the data bytes A, B, ...) is from the ELM327
+# datasheet (ELM327DSJ, pp. 31-32). The input is service-layer bytes only:
+# no transport framing (ISO 15765-2 PCI byte, ISO 14230 / 9141 header and
+# checksum).
+#
+# Which PIDs: the mode 01 PIDs legacy RomRaider's OBD logger offers
+# (<protocol id="OBD"> of the pinned logger definition, corpus tier,
+# defs/romraider/logger/logger_STD_EN_v290.xml:34769; the same PIDs in
+# logger_v370). Each PID and the line of its <parameter> there:
+# 24 line 35005, 25 line 35013, 26 line 35021, 27 line 35029, 28 line 35037,
+# 29 line 35045, 2A line 35053, 2B line 35061.
+#
+# Every value was worked from Wikipedia's formula in exact rational arithmetic
+# (Python fractions, in a throwaway authoring script kept outside the
+# repository, which also wrote each step into the working) and recomputed
+# from CSS's scale and offset as an independent check; the two ELM327
+# examples match the datasheet. Never with rr-core, rr-testkit or legacy
+# code. Review by recomputing a working by hand.
+# Each PID has a case with every data byte 0x00, one with every data byte
+# 0xFF, and at least one typical value.
+schema = 1
+title = "SAE J1979 service 01: wideband oxygen sensor voltage 8/65536 (256 C + D) V (bytes C, D of 4)"
+notes = """
+Standard: SAE J1979 (E/E Diagnostic Test Modes), service $01 (show current data), PIDs 24, 25, 26, 27, 28, 29, 2A, 2B.
+Edition and table not verified first-hand: SAE J1979 and ISO 15031-5 are paywalled. Wikipedia's
+"Further reading" lists SAE J1979 (2017-02-16, doi:10.4271/J1979_201702) and its Digital Annex
+SAE J1979-DA (2017-02-16, doi:10.4271/J1979DA_201702); neither was consulted.
+Via (secondary): Wikipedia, "OBD-II PIDs", revision 1374011962 (2026-09-09T07:43:07Z), section "Service 01 - Show current data", Formula column, rows 24, 25, 26, 27, 28, 29, 2A, 2B: 8/65536 (256 C + D).
+Via (secondary): CSS Electronics, "OBD2 PID table, service 01" CSV (https://canlogger.csselectronics.com/files/misc/obd2-pid-table-service-01.csv, retrieved 2026-10-22, SHA-256 3283f807111a5176bb13724477b62e20ee84386d4b031dc60301759e5be160d1), rows 24, 25, 26, 27, 28, 29, 2A, 2B: scale 0.0001220703125, offset 0.
+Framing: Elm Electronics ELM327 datasheet, revision ELM327DSJ, "Talking to the Vehicle", pp. 31-32: a mode 01 response is 0x41 (0x01 + 0x40), the PID echoed, then the data bytes.
+Each case's offset is the first data byte (A) of one response; the two bytes before it are 0x41 and the PID.
+Formula: voltage = 8/65536 * (256*C + D) V, 0 to 7.9998779296875 V. Bytes A, B are lambda (j1979-01-wideband-lambda-u32.toml, same responses). CSS lists PID 24's maximum as 2 V and the others' as 8 V; the scale is the same for all eight.
+PIDs: 0x24 oxygen sensor 1 (lambda and voltage); 0x25 oxygen sensor 2 (lambda and voltage); 0x26 oxygen sensor 3 (lambda and voltage); 0x27 oxygen sensor 4 (lambda and voltage); 0x28 oxygen sensor 5 (lambda and voltage); 0x29 oxygen sensor 6 (lambda and voltage); 0x2A oxygen sensor 7 (lambda and voltage); 0x2B oxygen sensor 8 (lambda and voltage).
+"""
+
+# The document these values rest on (US-RR-14-1, validator rule `citation`).
+# Flagged exception: SAE J1979 is paywalled, so its edition and section were
+# not read first-hand (`verified = false`); the formula comes from the `via`
+# sources. Allowed only in the j1979-01-* fixtures.
+[[citation]]
+kind = "standard"
+doc = "SAE J1979"
+edition = "2017-02 (J1979_201702, as Wikipedia lists it; not consulted)"
+section = "service $01 (show current data), PIDs 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B"
+verified = false
+via = [
+  "Wikipedia, \"OBD-II PIDs\", revision 1374011962 (2026-09-09T07:43:07Z), section \"Service 01 - Show current data\", Formula column, rows 24, 25, 26, 27, 28, 29, 2A, 2B: 8/65536 (256 C + D).",
+  "CSS Electronics, \"OBD2 PID table, service 01\" CSV (https://canlogger.csselectronics.com/files/misc/obd2-pid-table-service-01.csv, retrieved 2026-10-22, SHA-256 3283f807111a5176bb13724477b62e20ee84386d4b031dc60301759e5be160d1), rows 24, 25, 26, 27, 28, 29, 2A, 2B: scale 0.0001220703125, offset 0.",
+]
+note = "SAE J1979 and ISO 15031-5 are paywalled and were not consulted. `edition` is the edition Wikipedia's \"Further reading\" lists (SAE J1979 and its Digital Annex SAE J1979-DA, both 2017-02-16, doi:10.4271/J1979_201702 and doi:10.4271/J1979DA_201702), not one these values were checked against; `section` is the service and PID, not a clause or table number, which is unknown. The formula is taken from the `via` sources, which attribute it to SAE J1979."
+
+[definition.encoding]
+storage = "u32"
+endian = "big"
+bitfield = { mask = 0xFFFF }
+
+[definition.conversion]
+to_real = "x*8/65536"
+units = "V"
+
+[input]
+hex = """
+41 24 00 00 00 00  41 24 FF FF FF FF  41 24 80 00 40 00
+41 25 00 00 00 00  41 25 FF FF FF FF  41 25 73 33 30 00
+41 26 00 00 00 00  41 26 FF FF FF FF  41 26 8C CD 50 00
+41 27 00 00 00 00  41 27 FF FF FF FF  41 27 80 00 20 00
+41 28 00 00 00 00  41 28 FF FF FF FF  41 28 60 00 10 00
+41 29 00 00 00 00  41 29 FF FF FF FF  41 29 A0 00 70 00
+41 2A 00 00 00 00  41 2A FF FF FF FF  41 2A 7F FF 80 00
+41 2B 00 00 00 00  41 2B FF FF FF FF  41 2B 81 00 C0 00
+"""
+
+[[decode]]
+offset = 2
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x24 response 41 24 00 00 00 00: C = 0x00 = 0*16 + 0 = 0, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*0 + 0 = 0; voltage = 0*8/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 8
+raw = 65535
+real = 7.9998779296875
+source = { kind = "hand-calc", working = "PID 0x24 response 41 24 FF FF FF FF: C = 0xFF = 15*16 + 15 = 255, D = 0xFF = 15*16 + 15 = 255 (A, B are another signal, masked out); raw = 256*255 + 255 = 65535; voltage = 65535*8/65536 = 524280/65536 = 7.9998779296875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 14
+raw = 16384
+real = 2.0
+source = { kind = "hand-calc", working = "PID 0x24 response 41 24 80 00 40 00: C = 0x40 = 4*16 + 0 = 64, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*64 + 0 = 16384; voltage = 16384*8/65536 = 131072/65536 = 2.0" }
+
+[[decode]]
+offset = 20
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x25 response 41 25 00 00 00 00: C = 0x00 = 0*16 + 0 = 0, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*0 + 0 = 0; voltage = 0*8/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 26
+raw = 65535
+real = 7.9998779296875
+source = { kind = "hand-calc", working = "PID 0x25 response 41 25 FF FF FF FF: C = 0xFF = 15*16 + 15 = 255, D = 0xFF = 15*16 + 15 = 255 (A, B are another signal, masked out); raw = 256*255 + 255 = 65535; voltage = 65535*8/65536 = 524280/65536 = 7.9998779296875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 32
+raw = 12288
+real = 1.5
+source = { kind = "hand-calc", working = "PID 0x25 response 41 25 73 33 30 00: C = 0x30 = 3*16 + 0 = 48, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*48 + 0 = 12288; voltage = 12288*8/65536 = 98304/65536 = 1.5" }
+
+[[decode]]
+offset = 38
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x26 response 41 26 00 00 00 00: C = 0x00 = 0*16 + 0 = 0, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*0 + 0 = 0; voltage = 0*8/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 44
+raw = 65535
+real = 7.9998779296875
+source = { kind = "hand-calc", working = "PID 0x26 response 41 26 FF FF FF FF: C = 0xFF = 15*16 + 15 = 255, D = 0xFF = 15*16 + 15 = 255 (A, B are another signal, masked out); raw = 256*255 + 255 = 65535; voltage = 65535*8/65536 = 524280/65536 = 7.9998779296875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 50
+raw = 20480
+real = 2.5
+source = { kind = "hand-calc", working = "PID 0x26 response 41 26 8C CD 50 00: C = 0x50 = 5*16 + 0 = 80, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*80 + 0 = 20480; voltage = 20480*8/65536 = 163840/65536 = 2.5" }
+
+[[decode]]
+offset = 56
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x27 response 41 27 00 00 00 00: C = 0x00 = 0*16 + 0 = 0, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*0 + 0 = 0; voltage = 0*8/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 62
+raw = 65535
+real = 7.9998779296875
+source = { kind = "hand-calc", working = "PID 0x27 response 41 27 FF FF FF FF: C = 0xFF = 15*16 + 15 = 255, D = 0xFF = 15*16 + 15 = 255 (A, B are another signal, masked out); raw = 256*255 + 255 = 65535; voltage = 65535*8/65536 = 524280/65536 = 7.9998779296875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 68
+raw = 8192
+real = 1.0
+source = { kind = "hand-calc", working = "PID 0x27 response 41 27 80 00 20 00: C = 0x20 = 2*16 + 0 = 32, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*32 + 0 = 8192; voltage = 8192*8/65536 = 65536/65536 = 1.0" }
+
+[[decode]]
+offset = 74
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x28 response 41 28 00 00 00 00: C = 0x00 = 0*16 + 0 = 0, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*0 + 0 = 0; voltage = 0*8/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 80
+raw = 65535
+real = 7.9998779296875
+source = { kind = "hand-calc", working = "PID 0x28 response 41 28 FF FF FF FF: C = 0xFF = 15*16 + 15 = 255, D = 0xFF = 15*16 + 15 = 255 (A, B are another signal, masked out); raw = 256*255 + 255 = 65535; voltage = 65535*8/65536 = 524280/65536 = 7.9998779296875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 86
+raw = 4096
+real = 0.5
+source = { kind = "hand-calc", working = "PID 0x28 response 41 28 60 00 10 00: C = 0x10 = 1*16 + 0 = 16, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*16 + 0 = 4096; voltage = 4096*8/65536 = 32768/65536 = 0.5" }
+
+[[decode]]
+offset = 92
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x29 response 41 29 00 00 00 00: C = 0x00 = 0*16 + 0 = 0, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*0 + 0 = 0; voltage = 0*8/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 98
+raw = 65535
+real = 7.9998779296875
+source = { kind = "hand-calc", working = "PID 0x29 response 41 29 FF FF FF FF: C = 0xFF = 15*16 + 15 = 255, D = 0xFF = 15*16 + 15 = 255 (A, B are another signal, masked out); raw = 256*255 + 255 = 65535; voltage = 65535*8/65536 = 524280/65536 = 7.9998779296875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 104
+raw = 28672
+real = 3.5
+source = { kind = "hand-calc", working = "PID 0x29 response 41 29 A0 00 70 00: C = 0x70 = 7*16 + 0 = 112, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*112 + 0 = 28672; voltage = 28672*8/65536 = 229376/65536 = 3.5" }
+
+[[decode]]
+offset = 110
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x2A response 41 2A 00 00 00 00: C = 0x00 = 0*16 + 0 = 0, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*0 + 0 = 0; voltage = 0*8/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 116
+raw = 65535
+real = 7.9998779296875
+source = { kind = "hand-calc", working = "PID 0x2A response 41 2A FF FF FF FF: C = 0xFF = 15*16 + 15 = 255, D = 0xFF = 15*16 + 15 = 255 (A, B are another signal, masked out); raw = 256*255 + 255 = 65535; voltage = 65535*8/65536 = 524280/65536 = 7.9998779296875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 122
+raw = 32768
+real = 4.0
+source = { kind = "hand-calc", working = "PID 0x2A response 41 2A 7F FF 80 00: C = 0x80 = 8*16 + 0 = 128, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*128 + 0 = 32768; voltage = 32768*8/65536 = 262144/65536 = 4.0" }
+
+[[decode]]
+offset = 128
+raw = 0
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x2B response 41 2B 00 00 00 00: C = 0x00 = 0*16 + 0 = 0, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*0 + 0 = 0; voltage = 0*8/65536 = 0/65536 = 0.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 134
+raw = 65535
+real = 7.9998779296875
+source = { kind = "hand-calc", working = "PID 0x2B response 41 2B FF FF FF FF: C = 0xFF = 15*16 + 15 = 255, D = 0xFF = 15*16 + 15 = 255 (A, B are another signal, masked out); raw = 256*255 + 255 = 65535; voltage = 65535*8/65536 = 524280/65536 = 7.9998779296875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 140
+raw = 49152
+real = 6.0
+source = { kind = "hand-calc", working = "PID 0x2B response 41 2B 81 00 C0 00: C = 0xC0 = 12*16 + 0 = 192, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*192 + 0 = 49152; voltage = 49152*8/65536 = 393216/65536 = 6.0" }
+
+[[changelog]]
+date = 2026-10-22
+reason = "initial values"
+author = "US-RR-14-6"

@@ -1,0 +1,71 @@
+# SSM K-line simulator fixture (format: fixtures/README.md, "SSM simulator
+# fixtures"). Written from docs/legacy/ssm.md only (US-RR-12-4). Writes are
+# behind the write gate in the port (ssm.md section 9).
+schema = 1
+kind = "ssm-kline-sim"
+title = "B8 single write, B0 block write and ECU reset, each with its acknowledgement"
+fixture_ids = ["LEG-SSM-16"]
+synthetic = "Addresses FF7000 / FF7010 and the data are made up; the reset frame is the page's"
+
+# B8: ssm.md section 3.5, "80 <dst> F0 05 B8 A2 A1 A0 VV <cs>"; reply
+# "80 F0 <src> 02 F8 VV <cs>", VV = the value the ECU now holds.
+[[exchange]]
+name = "b8-write"
+spec = "docs/legacy/ssm.md §1.4, §3.5"
+module = "ecu"
+command = "B8"
+state = "single-shot"
+tx = "80 10 F0 05 B8 FF 70 00 5A 06"
+tx_checksum = "80+10+F0+05+B8+FF+70+00+5A = 0x406; low 8 bits 06"
+rx = ["80 F0 10 02 F8 5A D4"]
+rx_checksum = ["80+F0+10+02+F8+5A = 0x2D4; low 8 bits D4"]
+wire = "80 10 F0 05 B8 FF 70 00 5A 06  80 F0 10 02 F8 5A D4"
+outcome = "ok"
+meaning = "write 5A to FF7000; the ECU acknowledges 5A"
+
+[exchange.decoded]
+address = "FF7000"
+value = "5A"
+
+# B0: section 3.7, "80 <dst> F0 LL B0 A2 A1 A0 D1 .. Dn <cs>", LL = n + 4;
+# reply LL = n + 1 carrying the data written.
+[[exchange]]
+name = "b0-write"
+spec = "docs/legacy/ssm.md §1.4, §3.7"
+module = "ecu"
+command = "B0"
+state = "single-shot"
+tx = "80 10 F0 07 B0 FF 70 10 11 22 33 1C"
+tx_checksum = "80+10+F0+07+B0+FF+70+10+11+22+33 = 0x41C; low 8 bits 1C"
+rx = ["80 F0 10 04 F0 11 22 33 DA"]
+rx_checksum = ["80+F0+10+04+F0+11+22+33 = 0x2DA; low 8 bits DA"]
+wire = "80 10 F0 07 B0 FF 70 10 11 22 33 1C  80 F0 10 04 F0 11 22 33 DA"
+outcome = "ok"
+meaning = "write 11 22 33 at FF7010; n = 3, LL = 07; ack LL = 04"
+
+[exchange.decoded]
+address = "FF7010"
+data = "11 22 33"
+
+# Reset: section 3.6, a B8 of 40 to 000060.
+[[exchange]]
+name = "ecu-reset"
+spec = "docs/legacy/ssm.md §3.6, §8.1"
+module = "ecu"
+command = "B8"
+state = "single-shot"
+tx = "80 10 F0 05 B8 00 00 60 40 DD"
+tx_checksum = "80+10+F0+05+B8+00+00+60+40 = 0x2DD; low 8 bits DD"
+rx = ["80 F0 10 02 F8 40 BA"]
+rx_checksum = ["80+F0+10+02+F8+40 = 0x2BA; low 8 bits BA"]
+wire = "80 10 F0 05 B8 00 00 60 40 DD  80 F0 10 02 F8 40 BA"
+outcome = "ok"
+meaning = "ECU reset: 40 written to 000060"
+
+[exchange.decoded]
+address = "000060"
+value = "40"
+
+[[changelog]]
+date = 2026-10-22
+reason = "initial fixtures, US-RR-12-4"

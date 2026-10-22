@@ -1,0 +1,167 @@
+# Air/fuel ratio <-> lambda per fuel (US-RR-21-5, C5): lambda = AFR / AFRs,
+# where AFRs is the fuel's stoichiometric air/fuel ratio by mass.
+#
+# Each case pins the ratio rr-core's fuel table uses for its fuel
+# (rr_core::units::FUELS) and the arithmetic on it. The expected values are
+# that arithmetic done by hand and cross-checked with Python's decimal module,
+# never with rr-core or rr-testkit code (D-024). Where each fuel's AFRs comes
+# from:
+#
+# * methanol 6.47, ethanol 9.00, hydrogen 34.3: pure compounds, Heywood,
+#   Internal Combustion Engine Fundamentals (McGraw-Hill, 1988), Appendix D,
+#   Table D.4; each case's working also derives the value from the formula
+#   (n(O2) x 4.773 mol air / mol O2 x 28.962 g / mol air, Heywood 3.3, over
+#   the molar mass, atomic masses C 12.011, H 1.008, O 15.999).
+# * gasoline 14.7: the ratio the pinned definition corpus itself assumes (ECU
+#   scaling "Estimated Air/Fuel Ratio" = 14.7/(1+x*.0078125), SSM logger
+#   "estimated AFR" = lambda*14.7). Heywood gives 14.6 for a typical gasoline;
+#   14.7 is the tuning convention.
+# * diesel 14.6, LPG 15.5, CNG 17.2: blends whose ratio depends on their
+#   composition; the table keeps the conventional values legacy RomRaider
+#   showed. Heywood's nearest pure references: light diesel 14.5, propane
+#   15.67, methane 17.23.
+#
+# No SI/NIST-equivalent reference fixes the gasoline, diesel, LPG or CNG
+# value: each is a convention (StoichBasis::Legacy in rr-core,
+# logger/external/core/SensorConversionsLambda.java:28,30,32,33), not a
+# constant of the fuel. Each of those fuels has one case whose working says
+# "no SI/NIST-equivalent reference" (units_kat.rs requires it, and requires a
+# Heywood citation for the pure compounds instead, US-RR-21-1).
+#
+# `from` and `to` are unit ids of rr_core::units and `fuel` an id of
+# rr_core::units::FUELS. Consumed by crates/rr-testkit/tests/units_kat.rs, which
+# converts each `value` with rr_core::units::afr_to_lambda or lambda_to_afr. A
+# case without `tolerance` is exact, compared bit for bit.
+schema = 1
+title = "Air/fuel ratio <-> lambda for each fuel of the units registry"
+notes = """
+A rich mixture is lambda below 1, a lean one above. The same lambda is a different AFR on each fuel: \
+lambda 1 is 14.7 on gasoline, 9.00 on ethanol, 6.47 on methanol, 34.3 on hydrogen. A converter \
+that assumes gasoline for every fuel reads a methanol AFR of 6.47 as lambda 0.44.
+"""
+
+[[unit]]
+from = "afr"
+to = "lambda"
+fuel = "gasoline"
+value = 14.7
+expected = 1.0
+source = { kind = "hand-calc", working = "lambda = AFR / AFRs = 14.7 / 14.7 = 1; AFRs 14.7 is the tuning convention the pinned definitions assume, no SI/NIST-equivalent reference (Heywood Table D.4 gives 14.6 for a typical gasoline)" }
+note = "stoichiometric gasoline; legacy SensorConversionsLambda.java:28"
+
+[[unit]]
+from = "lambda"
+to = "afr"
+fuel = "gasoline"
+value = 0.8
+expected = 11.76
+source = { kind = "hand-calc", working = "AFR = lambda * AFRs = 0.8 * 14.7 = 11.76" }
+note = "a rich full-load target"
+
+[[unit]]
+from = "afr"
+to = "lambda"
+fuel = "gasoline"
+value = 12.5
+expected = 0.8503401360544217687
+tolerance = 1e-15
+source = { kind = "hand-calc", working = "lambda = 12.5 / 14.7 = 0.85034013605442176870748..." }
+note = "a converter using Heywood's 14.6 reads 0.8561643835616438"
+
+[[unit]]
+from = "afr"
+to = "lambda"
+fuel = "gasoline"
+value = 11.0
+expected = 0.7482993197278911565
+tolerance = 1e-15
+source = { kind = "hand-calc", working = "lambda = 11.0 / 14.7 = 0.74829931972789115646..." }
+
+[[unit]]
+from = "lambda"
+to = "afr"
+fuel = "ethanol"
+value = 1.0
+expected = 9.0
+source = { kind = "hand-calc", working = "C2H5OH + 3 O2: AFRs = 3 * 4.773 * 28.962 / 46.069 = 9.0019, Heywood Table D.4 9.00; AFR = 1 * 9.00 = 9" }
+
+[[unit]]
+from = "afr"
+to = "lambda"
+fuel = "ethanol"
+value = 7.65
+expected = 0.85
+tolerance = 1e-15
+source = { kind = "hand-calc", working = "lambda = 7.65 / 9.00 = 0.85" }
+
+[[unit]]
+from = "lambda"
+to = "afr"
+fuel = "methanol"
+value = 1.0
+expected = 6.47
+source = { kind = "hand-calc", working = "CH3OH + 1.5 O2: AFRs = 1.5 * 4.773 * 28.962 / 32.042 = 6.4713, Heywood Table D.4 6.47; AFR = 1 * 6.47 = 6.47" }
+note = "legacy RomRaider used 6.4; the chemistry gives 6.47"
+
+[[unit]]
+from = "afr"
+to = "lambda"
+fuel = "methanol"
+value = 5.5
+expected = 0.8500772797527047913
+tolerance = 1e-15
+source = { kind = "hand-calc", working = "lambda = 5.5 / 6.47 = 0.85007727975270479134..." }
+note = "with legacy's 6.4 this reads 0.859375"
+
+[[unit]]
+from = "afr"
+to = "lambda"
+fuel = "diesel"
+value = 21.9
+expected = 1.5
+source = { kind = "hand-calc", working = "lambda = 21.9 / 14.6 = 1.5; AFRs 14.6 is legacy RomRaider's convention for diesel, no SI/NIST-equivalent reference (Heywood Table D.4 gives 14.5 for light diesel)" }
+note = "diesel runs lean; legacy SensorConversionsLambda.java:30"
+
+[[unit]]
+from = "lambda"
+to = "afr"
+fuel = "lpg"
+value = 1.0
+expected = 15.5
+source = { kind = "hand-calc", working = "AFR = 1 * AFRs(LPG) = 1 * 15.5 = 15.5; AFRs 15.5 is legacy RomRaider's convention for LPG, no SI/NIST-equivalent reference (Heywood Table D.4 gives 15.67 for pure propane)" }
+note = "legacy SensorConversionsLambda.java:32"
+
+[[unit]]
+from = "afr"
+to = "lambda"
+fuel = "lpg"
+value = 13.95
+expected = 0.9
+tolerance = 1e-15
+source = { kind = "hand-calc", working = "lambda = 13.95 / 15.5 = 0.9" }
+
+[[unit]]
+from = "lambda"
+to = "afr"
+fuel = "cng"
+value = 1.1
+expected = 18.92
+source = { kind = "hand-calc", working = "AFR = 1.1 * 17.2 = 18.92; AFRs 17.2 is legacy RomRaider's convention for CNG, no SI/NIST-equivalent reference (Heywood Table D.4 gives 17.23 for pure methane)" }
+note = "legacy SensorConversionsLambda.java:33"
+
+[[unit]]
+from = "afr"
+to = "lambda"
+fuel = "hydrogen"
+value = 68.6
+expected = 2.0
+source = { kind = "hand-calc", working = "lambda = 68.6 / 34.3 = 2" }
+
+[[unit]]
+from = "lambda"
+to = "afr"
+fuel = "hydrogen"
+value = 1.0
+expected = 34.3
+source = { kind = "hand-calc", working = "H2 + 0.5 O2: AFRs = 0.5 * 4.773 * 28.962 / 2.016 = 34.285, Heywood Table D.4 34.3; AFR = 1 * 34.3 = 34.3" }
+note = "legacy RomRaider used 34"

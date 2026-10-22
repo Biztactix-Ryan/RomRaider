@@ -1,0 +1,82 @@
+# ISO 9141-2 K-line 5-baud initialisation timings W0 to W4 (US-RR-14,
+# PROJECT.md T2 (d)).
+#
+# Transcribed by hand from ISO 9141-2:1994, first edition 1994-02-01,
+# clause 7.4 "Time requirements" ("W0 to W4 shall be as shown in figure 6")
+# and Figure 6 "Header", whose legend reads: W0 >= 2 ms;
+# 60 ms <= W1 <= 300 ms; 5 ms <= W2 <= 20 ms; 0 <= W3 <= 20 ms;
+# 25 ms <= W4 <= 50 ms. Never taken from rr-core or legacy code (D-024).
+#
+# Not transcribed: ISO 9141-2's message timings P1 to P4 (its clause 12,
+# not checked) and W5 (not in ISO 9141-2:1994's Figure 6).
+#
+# Checked against rr-core's timing::iso::iso9141_2 constants by
+# crates/rr-testkit/tests/timing_kat.rs.
+
+schema = 1
+title = "ISO 9141-2:1994 5-baud initialisation timings W0 to W4 (7.4, Figure 6)"
+notes = """
+Figure 6: the tester sends address 33h at 5 bit/s after at least W0 of bus
+idle; the ECU sends the synchronisation byte 55h W1 after the address byte's
+stop bit, key word 1 W2 later and key word 2 W3 after that; the tester sends
+the inverted key word 2 within W4, and the ECU the inverted address within W4
+of that (7.3.1). Figure 6 gives W0 a minimum only.
+"""
+
+# The documents these values rest on, as structured fields (US-RR-14-1,
+# validator rule `citation`).
+[[citation]]
+kind = "standard"
+doc = "ISO 9141-2"
+edition = "1994 (first edition, 1994-02-01)"
+section = "7.4 Time requirements, Figure 6 \"Header\" (W0 to W4)"
+
+[[timing]]
+name = "iso9141_2::W0_MIN"
+ms = 2
+source = { kind = "standard", doc = "ISO 9141-2:1994 (first edition, 1994-02-01)", section = "7.4, Figure 6: W0 >= 2 ms" }
+
+[[timing]]
+name = "iso9141_2::W1_MIN"
+ms = 60
+source = { kind = "standard", doc = "ISO 9141-2:1994 (first edition, 1994-02-01)", section = "7.4, Figure 6: 60 ms <= W1 <= 300 ms" }
+note = "measured from the end of the address byte's stop bit (Figure 6 footnote)"
+
+[[timing]]
+name = "iso9141_2::W1_MAX"
+ms = 300
+source = { kind = "standard", doc = "ISO 9141-2:1994 (first edition, 1994-02-01)", section = "7.4, Figure 6: 60 ms <= W1 <= 300 ms" }
+
+[[timing]]
+name = "iso9141_2::W2_MIN"
+ms = 5
+source = { kind = "standard", doc = "ISO 9141-2:1994 (first edition, 1994-02-01)", section = "7.4, Figure 6: 5 ms <= W2 <= 20 ms" }
+
+[[timing]]
+name = "iso9141_2::W2_MAX"
+ms = 20
+source = { kind = "standard", doc = "ISO 9141-2:1994 (first edition, 1994-02-01)", section = "7.4, Figure 6: 5 ms <= W2 <= 20 ms" }
+
+[[timing]]
+name = "iso9141_2::W3_MIN"
+ms = 0
+source = { kind = "standard", doc = "ISO 9141-2:1994 (first edition, 1994-02-01)", section = "7.4, Figure 6: 0 <= W3 <= 20 ms" }
+
+[[timing]]
+name = "iso9141_2::W3_MAX"
+ms = 20
+source = { kind = "standard", doc = "ISO 9141-2:1994 (first edition, 1994-02-01)", section = "7.4, Figure 6: 0 <= W3 <= 20 ms" }
+
+[[timing]]
+name = "iso9141_2::W4_MIN"
+ms = 25
+source = { kind = "standard", doc = "ISO 9141-2:1994 (first edition, 1994-02-01)", section = "7.4, Figure 6: 25 ms <= W4 <= 50 ms" }
+
+[[timing]]
+name = "iso9141_2::W4_MAX"
+ms = 50
+source = { kind = "standard", doc = "ISO 9141-2:1994 (first edition, 1994-02-01)", section = "7.4, Figure 6: 25 ms <= W4 <= 50 ms" }
+
+[[changelog]]
+date = 2026-10-22
+reason = "initial values"

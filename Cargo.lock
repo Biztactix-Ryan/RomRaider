@@ -755,6 +755,7 @@ dependencies = [
  "rr-core",
  "rr-testkit",
  "serde",
+ "trybuild",
 ]
 
 [[package]]
@@ -769,8 +770,16 @@ version = "0.1.0"
 name = "rr-rom"
 version = "0.1.0"
 dependencies = [
+ "insta",
+ "proptest",
+ "rr-core",
+ "rr-defs",
  "rr-testkit",
  "rr-write-marker",
+ "serde",
+ "sha2",
+ "toml",
+ "trybuild",
 ]
 
 [[package]]

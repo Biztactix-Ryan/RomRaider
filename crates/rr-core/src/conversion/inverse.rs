@@ -9,7 +9,7 @@ use core::fmt;
 
 use crate::diag::{Code, Diagnostic, Provenance, codes};
 use crate::encoding::{Raw, RawRange};
-use crate::expr::EvalError;
+use crate::expr::{EvalError, EvalStack};
 
 use super::domain::{Domain, first_true};
 use super::range::{EXHAUSTIVE_LIMIT, Undefined};
@@ -232,10 +232,15 @@ impl ExprForm {
         let inverse = self.to_raw.as_ref()?;
         raw.as_int()?;
         let d = Domain::new(raw);
-        let check = |i: i128| {
+        // One value stack for both formulas, sized once: the scan evaluates
+        // them at up to `EXHAUSTIVE_LIMIT` raw values, and `eval` would set
+        // up a fresh inline stack for every one. Same values, same errors:
+        // `eval_with` is `eval` with the caller's stack.
+        let mut stack = EvalStack::for_expr(&self.to_real);
+        let mut check = |i: i128| {
             let x = d.value(i);
-            let real = self.to_real(x).ok()?;
-            let given = round_half_up(match inverse.eval(real, &[]) {
+            let real = self.to_real.eval_with(&mut stack, x, &[]).ok()?;
+            let given = round_half_up(match inverse.eval_with(&mut stack, real, &[]) {
                 Ok(v) | Err(EvalError::NonFinite(v)) => v,
                 Err(_) => f64::NAN,
             });

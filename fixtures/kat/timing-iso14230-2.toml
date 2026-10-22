@@ -1,0 +1,83 @@
+# ISO 14230-2 (KWP2000 on K-line) default message timings P1 to P4
+# (US-RR-14, PROJECT.md T2 (d), MF-28).
+#
+# Transcribed by hand from ISO 14230-2:1999, first edition 1999-03-15,
+# clause 4.5.1 "Value entering", Table 3 "Normal Timing Parameters Set (for
+# functional and physical addressing)", values in milliseconds: the
+# "Default" column under "Minimum values" and the one under "Maximum
+# values". Never taken from rr-core or legacy code (D-024).
+#
+# Table 3 also gives each parameter's lower and upper limit and the
+# resolution for changing it with AccessTimingParameter (5.4); those are not
+# transcribed. Table 4 (extended set, physical addressing only) has the same
+# defaults. The initialisation timings of clause 5.2 (5-baud W1 to W5,
+# fast-init TiniL and TWuP) are not transcribed: their clause was not
+# checked.
+#
+# Checked against rr-core's timing::iso::iso14230_2 constants by
+# crates/rr-testkit/tests/timing_kat.rs.
+
+schema = 1
+title = "ISO 14230-2:1999 default timing parameters P1 to P4 (Table 3)"
+notes = """
+P1: inter-byte time of the ECU response. P2: tester request to ECU response,
+or between two ECU responses. P3: end of the ECU responses to the start of a
+new tester request. P4: inter-byte time of the tester request (Figure 6).
+P3min = 55 ms is legacy's bare sleep(55L) after the NCS ECU-ID request
+(MF-28). P4min's default is 5 ms; its lower limit (the least it may be set
+to) is 0 ms, which is not this value.
+"""
+
+# The documents these values rest on, as structured fields (US-RR-14-1,
+# validator rule `citation`).
+[[citation]]
+kind = "standard"
+doc = "ISO 14230-2"
+edition = "1999 (first edition, 1999-03-15)"
+section = "4.5.1 Value entering, Table 3 \"Normal Timing Parameters Set\" (P1 to P4, Default columns)"
+
+[[timing]]
+name = "iso14230_2::P1_MIN"
+ms = 0
+source = { kind = "standard", doc = "ISO 14230-2:1999 (first edition, 1999-03-15)", section = "4.5.1, Table 3: P1, minimum, default" }
+
+[[timing]]
+name = "iso14230_2::P1_MAX"
+ms = 20
+source = { kind = "standard", doc = "ISO 14230-2:1999 (first edition, 1999-03-15)", section = "4.5.1, Table 3: P1, maximum, default" }
+
+[[timing]]
+name = "iso14230_2::P2_MIN"
+ms = 25
+source = { kind = "standard", doc = "ISO 14230-2:1999 (first edition, 1999-03-15)", section = "4.5.1, Table 3: P2, minimum, default" }
+
+[[timing]]
+name = "iso14230_2::P2_MAX"
+ms = 50
+source = { kind = "standard", doc = "ISO 14230-2:1999 (first edition, 1999-03-15)", section = "4.5.1, Table 3: P2, maximum, default" }
+
+[[timing]]
+name = "iso14230_2::P3_MIN"
+ms = 55
+source = { kind = "standard", doc = "ISO 14230-2:1999 (first edition, 1999-03-15)", section = "4.5.1, Table 3: P3, minimum, default" }
+note = "MF-28: legacy's sleep(55L) after the NCS ECU-ID request is this wait"
+
+[[timing]]
+name = "iso14230_2::P3_MAX"
+ms = 5000
+source = { kind = "standard", doc = "ISO 14230-2:1999 (first edition, 1999-03-15)", section = "4.5.1, Table 3: P3, maximum, default" }
+
+[[timing]]
+name = "iso14230_2::P4_MIN"
+ms = 5
+source = { kind = "standard", doc = "ISO 14230-2:1999 (first edition, 1999-03-15)", section = "4.5.1, Table 3: P4, minimum, default" }
+note = "the default, not the lower limit (0 ms)"
+
+[[timing]]
+name = "iso14230_2::P4_MAX"
+ms = 20
+source = { kind = "standard", doc = "ISO 14230-2:1999 (first edition, 1999-03-15)", section = "4.5.1, Table 3: P4, maximum, default" }
+
+[[changelog]]
+date = 2026-10-22
+reason = "initial values"

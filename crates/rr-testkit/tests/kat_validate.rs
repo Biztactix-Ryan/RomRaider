@@ -181,8 +181,10 @@ fn default_fixtures() -> io::Result<Vec<PathBuf>> {
         .collect()
 }
 
-/// Every `*.toml` below `dir` that holds expected values (a `[[decode]]` or
-/// `[[checksum]]` array), skipping build output, git data and `legacy/`.
+/// Every `*.toml` below `dir` that holds expected values (a `[[decode]]`,
+/// `[[checksum]]`, `[[expr]]`, `[[unit]]`, `[[timing]]` or `[[codec]]` array), skipping
+/// build output,
+/// git data and `legacy/`.
 fn kat_files_below(dir: &Path, out: &mut Vec<PathBuf>) -> io::Result<()> {
     for entry in fs::read_dir(dir)? {
         let path = entry?.path();
@@ -197,7 +199,7 @@ fn kat_files_below(dir: &Path, out: &mut Vec<PathBuf>) -> io::Result<()> {
             }
         } else if path.extension().is_some_and(|ext| ext == "toml")
             && let Ok(table) = fs::read_to_string(&path)?.parse::<toml::Table>()
-            && ["decode", "checksum"]
+            && ["decode", "checksum", "expr", "unit", "timing", "codec"]
                 .iter()
                 .any(|key| table.get(*key).is_some_and(toml::Value::is_array))
         {
@@ -276,13 +278,19 @@ fn stripping_any_source_from_any_real_fixture_is_rejected() {
 
         // (array key, case index, checksum state or None, expected location prefix)
         let mut targets = Vec::new();
-        for (key, states) in [("decode", &[][..]), ("checksum", &["before", "after"][..])] {
+        for (key, states) in [
+            ("decode", &[][..]),
+            ("unit", &[][..]),
+            ("timing", &[][..]),
+            ("codec", &[][..]),
+            ("checksum", &["before", "after"][..]),
+        ] {
             let Some(cases) = table.get(key).and_then(toml::Value::as_array) else {
                 continue;
             };
             for index in 0..cases.len() {
                 if states.is_empty() {
-                    targets.push((key, index, None, format!("[[decode]] #{} ", index + 1)));
+                    targets.push((key, index, None, format!("[[{key}]] #{} ", index + 1)));
                 }
                 for state in states {
                     targets.push((
@@ -1233,7 +1241,9 @@ fn changed_expr_value_needs_a_changelog_and_nan_matches_itself() {
     let decode_head = format!("{DECODE_HEAD}{GOOD_CASE}");
     let message = one(&against(&decode_head, &base), Rule::ChangedWithoutChangelog);
     assert!(
-        message.contains("switched between [[decode]], [[checksum]] and [[expr]]"),
+        message.contains(
+            "switched between [[decode]], [[checksum]], [[expr]], [[unit]], [[timing]] and [[codec]]"
+        ),
         "{message}"
     );
 }
@@ -1401,4 +1411,663 @@ fn changing_or_removing_a_range_needs_a_changelog_entry_but_adding_one_does_not(
     // Editing only the source or note is not a change.
     let reworded = with_range(&RANGE.replace("factor -0.5 < 0", "the factor -0.5 is negative"));
     assert_eq!(against(&base, &reworded), vec![]);
+}
+
+// ---------------------------------------------------------------------------
+// [[unit]] fixtures (US-RR-21-4)
+// ---------------------------------------------------------------------------
+
+/// A one-case unit fixture: 1 `from` is `expected` `to`, with `extra` keys
+/// and a hand-calc `working`.
+fn unit(from: &str, to: &str, expected: &str, extra: &str, working: &str) -> String {
+    format!(
+        "schema = 1\ntitle = \"unit\"\n\n[[unit]]\nfrom = {from:?}\nto = {to:?}\nvalue = 1.0\n\
+         expected = {expected}\n{extra}source = {{ kind = \"hand-calc\", working = {working:?} }}\n"
+    )
+}
+
+const MILE: &str = "1 mi = 1609.344 m = 1609.344 / 1000 km = 1.609344 km";
+
+#[test]
+fn unit_cases_follow_the_source_and_tolerance_rules() {
+    assert_eq!(check(&unit("mi", "km", "1.609344", "", MILE)), vec![]);
+    // The working must arrive at `expected`.
+    let message = one(
+        &check(&unit(
+            "mi",
+            "km",
+            "1.609344",
+            "",
+            "1 mi = 1609 m = 1609 / 1000 km = 1.609 km",
+        )),
+        Rule::HandCalcWorking,
+    );
+    assert!(message.contains("[[unit]] #1 (1 mi -> km)"), "{message}");
+    assert!(message.contains("expected value 1.609344 km"), "{message}");
+    // ... and show more than the result.
+    one(
+        &check(&unit(
+            "mi",
+            "km",
+            "1.609344",
+            "",
+            "1.609344 = 1.609344 * 1.609344 / 1.609344",
+        )),
+        Rule::HandCalcWorking,
+    );
+    // A tolerance is finite and non-negative.
+    assert_eq!(
+        check(&unit("mi", "km", "1.609344", "tolerance = 1e-15\n", MILE)),
+        vec![]
+    );
+    let message = one(
+        &check(&unit("mi", "km", "1.609344", "tolerance = -1.0\n", MILE)),
+        Rule::Tolerance,
+    );
+    assert!(message.contains("[[unit]] #1"), "{message}");
+    // Sources are checked as for any case.
+    let java = unit("mi", "km", "1.609344", "", MILE).replace(
+        &format!("{{ kind = \"hand-calc\", working = {MILE:?} }}"),
+        "{ kind = \"standard\", doc = \"the Java app\", section = \"dyno\" }",
+    );
+    one(&check(&java), Rule::ForbiddenSource);
+    let missing = "schema = 1\ntitle = \"u\"\n[[unit]]\nfrom = \"mi\"\nto = \"km\"\nvalue = 1.0\nexpected = 1.609344\n";
+    let message = one(&check(missing), Rule::MissingSource);
+    assert!(message.contains("[[unit]] #1 (1 mi -> km)"), "{message}");
+}
+
+#[test]
+fn changed_unit_value_needs_a_changelog() {
+    let base = unit("mi", "km", "1.609344", "", MILE);
+    // A reworded source is not a change.
+    assert_eq!(
+        against(&base, &base.replace("= 1.609344 km", "= 1.6093440 km")),
+        vec![]
+    );
+    for head in [
+        unit("mi", "km", "1.609", "tolerance = 0.001\n", MILE),
+        unit(
+            "mi",
+            "m",
+            "1609.344",
+            "",
+            "1 mi = 1609.344 * 1 m = 1609.344 m",
+        ),
+        unit("mph", "km", "1.609344", "", MILE),
+        base.replace("value = 1.0", "value = 2.0"),
+    ] {
+        let message = one(&against(&base, &head), Rule::ChangedWithoutChangelog);
+        assert!(
+            message.contains("[[unit]] #1 (1 mi -> km) (expected = 1.609344, tolerance = None) was changed or removed"),
+            "{message}"
+        );
+        assert_eq!(against(&base, &format!("{head}{CHANGELOG}")), vec![]);
+    }
+    let message = one(
+        &against(&base, &format!("{DECODE_HEAD}{GOOD_CASE}")),
+        Rule::ChangedWithoutChangelog,
+    );
+    assert!(message.contains("switched between"), "{message}");
+}
+
+// ---------------------------------------------------------------------------
+// [[timing]] fixtures (US-RR-14-5)
+// ---------------------------------------------------------------------------
+
+/// A one-case timing fixture: `name` is `value` (`ms = 55` / `us = 100`),
+/// with a `source`.
+fn timing(name: &str, value: &str, source: &str) -> String {
+    format!(
+        "schema = 1\ntitle = \"timing\"\n{ISO_14230_2}\n[[timing]]\nname = {name:?}\n{value}\nsource = {source}\n"
+    )
+}
+
+/// The `[[citation]]` a timing fixture needs (rule `citation`, US-RR-14-1).
+const ISO_14230_2: &str = "\n[[citation]]\nkind = \"standard\"\ndoc = \"ISO 14230-2\"\n\
+     edition = \"1999 (first edition, 1999-03-15)\"\nsection = \"4.5.1, Table 3\"\n";
+
+const TABLE_3: &str =
+    "{ kind = \"standard\", doc = \"ISO 14230-2:1999\", section = \"4.5.1, Table 3\" }";
+
+#[test]
+fn timing_cases_follow_the_source_rules() {
+    assert_eq!(
+        check(&timing("iso14230_2::P3_MIN", "ms = 55", TABLE_3)),
+        vec![]
+    );
+    let message = one(
+        &check(&timing(
+            "iso14230_2::P3_MIN",
+            "ms = 55",
+            "{ kind = \"standard\", doc = \"ISO 14230-2:1999\", section = \" \" }",
+        )),
+        Rule::EmptySource,
+    );
+    assert!(
+        message.contains("[[timing]] #1 (iso14230_2::P3_MIN)"),
+        "{message}"
+    );
+    one(
+        &check(&timing(
+            "iso14230_2::P3_MIN",
+            "ms = 55",
+            "{ kind = \"standard\", doc = \"ISO 14230-2 per NCSLoggerConnection.java\", section = \"111\" }",
+        )),
+        Rule::ForbiddenSource,
+    );
+    // A hand calculation must arrive at the value, and show more than it.
+    assert_eq!(
+        check(&timing(
+            "iso15765_2::STMIN_SUB_MS_MIN",
+            "us = 100",
+            "{ kind = \"hand-calc\", working = \"F1h = 1 * 100 us = 100 us\" }",
+        )),
+        vec![]
+    );
+    let message = one(
+        &check(&timing(
+            "iso15765_2::STMIN_SUB_MS_MIN",
+            "us = 100",
+            "{ kind = \"hand-calc\", working = \"F2h = 2 * 50 us * 2 = 200 us\" }",
+        )),
+        Rule::HandCalcWorking,
+    );
+    assert!(message.contains("expected value 100 us"), "{message}");
+    let missing = "schema = 1\ntitle = \"t\"\n[[timing]]\nname = \"iso14230_2::P3_MIN\"\nms = 55\n";
+    let message = one(&check(missing), Rule::MissingSource);
+    assert!(
+        message.contains("[[timing]] #1 (iso14230_2::P3_MIN)"),
+        "{message}"
+    );
+}
+
+#[test]
+fn changed_timing_value_needs_a_changelog() {
+    let base = timing("iso14230_2::P3_MIN", "ms = 55", TABLE_3);
+    // A reworded source, or the same duration in microseconds, is not a
+    // change.
+    assert_eq!(
+        against(&base, &base.replace("Table 3", "Table 3, P3")),
+        vec![]
+    );
+    assert_eq!(
+        against(&base, &base.replace("ms = 55", "us = 55000")),
+        vec![]
+    );
+    for head in [
+        base.replace("ms = 55", "ms = 50"),
+        base.replace("ms = 55", "us = 55"),
+        base.replace("P3_MIN", "P3_MAX"),
+    ] {
+        let message = one(&against(&base, &head), Rule::ChangedWithoutChangelog);
+        assert!(
+            message.contains("[[timing]] #1 (iso14230_2::P3_MIN) (ms = 55) was changed or removed"),
+            "{message}"
+        );
+        assert_eq!(against(&base, &format!("{head}{CHANGELOG}")), vec![]);
+    }
+    let message = one(
+        &against(&base, &format!("{DECODE_HEAD}{GOOD_CASE}")),
+        Rule::ChangedWithoutChangelog,
+    );
+    assert!(message.contains("switched between"), "{message}");
+}
+
+// ---------------------------------------------------------------------------
+// [[codec]] fixtures and the `legacy-test` source (US-RR-14-8)
+// ---------------------------------------------------------------------------
+
+/// The `[[citation]]` a codec fixture needs (rule `citation`, US-RR-14-1).
+const NCS_TEST: &str = "\n[[citation]]\nkind = \"legacy-test\"\n\
+     file = \"legacy/src/test/java/com/romraider/maps/checksum/NcsCoDecTest.java\"\n\
+     lines = \"33,35,37,39-83\"\n";
+
+const LEGACY: &str = "{ kind = \"legacy-test\", file = \"legacy/src/test/java/com/romraider/maps/checksum/NcsCoDecTest.java\", lines = \"37,45-49\" }";
+
+/// A one-case codec fixture with `source`.
+fn codec(source: &str) -> String {
+    format!(
+        "schema = 1\ntitle = \"codec\"\n{NCS_TEST}\n[[codec]]\nop = \"ncs-crc16\"\n\
+         params = {{ complement = false, store = \"big\" }}\ninput = \"31 32\"\n\
+         output = \"D1 0D\"\nsource = {source}\n"
+    )
+}
+
+#[test]
+fn codec_cases_follow_the_source_rules() {
+    // A legacy test file path is not a Java citation in a [[codec]] case.
+    assert_eq!(check(&codec(LEGACY)), vec![]);
+    let message = one(
+        &check(&codec(&LEGACY.replace("\"37,45-49\"", "\"45-49,37\""))),
+        Rule::LegacyTest,
+    );
+    assert!(message.contains("[[codec]] #1 (ncs-crc16)"), "{message}");
+    for file in [
+        "legacy/src/main/java/com/romraider/maps/checksum/NcsCoDec.java",
+        "legacy/src/test/",
+        "legacy/src/test/../main/X.java",
+        "legacy/src/test//X.java",
+        "legacy\\\\src\\\\test\\\\X.java",
+        "/legacy/src/test/X.java",
+    ] {
+        let source = LEGACY.replace(
+            "legacy/src/test/java/com/romraider/maps/checksum/NcsCoDecTest.java",
+            file,
+        );
+        // The source's file is also not the cited one (rule `citation`).
+        let violations = check(&codec(&source));
+        assert!(
+            violations.iter().any(|v| v.rule == Rule::LegacyTest)
+                && violations
+                    .iter()
+                    .all(|v| matches!(v.rule, Rule::LegacyTest | Rule::Citation)),
+            "{violations:#?}"
+        );
+    }
+    // Any other source still may not cite Java (and this one's document is
+    // not cited either, rule `citation`).
+    let violations = check(&codec(
+        "{ kind = \"standard\", doc = \"NcsCoDecTest.java\", section = \"48\" }",
+    ));
+    assert!(
+        violations.iter().any(|v| v.rule == Rule::ForbiddenSource),
+        "{violations:#?}"
+    );
+    // A hand calculation must arrive at the output bytes.
+    assert_eq!(
+        check(&codec(
+            "{ kind = \"hand-calc\", working = \"0xD100 + 0x0D = 0xD10D\" }"
+        )),
+        vec![]
+    );
+    one(
+        &check(&codec(
+            "{ kind = \"hand-calc\", working = \"0xD100 + 0x0E = 0xD10E\" }",
+        )),
+        Rule::HandCalcWorking,
+    );
+    let missing = codec(LEGACY).replace(&format!("source = {LEGACY}\n"), "");
+    let message = one(&check(&missing), Rule::MissingSource);
+    assert!(message.contains("[[codec]] #1 (ncs-crc16)"), "{message}");
+}
+
+#[test]
+fn legacy_test_source_is_only_for_codec_cases() {
+    let text = timing("iso14230_2::P3_MIN", "ms = 55", LEGACY);
+    let message = one(&check(&text), Rule::LegacyTest);
+    assert!(message.contains("only for a [[codec]] case"), "{message}");
+}
+
+#[test]
+fn changed_codec_output_needs_a_changelog() {
+    let base = codec(LEGACY);
+    assert_eq!(
+        against(&base, &base.replace("\"37,45-49\"", "\"37,45-48\"")),
+        vec![]
+    );
+    for head in [
+        base.replace("\"D1 0D\"", "\"D1 0E\""),
+        base.replace("\"31 32\"", "\"31 33\""),
+        base.replace("complement = false", "complement = true"),
+        base.replace("op = \"ncs-crc16\"", "op = \"ncs-crc\""),
+    ] {
+        let message = one(&against(&base, &head), Rule::ChangedWithoutChangelog);
+        assert!(
+            message.contains("[[codec]] #1 (ncs-crc16) (output D1 0D) was changed or removed"),
+            "{message}"
+        );
+        assert_eq!(against(&base, &format!("{head}{CHANGELOG}")), vec![]);
+    }
+    let message = one(
+        &against(&base, &format!("{DECODE_HEAD}{GOOD_CASE}")),
+        Rule::ChangedWithoutChangelog,
+    );
+    assert!(message.contains("switched between"), "{message}");
+}
+
+// ---------------------------------------------------------------------------
+// [[citation]] and standard test-vector fixtures (US-RR-14-1)
+// ---------------------------------------------------------------------------
+
+/// Validates `text` as `fixtures/kat/<name>`: the rule `citation` depends on
+/// the file name.
+fn check_as(name: &str, text: &str) -> Vec<Violation> {
+    validate_text(&Path::new("fixtures/kat").join(name), text, None)
+}
+
+/// A `standard` citation with the given fields (TOML values, quoted).
+fn standard(doc: &str, edition: &str, section: &str, extra: &str) -> String {
+    format!(
+        "\n[[citation]]\nkind = \"standard\"\ndoc = {doc:?}\nedition = {edition:?}\n\
+         section = {section:?}\n{extra}"
+    )
+}
+
+/// `body` (a fixture without top-level tables before its cases) with
+/// `citations` inserted after its `title`.
+fn cited(body: &str, citations: &str) -> String {
+    let mut parts = body.splitn(3, '\n');
+    let (head, title) = (
+        parts.next().unwrap_or_default(),
+        parts.next().unwrap_or_default(),
+    );
+    let rest = parts.next().unwrap_or_default();
+    format!("{head}\n{title}\n{citations}\n{rest}")
+}
+
+/// A one-case timing fixture without a citation.
+const UNCITED_TIMING: &str = "schema = 1\ntitle = \"t\"\n\n[[timing]]\nname = \"iso14230_2::P3_MIN\"\n\
+     ms = 55\nsource = { kind = \"standard\", doc = \"ISO 14230-2:1999\", section = \"Table 3\" }\n";
+
+/// A one-case codec fixture without a citation.
+fn uncited_codec() -> String {
+    codec(LEGACY).replace(NCS_TEST, "")
+}
+
+const UNVERIFIED: &str = "verified = false\nvia = [\"Wikipedia, OBD-II PIDs, revision 1\"]\n";
+
+#[test]
+fn vector_fixture_without_a_citation_is_rejected() {
+    let decode_text = format!("{DECODE_HEAD}{GOOD_CASE}");
+    // By file name, whatever the shape.
+    for (name, text) in [
+        ("timing-iso14230-2.toml", UNCITED_TIMING.to_owned()),
+        ("j1979-01-engine-speed-u16.toml", decode_text.clone()),
+        ("checksum-sum-bytes.toml", CHECKSUM.to_owned()),
+        ("ncs-codec-legacy.toml", uncited_codec()),
+    ] {
+        let violations = check_as(name, &text);
+        let file_level: Vec<_> = violations.iter().filter(|v| v.location.is_none()).collect();
+        assert_eq!(file_level.len(), 1, "{name}: {violations:#?}");
+        assert_eq!(file_level[0].rule, Rule::Citation, "{name}");
+        assert!(
+            file_level[0].message.contains("needs a [[citation]]"),
+            "{}",
+            file_level[0]
+        );
+    }
+    // By shape, whatever the name: a renamed timing or codec fixture
+    // cannot dodge the rule.
+    for text in [UNCITED_TIMING.to_owned(), uncited_codec()] {
+        let violations = check_as("renamed.toml", &text);
+        assert!(
+            violations
+                .iter()
+                .any(|v| v.rule == Rule::Citation && v.location.is_none()),
+            "{violations:#?}"
+        );
+    }
+    // A fixture that is not a vector fixture needs none.
+    assert_eq!(check_as("u16-be.toml", &decode_text), vec![]);
+    assert_eq!(check_as("u16-be.toml", CHECKSUM), vec![]);
+    // With one, each passes.
+    let iso = standard("ISO 14230-2", "1999", "4.5.1, Table 3", "");
+    assert_eq!(
+        check_as("timing-iso14230-2.toml", &cited(UNCITED_TIMING, &iso)),
+        vec![]
+    );
+    assert_eq!(
+        check_as("renamed.toml", &cited(UNCITED_TIMING, &iso)),
+        vec![]
+    );
+    assert_eq!(check_as("ncs-codec-legacy.toml", &codec(LEGACY)), vec![]);
+    let crc = standard(
+        "CRC RevEng catalogue",
+        "last updated 2024-12-11",
+        "CRC-16/ARC",
+        "",
+    );
+    assert_eq!(
+        check_as("checksum-crc.toml", &cited(CHECKSUM, &crc)),
+        vec![]
+    );
+}
+
+#[test]
+fn standard_citation_needs_document_edition_and_section() {
+    for (edition, ok) in [
+        ("1999 (first edition, 1999-03-15)", true),
+        ("2004-10-15", true),
+        ("version 3, 1993-08-19", true),
+        ("version 3", true),
+        ("rev. B", true),
+        ("Revision C2", true),
+        ("first edition", false),
+        ("ELM327DSJ", false),
+        ("latest", false),
+        ("199", false),
+        ("3099", false),
+        ("", false),
+        ("  ", false),
+    ] {
+        let text = cited(
+            UNCITED_TIMING,
+            &standard("ISO 14230-2", edition, "Table 3", ""),
+        );
+        let violations = check_as("timing-iso14230-2.toml", &text);
+        if ok {
+            assert_eq!(violations, vec![], "{edition:?}");
+        } else {
+            let message = one(&violations, Rule::Citation);
+            assert!(message.contains("[[citation]] #1 (standard)"), "{message}");
+        }
+    }
+    for (doc, section) in [("", "Table 3"), ("ISO 14230-2", " ")] {
+        let text = cited(UNCITED_TIMING, &standard(doc, "1999", section, ""));
+        let violations = check_as("timing-iso14230-2.toml", &text);
+        assert!(
+            violations.iter().all(|v| v.rule == Rule::Citation) && !violations.is_empty(),
+            "{violations:#?}"
+        );
+        assert!(
+            violations.iter().any(|v| v
+                .message
+                .contains("non-empty `doc`, `edition` and `section`")),
+            "{violations:#?}"
+        );
+    }
+    // A missing field, or an unknown one, does not load.
+    let text = cited(
+        UNCITED_TIMING,
+        "\n[[citation]]\nkind = \"standard\"\ndoc = \"ISO 14230-2\"\nsection = \"Table 3\"\n",
+    );
+    one(&check_as("timing-iso14230-2.toml", &text), Rule::Load);
+    let text = cited(
+        UNCITED_TIMING,
+        &standard("ISO 14230-2", "1999", "Table 3", "year = 1999\n"),
+    );
+    one(&check_as("timing-iso14230-2.toml", &text), Rule::Load);
+    // A standard citation is a published document, never Java.
+    let text = cited(
+        UNCITED_TIMING,
+        &standard(
+            "ISO 14230-2",
+            "1999",
+            "Table 3, as NCSLoggerConnection.java uses it",
+            "",
+        ),
+    );
+    one(
+        &check_as("timing-iso14230-2.toml", &text),
+        Rule::ForbiddenSource,
+    );
+}
+
+#[test]
+fn each_standard_source_names_a_cited_document() {
+    // The case cites ISO 14230-2:1999; the fixture cites ISO 9141-2 only.
+    let text = cited(
+        UNCITED_TIMING,
+        &standard("ISO 9141-2", "1994", "7.4, Figure 6", ""),
+    );
+    let message = one(&check_as("timing-iso14230-2.toml", &text), Rule::Citation);
+    assert!(
+        message.contains("[[timing]] #1 (iso14230_2::P3_MIN)")
+            && message.contains("\"ISO 14230-2:1999\" is not cited"),
+        "{message}"
+    );
+    // Citing both is fine.
+    let both = format!(
+        "{}{}",
+        standard("ISO 9141-2", "1994", "7.4, Figure 6", ""),
+        standard("ISO 14230-2", "1999", "Table 3", "")
+    );
+    assert_eq!(
+        check_as("timing-iso14230-2.toml", &cited(UNCITED_TIMING, &both)),
+        vec![]
+    );
+    // Outside a vector fixture a standard source needs no citation.
+    let ieee = format!(
+        "{DECODE_HEAD}\n[[decode]]\noffset = 0\nraw = 500\nreal = 50.0\n\
+         source = {{ kind = \"standard\", doc = \"IEEE 754-2008\", section = \"3.4\" }}\n"
+    );
+    assert_eq!(check_as("u16-be.toml", &ieee), vec![]);
+}
+
+#[test]
+fn unverified_citation_is_a_narrow_flagged_exception() {
+    let decode_text = format!("{DECODE_HEAD}{GOOD_CASE}");
+    let j1979 = |extra: &str| {
+        cited(
+            &decode_text,
+            &standard(
+                "SAE J1979",
+                "2017-02 (as Wikipedia lists it; not consulted)",
+                "service $01, PID 0x0C",
+                extra,
+            ),
+        )
+    };
+    // Allowed in a j1979-01-* fixture, with `via`.
+    assert_eq!(
+        check_as("j1979-01-engine-speed-u16.toml", &j1979(UNVERIFIED)),
+        vec![]
+    );
+    // Without `via`, or with an empty one, it is not.
+    for extra in [
+        "verified = false\n",
+        "verified = false\nvia = []\n",
+        "verified = false\nvia = [\" \"]\n",
+    ] {
+        let message = one(
+            &check_as("j1979-01-engine-speed-u16.toml", &j1979(extra)),
+            Rule::Citation,
+        );
+        assert!(message.contains("needs `via`"), "{message}");
+    }
+    // Anywhere else it is not allowed, vector fixture or not.
+    for name in [
+        "j1979-02-freeze-frame.toml",
+        "timing-iso14230-2.toml",
+        "u16-be.toml",
+        "checksum-crc.toml",
+    ] {
+        let message = one(&check_as(name, &j1979(UNVERIFIED)), Rule::Citation);
+        assert!(message.contains("flagged exception"), "{name}: {message}");
+    }
+    // `verified = true` (the default) needs no `via`.
+    assert_eq!(
+        check_as(
+            "j1979-01-engine-speed-u16.toml",
+            &j1979("verified = true\n")
+        ),
+        vec![]
+    );
+}
+
+#[test]
+fn legacy_citations_are_pinned_to_their_fixtures() {
+    // legacy-test: only in a [[codec]] fixture, under legacy/src/test/, and
+    // each legacy-test source's file must be cited.
+    let message = one(
+        &check_as(
+            "timing-iso14230-2.toml",
+            &cited(UNCITED_TIMING, &format!("{ISO_14230_2}{NCS_TEST}")),
+        ),
+        Rule::Citation,
+    );
+    assert!(
+        message.contains("only for a [[codec]] fixture"),
+        "{message}"
+    );
+    let other = NCS_TEST.replace("NcsCoDecTest.java", "OtherTest.java");
+    let message = one(
+        &check_as("ncs-codec-legacy.toml", &cited(&uncited_codec(), &other)),
+        Rule::Citation,
+    );
+    assert!(
+        message.contains("[[codec]] #1 (ncs-crc16)") && message.contains("is not cited"),
+        "{message}"
+    );
+    let main = NCS_TEST.replace("legacy/src/test/", "legacy/src/main/");
+    let violations = check_as("ncs-codec-legacy.toml", &cited(&uncited_codec(), &main));
+    assert!(
+        violations
+            .iter()
+            .any(|v| v.message.contains("must be a relative")),
+        "{violations:#?}"
+    );
+    let bad_lines = NCS_TEST.replace("33,35,37,39-83", "83,33");
+    one(
+        &check_as(
+            "ncs-codec-legacy.toml",
+            &cited(&uncited_codec(), &bad_lines),
+        ),
+        Rule::Citation,
+    );
+
+    // legacy-algorithm: only in the pinned checksum fixtures, under
+    // legacy/src/main/, with a note.
+    let algorithm = |file: &str, lines: &str, note: &str| {
+        format!(
+            "\n[[citation]]\nkind = \"legacy-algorithm\"\nfile = {file:?}\nlines = {lines:?}\nnote = {note:?}\n"
+        )
+    };
+    let good = algorithm(
+        "legacy/src/main/java/com/romraider/io/protocol/ssm/iso9141/SSMChecksumCalculator.java",
+        "31-37",
+        "no published standard defines a byte sum",
+    );
+    for name in validate::LEGACY_ALGORITHM_FIXTURES {
+        assert_eq!(check_as(name, &cited(CHECKSUM, &good)), vec![], "{name}");
+    }
+    for name in [
+        "checksum-crc.toml",
+        "checksum-sum-other.toml",
+        "u16-be.toml",
+    ] {
+        let message = one(&check_as(name, &cited(CHECKSUM, &good)), Rule::Citation);
+        assert!(message.contains("flagged exception"), "{name}: {message}");
+    }
+    for bad in [
+        algorithm("legacy/src/test/java/X.java", "1", "no standard"),
+        algorithm("legacy/src/main/../test/X.java", "1", "no standard"),
+        algorithm("legacy/src/main/X.java", "2-1", "no standard"),
+        algorithm("legacy/src/main/X.java", "1", " "),
+    ] {
+        one(
+            &check_as("checksum-sum-bytes.toml", &cited(CHECKSUM, &bad)),
+            Rule::Citation,
+        );
+    }
+}
+
+#[test]
+fn citations_change_freely_in_base_mode() {
+    let base = cited(
+        UNCITED_TIMING,
+        &standard("ISO 14230-2", "1999", "Table 3", ""),
+    );
+    let head = cited(
+        UNCITED_TIMING,
+        &standard("ISO 14230-2", "1999 (first edition)", "4.5.1, Table 3", ""),
+    );
+    assert_eq!(
+        validate_text(
+            Path::new("fixtures/kat/timing-iso14230-2.toml"),
+            &head,
+            Some(("base", &base))
+        ),
+        vec![]
+    );
 }

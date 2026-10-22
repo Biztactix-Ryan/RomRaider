@@ -1,0 +1,19 @@
+error[E0451]: field `patches` of struct `Group` is private
+ --> tests/ui/no_unpatched_mutation/forge_history.rs:9:9
+  |
+8 |     let _ = Group {
+  |             ----- in this type
+9 |         patches: Box::new([]),
+  |         ^^^^^^^ private field
+
+error[E0451]: fields `image`, `groups` and `cursor` of struct `Journal` are private
+  --> tests/ui/no_unpatched_mutation/forge_history.rs:12:9
+   |
+11 |     let _ = Journal {
+   |             ------- in this type
+12 |         image: Image::new(vec![0x00]),
+   |         ^^^^^ private field
+13 |         groups: Vec::new(),
+   |         ^^^^^^ private field
+14 |         cursor: 1,
+   |         ^^^^^^ private field

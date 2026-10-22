@@ -1,0 +1,243 @@
+# SAE J1979 service $01 PID vectors (US-RR-14-6, PROJECT.md T2 (d), D-024):
+# wideband oxygen sensor current (256 C + D)/256 - 128 mA (bytes C, D of 4).
+#
+# Formula sources. SAE J1979 and ISO 15031-5 are paywalled and were not
+# consulted; the formula is taken from two secondary sources that attribute
+# it to SAE J1979, which agree (see `notes`): Wikipedia's "OBD-II PIDs" table
+# and CSS Electronics' service 01 PID CSV. The response framing (0x41 = 0x01 +
+# 0x40, then the PID echoed, then the data bytes A, B, ...) is from the ELM327
+# datasheet (ELM327DSJ, pp. 31-32). The input is service-layer bytes only:
+# no transport framing (ISO 15765-2 PCI byte, ISO 14230 / 9141 header and
+# checksum).
+#
+# Which PIDs: the mode 01 PIDs legacy RomRaider's OBD logger offers
+# (<protocol id="OBD"> of the pinned logger definition, corpus tier,
+# defs/romraider/logger/logger_STD_EN_v290.xml:34769; the same PIDs in
+# logger_v370). Each PID and the line of its <parameter> there:
+# 34 line 35125, 35 line 35133, 36 line 35141, 37 line 35149, 38 line 35157,
+# 39 line 35165, 3A line 35173, 3B line 35181.
+#
+# Every value was worked from Wikipedia's formula in exact rational arithmetic
+# (Python fractions, in a throwaway authoring script kept outside the
+# repository, which also wrote each step into the working) and recomputed
+# from CSS's scale and offset as an independent check; the two ELM327
+# examples match the datasheet. Never with rr-core, rr-testkit or legacy
+# code. Review by recomputing a working by hand.
+# Each PID has a case with every data byte 0x00, one with every data byte
+# 0xFF, and at least one typical value.
+schema = 1
+title = "SAE J1979 service 01: wideband oxygen sensor current (256 C + D)/256 - 128 mA (bytes C, D of 4)"
+notes = """
+Standard: SAE J1979 (E/E Diagnostic Test Modes), service $01 (show current data), PIDs 34, 35, 36, 37, 38, 39, 3A, 3B.
+Edition and table not verified first-hand: SAE J1979 and ISO 15031-5 are paywalled. Wikipedia's
+"Further reading" lists SAE J1979 (2017-02-16, doi:10.4271/J1979_201702) and its Digital Annex
+SAE J1979-DA (2017-02-16, doi:10.4271/J1979DA_201702); neither was consulted.
+Via (secondary): Wikipedia, "OBD-II PIDs", revision 1374011962 (2026-09-09T07:43:07Z), section "Service 01 - Show current data", Formula column, rows 34, 35, 36, 37, 38, 39, 3A, 3B: (256 C + D)/256 - 128.
+Via (secondary): CSS Electronics, "OBD2 PID table, service 01" CSV (https://canlogger.csselectronics.com/files/misc/obd2-pid-table-service-01.csv, retrieved 2026-10-22, SHA-256 3283f807111a5176bb13724477b62e20ee84386d4b031dc60301759e5be160d1), rows 34, 35, 36, 37, 38, 39, 3A, 3B: scale 0.00390625, offset -128.
+Framing: Elm Electronics ELM327 datasheet, revision ELM327DSJ, "Talking to the Vehicle", pp. 31-32: a mode 01 response is 0x41 (0x01 + 0x40), the PID echoed, then the data bytes.
+Each case's offset is the first data byte (A) of one response; the two bytes before it are 0x41 and the PID.
+Formula: current = (256*C + D)/256 - 128 mA, -128 to 127.99609375 mA. Bytes A, B are lambda (j1979-01-wideband-lambda-u32.toml, same responses). Legacy's logger definition divides by 255 here, not 256 (corpus line of each PID, header comment).
+PIDs: 0x34 oxygen sensor 1 (lambda and current); 0x35 oxygen sensor 2 (lambda and current); 0x36 oxygen sensor 3 (lambda and current); 0x37 oxygen sensor 4 (lambda and current); 0x38 oxygen sensor 5 (lambda and current); 0x39 oxygen sensor 6 (lambda and current); 0x3A oxygen sensor 7 (lambda and current); 0x3B oxygen sensor 8 (lambda and current).
+"""
+
+# The document these values rest on (US-RR-14-1, validator rule `citation`).
+# Flagged exception: SAE J1979 is paywalled, so its edition and section were
+# not read first-hand (`verified = false`); the formula comes from the `via`
+# sources. Allowed only in the j1979-01-* fixtures.
+[[citation]]
+kind = "standard"
+doc = "SAE J1979"
+edition = "2017-02 (J1979_201702, as Wikipedia lists it; not consulted)"
+section = "service $01 (show current data), PIDs 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B"
+verified = false
+via = [
+  "Wikipedia, \"OBD-II PIDs\", revision 1374011962 (2026-09-09T07:43:07Z), section \"Service 01 - Show current data\", Formula column, rows 34, 35, 36, 37, 38, 39, 3A, 3B: (256 C + D)/256 - 128.",
+  "CSS Electronics, \"OBD2 PID table, service 01\" CSV (https://canlogger.csselectronics.com/files/misc/obd2-pid-table-service-01.csv, retrieved 2026-10-22, SHA-256 3283f807111a5176bb13724477b62e20ee84386d4b031dc60301759e5be160d1), rows 34, 35, 36, 37, 38, 39, 3A, 3B: scale 0.00390625, offset -128.",
+]
+note = "SAE J1979 and ISO 15031-5 are paywalled and were not consulted. `edition` is the edition Wikipedia's \"Further reading\" lists (SAE J1979 and its Digital Annex SAE J1979-DA, both 2017-02-16, doi:10.4271/J1979_201702 and doi:10.4271/J1979DA_201702), not one these values were checked against; `section` is the service and PID, not a clause or table number, which is unknown. The formula is taken from the `via` sources, which attribute it to SAE J1979."
+
+[definition.encoding]
+storage = "u32"
+endian = "big"
+bitfield = { mask = 0xFFFF }
+
+[definition.conversion]
+to_real = "x/256-128"
+units = "mA"
+
+[input]
+hex = """
+41 34 00 00 00 00  41 34 FF FF FF FF  41 34 80 00 80 00
+41 35 00 00 00 00  41 35 FF FF FF FF  41 35 73 33 7F 00
+41 36 00 00 00 00  41 36 FF FF FF FF  41 36 8C CD 81 00
+41 37 00 00 00 00  41 37 FF FF FF FF  41 37 60 00 80 80
+41 38 00 00 00 00  41 38 FF FF FF FF  41 38 A0 00 7E 80
+41 39 00 00 00 00  41 39 FF FF FF FF  41 39 7F FF 84 00
+41 3A 00 00 00 00  41 3A FF FF FF FF  41 3A 81 00 70 00
+41 3B 00 00 00 00  41 3B FF FF FF FF  41 3B 80 00 90 00
+"""
+
+[[decode]]
+offset = 2
+raw = 0
+real = -128.0
+source = { kind = "hand-calc", working = "PID 0x34 response 41 34 00 00 00 00: C = 0x00 = 0*16 + 0 = 0, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*0 + 0 = 0; current = 0/256 - 128 = 0.0 - 128 = -128.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 8
+raw = 65535
+real = 127.99609375
+source = { kind = "hand-calc", working = "PID 0x34 response 41 34 FF FF FF FF: C = 0xFF = 15*16 + 15 = 255, D = 0xFF = 15*16 + 15 = 255 (A, B are another signal, masked out); raw = 256*255 + 255 = 65535; current = 65535/256 - 128 = 255.99609375 - 128 = 127.99609375" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 14
+raw = 32768
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x34 response 41 34 80 00 80 00: C = 0x80 = 8*16 + 0 = 128, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*128 + 0 = 32768; current = 32768/256 - 128 = 128.0 - 128 = 0.0" }
+
+[[decode]]
+offset = 20
+raw = 0
+real = -128.0
+source = { kind = "hand-calc", working = "PID 0x35 response 41 35 00 00 00 00: C = 0x00 = 0*16 + 0 = 0, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*0 + 0 = 0; current = 0/256 - 128 = 0.0 - 128 = -128.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 26
+raw = 65535
+real = 127.99609375
+source = { kind = "hand-calc", working = "PID 0x35 response 41 35 FF FF FF FF: C = 0xFF = 15*16 + 15 = 255, D = 0xFF = 15*16 + 15 = 255 (A, B are another signal, masked out); raw = 256*255 + 255 = 65535; current = 65535/256 - 128 = 255.99609375 - 128 = 127.99609375" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 32
+raw = 32512
+real = -1.0
+source = { kind = "hand-calc", working = "PID 0x35 response 41 35 73 33 7F 00: C = 0x7F = 7*16 + 15 = 127, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*127 + 0 = 32512; current = 32512/256 - 128 = 127.0 - 128 = -1.0" }
+
+[[decode]]
+offset = 38
+raw = 0
+real = -128.0
+source = { kind = "hand-calc", working = "PID 0x36 response 41 36 00 00 00 00: C = 0x00 = 0*16 + 0 = 0, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*0 + 0 = 0; current = 0/256 - 128 = 0.0 - 128 = -128.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 44
+raw = 65535
+real = 127.99609375
+source = { kind = "hand-calc", working = "PID 0x36 response 41 36 FF FF FF FF: C = 0xFF = 15*16 + 15 = 255, D = 0xFF = 15*16 + 15 = 255 (A, B are another signal, masked out); raw = 256*255 + 255 = 65535; current = 65535/256 - 128 = 255.99609375 - 128 = 127.99609375" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 50
+raw = 33024
+real = 1.0
+source = { kind = "hand-calc", working = "PID 0x36 response 41 36 8C CD 81 00: C = 0x81 = 8*16 + 1 = 129, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*129 + 0 = 33024; current = 33024/256 - 128 = 129.0 - 128 = 1.0" }
+
+[[decode]]
+offset = 56
+raw = 0
+real = -128.0
+source = { kind = "hand-calc", working = "PID 0x37 response 41 37 00 00 00 00: C = 0x00 = 0*16 + 0 = 0, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*0 + 0 = 0; current = 0/256 - 128 = 0.0 - 128 = -128.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 62
+raw = 65535
+real = 127.99609375
+source = { kind = "hand-calc", working = "PID 0x37 response 41 37 FF FF FF FF: C = 0xFF = 15*16 + 15 = 255, D = 0xFF = 15*16 + 15 = 255 (A, B are another signal, masked out); raw = 256*255 + 255 = 65535; current = 65535/256 - 128 = 255.99609375 - 128 = 127.99609375" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 68
+raw = 32896
+real = 0.5
+source = { kind = "hand-calc", working = "PID 0x37 response 41 37 60 00 80 80: C = 0x80 = 8*16 + 0 = 128, D = 0x80 = 8*16 + 0 = 128 (A, B are another signal, masked out); raw = 256*128 + 128 = 32896; current = 32896/256 - 128 = 128.5 - 128 = 0.5" }
+
+[[decode]]
+offset = 74
+raw = 0
+real = -128.0
+source = { kind = "hand-calc", working = "PID 0x38 response 41 38 00 00 00 00: C = 0x00 = 0*16 + 0 = 0, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*0 + 0 = 0; current = 0/256 - 128 = 0.0 - 128 = -128.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 80
+raw = 65535
+real = 127.99609375
+source = { kind = "hand-calc", working = "PID 0x38 response 41 38 FF FF FF FF: C = 0xFF = 15*16 + 15 = 255, D = 0xFF = 15*16 + 15 = 255 (A, B are another signal, masked out); raw = 256*255 + 255 = 65535; current = 65535/256 - 128 = 255.99609375 - 128 = 127.99609375" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 86
+raw = 32384
+real = -1.5
+source = { kind = "hand-calc", working = "PID 0x38 response 41 38 A0 00 7E 80: C = 0x7E = 7*16 + 14 = 126, D = 0x80 = 8*16 + 0 = 128 (A, B are another signal, masked out); raw = 256*126 + 128 = 32384; current = 32384/256 - 128 = 126.5 - 128 = -1.5" }
+
+[[decode]]
+offset = 92
+raw = 0
+real = -128.0
+source = { kind = "hand-calc", working = "PID 0x39 response 41 39 00 00 00 00: C = 0x00 = 0*16 + 0 = 0, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*0 + 0 = 0; current = 0/256 - 128 = 0.0 - 128 = -128.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 98
+raw = 65535
+real = 127.99609375
+source = { kind = "hand-calc", working = "PID 0x39 response 41 39 FF FF FF FF: C = 0xFF = 15*16 + 15 = 255, D = 0xFF = 15*16 + 15 = 255 (A, B are another signal, masked out); raw = 256*255 + 255 = 65535; current = 65535/256 - 128 = 255.99609375 - 128 = 127.99609375" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 104
+raw = 33792
+real = 4.0
+source = { kind = "hand-calc", working = "PID 0x39 response 41 39 7F FF 84 00: C = 0x84 = 8*16 + 4 = 132, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*132 + 0 = 33792; current = 33792/256 - 128 = 132.0 - 128 = 4.0" }
+
+[[decode]]
+offset = 110
+raw = 0
+real = -128.0
+source = { kind = "hand-calc", working = "PID 0x3A response 41 3A 00 00 00 00: C = 0x00 = 0*16 + 0 = 0, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*0 + 0 = 0; current = 0/256 - 128 = 0.0 - 128 = -128.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 116
+raw = 65535
+real = 127.99609375
+source = { kind = "hand-calc", working = "PID 0x3A response 41 3A FF FF FF FF: C = 0xFF = 15*16 + 15 = 255, D = 0xFF = 15*16 + 15 = 255 (A, B are another signal, masked out); raw = 256*255 + 255 = 65535; current = 65535/256 - 128 = 255.99609375 - 128 = 127.99609375" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 122
+raw = 28672
+real = -16.0
+source = { kind = "hand-calc", working = "PID 0x3A response 41 3A 81 00 70 00: C = 0x70 = 7*16 + 0 = 112, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*112 + 0 = 28672; current = 28672/256 - 128 = 112.0 - 128 = -16.0" }
+
+[[decode]]
+offset = 128
+raw = 0
+real = -128.0
+source = { kind = "hand-calc", working = "PID 0x3B response 41 3B 00 00 00 00: C = 0x00 = 0*16 + 0 = 0, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*0 + 0 = 0; current = 0/256 - 128 = 0.0 - 128 = -128.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 134
+raw = 65535
+real = 127.99609375
+source = { kind = "hand-calc", working = "PID 0x3B response 41 3B FF FF FF FF: C = 0xFF = 15*16 + 15 = 255, D = 0xFF = 15*16 + 15 = 255 (A, B are another signal, masked out); raw = 256*255 + 255 = 65535; current = 65535/256 - 128 = 255.99609375 - 128 = 127.99609375" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 140
+raw = 36864
+real = 16.0
+source = { kind = "hand-calc", working = "PID 0x3B response 41 3B 80 00 90 00: C = 0x90 = 9*16 + 0 = 144, D = 0x00 = 0*16 + 0 = 0 (A, B are another signal, masked out); raw = 256*144 + 0 = 36864; current = 36864/256 - 128 = 144.0 - 128 = 16.0" }
+
+[[changelog]]
+date = 2026-10-22
+reason = "initial values"
+author = "US-RR-14-6"

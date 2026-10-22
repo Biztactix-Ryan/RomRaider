@@ -1,0 +1,307 @@
+# Every distinct `units` attribute value in the pinned definition corpus
+# (US-RR-21-5, D-028): metadata only, one string per line.
+#
+# Each line is `<sources> |<string>|`: the string exactly, between the bars
+# (a trailing space included), after the sources it occurs in, `defs` (the
+# pinned ECU, logger and dyno definition tree, `[defs]` of
+# corpus-manifest.toml) and/or `v370` (the members of `logger_v370.zip`,
+# `[defs.logger_v370]`). Sorted by the string's UTF-8 bytes.
+#
+# rr-core's units tests read every string with `units::legacy_unit`
+# (crates/rr-core/src/units/legacy/tests.rs). Never edit by hand:
+#   RR_CORPUS_DIR=<dir> RR_UPDATE_UNIT_STRINGS=1 cargo nextest run -p rr-defs --test corpus_unit_strings
+# regenerates it, and that corpus-tier test fails when it is stale.
+defs ||
+v370 |#|
+defs,v370 |%|
+defs |'No Knock' Delay Period for Negative Feedback Correction Advance (counter threshold)|
+defs |'Primary Open Loop Fueling' Enrichment Offset Compensation (%)|
+defs |'Primary Open Loop Fueling' Raw Enrichment Offset Additive|
+defs |(MPa)|
+defs |(milliseconds)|
+defs,v370 |-|
+defs |0 = FAN1 OFF FAN2 OFF | 1 = FAN1 OFF FAN2 ON | 2 = FAN1 ON FAN2 OFF | 3 = FAN1 ON FAN2 ON|
+v370 |?|
+defs,v370 |A|
+defs |A/F Learning #1 (%)|
+defs |A/F Learning #1 Limits (%)|
+defs |A/F Learning #1 and #2 Limits (%)|
+defs |A/F Learning #1 and #2 Max (%)|
+defs |A/F Learning #1 and #2 Min (%)|
+defs,v370 |AFR|
+defs,v370 |AFR Gas|
+defs |Accelerator Pedal Angle (%)|
+defs |Additional Injector Pulse Width (ms)|
+defs |Additional Injector Pulse Width Post-Compensation (ms)|
+defs |Advance (degrees)|
+defs |Advance(degrees)|
+defs |Air/Fuel Ratio|
+defs |Airflow (g/s)|
+v370 |Amp|
+defs,v370 |Anzahl|
+defs |Atmospheric Pressure (bar)|
+defs |Atmospheric Pressure (bar) Multiplier|
+defs |Atmospheric Pressure (psi)|
+defs |Atmospheric Pressure (psi) Multiplier|
+defs |Atmospheric Pressure Multiplier|
+defs |Atmospheric Pressure Multiplier Offset|
+defs |Base Ignition Timing (degrees BTDC)|
+defs |Base Pulse Width (ms)|
+defs |BasePulseWidth(ms)|
+defs |Boost Error (bar)|
+defs |Boost Error (psi)|
+defs |Boost Target (bar absolute)|
+defs |Boost Target (psi relative sea level)|
+defs,v370 |C|
+defs |CFP Delta|
+defs |CL to OL Counter Increment (WARNING - value should NEVER be zero)|
+defs |Coolant Temp (Degrees C)|
+defs |Coolant Temp (Degrees F)|
+defs |Coolant Temperature (Degrees C)|
+defs |Coolant Temperature (Degrees F)|
+defs |CoolantTemp(DegreesF)|
+defs |Correction (Degrees)|
+defs |Counter|
+defs |Counter Cycles|
+defs |Cranking Fuel Injector Pulse Width Compensation (%)|
+defs |Current 'Knock Correction Advance Max' Map Value (degrees)|
+defs |Current Fine Correction Learning (degrees of correction)|
+defs |Decay Step Value|
+defs |Degrees C|
+defs |Degrees Delta|
+defs |Degrees F|
+defs |DegreesF|
+defs |Duty Cycle (%)|
+defs |Duty Ratio|
+defs |ESTIMATED Flow Rate - Gas Only (cc/min)|
+defs |Engine Load|
+defs |Engine Load (g/rev)|
+defs |Engine Load Compensation (%)|
+defs |Engine Speed|
+defs |Engine Speed (RPM)|
+defs |Engine Speed Delta|
+defs |Engine Torque|
+defs |Enrichment Adder Multiplier|
+defs |Estimated Air/Fuel Ratio|
+defs |Estimated Air/Fuel Ratio Points (Additive)|
+defs |Estimated Primary Open Loop Air/Fuel Ratio Lean Limit|
+defs |Exhaust Gas Temperature (Degrees C)|
+defs |Exhaust Gas Temperature (Degrees F)|
+defs,v370 |F|
+defs,v370 |Fehlzündungszähler|
+defs |Front Oxygen Sensor Compensation|
+defs |Fuel Offset Additive|
+defs |Fuel Temp (Degrees C)|
+defs |Fuel Temp (Degrees F)|
+defs,v370 |Gang|
+defs |IAM (raw ecu value)|
+defs |Idle Airflow Target g/s|
+defs |Ignition Advance Multiplier (IAM)|
+defs |Ignition Dwell(ms)|
+defs |Ignition Timing (degrees BTDC)|
+defs |Ignition Timing Compensation (Degrees)|
+defs |Ignition Timing Correction|
+defs |Ignition Timing Correction (degrees)|
+defs |Ignition Timing Correction (degrees) |
+defs |Ignition Timing Correction (raw value)|
+defs |Initial Afterstart Offset|
+defs |Initial/Max Wastegate Duty Compensation (% relative)|
+defs |Injection Volume (ml)|
+defs |Injector Fuel Offset Additive|
+defs |Injector Pulse Width (ms)|
+defs |Injector Pulse Width Compensation|
+defs |Injector Pulse Width Compensation (%)|
+v370 |KW °|
+defs,v370 |Koeffizient|
+v370 |L/min|
+defs,v370 |Lambda|
+defs |Lambda Additive|
+defs |Lambda Enrichment (Additive)|
+defs |Latency (ms)|
+v370 |Lean/Rich|
+defs |Load Compensation (%)|
+defs |MAP (psi)|
+defs |MAP related|
+defs |MPH|
+defs,v370 |MPa|
+defs |Manifold Pressure (psi relative sea level)|
+defs |Manifold Relative Pressure (bar)|
+defs |Manifold Relative Pressure (psi)|
+defs |ManifoldPressure(psirelativesealevel)|
+defs |Map Ramping Multiplier (Adder)|
+defs |Mass Airflow (g/s)|
+defs |Mass Airflow Compensation (%)|
+defs |Max Wastegate Duty Compensation (% relative)|
+defs |Maximum Knock Correction Timing Advance (degrees)|
+defs |Maximum Knock Correction Timing Advance Additive (degrees)|
+defs |Minimum Primary Enrichment Offset Additive 1|
+defs |Minimum Primary Enrichment Offset Additive Cruise|
+defs |Minimum Primary Enrichment Offset Additive Non-Cruise|
+defs |Misfire Count|
+defs |Mode Counter|
+defs |Multiplier|
+defs,v370 |Nm|
+defs |Ohms|
+defs,v370 |On/Off|
+v370 |Open/Closed|
+defs,v370 |Pa|
+defs |Period in-between decay multiplier application|
+defs |Port Injection|
+defs |Potential Change in Current Feedback Correction per Knock 'Event' (degrees of correction)|
+defs |Potential Change in Fine Correction Stored Value Per Knock 'Event' (degrees of correction)|
+defs |Primary Enrichment Offset Additive 1|
+defs |Primary Enrichment Offset Additive 1 Compensation|
+v370 |Prosport AFR|
+defs,v370 |RPM|
+defs |Ratio|
+defs |Requested Torque (raw ecu value)|
+defs |Retard (degrees)|
+defs |Rev/Mile|
+defs |Rough Correction (IAM) Positive Learning Delay (counter threshold)|
+defs |Smoothing Factor|
+defs,v370 |Stufe|
+defs |TD Integral Cumulative Wastegate Duty Correction (% absolute)|
+defs |TD Integral Negative Map Target Compensation (% relative)|
+defs |TD Integral Positive Map Target Compensation (% relative)|
+defs |TD Proportional Map Target Compensation (% relative)|
+defs |Target Boost (bar absolute)|
+defs |Target Boost (bar relative)|
+defs |Target Boost (psi relative sea level)|
+defs |Target Boost (psi relative)|
+defs |Target Boost (psia) Compensation (%)|
+defs |Target Boost Compensation (%)|
+defs |Target Throttle Plate Opening Angle (%)|
+defs |Temperature (Degrees C)|
+defs |Temperature (Degrees F)|
+defs |Throttle (%)|
+defs |Throttle Angle Change (%)|
+defs |Throttle Plate Opening Angle (%)|
+defs |Throttle Tip-in Enrichment Compensation (%)|
+defs,v370 |Time|
+defs,v370 |Times|
+defs |Timing Compensation Intake Temp Map Target Compensation (%)|
+defs |Unknown|
+defs,v370 |V|
+defs,v370 |VDC|
+defs,v370 |VE|
+defs |Vehicle Speed (KMH)|
+defs |Vehicle Speed (MPH)|
+defs |Volts|
+defs |Wastegate Duty Correction (% absolute)|
+defs |Wastegate Duty Cycle (%)|
+defs,v370 |Zeit|
+defs,v370 |absolute %|
+defs,v370 |bar|
+defs,v370 |bar absolute|
+defs,v370 |bar relative|
+defs,v370 |bar relative sea level|
+defs |bara|
+defs |bara/v|
+defs,v370 |bit flags|
+defs |calculated|
+defs |change in multiplier|
+defs |change in raw ecu value|
+defs,v370 |coefficient|
+defs,v370 |count|
+defs |counter|
+defs |counter threshold|
+defs |cumulative throttle angle change|
+defs,v370 |degKW|
+defs,v370 |degrees|
+defs |degrees (retard)|
+defs |degrees of correction|
+defs,v370 |degrees/s|
+defs,v370 |estimated AFR|
+defs |estimated air/fuel ratio|
+defs |flag|
+defs,v370 |ft-lbs|
+defs,v370 |fuel-air equivalence ratio|
+defs |fueling mode|
+defs,v370 |g|
+defs,v370 |g/rev|
+defs,v370 |g/s|
+v370 |g/sec|
+defs,v370 |gallon (UK)|
+defs,v370 |gallon (US)|
+defs,v370 |gear|
+defs,v370 |gph (UK)|
+defs,v370 |gph (US)|
+defs,v370 |grams|
+defs |grams/bara|
+defs |grams/psia|
+defs,v370 |hPa|
+defs,v370 |inHg|
+defs,v370 |inHg absolute|
+defs,v370 |inHg relative|
+defs,v370 |index|
+defs,v370 |index position|
+defs,v370 |kPa|
+defs,v370 |kPa absolute|
+defs,v370 |kPa relative|
+defs,v370 |kPa relative sea level|
+v370 |kg/h|
+defs,v370 |km|
+defs,v370 |km/h|
+defs,v370 |km/l|
+defs,v370 |l/100km|
+defs,v370 |l/h|
+defs,v370 |lambda|
+defs |lambda enrichment|
+defs |lambda enrichment (additive)|
+defs,v370 |litres|
+defs,v370 |m/s²|
+defs,v370 |mA|
+v370 |mbar|
+defs,v370 |mg/cyl|
+defs,v370 |mg/st|
+v370 |mg/stroke|
+defs,v370 |miles|
+defs,v370 |minutes|
+defs,v370 |misfire count|
+defs,v370 |mmHg|
+defs,v370 |mmHg absolute|
+defs,v370 |mmHg relative|
+defs,v370 |mmHg relative sea level|
+defs,v370 |mm³/H|
+defs,v370 |mm³/st|
+defs |mode|
+defs,v370 |mpg (UK)|
+defs,v370 |mpg (US)|
+defs,v370 |mph|
+defs,v370 |ms|
+defs,v370 |multiplier|
+defs |multiplier value|
+defs,v370 |offset|
+defs,v370 |ohm|
+defs,v370 |position|
+defs,v370 |psi|
+defs,v370 |psi absolute|
+defs,v370 |psi relative|
+defs,v370 |psi relative sea level|
+defs |psia|
+defs |psia/v|
+defs,v370 |ratio|
+defs |raw|
+defs,v370 |raw ecu value|
+defs,v370 |raw enrichment value|
+defs,v370 |raw value|
+defs,v370 |rawdata|
+defs,v370 |rpm|
+defs,v370 |sec|
+defs,v370 |seconds|
+defs,v370 |status|
+defs,v370 |steps|
+defs |steps/ratio|
+defs |tip-in enrichment applied counter|
+defs |tip-in last applied counter period|
+defs,v370 |volts|
+defs,v370 |°|
+v370 |° CRK|
+v370 |° Cor|
+v370 |°BTDC|
+defs,v370 |°C|
+defs,v370 |°CA|
+defs,v370 |°F|
+defs,v370 |°KW|
+v370 |°TPS|
+defs,v370 |µs|

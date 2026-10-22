@@ -1,0 +1,53 @@
+# SSM K-line simulator fixture (format: fixtures/README.md, "SSM simulator
+# fixtures"). Written from docs/legacy/ssm.md only (US-RR-12-4).
+schema = 1
+kind = "ssm-kline-sim"
+title = "A0 read memory block: 8 bytes and 1 byte, read once"
+fixture_ids = ["LEG-SSM-15"]
+synthetic = "Address FF8000 and the data bytes are made up"
+
+# Request: ssm.md section 3.4, "80 <dst> F0 06 A0 PP A2 A1 A0 CC <cs>",
+# LL always 6, CC = count - 1, address big-endian. Reply LL = count + 1.
+[[exchange]]
+name = "a0-eight-bytes"
+spec = "docs/legacy/ssm.md §1.4, §3.1, §3.4"
+module = "ecu"
+command = "A0"
+state = "single-shot"
+tx = "80 10 F0 06 A0 00 FF 80 00 07 AC"
+tx_checksum = "80+10+F0+06+A0+00+FF+80+00+07 = 0x3AC; low 8 bits AC"
+rx = ["80 F0 10 09 E0 01 02 03 04 05 06 07 08 8D"]
+rx_checksum = ["80+F0+10+09+E0+01+02+03+04+05+06+07+08 = 0x28D; low 8 bits 8D"]
+wire = "80 10 F0 06 A0 00 FF 80 00 07 AC  80 F0 10 09 E0 01 02 03 04 05 06 07 08 8D"
+outcome = "ok"
+meaning = "8 bytes from FF8000: CC = 07, reply LL = 09"
+
+[exchange.decoded]
+pp = "00"
+address = "FF8000"
+count = 8
+data = "01 02 03 04 05 06 07 08"
+
+[[exchange]]
+name = "a0-one-byte"
+spec = "docs/legacy/ssm.md §3.4"
+module = "ecu"
+command = "A0"
+state = "single-shot"
+tx = "80 10 F0 06 A0 00 FF 80 10 00 B5"
+tx_checksum = "80+10+F0+06+A0+00+FF+80+10+00 = 0x3B5; low 8 bits B5"
+rx = ["80 F0 10 02 E0 5A BC"]
+rx_checksum = ["80+F0+10+02+E0+5A = 0x2BC; low 8 bits BC"]
+wire = "80 10 F0 06 A0 00 FF 80 10 00 B5  80 F0 10 02 E0 5A BC"
+outcome = "ok"
+meaning = "count 1 (the minimum, section 3.4): CC = 00"
+
+[exchange.decoded]
+pp = "00"
+address = "FF8010"
+count = 1
+data = "5A"
+
+[[changelog]]
+date = 2026-10-22
+reason = "initial fixtures, US-RR-12-4"

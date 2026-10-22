@@ -1,0 +1,430 @@
+# Where each legacy-catalogue fixture lives (story US-RR-12, task US-RR-12-2).
+#
+# Every page of docs/legacy ends with a "Fixtures to write" table of stable
+# IDs (LEG-<AREA>-NN). This map is the one record of where each ID is:
+#
+#   kat  = repository-relative paths of the KAT, fixture or test files that
+#          already pin it (each path must exist);
+#   task = the ProjectMan task that writes it, or writes what the listed files
+#          do not cover yet (.project/tasks/<task>.md must exist and name the
+#          ID in its title or body).
+#
+# An entry has `kat`, `task` or both. `cargo xtask check-legacy-docs` (rule 6
+# of xtask/src/legacy_docs.rs) fails when the pages' IDs and this map's
+# differ, a path does not exist, or a task is missing or does not name the
+# ID. When a task's fixture lands, list its file under `kat` and drop `task`.
+
+# docs/legacy/definitions.md
+
+[LEG-DEF-01]
+task = "US-RR-39-7"
+
+[LEG-DEF-02]
+task = "US-RR-39-10"
+
+[LEG-DEF-03]
+task = "US-RR-39-10"
+
+[LEG-DEF-04]
+kat = ["crates/rr-rom/tests/ambiguous_rom.rs"]
+
+[LEG-DEF-05]
+task = "US-RR-39-7"
+
+[LEG-DEF-06]
+task = "US-RR-39-7"
+
+[LEG-DEF-07]
+task = "US-RR-39-10"
+
+[LEG-DEF-08]
+kat = ["fixtures/defs-kat/romraider/inheritance.toml"]
+task = "US-RR-39-7"
+
+[LEG-DEF-09]
+task = "US-RR-39-7"
+
+[LEG-DEF-10]
+task = "US-RR-39-7"
+
+[LEG-DEF-11]
+task = "US-RR-39-8"
+
+[LEG-DEF-12]
+task = "US-RR-39-8"
+
+[LEG-DEF-13]
+task = "US-RR-39-8"
+
+[LEG-DEF-14]
+task = "US-RR-39-8"
+
+[LEG-DEF-15]
+task = "US-RR-39-8"
+
+[LEG-DEF-16]
+kat = ["fixtures/defs-kat/romraider/table-3d.toml"]
+task = "US-RR-39-8"
+
+[LEG-DEF-17]
+kat = ["fixtures/defs-kat/romraider/table-switch.toml"]
+task = "US-RR-39-8"
+
+[LEG-DEF-18]
+kat = ["fixtures/defs-kat/romraider/table-bitwise-switch.toml"]
+task = "US-RR-39-8"
+
+[LEG-DEF-19]
+task = "US-RR-39-9"
+
+[LEG-DEF-20]
+task = "US-RR-39-9"
+
+[LEG-DEF-21]
+task = "US-RR-39-9"
+
+[LEG-DEF-22]
+task = "US-RR-39-9"
+
+[LEG-DEF-23]
+task = "US-RR-39-9"
+
+[LEG-DEF-24]
+task = "US-RR-39-9"
+
+[LEG-DEF-25]
+task = "US-RR-35-17"
+
+[LEG-DEF-26]
+task = "US-RR-39-10"
+
+# docs/legacy/encoding-scaling.md
+
+[LEG-ENC-01]
+kat = [
+  "fixtures/kat/i16-be.toml",
+  "fixtures/kat/i16-le.toml",
+  "fixtures/kat/i24-be.toml",
+  "fixtures/kat/i24-le.toml",
+  "fixtures/kat/i32-be.toml",
+  "fixtures/kat/i32-le.toml",
+  "fixtures/kat/i64-be.toml",
+  "fixtures/kat/i64-le.toml",
+  "fixtures/kat/i8-le.toml",
+  "fixtures/kat/i8.toml",
+  "fixtures/kat/u16-be.toml",
+  "fixtures/kat/u16-le.toml",
+  "fixtures/kat/u24-be.toml",
+  "fixtures/kat/u24-le.toml",
+  "fixtures/kat/u32-be.toml",
+  "fixtures/kat/u32-le.toml",
+  "fixtures/kat/u64-be.toml",
+  "fixtures/kat/u64-le.toml",
+  "fixtures/kat/u8-be.toml",
+  "fixtures/kat/u8-le.toml",
+]
+
+[LEG-ENC-02]
+kat = [
+  "fixtures/kat/u20-movi20.toml",
+  "crates/rr-core/src/encoding/codec/tests.rs",
+]
+task = "US-RR-44-11"
+
+[LEG-ENC-03]
+task = "US-RR-40-11"
+
+[LEG-ENC-04]
+task = "US-RR-39-8"
+
+[LEG-ENC-05]
+kat = [
+  "fixtures/kat/f32-be.toml",
+  "fixtures/kat/f32-le.toml",
+  "fixtures/kat/f64-be.toml",
+  "fixtures/kat/f64-le.toml",
+  "crates/rr-testkit/tests/encoding_float.rs",
+]
+
+[LEG-ENC-06]
+task = "US-RR-44-11"
+
+[LEG-ENC-07]
+kat = ["fixtures/kat/bitfield-u16-le.toml"]
+
+[LEG-ENC-08]
+task = "US-RR-44-11"
+
+[LEG-ENC-09]
+task = "US-RR-40-11"
+
+[LEG-ENC-10]
+kat = ["crates/rr-core/src/conversion/inverse/tests.rs"]
+task = "US-RR-44-11"
+
+[LEG-ENC-11]
+kat = ["crates/rr-core/tests/mf05_inverse.rs"]
+task = "US-RR-44-11"
+
+[LEG-ENC-12]
+task = "US-RR-44-11"
+
+[LEG-ENC-13]
+task = "US-RR-44-11"
+
+[LEG-ENC-14]
+task = "US-RR-40-11"
+
+[LEG-ENC-15]
+kat = [
+  "fixtures/kat/expr-jep-precedence.toml",
+  "fixtures/kat/expr-bitwise-functions.toml",
+]
+task = "US-RR-44-11"
+
+[LEG-ENC-16]
+task = "US-RR-44-11"
+
+[LEG-ENC-17]
+task = "US-RR-61-9"
+
+[LEG-ENC-18]
+task = "US-RR-40-11"
+
+[LEG-ENC-19]
+task = "US-RR-39-8"
+
+# docs/legacy/checksums.md
+
+[LEG-CHK-01]
+kat = ["fixtures/kat/checksum-sum-words.toml"]
+
+[LEG-CHK-02]
+kat = ["fixtures/kat/checksum-sum-bytes.toml"]
+
+[LEG-CHK-03]
+kat = ["fixtures/kat/checksum-xor.toml"]
+
+[LEG-CHK-04]
+kat = ["fixtures/kat/checksum-crc.toml", "fixtures/kat/ncs-codec-legacy.toml"]
+
+[LEG-CHK-05]
+task = "US-RR-35-15"
+
+[LEG-CHK-06]
+task = "US-RR-35-15"
+
+[LEG-CHK-07]
+task = "US-RR-35-15"
+
+[LEG-CHK-08]
+task = "US-RR-35-16"
+
+[LEG-CHK-09]
+task = "US-RR-35-16"
+
+[LEG-CHK-10]
+task = "US-RR-35-15"
+
+[LEG-CHK-11]
+task = "US-RR-35-15"
+
+[LEG-CHK-12]
+task = "US-RR-35-16"
+
+[LEG-CHK-13]
+task = "US-RR-35-17"
+
+[LEG-CHK-14]
+task = "US-RR-45-10"
+
+[LEG-CHK-15]
+task = "US-RR-35-15"
+
+# docs/legacy/ssm.md
+
+[LEG-SSM-01]
+task = "US-RR-47-12"
+
+[LEG-SSM-02]
+task = "US-RR-47-12"
+
+[LEG-SSM-03]
+task = "US-RR-47-12"
+
+[LEG-SSM-04]
+task = "US-RR-47-12"
+
+[LEG-SSM-05]
+kat = ["fixtures/public/ssm/errors.toml"]
+task = "US-RR-47-12"
+
+[LEG-SSM-06]
+task = "US-RR-47-12"
+
+[LEG-SSM-07]
+kat = ["fixtures/public/ssm/init.toml"]
+task = "US-RR-36-10"
+
+[LEG-SSM-08]
+kat = ["fixtures/public/ssm/read-addresses.toml"]
+task = "US-RR-36-10"
+
+[LEG-SSM-09]
+kat = ["fixtures/public/ssm/read-addresses.toml"]
+task = "US-RR-36-10"
+
+[LEG-SSM-10]
+kat = ["fixtures/public/ssm/errors.toml"]
+task = "US-RR-36-10"
+
+[LEG-SSM-11]
+task = "US-RR-36-10"
+
+[LEG-SSM-12]
+kat = ["fixtures/public/ssm/errors.toml"]
+task = "US-RR-36-10"
+
+[LEG-SSM-13]
+task = "US-RR-36-10"
+
+[LEG-SSM-14]
+kat = ["fixtures/public/ssm/errors.toml"]
+task = "US-RR-36-10"
+
+[LEG-SSM-15]
+kat = ["fixtures/public/ssm/read-memory.toml"]
+task = "US-RR-36-10"
+
+[LEG-SSM-16]
+kat = ["fixtures/public/ssm/writes.toml", "fixtures/public/ssm/errors.toml"]
+task = "US-RR-36-10"
+
+[LEG-SSM-17]
+task = "US-RR-64-9"
+
+[LEG-SSM-18]
+task = "US-RR-64-9"
+
+[LEG-SSM-19]
+task = "US-RR-64-9"
+
+[LEG-SSM-20]
+task = "US-RR-32-6"
+
+[LEG-SSM-21]
+task = "US-RR-76-6"
+
+# docs/legacy/logger.md
+
+[LEG-LOG-01]
+task = "US-RR-30-10"
+
+[LEG-LOG-02]
+task = "US-RR-30-10"
+
+[LEG-LOG-03]
+task = "US-RR-30-10"
+
+[LEG-LOG-04]
+task = "US-RR-30-11"
+
+[LEG-LOG-05]
+task = "US-RR-63-9"
+
+[LEG-LOG-06]
+task = "US-RR-30-11"
+
+[LEG-LOG-07]
+task = "US-RR-30-11"
+
+[LEG-LOG-08]
+task = "US-RR-30-11"
+
+[LEG-LOG-09]
+task = "US-RR-30-11"
+
+[LEG-LOG-10]
+task = "US-RR-55-7"
+
+[LEG-LOG-11]
+task = "US-RR-30-11"
+
+[LEG-LOG-12]
+task = "US-RR-30-10"
+
+[LEG-LOG-13]
+task = "US-RR-30-10"
+
+[LEG-LOG-14]
+task = "US-RR-30-10"
+
+# docs/legacy/csv.md
+
+[LEG-CSV-01]
+task = "US-RR-57-9"
+
+[LEG-CSV-02]
+task = "US-RR-57-9"
+
+[LEG-CSV-03]
+task = "US-RR-57-9"
+
+[LEG-CSV-04]
+task = "US-RR-57-9"
+
+[LEG-CSV-05]
+task = "US-RR-57-9"
+
+[LEG-CSV-06]
+task = "US-RR-57-9"
+
+[LEG-CSV-07]
+task = "US-RR-57-10"
+
+[LEG-CSV-08]
+task = "US-RR-57-10"
+
+[LEG-CSV-09]
+task = "US-RR-57-10"
+
+[LEG-CSV-10]
+task = "US-RR-57-10"
+
+[LEG-CSV-11]
+task = "US-RR-57-10"
+
+[LEG-CSV-12]
+task = "US-RR-58-8"
+
+# docs/legacy/settings.md
+
+[LEG-SET-01]
+task = "US-RR-59-10"
+
+[LEG-SET-02]
+task = "US-RR-59-10"
+
+[LEG-SET-03]
+task = "US-RR-59-10"
+
+[LEG-SET-04]
+task = "US-RR-59-10"
+
+[LEG-SET-05]
+task = "US-RR-59-10"
+
+[LEG-SET-06]
+task = "US-RR-59-10"
+
+[LEG-SET-07]
+task = "US-RR-59-10"
+
+[LEG-SET-08]
+task = "US-RR-59-10"
+
+[LEG-SET-09]
+task = "US-RR-59-10"
+
+[LEG-SET-10]
+task = "US-RR-59-10"

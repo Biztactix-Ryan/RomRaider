@@ -21,6 +21,7 @@ pub mod gates_selftest;
 pub mod gen_synthetic;
 pub mod globals;
 pub mod leak_guard;
+pub mod legacy_docs;
 pub mod lint_docs;
 pub mod lint_selftest;
 pub mod mutants_exclusions;

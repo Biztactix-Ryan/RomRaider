@@ -1,0 +1,160 @@
+# SSM K-line simulator fixture (format: fixtures/README.md, "SSM simulator
+# fixtures"). Written from docs/legacy/ssm.md only (US-RR-12-4): one case
+# per row of the error-path table used (section 6) and the echo faults of
+# section 1.4. `legacy` is what the Java does (never run, D-024); `rr` is
+# what the port must do instead (ssm.md section 9).
+schema = 1
+kind = "ssm-kline-sim"
+title = "Error paths: bad checksum, short reply, silent ECU, echo faults"
+fixture_ids = ["LEG-SSM-05", "LEG-SSM-10", "LEG-SSM-12", "LEG-SSM-14", "LEG-SSM-16"]
+synthetic = "Frames reuse the synthetic exchanges of the other ssm fixtures"
+
+# Bad checksum on an A8 reply in STATE_0: the reply's last byte is CF, the
+# sum is CE (section 4, check 7).
+[[exchange]]
+name = "a8-bad-checksum"
+spec = "docs/legacy/ssm.md §4, §6"
+module = "ecu"
+command = "A8"
+state = "single-shot"
+tx = "80 10 F0 05 A8 00 00 00 08 35"
+tx_checksum = "80+10+F0+05+A8+00+00+00+08 = 0x235; low 8 bits 35"
+rx = ["80 F0 10 02 E8 64 CF"]
+rx_checksum = ["80+F0+10+02+E8+64 = 0x2CE; low 8 bits CE (frame carries CF)"]
+wire = "80 10 F0 05 A8 00 00 00 08 35  80 F0 10 02 E8 64 CF"
+outcome = "error"
+error = "bad-checksum"
+legacy = "validateResponse throws InvalidResponseException \"Invalid checksum\"; the logger re-inits from scratch (§4, §6)"
+rr = "typed checksum error; no value for this sample plus a link-health event (§9)"
+
+[exchange.decoded]
+pp = "00"
+addresses = ["000008"]
+
+# Bad checksum on a B8 acknowledgement: bytes 4 and 5 match, the checksum
+# does not (UL-SSM-04).
+[[exchange]]
+name = "b8-ack-bad-checksum"
+spec = "docs/legacy/ssm.md §3.5, §6, UL-SSM-04"
+module = "ecu"
+command = "B8"
+state = "single-shot"
+tx = "80 10 F0 05 B8 FF 70 00 5A 06"
+tx_checksum = "80+10+F0+05+B8+FF+70+00+5A = 0x406; low 8 bits 06"
+rx = ["80 F0 10 02 F8 5A 00"]
+rx_checksum = ["80+F0+10+02+F8+5A = 0x2D4; low 8 bits D4 (frame carries 00)"]
+wire = "80 10 F0 05 B8 FF 70 00 5A 06  80 F0 10 02 F8 5A 00"
+outcome = "error"
+error = "bad-checksum"
+legacy = "accepted as a successful write: the ack check reads only bytes 4 and 5 (UL-SSM-04)"
+rr = "typed checksum error; the write is reported as unconfirmed"
+
+[exchange.decoded]
+address = "FF7000"
+value = "5A"
+
+# Known-length read times out: the A8 reply stops after 6 of its 9 bytes
+# and the line goes quiet. Buffer wanted (3+6)+(9+7) = 25, got 16 + 6 = 22.
+[[exchange]]
+name = "a8-short-reply-timeout"
+spec = "docs/legacy/ssm.md §1.5, §6"
+module = "ecu"
+command = "A8"
+state = "single-shot"
+tx = "80 10 F0 0B A8 00 00 00 08 00 00 0E 00 00 0F 58"
+tx_checksum = "80+10+F0+0B+A8+00+00+00+08+00+00+0E+00+00+0F = 0x258; low 8 bits 58"
+rx = ["80 F0 10 04 E8 64"]
+rx_checksum = []
+wire = "80 10 F0 0B A8 00 00 00 08 00 00 0E 00 00 0F 58  80 F0 10 04 E8 64"
+outcome = "error"
+error = "short-reply"
+legacy = "the 22 bytes are read and discarded; the zero-filled 25-byte buffer is returned and fails \"Invalid header\"; re-init (§6; counter units MF-27)"
+rr = "typed timeout after the LinkProfile deadline on a VirtualClock; never a zero-filled frame"
+
+[exchange.decoded]
+pp = "00"
+addresses = ["000008", "00000E", "00000F"]
+
+# Unknown-length path (init): the reply stops after 20 of 46 bytes, then
+# silence for connect_timeout.
+[[exchange]]
+name = "init-short-reply"
+spec = "docs/legacy/ssm.md §4, §6"
+module = "ecu"
+command = "BF"
+state = "single-shot"
+tx = "80 10 F0 01 BF 40"
+tx_checksum = "80+10+F0+01+BF = 0x240; low 8 bits 40"
+rx = ["80 F0 10 29 FF A2 10 0F EC 00 00 00 01 81 00 00 00 00 00 00"]
+rx_checksum = []
+wire = "80 10 F0 01 BF 40  80 F0 10 29 FF A2 10 0F EC 00 00 00 01 81 00 00 00 00 00 00"
+outcome = "error"
+error = "short-reply"
+legacy = "validateResponse check 5: LL 29 is not low8(20 - 5) = 0F, \"Invalid response data length\"; INITFAIL, retry (§4, §6)"
+rr = "typed short-frame error; init fails, retry per LinkProfile"
+
+# Echo only, ECU silent (init).
+[[exchange]]
+name = "init-silent-ecu"
+spec = "docs/legacy/ssm.md §6"
+module = "ecu"
+command = "BF"
+state = "single-shot"
+tx = "80 10 F0 01 BF 40"
+tx_checksum = "80+10+F0+01+BF = 0x240; low 8 bits 40"
+rx = []
+rx_checksum = []
+wire = "80 10 F0 01 BF 40"
+outcome = "error"
+error = "silent"
+legacy = "stripped reply is empty: IllegalArgumentException; INITFAIL, retry every 1000 ms forever (§6)"
+rr = "typed timeout, no panic; retry policy per LinkProfile (LEG-SSM-10)"
+
+# Corrupt echo: a collision changes the 9th echoed byte (08 -> 0C); the
+# reply that follows is good.
+[[exchange]]
+name = "a8-echo-mismatch"
+spec = "docs/legacy/ssm.md §1.4, §6, UL-SSM-05"
+module = "ecu"
+command = "A8"
+state = "single-shot"
+tx = "80 10 F0 05 A8 00 00 00 08 35"
+tx_checksum = "80+10+F0+05+A8+00+00+00+08 = 0x235; low 8 bits 35"
+rx = ["80 F0 10 02 E8 64 CE"]
+rx_checksum = ["80+F0+10+02+E8+64 = 0x2CE; low 8 bits CE"]
+wire = "80 10 F0 05 A8 00 00 00 0C 35  80 F0 10 02 E8 64 CE"
+outcome = "error"
+error = "echo-mismatch"
+legacy = "not detected: the first 10 bytes are dropped unseen and the reply is used (UL-SSM-05)"
+rr = "echo compared with the request; a mismatch is a link-health event"
+
+[exchange.decoded]
+pp = "00"
+addresses = ["000008"]
+values = ["64"]
+
+# Interface without echo: only the ECU's 7-byte reply arrives, shorter than
+# the 10-byte request (unknown-length path).
+[[exchange]]
+name = "b8-no-echo"
+spec = "docs/legacy/ssm.md §1.4, §6"
+module = "ecu"
+command = "B8"
+state = "single-shot"
+tx = "80 10 F0 05 B8 FF 70 00 5A 06"
+tx_checksum = "80+10+F0+05+B8+FF+70+00+5A = 0x406; low 8 bits 06"
+rx = ["80 F0 10 02 F8 5A D4"]
+rx_checksum = ["80+F0+10+02+F8+5A = 0x2D4; low 8 bits D4"]
+wire = "80 F0 10 02 F8 5A D4"
+outcome = "error"
+error = "no-echo"
+legacy = "the strip removes 10 bytes from 7: NegativeArraySizeException (§1.4, §6)"
+rr = "detected and reported as a link-profile mismatch, not misframed (LEG-SSM-14)"
+
+[exchange.decoded]
+address = "FF7000"
+value = "5A"
+
+[[changelog]]
+date = 2026-10-22
+reason = "initial fixtures, US-RR-12-4"

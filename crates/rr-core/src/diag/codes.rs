@@ -82,6 +82,12 @@ pub const DOMAINS: &[Domain] = &[
                       and linear forms that cannot convert.",
     },
     Domain {
+        prefix: "UNT",
+        title: "Units",
+        description: "The units registry (C5, `rr-core::units`): unit \
+                      strings of legacy definitions that name no known unit.",
+    },
+    Domain {
         prefix: "LAY",
         title: "Layering",
         description: "Layered documents and the resolver (C1, \
@@ -411,6 +417,35 @@ registry! {
     /// "Table type unspecified" and skipped it. (A table of a `<rom>` with
     /// no `base` that has no type is `DEF0016` when the file is read.)
     UNTYPED_TABLE = "DEF0027", Warning, since "0.1.0";
+
+    /// A ROM image matches more than one ROM definition; none is applied.
+    ///
+    /// The ROM ID bytes of the image (`internalidaddress` +
+    /// `internalidstring`) match the identification of two or more `<rom>`s
+    /// of the loaded definition files: two files defining the same ROM (a
+    /// standard and a metric copy, say), two ROM IDs one of which is a
+    /// prefix of the other at one address, or a `force` definition, which
+    /// matches every image. The message names every candidate and where it
+    /// is defined. No definition is picked, so the image is never shown or
+    /// edited through the wrong one (EC-03); legacy RomRaider silently used
+    /// the first match. Load only the definition file meant for the ROM, or
+    /// fix the overlapping IDs.
+    AMBIGUOUS_ROM_ID = "DEF0028", Error, since "0.1.0";
+
+    /// A ROM image is not the size its definition declares; it opens read-only.
+    ///
+    /// The image is longer or shorter than the `<filesize>` of the ROM
+    /// definition it was opened with (inherited from a `base` or its own).
+    /// The message names the definition and both sizes, in bytes. Every
+    /// table address of a definition is laid out for an image of that size,
+    /// so the image is probably not this ROM, or not a whole one (a partial
+    /// read, a dump with a header or trailing bytes): an edit made through
+    /// the definition could change the wrong bytes. The ROM opens for
+    /// viewing with editing disabled (EC-02); legacy RomRaider never
+    /// compared the sizes and silently shifted every table address by the
+    /// difference. Open the full, raw image of the ROM, or the definition
+    /// meant for it. A definition with no `<filesize>` is not checked.
+    ROM_SIZE_MISMATCH = "DEF0029", Error, since "0.1.0";
 
     /// A definition names a storage type the encoding does not support.
     ///
@@ -858,6 +893,20 @@ registry! {
     /// (bytes that are not UTF-8 are still refused, `XML0002`). The
     /// position is the declared name; correct it to `UTF-8`.
     XML_ENCODING_MISMATCH = "XML0012", Warning, since "0.1.0";
+
+    /// A definition's unit string names no unit the registry knows.
+    ///
+    /// The string (a `<scaling units>` or logger `<conversion units>`, say)
+    /// is neither one of the legacy unit strings mapped to a registry unit
+    /// nor a label of the form `Quantity (unit)` whose bracketed part is
+    /// one, nor a string that says the value has no unit (`raw ecu value`,
+    /// `count`). The message quotes it. The value is still shown, with the
+    /// string as its label, but it cannot be converted to another unit or
+    /// given a unit's default gauge range; legacy RomRaider gave every
+    /// string it did not know a 0 to 100 gauge without a word. Strings are
+    /// matched exactly, so `c` is not `C`: use one of the spellings listed
+    /// in `rr_core::units::LEGACY_ALIASES`.
+    UNKNOWN_UNIT_STRING = "UNT0001", Warning, since "0.1.0";
 }
 
 /// Retired codes, which may never be reused. Empty until a code is retired.
@@ -1223,6 +1272,9 @@ mod tests {
         ("DEF0025", "UNUSABLE_TO_BYTE"),
         ("DEF0026", "DUPLICATE_XMLID"),
         ("DEF0027", "UNTYPED_TABLE"),
+        ("DEF0028", "AMBIGUOUS_ROM_ID"),
+        ("DEF0029", "ROM_SIZE_MISMATCH"),
+        ("UNT0001", "UNKNOWN_UNIT_STRING"),
     ];
 
     /// A break of the stability rules against the published ledger.

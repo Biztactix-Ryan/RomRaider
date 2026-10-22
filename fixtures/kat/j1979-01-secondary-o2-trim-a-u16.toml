@@ -1,0 +1,158 @@
+# SAE J1979 service $01 PID vectors (US-RR-14-6, PROJECT.md T2 (d), D-024):
+# secondary oxygen sensor trims, bank 1 or 2: 100/128 A - 100 (byte A of 2).
+#
+# Formula sources. SAE J1979 and ISO 15031-5 are paywalled and were not
+# consulted; the formula is taken from two secondary sources that attribute
+# it to SAE J1979, which agree (see `notes`): Wikipedia's "OBD-II PIDs" table
+# and CSS Electronics' service 01 PID CSV. The response framing (0x41 = 0x01 +
+# 0x40, then the PID echoed, then the data bytes A, B, ...) is from the ELM327
+# datasheet (ELM327DSJ, pp. 31-32). The input is service-layer bytes only:
+# no transport framing (ISO 15765-2 PCI byte, ISO 14230 / 9141 header and
+# checksum).
+#
+# Which PIDs: the mode 01 PIDs legacy RomRaider's OBD logger offers
+# (<protocol id="OBD"> of the pinned logger definition, corpus tier,
+# defs/romraider/logger/logger_STD_EN_v290.xml:34769; the same PIDs in
+# logger_v370). Each PID and the line of its <parameter> there:
+# 55 line 35325, 56 line 35331, 57 line 35337, 58 line 35343.
+#
+# Every value was worked from Wikipedia's formula in exact rational arithmetic
+# (Python fractions, in a throwaway authoring script kept outside the
+# repository, which also wrote each step into the working) and recomputed
+# from CSS's scale and offset as an independent check; the two ELM327
+# examples match the datasheet. Never with rr-core, rr-testkit or legacy
+# code. Review by recomputing a working by hand.
+# Each PID has a case with every data byte 0x00, one with every data byte
+# 0xFF, and at least one typical value.
+schema = 1
+title = "SAE J1979 service 01: secondary oxygen sensor trims, bank 1 or 2: 100/128 A - 100 (byte A of 2)"
+notes = """
+Standard: SAE J1979 (E/E Diagnostic Test Modes), service $01 (show current data), PIDs 55, 56, 57, 58.
+Edition and table not verified first-hand: SAE J1979 and ISO 15031-5 are paywalled. Wikipedia's
+"Further reading" lists SAE J1979 (2017-02-16, doi:10.4271/J1979_201702) and its Digital Annex
+SAE J1979-DA (2017-02-16, doi:10.4271/J1979DA_201702); neither was consulted.
+Via (secondary): Wikipedia, "OBD-II PIDs", revision 1374011962 (2026-09-09T07:43:07Z), section "Service 01 - Show current data", Formula column, rows 55, 56, 57, 58: 100/128 A - 100.
+Via (secondary): CSS Electronics, "OBD2 PID table, service 01" CSV (https://canlogger.csselectronics.com/files/misc/obd2-pid-table-service-01.csv, retrieved 2026-10-22, SHA-256 3283f807111a5176bb13724477b62e20ee84386d4b031dc60301759e5be160d1), rows 55, 56, 57, 58: scale 0.78125, offset -100.
+Framing: Elm Electronics ELM327 datasheet, revision ELM327DSJ, "Talking to the Vehicle", pp. 31-32: a mode 01 response is 0x41 (0x01 + 0x40), the PID echoed, then the data bytes.
+Each case's offset is the first data byte (A) of one response; the two bytes before it are 0x41 and the PID.
+Formula: trim = 100/128 * A - 100 %, -100 to 99.21875 %: bank 1 (PIDs 55, 56) or bank 2 (57, 58). Byte B is bank 3 or 4 (j1979-01-secondary-o2-trim-b-u16.toml, same responses).
+PIDs: 0x55 short term secondary oxygen sensor trim, banks 1 and 3; 0x56 long term secondary oxygen sensor trim, banks 1 and 3; 0x57 short term secondary oxygen sensor trim, banks 2 and 4; 0x58 long term secondary oxygen sensor trim, banks 2 and 4.
+"""
+
+# The document these values rest on (US-RR-14-1, validator rule `citation`).
+# Flagged exception: SAE J1979 is paywalled, so its edition and section were
+# not read first-hand (`verified = false`); the formula comes from the `via`
+# sources. Allowed only in the j1979-01-* fixtures.
+[[citation]]
+kind = "standard"
+doc = "SAE J1979"
+edition = "2017-02 (J1979_201702, as Wikipedia lists it; not consulted)"
+section = "service $01 (show current data), PIDs 0x55, 0x56, 0x57, 0x58"
+verified = false
+via = [
+  "Wikipedia, \"OBD-II PIDs\", revision 1374011962 (2026-09-09T07:43:07Z), section \"Service 01 - Show current data\", Formula column, rows 55, 56, 57, 58: 100/128 A - 100.",
+  "CSS Electronics, \"OBD2 PID table, service 01\" CSV (https://canlogger.csselectronics.com/files/misc/obd2-pid-table-service-01.csv, retrieved 2026-10-22, SHA-256 3283f807111a5176bb13724477b62e20ee84386d4b031dc60301759e5be160d1), rows 55, 56, 57, 58: scale 0.78125, offset -100.",
+]
+note = "SAE J1979 and ISO 15031-5 are paywalled and were not consulted. `edition` is the edition Wikipedia's \"Further reading\" lists (SAE J1979 and its Digital Annex SAE J1979-DA, both 2017-02-16, doi:10.4271/J1979_201702 and doi:10.4271/J1979DA_201702), not one these values were checked against; `section` is the service and PID, not a clause or table number, which is unknown. The formula is taken from the `via` sources, which attribute it to SAE J1979."
+
+[definition.encoding]
+storage = "u16"
+endian = "big"
+bitfield = { mask = 0xFF00 }
+
+[definition.conversion]
+to_real = "x*100/128-100"
+units = "%"
+
+[input]
+hex = """
+41 55 00 00  41 55 FF FF  41 55 80 85
+41 56 00 00  41 56 FF FF  41 56 7A 80
+41 57 00 00  41 57 FF FF  41 57 8A 76
+41 58 00 00  41 58 FF FF  41 58 80 80
+"""
+
+[[decode]]
+offset = 2
+raw = 0
+real = -100.0
+source = { kind = "hand-calc", working = "PID 0x55 response 41 55 00 00: A = 0x00 = 0*16 + 0 = 0 (B is another signal, masked out); raw = A = 0; trim = 0*100/128 - 100 = 0/128 - 100 = 0.0 - 100 = -100.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 6
+raw = 255
+real = 99.21875
+source = { kind = "hand-calc", working = "PID 0x55 response 41 55 FF FF: A = 0xFF = 15*16 + 15 = 255 (B is another signal, masked out); raw = A = 255; trim = 255*100/128 - 100 = 25500/128 - 100 = 199.21875 - 100 = 99.21875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 10
+raw = 128
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x55 response 41 55 80 85: A = 0x80 = 8*16 + 0 = 128 (B is another signal, masked out); raw = A = 128; trim = 128*100/128 - 100 = 12800/128 - 100 = 100.0 - 100 = 0.0" }
+
+[[decode]]
+offset = 14
+raw = 0
+real = -100.0
+source = { kind = "hand-calc", working = "PID 0x56 response 41 56 00 00: A = 0x00 = 0*16 + 0 = 0 (B is another signal, masked out); raw = A = 0; trim = 0*100/128 - 100 = 0/128 - 100 = 0.0 - 100 = -100.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 18
+raw = 255
+real = 99.21875
+source = { kind = "hand-calc", working = "PID 0x56 response 41 56 FF FF: A = 0xFF = 15*16 + 15 = 255 (B is another signal, masked out); raw = A = 255; trim = 255*100/128 - 100 = 25500/128 - 100 = 199.21875 - 100 = 99.21875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 22
+raw = 122
+real = -4.6875
+source = { kind = "hand-calc", working = "PID 0x56 response 41 56 7A 80: A = 0x7A = 7*16 + 10 = 122 (B is another signal, masked out); raw = A = 122; trim = 122*100/128 - 100 = 12200/128 - 100 = 95.3125 - 100 = -4.6875" }
+
+[[decode]]
+offset = 26
+raw = 0
+real = -100.0
+source = { kind = "hand-calc", working = "PID 0x57 response 41 57 00 00: A = 0x00 = 0*16 + 0 = 0 (B is another signal, masked out); raw = A = 0; trim = 0*100/128 - 100 = 0/128 - 100 = 0.0 - 100 = -100.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 30
+raw = 255
+real = 99.21875
+source = { kind = "hand-calc", working = "PID 0x57 response 41 57 FF FF: A = 0xFF = 15*16 + 15 = 255 (B is another signal, masked out); raw = A = 255; trim = 255*100/128 - 100 = 25500/128 - 100 = 199.21875 - 100 = 99.21875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 34
+raw = 138
+real = 7.8125
+source = { kind = "hand-calc", working = "PID 0x57 response 41 57 8A 76: A = 0x8A = 8*16 + 10 = 138 (B is another signal, masked out); raw = A = 138; trim = 138*100/128 - 100 = 13800/128 - 100 = 107.8125 - 100 = 7.8125" }
+
+[[decode]]
+offset = 38
+raw = 0
+real = -100.0
+source = { kind = "hand-calc", working = "PID 0x58 response 41 58 00 00: A = 0x00 = 0*16 + 0 = 0 (B is another signal, masked out); raw = A = 0; trim = 0*100/128 - 100 = 0/128 - 100 = 0.0 - 100 = -100.0" }
+note = "boundary: every data byte 0x00"
+
+[[decode]]
+offset = 42
+raw = 255
+real = 99.21875
+source = { kind = "hand-calc", working = "PID 0x58 response 41 58 FF FF: A = 0xFF = 15*16 + 15 = 255 (B is another signal, masked out); raw = A = 255; trim = 255*100/128 - 100 = 25500/128 - 100 = 199.21875 - 100 = 99.21875" }
+note = "boundary: every data byte 0xFF"
+
+[[decode]]
+offset = 46
+raw = 128
+real = 0.0
+source = { kind = "hand-calc", working = "PID 0x58 response 41 58 80 80: A = 0x80 = 8*16 + 0 = 128 (B is another signal, masked out); raw = A = 128; trim = 128*100/128 - 100 = 12800/128 - 100 = 100.0 - 100 = 0.0" }
+
+[[changelog]]
+date = 2026-10-22
+reason = "initial values"
+author = "US-RR-14-6"

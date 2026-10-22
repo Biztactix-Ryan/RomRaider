@@ -45,7 +45,11 @@
 /crates/rr-core/src/expr.rs                 @Biztactix-Ryan
 /crates/rr-core/src/expr/                   @Biztactix-Ryan
 
-# --- rr-rom write path: save, journal, checksum, table write --------------
+# --- rr-rom write path: byte image, save, journal, checksum, table write --
+# The byte image's crate-private `apply_patch` is the one mutator every
+# journaled patch goes through (US-RR-31-4).
+/crates/rr-rom/src/image.rs                 @Biztactix-Ryan
+/crates/rr-rom/src/image/                   @Biztactix-Ryan
 /crates/rr-rom/src/save.rs                  @Biztactix-Ryan
 /crates/rr-rom/src/save/                    @Biztactix-Ryan
 /crates/rr-rom/src/journal.rs               @Biztactix-Ryan
@@ -72,6 +76,12 @@
 /crates/*/tests/t6_*                        @Biztactix-Ryan
 # trybuild compile-fail fixtures driven by rr-core's t6_token_compile_fail.
 /crates/rr-core/tests/ui/                   @Biztactix-Ryan
+# trybuild compile-fail fixtures driven by rr-rom's no_unpatched_mutation:
+# no public API mutates image bytes without a patch (US-RR-31-4).
+/crates/rr-rom/tests/ui/                    @Biztactix-Ryan
+# trybuild compile-fail fixtures driven by rr-defs' frozen_definition: a
+# resolved Definition cannot be changed from outside rr-defs (US-RR-34-5).
+/crates/rr-defs/tests/ui/                   @Biztactix-Ryan
 # T7 mutation gate: gated module paths and justified exclusions
 # (cargo-mutants' default config location).
 /.cargo/mutants.toml                        @Biztactix-Ryan

@@ -8,11 +8,31 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
+# Opening a ROM through its definition (src/open.rs, US-RR-34-8): the
+# frozen `Definition` and the diagnostics of a size mismatch.
+rr-core = { path = "../rr-core" }
+rr-defs = { path = "../rr-defs" }
 # #[rr_write] on every write API; `cargo xtask check-writes` requires a token.
 rr-write-marker.workspace = true
+# SHA-256 of the original image (src/image.rs): the base-image identity a
+# sidecar journal is bound to (US-RR-31).
+sha2.workspace = true
+# Reading the sidecar `.rrjournal` (src/journal/sidecar.rs, US-RR-31-9):
+# TOML with `schema = N`, like every other file format of our own
+# (ARCHITECTURE.md "Profile files", D-014). Writing is hand-formatted.
+serde.workspace = true
+toml.workspace = true
 
 [dev-dependencies]
+# Snapshot of the refusal of an image two definitions match
+# (tests/ambiguous_rom.rs, US-RR-34-2; EC-03).
+insta.workspace = true
+# Property tests of patch application (src/image/tests.rs, US-RR-31-6).
+proptest.workspace = true
 rr-testkit = { path = "../rr-testkit" }
+# Compile-fail suite (tests/no_unpatched_mutation.rs, US-RR-31-4): no public
+# API changes image bytes without a journal patch.
+trybuild.workspace = true
 
 [features]
 # Test-only: run the private-tier (`RR_FIXTURES_DIR`) tests. Forwards to the

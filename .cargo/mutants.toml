@@ -29,7 +29,7 @@
 # with no justification, so such an exclusion belongs here (task US-RR-4-3).
 
 examine_globs = [
-    # --- rr-core (PROJECT.md T7; ARCHITECTURE.md C1, C2, C3, C4) ---
+    # --- rr-core (PROJECT.md T7; ARCHITECTURE.md C1, C2, C3, C4, C5) ---
     # C3 Encoding: storage, endianness, bitfields, layout.
     "crates/rr-core/src/encoding.rs",
     "crates/rr-core/src/encoding/**",
@@ -46,6 +46,9 @@ examine_globs = [
     # the byte pattern text parser.
     "crates/rr-core/src/pattern.rs",
     "crates/rr-core/src/pattern/**",
+    # C5 Units: the unit registry and conversions within a dimension.
+    "crates/rr-core/src/units.rs",
+    "crates/rr-core/src/units/**",
     # Capability tokens (D-011, US-RR-7): the type-level half of write
     # gating; rr-rom and rr-comms write APIs take these tokens.
     "crates/rr-core/src/capability.rs",
@@ -56,6 +59,10 @@ examine_globs = [
     "crates/rr-core/src/diag.rs",
 
     # --- rr-rom (ARCHITECTURE.md C10, C11) ---
+    # C10 Byte image: the one crate-private mutator every patch goes through
+    # (apply_patch's length, bounds and stale-byte checks).
+    "crates/rr-rom/src/image.rs",
+    "crates/rr-rom/src/image/**",
     # C10 Patch journal: every mutation of a ROM image.
     "crates/rr-rom/src/journal.rs",
     "crates/rr-rom/src/journal/**",

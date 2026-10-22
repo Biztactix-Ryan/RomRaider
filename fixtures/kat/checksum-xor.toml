@@ -1,0 +1,159 @@
+# Checksum reference vectors: XOR of bytes and of 32-bit words (US-RR-14-7,
+# PROJECT.md T2 (d), D-024).
+#
+# There is no published standard for an XOR checksum, so every expected value
+# is worked by hand below. No code was run to produce them: not rr-core, not
+# rr-testkit, not legacy, not a throwaway script or calculator.
+# crates/rr-testkit/tests/checksum_kat.rs re-derives every case with its own
+# small reference implementation on every test run.
+#
+# Families pinned (US-RR-35's `Xor`; legacy semantics cited, values never
+# taken from it):
+# * XOR of bytes: BMW byte-XOR (legacy/src/main/java/com/romraider/maps/checksum/ChecksumBYTEXOR.java:77-85,
+#   one byte stored at `xorloc`, :72) and the DS2 frame checksum
+#   (legacy/src/main/java/com/romraider/io/protocol/ds2/iso9141/DS2ChecksumCalculator.java:29-35);
+# * XOR of 32-bit big-endian words: Nissan std/alt/alt2 `xort`
+#   (legacy/src/main/java/com/romraider/maps/checksum/CalculateSTD.java:47-51,
+#   CalculateALT2.java:49-55, stored big-endian by NissanChecksum.java:79).
+#
+# XOR has no carries, so a word XOR is the byte XOR of each byte column: the
+# word byte order only matters against the store byte order (a little-endian
+# word XOR stored little-endian is the same bytes as big-endian stored
+# big-endian). Odd-length ranges: see checksum-sum-words.toml; legacy has no
+# padding convention (CalculateSTD.java:47-49 reads whole words past `end`),
+# and `pad = "zero"` completes the last word with 0x00 bytes at the higher
+# addresses, which leaves an XOR unchanged by the pad itself.
+schema = 1
+title = "XOR checksums (bytes, 32-bit words big/little-endian): ASCII 123456789, all-0xFF, empty, odd length"
+notes = """
+Shared layout of the checksum vector fixtures (checksum-*.toml), one input:
+  bytes  0..8   FF FF FF FF FF FF FF FF   all-0xFF block
+  bytes  8..17  31 32 33 34 35 36 37 38 39  ASCII "123456789"
+  bytes 17..21  00 00 00 00   the stored-checksum slot, zero as given
+Every case reads its region and stores its result at offset 17. `before` is the
+zero slot as given (valid only when the expected checksum is itself zero);
+`after` is the slot once the checksum is fixed.
+
+algorithm = "xor", params:
+  start, end  the region, half-open [start, end)
+  word        bytes per operand: 1 or 4 (the result is word bytes wide)
+  endian      "big" | "little", for word > 1
+  pad         "zero": a last partial word is completed with 0x00 bytes
+  store       byte order of the stored result
+The XOR of no operands is 0.
+"""
+
+# The documents these values rest on (US-RR-14-1, validator rule `citation`).
+# Flagged exception: no published standard defines these sums, so the
+# citations are the legacy code whose algorithm the hand-worked values model
+# (`legacy-algorithm`, allowed only in the checksum sum and XOR fixtures).
+[[citation]]
+kind = "legacy-algorithm"
+file = "legacy/src/main/java/com/romraider/maps/checksum/ChecksumBYTEXOR.java"
+lines = "72,77-85"
+note = "BMW byte XOR, one byte stored at `xorloc`. No published standard defines this checksum, so no standard is cited: the values are worked by hand (each case's `working`) and re-derived by checksum_kat.rs; this cites the legacy algorithm they model, for its semantics only (D-024, US-RR-35)."
+
+[[citation]]
+kind = "legacy-algorithm"
+file = "legacy/src/main/java/com/romraider/io/protocol/ds2/iso9141/DS2ChecksumCalculator.java"
+lines = "29-35"
+note = "DS2 frame checksum: XOR of bytes. No published standard defines this checksum, so no standard is cited: the values are worked by hand (each case's `working`) and re-derived by checksum_kat.rs; this cites the legacy algorithm they model, for its semantics only (D-024, US-RR-35)."
+
+[[citation]]
+kind = "legacy-algorithm"
+file = "legacy/src/main/java/com/romraider/maps/checksum/CalculateSTD.java"
+lines = "47-51"
+note = "Nissan std `xort`: XOR of 32-bit big-endian words. No published standard defines this checksum, so no standard is cited: the values are worked by hand (each case's `working`) and re-derived by checksum_kat.rs; this cites the legacy algorithm they model, for its semantics only (D-024, US-RR-35)."
+
+[[citation]]
+kind = "legacy-algorithm"
+file = "legacy/src/main/java/com/romraider/maps/checksum/CalculateALT2.java"
+lines = "49-55"
+note = "Nissan alt2 `xort`. No published standard defines this checksum, so no standard is cited: the values are worked by hand (each case's `working`) and re-derived by checksum_kat.rs; this cites the legacy algorithm they model, for its semantics only (D-024, US-RR-35)."
+
+[[citation]]
+kind = "legacy-algorithm"
+file = "legacy/src/main/java/com/romraider/maps/checksum/NissanChecksum.java"
+lines = "79"
+note = "Nissan: the 32-bit XOR stored big-endian. No published standard defines this checksum, so no standard is cited: the values are worked by hand (each case's `working`) and re-derived by checksum_kat.rs; this cites the legacy algorithm they model, for its semantics only (D-024, US-RR-35)."
+
+[input]
+hex = """
+FF FF FF FF FF FF FF FF
+31 32 33 34 35 36 37 38 39
+00 00 00 00
+"""
+
+[[checksum]]
+algorithm = "xor"
+params = { start = 8, end = 17, word = 1, store = "big" }
+offset = 17
+before = { hex = "00", valid = false, source = { kind = "hand-calc", working = "stored byte 17 = 0x00 = 0*16 + 0 = 0; the XOR is 0x31 = 49, and 0 != 49, so it does not verify" } }
+after = { hex = "31", valid = true, source = { kind = "hand-calc", working = "0x31 ^ 0x32 = 0x03; 0x03 ^ 0x33 = 0x30; 0x30 ^ 0x34 = 0x04; 0x04 ^ 0x35 = 0x31; 0x31 ^ 0x36 = 0x07; 0x07 ^ 0x37 = 0x30; 0x30 ^ 0x38 = 0x08; 0x08 ^ 0x39 = 0x31 = 49 (high nibble 3 nine times = 3, low nibbles 1^2^...^9 = 1)" } }
+note = "a sum instead of an XOR gives 0xDD"
+
+[[checksum]]
+algorithm = "xor"
+params = { start = 0, end = 4, word = 1, store = "big" }
+offset = 17
+before = { hex = "00", valid = true, source = { kind = "hand-calc", working = "all-0xFF, 4 bytes: 0xFF ^ 0xFF = 0x00, twice, so 0x00 ^ 0x00 = 0; stored byte 17 = 0x00 = 0, so it verifies" } }
+after = { hex = "00", valid = true, source = { kind = "hand-calc", working = "0xFF ^ 0xFF ^ 0xFF ^ 0xFF = (0xFF ^ 0xFF) ^ (0xFF ^ 0xFF) = 0x00 ^ 0x00 = 0" } }
+note = "an even count of equal bytes cancels"
+
+[[checksum]]
+algorithm = "xor"
+params = { start = 0, end = 3, word = 1, store = "big" }
+offset = 17
+before = { hex = "00", valid = false, source = { kind = "hand-calc", working = "stored byte 17 = 0x00 = 0*16 + 0 = 0; the XOR is 0xFF = 255, and 0 != 255, so it does not verify" } }
+after = { hex = "FF", valid = true, source = { kind = "hand-calc", working = "0xFF ^ 0xFF ^ 0xFF = 0x00 ^ 0xFF = 255 = 0xFF" } }
+note = "an odd count of 0xFF bytes leaves 0xFF"
+
+[[checksum]]
+algorithm = "xor"
+params = { start = 8, end = 8, word = 1, store = "big" }
+offset = 17
+before = { hex = "00", valid = true, source = { kind = "hand-calc", working = "empty region: XOR of no bytes = 0 ^ 0 = 0; stored byte 17 = 0x00 = 0, so it verifies" } }
+after = { hex = "00", valid = true, source = { kind = "hand-calc", working = "empty region [8, 8): 8 - 8 = 0 operands, so XOR = initial 0 ^ 0 = 0x00" } }
+
+[[checksum]]
+algorithm = "xor"
+params = { start = 8, end = 16, word = 4, endian = "big", store = "big" }
+offset = 17
+before = { hex = "00 00 00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..21 = 00 00 00 00 = 0*16777216 + 0 = 0; the XOR is 0x0404040C = 67372044, and 0 != 67372044, so it does not verify" } }
+after = { hex = "04 04 04 0C", valid = true, source = { kind = "hand-calc", working = "0x31323334 ^ 0x35363738 = 0x0404040C (31^35 = 04, 32^36 = 04, 33^37 = 04, 34^38 = 0011 0100 ^ 0011 1000 = 0000 1100 = 0C) = 4*16777216 + 4*65536 + 4*256 + 12 = 67372044, stored big-endian 04 04 04 0C" } }
+note = "the Nissan xort form"
+
+[[checksum]]
+algorithm = "xor"
+params = { start = 8, end = 16, word = 4, endian = "little", store = "big" }
+offset = 17
+before = { hex = "00 00 00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..21 = 00 00 00 00 = 0*16777216 + 0 = 0; the XOR is 0x0C040404 = 201589764, and 0 != 201589764, so it does not verify" } }
+after = { hex = "0C 04 04 04", valid = true, source = { kind = "hand-calc", working = "0x34333231 ^ 0x38373635 = 0x0C040404 (34^38 = 0C, 33^37 = 04, 32^36 = 04, 31^35 = 04) = 12*16777216 + 4*65536 + 4*256 + 4 = 201589764, stored big-endian 0C 04 04 04" } }
+note = "little-endian words stored big-endian: the bytes come out reversed against the big-endian case"
+
+[[checksum]]
+algorithm = "xor"
+params = { start = 0, end = 8, word = 4, endian = "big", store = "big" }
+offset = 17
+before = { hex = "00 00 00 00", valid = true, source = { kind = "hand-calc", working = "all-0xFF: 0xFFFFFFFF ^ 0xFFFFFFFF = 0; stored 00 00 00 00 = 0*16777216 + 0 = 0, so it verifies" } }
+after = { hex = "00 00 00 00", valid = true, source = { kind = "hand-calc", working = "0xFFFFFFFF ^ 0xFFFFFFFF = 0x00000000 = 0" } }
+
+[[checksum]]
+algorithm = "xor"
+params = { start = 4, end = 12, word = 4, endian = "big", store = "big" }
+offset = 17
+before = { hex = "00 00 00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..21 = 00 00 00 00 = 0*16777216 + 0 = 0; the XOR is 0xCECDCCCB = 3469593803, and 0 != 3469593803, so it does not verify" } }
+after = { hex = "CE CD CC CB", valid = true, source = { kind = "hand-calc", working = "bytes FF FF FF FF 31 32 33 34: 0xFFFFFFFF ^ 0x31323334 = 0xCECDCCCB (FF^31 = CE, FF^32 = CD, FF^33 = CC, FF^34 = CB) = 206*16777216 + 205*65536 + 204*256 + 203 = 3469593803, stored big-endian CE CD CC CB" } }
+note = "XOR with all-ones is the bitwise NOT; a sum would give 0x31323333"
+
+[[checksum]]
+algorithm = "xor"
+params = { start = 8, end = 17, word = 4, endian = "big", pad = "zero", store = "big" }
+offset = 17
+before = { hex = "00 00 00 00", valid = false, source = { kind = "hand-calc", working = "stored bytes 17..21 = 00 00 00 00 = 0*16777216 + 0 = 0; the XOR is 0x3D04040C = 1023673356, and 0 != 1023673356, so it does not verify" } }
+after = { hex = "3D 04 04 0C", valid = true, source = { kind = "hand-calc", working = "9 bytes: last word 39 + pad 00 00 00 = 0x39000000; 0x0404040C ^ 0x39000000 = 0x3D04040C (04^39 = 3D) = 61*16777216 + 4*65536 + 4*256 + 12 = 1023673356, stored big-endian 3D 04 04 0C" } }
+note = "odd length, zero padding at the higher addresses"
+
+[[changelog]]
+date = 2026-10-22
+reason = "initial values"

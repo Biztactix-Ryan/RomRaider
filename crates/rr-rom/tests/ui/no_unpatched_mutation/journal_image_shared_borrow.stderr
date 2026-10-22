@@ -1,0 +1,11 @@
+error[E0594]: cannot assign to data in a `&` reference
+ --> tests/ui/no_unpatched_mutation/journal_image_shared_borrow.rs:9:5
+  |
+9 |     *journal.image() = Image::new(vec![0xFF, 0xFF]);
+  |     ^^^^^^^^^^^^^^^^ cannot assign
+
+error[E0594]: cannot assign to data in a `&` reference
+  --> tests/ui/no_unpatched_mutation/journal_image_shared_borrow.rs:10:5
+   |
+10 |     journal.image().bytes()[0] = 0xFF;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ cannot assign

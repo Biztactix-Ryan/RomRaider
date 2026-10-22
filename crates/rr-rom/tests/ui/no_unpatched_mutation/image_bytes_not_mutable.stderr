@@ -1,0 +1,57 @@
+error[E0616]: field `bytes` of struct `Image` is private
+  --> tests/ui/no_unpatched_mutation/image_bytes_not_mutable.rs:12:11
+   |
+12 |     image.bytes[0] = 0xFF;
+   |           ^^^^^ private field
+
+error[E0599]: no method named `bytes_mut` found for struct `Image` in the current scope
+  --> tests/ui/no_unpatched_mutation/image_bytes_not_mutable.rs:14:19
+   |
+14 |     let _ = image.bytes_mut();
+   |                   ^^^^^^^^^
+   |
+help: there is a method `bytes` with a similar name
+   |
+14 -     let _ = image.bytes_mut();
+14 +     let _ = image.bytes();
+   |
+
+error[E0608]: cannot index into a value of type `Image`
+  --> tests/ui/no_unpatched_mutation/image_bytes_not_mutable.rs:16:10
+   |
+16 |     image[0] = 0xFF;
+   |          ^^^
+
+error[E0614]: type `Image` cannot be dereferenced
+  --> tests/ui/no_unpatched_mutation/image_bytes_not_mutable.rs:18:5
+   |
+18 |     (*image)[0] = 0xFF;
+   |     ^^^^^^^^ can't be dereferenced
+
+error[E0599]: no method named `as_mut` found for struct `Image` in the current scope
+  --> tests/ui/no_unpatched_mutation/image_bytes_not_mutable.rs:20:30
+   |
+20 |     let _: &mut [u8] = image.as_mut();
+   |                              ^^^^^^ method not found in `Image`
+
+error[E0277]: the trait bound `Image: BorrowMut<[u8]>` is not satisfied
+  --> tests/ui/no_unpatched_mutation/image_bytes_not_mutable.rs:22:25
+   |
+22 |     let _: &mut [u8] = <Image as BorrowMut<[u8]>>::borrow_mut(&mut image);
+   |                         ^^^^^ the trait `BorrowMut<[u8]>` is not implemented for `Image`
+
+error[E0277]: `&mut Image` is not an iterator
+  --> tests/ui/no_unpatched_mutation/image_bytes_not_mutable.rs:24:17
+   |
+24 |     for byte in &mut image {
+   |                 ^^^^^^^^^^ `&mut Image` is not an iterator
+   |
+   = help: the trait `Iterator` is not implemented for `Image`
+   = note: required for `&mut Image` to implement `Iterator`
+   = note: required for `&mut Image` to implement `IntoIterator`
+
+error[E0599]: no method named `extend` found for struct `Image` in the current scope
+  --> tests/ui/no_unpatched_mutation/image_bytes_not_mutable.rs:28:11
+   |
+28 |     image.extend([0xFF]);
+   |           ^^^^^^ method not found in `Image`
